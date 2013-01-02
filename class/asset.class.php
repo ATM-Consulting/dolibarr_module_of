@@ -8,7 +8,7 @@ class TAsset extends TObjetStd{
 	function __construct() {
 		$this->set_table('llx_asset');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity','type=entier;');
+		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity,copy_black,copy_color','type=entier;');
 		/*
 		 * periodicity : nombre de jour depuis dernière intervention avant nouvelle intervention
 		 * qty : quantité (champs présent dans la gestion oracle pour une raison qui nous échappe)
