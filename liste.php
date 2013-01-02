@@ -1,5 +1,5 @@
 <?php
-	require('../atm-core/inc-dolibarr.php');
+	require('config.php');
 	
 	_liste($user->entity);
 

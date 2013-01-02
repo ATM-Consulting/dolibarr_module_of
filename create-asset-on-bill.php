@@ -6,7 +6,9 @@
  * 2. création des équipements sur les lignes de facture
  * */
 
- require('../atm-core/inc-dolibarr.php');
+ define('INC_FROM_CRON_SCRIPT', true);
+ require('config.php');	
+	
  require('./class/asset.class.php');
  
  _create($_REQUEST['facid'],'facture',$_REQUEST['entity']);

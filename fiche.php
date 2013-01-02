@@ -1,6 +1,7 @@
 <?php
 
-require('../atm-core/inc-dolibarr.php');
+require('config.php');
+
 require('./class/asset.class.php');
 
 // Load traductions files requiredby by page
