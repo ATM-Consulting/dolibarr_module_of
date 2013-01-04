@@ -8,7 +8,10 @@ class TAsset extends TObjetStd{
 	function __construct() {
 		$this->set_table('llx_asset');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity,copy_black,copy_color','type=entier;');
+		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity','type=entier;');
+		
+		$this->add_champs('copy_black,copy_color', 'type=float;');
+		
 		/*
 		 * periodicity : nombre de jour depuis dernière intervention avant nouvelle intervention
 		 * qty : quantité (champs présent dans la gestion oracle pour une raison qui nous échappe)
@@ -97,7 +100,7 @@ class TAssetLink extends TObjetStd{
 	function __construct() {
 		$this->set_table('llx_asset_link');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_asset,fk_document','type=entier;');
+		$this->add_champs('fk_asset,fk_document,fk_soc,fk_affaire','type=entier;');
 				
 		$this->_init_vars('type_document');
 		
