@@ -2,6 +2,7 @@
 
 	define('ROOT','/var/www/ATM/dolibarr/');
 	define('COREROOT','/var/www/ATM/atm-core/');
+	define('COREHTTP','http://127.0.0.1/ATM/atm-core/');
 
 	define('HTTP','http://127.0.0.1/ATM/dolibarr/');
 

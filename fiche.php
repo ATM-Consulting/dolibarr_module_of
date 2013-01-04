@@ -106,20 +106,20 @@ function _fiche(&$asset, $mode='edit') {
 	
 	llxHeader('','Equipement','','');
 	
-	$form=new ATMForm($_SERVER['PHP_SELF'],'formeq','POST');
+	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
 	
 	echo $form->hidden('id', $asset->rowid);
 	echo $form->hidden('action', 'save');
 	
 	
-	if($mode==view) {
+	if($mode=='view') {
 		?>
 		<div class="fiche"> <!-- begin div class="fiche" -->
 		
 		<div class="tabs">
 		<a class="tabTitle"><img border="0" title="" alt="" src="<?=DOL_MAIN_URL_ROOT_ALT ?>/atm-core/img/object_technic.png"> Equipement</a>
-		<a href="<?=DOL_MAIN_URL_ROOT_ALT ?>/asset/fiche.php?id=<?=$asset->rowid ?>" class="tab" id="active">Fiche</a>
+		<a href="<?=$_SERVER['PHP_SELF' ]?>?id=<?=$asset->rowid ?>" class="tab" id="active">Fiche</a>
 		</div>
 		
 			<div class="tabBar"><?
@@ -134,10 +134,15 @@ function _fiche(&$asset, $mode='edit') {
 			<tr><td>Périodicité (en jours)</td><td><?=$form->texte('', 'periodicity', $asset->periodicity, 8,10,'','','à saisir') ?></td></tr>
 			<tr><td>Produit</td><td><?=_fiche_visu_produit($asset,$mode); ?></td></tr>
 			<tr><td>Société</td><td><?=_fiche_visu_societe($asset,$mode); ?></td></tr>
+			<tr><td>Affaire</td><td><?=_fiche_visu_affaire($asset,$mode); ?></td></tr>
 			<tr><td>date d'achat</td><td><?=$form->texte('', 'date_achat ', $asset->get_date('date_achat') 	, 12,10,'','','à saisir') ?></td></tr>
 			<tr><td>date de livraison</td><td><?=$form->texte('', 'date_shipping ', $asset->get_date('date_shipping') 	, 12,10,'','','à saisir') ?></td></tr>
 			<tr><td>date de garantie</td><td><?=$form->texte('', 'date_garantie ', $asset->get_date('date_garantie') 	, 12,10,'','','à saisir') ?></td></tr>
 			<tr><td>date de dernière intervention</td><td><?=$form->texte('', 'date_last_intervention ', $asset->get_date('date_last_intervention') 	, 12,10,'','','à saisir') ?></td></tr>
+
+			<tr><td>Coût copie noir & blanc</td><td><?=$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00') ?></td></tr>
+			<tr><td>Coût copie couleur</td><td><?=$form->texte('', 'copy_color', $asset->copy_color, 12,10,'','','0.00') ?></td></tr>
+
 			</table>
 		<?
 	
@@ -148,9 +153,9 @@ function _fiche(&$asset, $mode='edit') {
 		</div>
 		
 		<div class="tabsAction">
-		<a href="<?=DOL_MAIN_URL_ROOT_ALT ?>/asset/fiche.php?id=<?=$asset->rowid ?>&action=edit" class="butAction">Modifier</a>
+		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='<?=$_SERVER['PHP_SELF']?>?action=delete&id=<?=$asset->rowid ?>'">
 		&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="button" onclick="document.location.href='<?=$_SERVER['PHP_SELF']?>?action=clone&id=<?=$asset->rowid ?>'">
-		&nbsp; &nbsp; <input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='<?=$_SERVER['PHP_SELF']?>?action=delete&id=<?=$asset->rowid ?>'">
+		&nbsp; &nbsp; <a href="<?=$_SERVER['PHP_SELF' ]?>?id=<?=$asset->rowid ?>&action=edit" class="butAction">Modifier</a>
 		</div><?
 
 	}
@@ -195,6 +200,32 @@ global $db;
 	}
 }
 function _fiche_visu_societe(&$asset, $mode) {
+global $db;
+	
+	if($mode=='edit') {
+		ob_start();	
+		
+		$html=new Form($db);
+		echo $html->select_company($asset->fk_soc,'fk_soc','',1);
+		
+		return ob_get_clean();
+		
+	}
+	else {
+		if($asset->fk_soc > 0) {
+			require_once(DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php');
+			
+			$soc = new Societe($db);
+			$soc->fetch($asset->fk_soc);	
+				
+			return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$asset->fk_soc.'" style="font-weight:bold;"><img border="0" src="'.DOL_URL_ROOT.'/theme/atm/img/object_company.png"> '.$soc->nom.'</a>';
+		} else {
+			return 'Non défini';
+		}
+	}
+}
+
+function _fiche_visu_affaire(&$asset, $mode) {
 global $db;
 	
 	if($mode=='edit') {

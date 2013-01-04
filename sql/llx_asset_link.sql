@@ -25,7 +25,6 @@ CREATE TABLE  `dolibarr`.`llx_asset_link` (
 `date_maj` DATETIME NOT NULL,
 `fk_asset` INT NOT NULL ,
 `fk_document` INT NOT NULL ,
-`fk_soc` INT NOT NULL ,
-`fk_affaire` INT NOT NULL ,
+
 `type_document` VARCHAR( 30 ) NOT NULL
 ) ENGINE = INNODB ;

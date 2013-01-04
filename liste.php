@@ -8,6 +8,7 @@ global $langs,$db,$user;
 	
 
 	llxHeader('','Liste des équipements installés','','');
+	getStandartJS();
 	
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
@@ -45,7 +46,7 @@ global $langs,$db,$user;
 	}
 
 
-	$form=new ATMForm;
+	$form=new TFormCore;
 
  
  	$table = 'llx_asset';

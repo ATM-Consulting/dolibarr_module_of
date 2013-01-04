@@ -27,6 +27,7 @@ CREATE TABLE  `dolibarr`.`llx_asset` (
 `date_maj` DATETIME NOT NULL,
 `fk_soc` INT NOT NULL ,
 `fk_product` INT NOT NULL ,
+`fk_affaire` INT NOT NULL ,
 `serial_number` VARCHAR(255) NOT NULL,
 `date_achat` DATE NOT NULL ,
 `prix_achat` FLOAT NOT NULL ,
