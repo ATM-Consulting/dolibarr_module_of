@@ -76,7 +76,7 @@ $ATMdb=new Tdb;
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=DOL_MAIN_URL_ROOT_ALT ?>/asset/liste.php?delete_ok=1";					
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste.php?delete_ok=1";					
 				</script>
 				<?
 				
