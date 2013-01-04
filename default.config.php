@@ -18,6 +18,8 @@
 	define('DB_PASS',$dolibarr_main_db_pass);
 	define('DB_DRIVER','mysqli');
 
+	define('DOL_PACKAGE',true);
+
 	require(COREROOT.'inc.core.php');
 	
 	

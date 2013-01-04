@@ -22,6 +22,8 @@
 
 ALTER TABLE llx_asset ADD INDEX idx_asset_fk_soc (fk_soc);
 ALTER TABLE llx_asset ADD INDEX idx_asset_fk_product (fk_product);
+ALTER TABLE llx_asset ADD INDEX idx_asset_fk_soc (fk_soc);
+ALTER TABLE llx_asset ADD INDEX idx_asset_fk_affaire (fk_affaire);
 ALTER TABLE `llx_asset` ADD INDEX idx_asset_entity ( `entity` ) ;
 
 
