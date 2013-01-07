@@ -1,5 +1,9 @@
 <?php
 	require('config.php');
+	require('./class/asset.class.php');
+	
+	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
+	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	
 	_liste($user->entity);
 
@@ -42,13 +46,12 @@ global $langs,$db,$user;
 	}
 	
 	else{
-		print load_fiche_titre('Equipements');
+		//print load_fiche_titre('Equipements');
 	}
 
 
 	$form=new TFormCore;
-
- 
+ /*
  	$table = 'llx_asset';
 	$listname = 'list_equipement';
 	$lst = new Tlistview($listname);
@@ -94,10 +97,62 @@ global $langs,$db,$user;
 	$lst->Set_OnClickAction('OpenForm','fiche.php?');
 	 
 	echo $lst->Render("Il n'y a pas d'équipement définis."); 	
+		
+		*/
+		
+	$asset=new TAsset;
+	$r = new TSSRenderControler($asset);
+	$sql="SELECT e.rowid as 'ID',e.serial_number as 'Numéro de série', p.label as 'Produit',e.fk_soc as 'fk_soc',s.nom as 'Société',
+			e.date_garantie as 'Date garantie', e.date_last_intervention as 'Date dernière intervention', e.date_cre as 'Création'
+	
+	FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
+				LEFT OUTER JOIN llx_societe s ON (e.fk_soc=s.rowid))
+	
+	WHERE 1 ";
+	$fk_soc=0;$fk_product=0;
+	if(isset($_REQUEST['fk_soc'])) {$sql.=" AND e.fk_soc=".$_REQUEST['fk_soc']; $fk_soc=$_REQUEST['fk_soc'];}
+	if(isset($_REQUEST['fk_product'])){$sql.=" AND e.fk_product=".$_REQUEST['fk_product']; $fk_product=$_REQUEST['fk_product'];}
+	
+	if($fk_soc==0 && $fk_product==0 && $id_entity!=0) {
+		$sql.= ' AND e.entity='.$id_entity;		
+	}	
+	if(isset($_REQUEST['no_serial'])) {
+		$sql.=" AND serial_number='' ";		
+	}
+	
+	
+	$THide = array('fk_soc');
+	
+	$ATMdb=new Tdb;
+	
+	$r->liste($ATMdb, $sql, array(
+		'limit'=>array(
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			,'nbLine'=>'30'
+		)
+		,'subQuery'=>array()
+		,'link'=>array(
+			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			,'Numéro de série'=>'<a href="fiche.php?id=@ID@">@val@</a>'
+		)
+		,'translate'=>array()
+		,'hide'=>$THide
+		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Création'=>'date')
+		,'liste'=>array(
+			'titre'=>'Liste des équipements'
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
+			,'messageNothing'=>"Il n'y a aucun équipement à afficher"
+		)
+	));	
 		 
 	echo "<p align=\"center\">";	
 	echo $form->bt("Nouveau",'bt_new','onClick="document.location.href=\'fiche.php?action=add&fk_soc='.$fk_soc.'&fk_product='.$fk_product.'\'"');
 	echo "</p>";
+
+	$ATMdb->close();
 
 	llxFooter('$Date: 2011/07/31 23:19:25 $ - $Revision: 1.152 $');
 	
