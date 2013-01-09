@@ -135,10 +135,10 @@ function _fiche(&$asset, $mode='edit') {
 			<tr><td>Produit</td><td><?=_fiche_visu_produit($asset,$mode); ?></td></tr>
 			<tr><td>Société</td><td><?=_fiche_visu_societe($asset,$mode); ?></td></tr>
 			<tr><td>Affaire</td><td><?=_fiche_visu_affaire($asset,$mode); ?></td></tr>
-			<tr><td>date d'achat</td><td><?=$form->texte('', 'date_achat ', $asset->get_date('date_achat') 	, 12,10,'','','à saisir') ?></td></tr>
-			<tr><td>date de livraison</td><td><?=$form->texte('', 'date_shipping ', $asset->get_date('date_shipping') 	, 12,10,'','','à saisir') ?></td></tr>
-			<tr><td>date de garantie</td><td><?=$form->texte('', 'date_garantie ', $asset->get_date('date_garantie') 	, 12,10,'','','à saisir') ?></td></tr>
-			<tr><td>date de dernière intervention</td><td><?=$form->texte('', 'date_last_intervention ', $asset->get_date('date_last_intervention') 	, 12,10,'','','à saisir') ?></td></tr>
+			<tr><td>date d'achat</td><td><?=$form->calendrier('', 'date_achat', $asset->get_date('date_achat'),10) ?></td></tr>
+			<tr><td>date de livraison</td><td><?=$form->calendrier('', 'date_shipping', $asset->get_date('date_shipping') ,10) ?></td></tr>
+			<tr><td>date de garantie</td><td><?=$form->calendrier('', 'date_garantie', $asset->get_date('date_garantie'),10) ?></td></tr>
+			<tr><td>date de dernière intervention</td><td><?=$form->calendrier('', 'date_last_intervention', $asset->get_date('date_last_intervention'),10) ?></td></tr>
 
 			<tr><td>Coût copie noir & blanc</td><td><?=$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00') ?></td></tr>
 			<tr><td>Coût copie couleur</td><td><?=$form->texte('', 'copy_color', $asset->copy_color, 12,10,'','','0.00') ?></td></tr>

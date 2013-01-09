@@ -39,6 +39,7 @@ class TAsset extends TObjetStd{
 			$this->TLink[$i]->fk_asset=0;
 		}
 	}
+	
 	function load(&$db, $id) {
 		parent::load($db,$id);
 		$this->load_link($db);
@@ -90,6 +91,18 @@ class TAsset extends TObjetStd{
 		$this->TLink[$i]->type_document=$type_document;	
 		
 		return $i;
+	}
+	
+	function loadReference(&$db, $serial_number) {
+		
+		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE serial_number='".$serial_number."'");
+		if($db->Get_line()) {
+			return $this->load($db, $db->Get_field('rowid'));
+		}
+		else {
+			return false;
+		}
+		
 	}
 	
 } 
