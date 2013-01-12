@@ -6,9 +6,9 @@ class TAsset extends TObjetStd{
  * */
 	
 	function __construct() {
-		$this->set_table('llx_asset');
+		$this->set_table(MAIN_DB_PREFIX.'asset');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_soc,fk_product,fk_fin_affaire,periodicity,qty,entity','type=entier;');
+		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity','type=entier;');
 		
 		$this->add_champs('copy_black,copy_color', 'type=float;');
 		
@@ -111,13 +111,22 @@ class TAssetLink extends TObjetStd{
  * Liaison entre les équipements et les documents
  */	
 	function __construct() {
-		$this->set_table('llx_asset_link');
+		$this->set_table(MAIN_DB_PREFIX.'asset_link');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_asset,fk_document','type=entier;');
 				
 		$this->_init_vars('type_document');
 		
 	    $this->start();
+	    
+		$this->asset = new TAsset;
+	}
+	function load(&$db, $id, $annexe=false) {
+		parent::load($db, $id);
+		
+		if($annexe){
+			$this->asset->load($db, $this->fk_asset);
+		}
 	}
 	
 }
