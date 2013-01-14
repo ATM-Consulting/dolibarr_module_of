@@ -1,6 +1,6 @@
 <?php
 
-	define('ROOT','/var/www/ATM/dolibarr/');
+	define('ROOT','/var/www/ATM/dolibarr/htdocs/');
 	define('COREROOT','/var/www/ATM/atm-core/');
 	define('COREHTTP','http://127.0.0.1/ATM/atm-core/');
 
@@ -20,6 +20,7 @@
 	define('DB_DRIVER','mysqli');
 
 	define('DOL_PACKAGE',true);
+	define('USE_TBS',true);
 
 	require(COREROOT.'inc.core.php');
 	
