@@ -41,8 +41,10 @@ class TAsset extends TObjetStd{
 	}
 	
 	function load(&$db, $id) {
-		parent::load($db,$id);
+		$res = parent::load($db,$id);
 		$this->load_link($db);
+		
+		return $res;
 	}
 	function save(&$db) {
 		parent::save($db);
@@ -84,6 +86,10 @@ class TAsset extends TObjetStd{
 	}
 	
 	function add_link($fk_document, $type_document) {
+		foreach($this->TLink as &$link) {
+			if($link->fk_document==$fk_document && $link->type_document==$type_document) return false;
+		}	
+			
 		$i=count($this->TLink);
 		$this->TLink[$i]=new TAssetLink;
 		$this->TLink[$i]->fk_asset=$this->rowid;
