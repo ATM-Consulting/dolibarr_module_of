@@ -32,7 +32,9 @@ global $langs,$db,$user;
 		
 	}
 	elseif(isset($_REQUEST['fk_product'])) {
-		require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
+		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
+		else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
+		
 		require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 			
 		$product = new Product($db);
@@ -102,7 +104,7 @@ global $langs,$db,$user;
 		
 	$asset=new TAsset;
 	$r = new TSSRenderControler($asset);
-	$sql="SELECT e.rowid as 'ID',e.serial_number as 'Numéro de série', p.label as 'Produit',e.fk_soc as 'fk_soc',s.nom as 'Société',
+	$sql="SELECT e.rowid as 'ID',e.serial_number as 'Numéro de série',p.rowid as 'fk_product', p.label as 'Produit',e.fk_soc as 'fk_soc',s.nom as 'Société',
 			e.date_garantie as 'Date garantie', e.date_last_intervention as 'Date dernière intervention', e.date_cre as 'Création'
 	
 	FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
@@ -121,7 +123,10 @@ global $langs,$db,$user;
 	}
 	
 	
-	$THide = array('fk_soc');
+	$THide = array('fk_soc','fk_product');
+	if(isset($_REQUEST['fk_product'])) {
+		$THide[] = 'Produit';
+	}
 	
 	$ATMdb=new Tdb;
 	
@@ -132,8 +137,9 @@ global $langs,$db,$user;
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 			,'Numéro de série'=>'<a href="fiche.php?id=@ID@">@val@</a>'
+			,'Produit'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
