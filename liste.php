@@ -153,10 +153,10 @@ global $langs,$db,$user;
 			,'messageNothing'=>"Il n'y a aucun équipement à afficher"
 		)
 	));	
-		 
-	echo "<p align=\"center\">";	
-	echo $form->bt("Nouveau",'bt_new','onClick="document.location.href=\'fiche.php?action=add&fk_soc='.$fk_soc.'&fk_product='.$fk_product.'\'"');
-	echo "</p>";
+		
+	echo '<div class="tabsAction">';
+	echo '<a class="butAction" href="?action=new&fk_soc='.$fk_soc.'">Créer un équipement</a>';
+	echo '</div>';
 
 	$ATMdb->close();
 
