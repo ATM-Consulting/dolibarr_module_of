@@ -4,6 +4,10 @@ require('config.php');
 
 require('./class/asset.class.php');
 
+if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
+	dol_include_once('/financement/class/affaire.class.php');
+}
+
 // Load traductions files requiredby by page
 $langs->load("companies");
 $langs->load("other");
@@ -97,7 +101,7 @@ $ATMdb=new Tdb;
 }
 
 function _fiche(&$asset, $mode='edit') {
-
+global $conf;
 /***************************************************
 * PAGE
 *
@@ -128,13 +132,28 @@ function _fiche(&$asset, $mode='edit') {
 	/*
 	 * affichage données équipement 
 	 */	
+	  	if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
+	  		$ATMdb=new Tdb;
+		 	$id_affaire = $asset->getLink('affaire')->fk_document;
+			$affaire=new TFin_affaire;
+			$affaire->load($ATMdb, $id_affaire);
+	 		$ATMdb->close();
+	 	}
+	 
+	 
 		
 		?><table width="100%" class="border">
 			<tr><td width="20%">Numéro de série</td><td><?=$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir') ?></td></tr>
 			<tr><td>Périodicité (en jours)</td><td><?=$form->texte('', 'periodicity', $asset->periodicity, 8,10,'','','à saisir') ?></td></tr>
 			<tr><td>Produit</td><td><?=_fiche_visu_produit($asset,$mode); ?></td></tr>
 			<tr><td>Société</td><td><?=_fiche_visu_societe($asset,$mode); ?></td></tr>
-			<tr><td>Affaire</td><td><?=_fiche_visu_affaire($asset,$mode); ?></td></tr>
+			<?
+			if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
+				?>
+				<tr><td>Affaire</td><td><a href="<?=DOL_URL_ROOT_ALT ?>/financement/affaire.php?id=<?=$affaire->getId() ?>"><?=$affaire->reference ?></a></td></tr>
+				<?
+			}
+			?>
 			<tr><td>date d'achat</td><td><?=$form->calendrier('', 'date_achat', $asset->get_date('date_achat'),10) ?></td></tr>
 			<tr><td>date de livraison</td><td><?=$form->calendrier('', 'date_shipping', $asset->get_date('date_shipping') ,10) ?></td></tr>
 			<tr><td>date de garantie</td><td><?=$form->calendrier('', 'date_garantie', $asset->get_date('date_garantie'),10) ?></td></tr>

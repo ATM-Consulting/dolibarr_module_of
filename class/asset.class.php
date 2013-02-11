@@ -40,9 +40,9 @@ class TAsset extends TObjetStd{
 		}
 	}
 	
-	function load(&$db, $id) {
+	function load(&$db, $id, $annexe=true) {
 		$res = parent::load($db,$id);
-		$this->load_link($db);
+		if($annexe)$this->load_link($db);
 		
 		return $res;
 	}
@@ -74,7 +74,15 @@ class TAsset extends TObjetStd{
 			$this->TLink[$i]->save($db, $id);	
 		}
 	}
-	
+	function getLink($type_document='') {
+		
+		foreach($this->TLink as &$link) {
+			if($link->type_document==$type_document) {
+				return $link;
+			}
+		}
+		
+	}
 	private function _get_link_id(&$db) {
 		$db->Execute("SELECT rowid FROM ".$this->get_table()."_link WHERE fk_asset=".$this->rowid);
 		$Tab=array();
@@ -131,7 +139,7 @@ class TAssetLink extends TObjetStd{
 		parent::load($db, $id);
 		
 		if($annexe){
-			$this->asset->load($db, $this->fk_asset);
+			$this->asset->load($db, $this->fk_asset, false);
 		}
 	}
 	
