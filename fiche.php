@@ -23,7 +23,8 @@ if ($user->societe_id > 0)
 
 function _action() {
 	
-$ATMdb=new Tdb;
+$PDOdb=new TPDOdb;
+//$PDOdb->debug=true;
 
 /*******************************************************************
 * ACTIONS
@@ -37,46 +38,46 @@ $ATMdb=new Tdb;
 				$asset=new TAsset();
 				$asset->set_values($_REQUEST);
 	
-				$asset->save($ATMdb);
+				$asset->save($PDOdb);
 				_fiche($asset,'edit');
 				
 				break;	
 			case 'edit'	:
 				$asset=new TAsset;
-				$asset->load($ATMdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				
 				_fiche($asset,'edit');
 				break;
 			case 'save':
 				$asset=new TAsset;
-				$asset->load($ATMdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				$asset->set_values($_REQUEST);
-				
-				//$ATMdb->db->debug=true;
+				//print_r($_REQUEST);
+				//$PDOdb->db->debug=true;
 				//print_r($_REQUEST);
 				
-				$asset->save($ATMdb);
+				$asset->save($PDOdb);
 				
 				_fiche($asset,'view');
 				
 				break;
 			case 'clone':
 				$asset=new TAsset;
-				$asset->load($ATMdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				$asset->reinit();
 				$asset->serial_number.='(copie)';
-				//$ATMdb->db->debug=true;
-				$asset->save($ATMdb);
+				//$PDOdb->db->debug=true;
+				$asset->save($PDOdb);
 				
 				_fiche($asset,'view');
 				
-				break;
+				break;$PDOdb=new TPDOdb;
 				
 			case 'delete':
 				$asset=new TAsset;
-				$asset->load($ATMdb, $_REQUEST['id']);
-				//$ATMdb->db->debug=true;
-				$asset->delete($ATMdb);
+				$asset->load($PDOdb, $_REQUEST['id']);
+				//$PDOdb->db->debug=true;
+				$asset->delete($PDOdb);
 				
 				?>
 				<script language="javascript">
@@ -90,13 +91,13 @@ $ATMdb=new Tdb;
 	}
 	elseif(isset($_REQUEST['id'])) {
 		$asset=new TAsset;
-		$asset->load($ATMdb, $_REQUEST['id']);
+		$asset->load($PDOdb, $_REQUEST['id']);
 		
 		_fiche($asset, 'view');
 	}
 
 
-	$ATMdb->close();
+	
 	
 }
 
@@ -117,76 +118,56 @@ global $conf;
 	echo $form->hidden('action', 'save');
 	
 	
-	if($mode=='view') {
-		?>
-		<div class="fiche"> <!-- begin div class="fiche" -->
-		
-		<div class="tabs">
-		<a class="tabTitle"><img border="0" title="" alt="" src="<?=DOL_MAIN_URL_ROOT_ALT ?>/atm-core/img/object_technic.png"> Equipement</a>
-		<a href="<?=$_SERVER['PHP_SELF' ]?>?id=<?=$asset->rowid ?>" class="tab" id="active">Fiche</a>
-		</div>
-		
-			<div class="tabBar"><?
-		
-	}
 	/*
-	 * affichage données équipement 
+	 * affichage données équipement lié à une affaire du module financement
 	 */	
-	  	if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
-	  		$ATMdb=new Tdb;
-		 	$id_affaire = $asset->getLink('affaire')->fk_document;
-			$affaire=new TFin_affaire;
-			$affaire->load($ATMdb, $id_affaire);
-	 		$ATMdb->close();
-	 	}
-	 
-	 
-		
-		?><table width="100%" class="border">
-			<tr><td width="20%">Numéro de série</td><td><?=$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir') ?></td></tr>
-			<tr><td>Périodicité (en jours)</td><td><?=$form->texte('', 'periodicity', $asset->periodicity, 8,10,'','','à saisir') ?></td></tr>
-			<tr><td>Produit</td><td><?=_fiche_visu_produit($asset,$mode); ?></td></tr>
-			<tr><td>Société</td><td><?=_fiche_visu_societe($asset,$mode); ?></td></tr>
-			<?
-			if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
-				?>
-				<tr><td>Affaire</td><td><a href="<?=DOL_URL_ROOT_ALT ?>/financement/affaire.php?id=<?=$affaire->getId() ?>"><?=$affaire->reference ?></a></td></tr>
-				<?
-			}
-			?>
-			<tr><td>date d'achat</td><td><?=$form->calendrier('', 'date_achat', $asset->get_date('date_achat'),10) ?></td></tr>
-			<tr><td>date de livraison</td><td><?=$form->calendrier('', 'date_shipping', $asset->get_date('date_shipping') ,10) ?></td></tr>
-			<tr><td>date de garantie</td><td><?=$form->calendrier('', 'date_garantie', $asset->get_date('date_garantie'),10) ?></td></tr>
-			<tr><td>date de dernière intervention</td><td><?=$form->calendrier('', 'date_last_intervention', $asset->get_date('date_last_intervention'),10) ?></td></tr>
-
-			<tr><td>Coût copie noir & blanc</td><td><?=$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00') ?></td></tr>
-			<tr><td>Coût copie couleur</td><td><?=$form->texte('', 'copy_color', $asset->copy_color, 12,10,'','','0.00') ?></td></tr>
-
-			</table>
-		<?
-	
-	if($mode==view) {
-	
-	?></div>
-
-		</div>
-		
-		<div class="tabsAction">
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='<?=$_SERVER['PHP_SELF']?>?action=delete&id=<?=$asset->rowid ?>'">
-		&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="button" onclick="document.location.href='<?=$_SERVER['PHP_SELF']?>?action=clone&id=<?=$asset->rowid ?>'">
-		&nbsp; &nbsp; <a href="<?=$_SERVER['PHP_SELF' ]?>?id=<?=$asset->rowid ?>&action=edit" class="butAction">Modifier</a>
-		</div><?
-
-	}
+  	if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
+  		$PDOdb=new TPDOdb;
+	 	$id_affaire = $asset->getLink('affaire')->fk_document;
+		$affaire=new TFin_affaire;
+		$affaire->load($PDOdb, $id_affaire);
+ 		
+		$TAffaire = $affaire->get_values();
+ 	}
 	else {
-		
-		?>
-		<p align="center">
-			<input type="submit" value="Enregistrer" name="save" class="button"> 
-			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='<?=$_SERVER['PHP_SELF']?>?id=<?=$asset->rowid ?>'">
-		</p>
-		<?
+		$TAffaire = array();
 	}
+	 
+	$TBS=new TTemplateTBS();
+	
+	$TBS->TBS->protect=false;
+	$TBS->TBS->noerr=true;
+	
+	print $TBS->render( (defined('ASSET_FICHE_TPL') ? './tpl/'.ASSET_FICHE_TPL : './tpl/fiche.tpl.php')
+		,array(
+		)
+		,array(
+			'asset'=>array(
+				'id'=>$asset->getId()
+				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
+				,'serial_number'=>$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir')
+				,'periodicity'=>$form->texte('', 'periodicity', $asset->periodicity, 8,10,'','','à saisir')
+				,'produit'=>_fiche_visu_produit($asset,$mode)
+				,'societe'=>_fiche_visu_societe($asset,$mode)
+				,'date_achat'=>$form->calendrier('', 'date_achat', $asset->get_date('date_achat'),10)
+				,'date_shipping'=>$form->calendrier('', 'date_shipping', $asset->get_date('date_shipping'),10)
+				,'date_garantie'=>$form->calendrier('', 'date_garantie', $asset->get_date('date_garantie'),10)
+				,'date_last_intervention'=>$form->calendrier('', 'date_last_intervention', $asset->get_date('date_last_intervention'),10)
+				,'copy_black'=>$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00')
+				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
+			)
+			,'affaire'=>$TAffaire
+			,'view'=>array(
+				'mode'=>$mode
+				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
+				
+			)
+			
+		)
+	);
+	
+	
+	 
 
 	echo $form->end_form();
 	// End of page
@@ -212,7 +193,7 @@ global $db;
 			$product = new Product($db);
 			$product->fetch($asset->fk_product);
 				
-			return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$asset->fk_product.'" style="font-weight:bold;"><img border="0" src="'.DOL_URL_ROOT.'/theme/atm/img/object_product.png"> '. $product->label.'</a>';
+			return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$asset->fk_product.'" style="font-weight:bold;">'.img_picto('','object_product.png', '', 0).' '. $product->label.'</a>';
 		} else {
 			return 'Non défini';
 		}
@@ -237,7 +218,7 @@ global $db;
 			$soc = new Societe($db);
 			$soc->fetch($asset->fk_soc);	
 				
-			return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$asset->fk_soc.'" style="font-weight:bold;"><img border="0" src="'.DOL_URL_ROOT.'/theme/atm/img/object_company.png"> '.$soc->nom.'</a>';
+			return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$asset->fk_soc.'" style="font-weight:bold;">'.img_picto('','object_company.png', '', 0).' '.$soc->nom.'</a>';
 		} else {
 			return 'Non défini';
 		}
