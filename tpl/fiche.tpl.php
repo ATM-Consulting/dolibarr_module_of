@@ -2,11 +2,7 @@
 
 	
 		<div class="fiche"> <!-- begin div class="fiche" -->
-		
-		<div class="tabs">
-		<a class="tabTitle"><img border="0" title="" alt="" src="./img/object_technic.png"> Affaire</a>
-		<a href="?id=[asset.id]" class="tab" id="active">Fiche</a>
-		</div>
+		[view.head;strconv=no]
 		
 			<div class="tabBar">
 				

@@ -119,6 +119,7 @@ class TAsset extends TObjetStd{
 		
 	}
 	
+	
 } 
 class TAssetLink extends TObjetStd{
 /*

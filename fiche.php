@@ -3,6 +3,7 @@
 require('config.php');
 
 require('./class/asset.class.php');
+require('./lib/asset.lib.php');
 
 if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 	dol_include_once('/financement/class/affaire.class.php');
@@ -111,6 +112,8 @@ global $conf;
 	
 	llxHeader('','Equipement','','');
 	
+	
+	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
 	
@@ -160,6 +163,7 @@ global $conf;
 			,'view'=>array(
 				'mode'=>$mode
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
+				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Equipement')
 				
 			)
 			

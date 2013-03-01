@@ -125,7 +125,7 @@ class modAsset extends DolibarrModules
         );*/
 		$this->tabs = array(
 			'product:+tabEquipement1:Equipements:@asset:/equipement/liste.php?fk_product=__ID__'
-			,'thirdparty:+tabEquipement2:Equipements:@asset:/equipement/liste.php?fk_soc=__ID__'		
+			,'thirdparty:+tabEquipement2:Equipements:@asset:/equipement/liste.php?fk_soc=__ID__'
 		);
 
         // Dictionnaries
