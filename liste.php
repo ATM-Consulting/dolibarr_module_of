@@ -102,10 +102,16 @@ global $langs,$db,$user;
 		
 		*/
 		
+	if(defined('ASSET_LIST_FIELDS')) {
+		$fields=ASSET_LIST_FIELDS;
+	} else {
+		$fields ="e.rowid as 'ID',e.serial_number,p.rowid as 'fk_product', p.label as 'Produit',e.fk_soc as 'fk_soc',s.nom as 'Société',
+			e.date_garantie as 'Date garantie', e.date_last_intervention as 'Date dernière intervention', e.date_cre as 'Création'"; 
+	} 	
+		
 	$asset=new TAsset;
 	$r = new TSSRenderControler($asset);
-	$sql="SELECT e.rowid as 'ID',e.serial_number as 'Numéro de série',p.rowid as 'fk_product', p.label as 'Produit',e.fk_soc as 'fk_soc',s.nom as 'Société',
-			e.date_garantie as 'Date garantie', e.date_last_intervention as 'Date dernière intervention', e.date_cre as 'Création'
+	$sql="SELECT ".$fields."
 	
 	FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
 				LEFT OUTER JOIN llx_societe s ON (e.fk_soc=s.rowid))
@@ -128,17 +134,19 @@ global $langs,$db,$user;
 		$THide[] = 'Produit';
 	}
 	
-	$ATMdb=new Tdb;
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+	
+	$ATMdb=new TPDOdb;
 	
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
-			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
-			,'nbLine'=>'30'
+			'nbLine'=>'30'
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
-			,'Numéro de série'=>'<a href="fiche.php?id=@ID@">@val@</a>'
+			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
 			,'Produit'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
@@ -151,7 +159,15 @@ global $langs,$db,$user;
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
 			,'messageNothing'=>"Il n'y a aucun équipement à afficher"
+			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
+		,'title'=>array(
+			'serial_number'=>'Numéro de série'
+		)
+		,'search'=>array(
+				'serial_number'=>true
+		)
+		
 	));	
 		
 	echo '<div class="tabsAction">';
