@@ -28,6 +28,7 @@ $PDOdb->close();
 llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 
 function _links(&$PDOdb, &$asset) {
+global $conf, $langs;
 	
 	$TBS=new TTemplateTBS();
 	
@@ -37,16 +38,20 @@ function _links(&$PDOdb, &$asset) {
 	$TLink=array();
 	foreach($asset->TLink as &$link) {
 	
+		$date = $link->get_dtcre();
+		
 		if($link->type_document=='affaire' && isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 			$affaire=new TFin_affaire;
 			$affaire->load($PDOdb, $link->fk_document);
-			$reference = $affaire->reference;
+			$reference ='<a href="'.DOL_URL_ROOT_ALT.'/financement/affaire.php?id='.$affaire->getId().'">'. $affaire->reference .'</a>';
+			$date = $affaire->get_date('date_affaire');
 		}
 	
 		$TLink[]=array(
-			'type'=>$link->type_document
+			'type'=>$langs->trans( $link->type_document )
 			,'fk_document'=>$link->fk_document
 			,'reference'=>$reference
+			,'date'=>$date
 		);
 		
 		
@@ -59,11 +64,22 @@ function _links(&$PDOdb, &$asset) {
 		,array(
 			'view'=>array(
 				'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'links', 'Equipement')
-				,'liste'=>$liste->renderArray($PDOdb,$TLink)
+				,'liste'=>$liste->renderArray($PDOdb,$TLink
+					,array(
+						'hide'=>array('fk_document')
+						,'title'=>array(
+							'type'=>'Type de lien'
+							,'reference'=>'Numéro du document'
+							,'date'=>'Date du document'
+						)
+					)
+				)
 			
 			)
 			
+			
 		)
+		
 	);
 	
 	
