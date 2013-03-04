@@ -105,7 +105,7 @@ global $langs,$db,$user;
 	if(defined('ASSET_LIST_FIELDS')) {
 		$fields=ASSET_LIST_FIELDS;
 	} else {
-		$fields ="e.rowid as 'ID',e.serial_number,p.rowid as 'fk_product', p.label as 'Produit',e.fk_soc as 'fk_soc',s.nom as 'Société',
+		$fields ="e.rowid as 'ID',e.serial_number,p.rowid as 'fk_product', p.label,e.fk_soc as 'fk_soc',s.nom,
 			e.date_garantie as 'Date garantie', e.date_last_intervention as 'Date dernière intervention', e.date_cre as 'Création'"; 
 	} 	
 		
@@ -145,9 +145,9 @@ global $langs,$db,$user;
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
-			,'Produit'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+			,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -163,9 +163,13 @@ global $langs,$db,$user;
 		)
 		,'title'=>array(
 			'serial_number'=>'Numéro de série'
+			,'nom'=>'Société'
+			,'label'=>'Produit'
 		)
 		,'search'=>array(
-				'serial_number'=>true
+			'serial_number'=>true
+			,'nom'=>array('recherche'=>true, 'table'=>'s')
+			,'label'=>array('recherche'=>true, 'table'=>'')
 		)
 		
 	));	
