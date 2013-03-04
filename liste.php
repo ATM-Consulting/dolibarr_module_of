@@ -151,7 +151,7 @@ global $langs,$db,$user;
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
-		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Création'=>'date')
+		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
 		,'liste'=>array(
 			'titre'=>'Liste des équipements'
 			,'image'=>img_picto('','title.png', '', 0)
