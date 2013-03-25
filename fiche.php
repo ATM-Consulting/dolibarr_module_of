@@ -128,7 +128,7 @@ global $conf;
   		$PDOdb=new TPDOdb;
 	 	$id_affaire = $asset->getLink('affaire')->fk_document;
 		$affaire=new TFin_affaire;
-		$affaire->load($PDOdb, $id_affaire);
+		$affaire->load($PDOdb, $id_affaire, false);
  		
 		$TAffaire = $affaire->get_values();
  	}
