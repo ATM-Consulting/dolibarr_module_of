@@ -164,9 +164,9 @@ class modAsset extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = 10000;
 		$this->rights[$r][1] = 'Lire les équipements';
-		$this->rights[$r][2] = 'a';
 		$this->rights[$r][3] = 1;
-		$this->rights[$r][4] = 'lire';
+		$this->rights[$r][4] = 'all';
+		$this->rights[$r][5] = 'lire';
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
@@ -190,7 +190,7 @@ class modAsset extends DolibarrModules
 					'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>100,
 					'enabled'=>'$conf->asset->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->a->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'perms'=>'$user->rights->asset->all->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;

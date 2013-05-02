@@ -5,7 +5,7 @@ require('config.php');
 require('./class/asset.class.php');
 require('./lib/asset.lib.php');
 
-if(!$user->rights->asset->a->lire) accessforbidden();
+if(!$user->rights->asset->all->lire) accessforbidden();
 
 if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 	dol_include_once('/financement/class/affaire.class.php');

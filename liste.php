@@ -2,7 +2,7 @@
 	require('config.php');
 	require('./class/asset.class.php');
 	
-	if(!$user->rights->asset->a->lire) accessforbidden();
+	if(!$user->rights->asset->all->lire) accessforbidden();
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
