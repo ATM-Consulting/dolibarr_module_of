@@ -177,7 +177,7 @@ global $langs,$db,$user;
 	));	
 		
 	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="?action=new&fk_soc='.$fk_soc.'">Créer un équipement</a>';
+	echo '<a class="butAction" href="fiche.php?action=add&fk_soc='.$fk_soc.'">Créer un équipement</a>';
 	echo '</div>';
 
 	$ATMdb->close();

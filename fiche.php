@@ -4,12 +4,15 @@ require('config.php');
 
 require('./class/asset.class.php');
 require('./lib/asset.lib.php');
+require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
+
 
 if(!$user->rights->asset->all->lire) accessforbidden();
 
 if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 	dol_include_once('/financement/class/affaire.class.php');
 }
+
 
 // Load traductions files requiredby by page
 $langs->load("companies");
@@ -105,7 +108,7 @@ $PDOdb=new TPDOdb;
 }
 
 function _fiche(&$asset, $mode='edit') {
-global $conf;
+global $db,$conf;
 /***************************************************
 * PAGE
 *
@@ -160,6 +163,8 @@ global $conf;
 				,'date_last_intervention'=>$form->calendrier('', 'date_last_intervention', $asset->get_date('date_last_intervention'),10)
 				,'copy_black'=>$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00')
 				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
+				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
+				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units')
 			)
 			,'affaire'=>$TAffaire
 			,'view'=>array(
@@ -182,12 +187,12 @@ global $conf;
 }
 
 function _fiche_visu_produit(&$asset, $mode) {
-global $db;
+global $db, $conf;
 	
 	if($mode=='edit') {
 		ob_start();	
 		$html=new Form($db);
-		$html->select_produits($asset->fk_product,'fk_product','',$conf->product->limit_size);
+		$html->select_produits($asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
 		
 		return ob_get_clean();
 		
@@ -254,6 +259,23 @@ global $db;
 		} else {
 			return 'Non défini';
 		}
+	}
+}
+
+function _fiche_visu_units(&$asset, $mode, $name) {
+global $db;
+	
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	
+	if($mode=='edit') {
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		echo $html->select_measuring_units($name, "weight");
+		
+		return ob_get_clean();
+		
 	}
 }
 

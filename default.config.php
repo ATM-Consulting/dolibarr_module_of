@@ -21,7 +21,7 @@
 
 	define('DOL_PACKAGE',true);
 	define('USE_TBS',true);
+	
+	define('ASSET_FICHE_TPL','*****.fiche.tpl.php');
 
 	require(COREROOT.'inc.core.php');
-	
-	

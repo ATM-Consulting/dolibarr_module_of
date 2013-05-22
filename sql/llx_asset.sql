@@ -37,5 +37,7 @@ CREATE TABLE  `dolibarr`.`llx_asset` (
 `date_last_intervention` DATE NOT NULL ,
 `periodicity` INT NOT NULL,
 `copy_black` FLOAT (10,2) NOT NULL,
-`copy_color` FLOAT (10,2) NOT NULL
+`copy_color` FLOAT (10,2) NOT NULL,
+`contenance_value` INT NOT NULL,
+`contenance_units` INT NOT NULL
 ) ENGINE = INNODB;
