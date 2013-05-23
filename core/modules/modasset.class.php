@@ -74,7 +74,7 @@ class modAsset extends DolibarrModules
 		// Defined if the directory /mymodule/includes/triggers/ contains triggers or not
 		
 		
-		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard'),'triggers' => 0);
+		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard'),'triggers' => 1);
 		
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
@@ -257,7 +257,7 @@ class modAsset extends DolibarrModules
 	 *		It also creates data directories.
 	 *      @return     int             1 if OK, 0 if KO
 	 */
-	function init()
+	function init($options='')
 	{
 
 		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php')) {
@@ -272,7 +272,10 @@ class modAsset extends DolibarrModules
 
 		$result=$this->load_tables();
 
-		return $this->_init($sql);
+		$url ='http://'.$_SERVER['SERVER_NAME']. DOL_URL_ROOT_ALT."/asset/script/create-maj-base.php";
+		file_get_contents($url);
+
+		return $this->_init($sql, $options);
 	}
 
 	/**

@@ -144,7 +144,35 @@ class TAssetLink extends TObjetStd{
 			$this->asset->load($db, $this->fk_asset, false);
 		}
 	}
-	
+}
+
+
+class TAssetCommandedet extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'commandedet');	  
+		parent::add_champs('asset_lot','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
+class TAssetFacturedet extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de facture et les lots 
+ */
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'facturedet');	  
+		parent::add_champs('asset_lot','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
 }
 
 ?>

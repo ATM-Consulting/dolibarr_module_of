@@ -18,7 +18,8 @@ $ATMdb->Execute($sql);
 
 while($ATMdb->Get_line()){
 	$Tres[] = array(
-		"lot" => "Lot n°".$ATMdb->Get_field('lot')
+		"lot" => $ATMdb->Get_field('lot')
+		,"lotAff" => "Lot n°".$ATMdb->Get_field('lot')
 	);
 }
 
