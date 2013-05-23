@@ -165,6 +165,7 @@ global $db,$conf;
 				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
 				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units')
+				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 			)
 			,'affaire'=>$TAffaire
 			,'view'=>array(

@@ -10,9 +10,9 @@ class TAsset extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity','type=entier;');
 		
-		$this->add_champs('copy_black,copy_color,', 'type=float;');
+		$this->add_champs('copy_black,copy_color', 'type=float;');
 		$this->add_champs('contenance_value,contenance_units', 'type=entier;');
-		
+		$this->add_champs('lot_number', 'type=chaine;');
 		/*
 		 * periodicity : nombre de jour depuis dernière intervention avant nouvelle intervention
 		 * qty : quantité (champs présent dans la gestion oracle pour une raison qui nous échappe)

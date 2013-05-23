@@ -72,8 +72,10 @@ class modAsset extends DolibarrModules
 		$this->picto='generic';
 
 		// Defined if the directory /mymodule/includes/triggers/ contains triggers or not
-		$this->triggers = 0;
-
+		
+		
+		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard'),'triggers' => 0);
+		
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
 		$this->dirs = array();
