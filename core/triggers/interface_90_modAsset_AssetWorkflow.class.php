@@ -120,7 +120,7 @@ class InterfaceAssetWorkflow
 		 */
         if ($action == 'LINEORDER_INSERT')
         {    	
-			if(isset($_POST['lot']) && !empty($_POST['lot']) && $_POST['lot'] != "0"){ //si poids renseigné alors conditionnement
+			if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
 			}
 			
@@ -129,7 +129,7 @@ class InterfaceAssetWorkflow
         }
         elseif ($action == 'LINEORDER_UPDATE')
         {
-        	if(isset($_POST['lot']) && !empty($_POST['lot']) && $_POST['lot'] != "0"){ //si poids renseigné alors conditionnement
+        	if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
 			}
         	
@@ -143,7 +143,7 @@ class InterfaceAssetWorkflow
         elseif ($action == 'LINEBILL_INSERT')
         {
 			
-        	if(isset($_POST['lot']) && !empty($_POST['lot']) && $_POST['lot'] != "0"){ //si poids renseigné alors conditionnement	
+        	if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement	
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
 			}	
         	
@@ -152,7 +152,7 @@ class InterfaceAssetWorkflow
         }
 		elseif ($action == 'LINEBILL_UPDATE')
         {
-        	if(isset($_POST['lot']) && !empty($_POST['lot']) && $_POST['lot'] != "0"){ //si poids renseigné alors conditionnement
+        	if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement
         	
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
 			}
