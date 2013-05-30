@@ -50,6 +50,14 @@ class TAsset extends TObjetStd{
 	function save(&$db) {
 		parent::save($db);
 		
+		//Vérification si une entrée en stock initiale existe ou si la quantité transmise est identique à la dernière entrée en stock
+		$mvt_stock = new TAssetStock;
+		$qty_last = $mvt_stock->get_last_mouvement($db, $this->rowid);
+		
+		//Si aucune entrée existe, on créé une entrée initiale
+		if($qty_last != "error")
+			$mvt_stock->mouvement_stock($db, $this->rowid, $this->contenance_value,"Equipement",$this->rowid);
+		
 		$this->save_link($db);
 	}
 	function delete(&$db) {
@@ -172,6 +180,46 @@ class TAssetFacturedet extends TObjetStdDolibarr{
 		parent::_init_vars();
 		
 	    parent::start();
+	}
+}
+
+class TAssetStock extends TObjetStd{
+/*
+ * Gestion des mouvements de stock pour les équipements
+ */
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'asset_stock');
+		parent::add_champs('fk_asset','type=eniter;index;');	  
+		parent::add_champs('qty','type=float;');
+		parent::add_champs('date_mvt','type=date;');
+		parent::add_champs('type','type=chaine;');
+		parent::add_champs('source','type=entier;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+	
+	//Création d'une nouvelle entrée en stock
+	function mouvement_stock(&$ATMdb,$fk_asset,$qty,$type,$id_source){
+		
+		$this->fk_asset = $fk_asset;
+		$this->qty = $qty;
+		$this->date_mvt = date('Y-m-d H:i:s');
+		$this->type = $type;
+		$this->source = $id_source;
+		
+		$this->save($ATMdb);
+	}
+	
+	//Récupère la quantité de la dernière entrée en stock
+	function get_last_mouvement(&$ATMdb,$fk_asset){
+		$sql = "SELECT qty FROM ".MAIN_DB_PREFIX."asset_stock WHERE fk_asset = ".$fk_asset." ORDER BY rowid DESC LIMIT 1";
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line())
+			return $ATMdb->Get_field("qty");
+		else 
+			return "error";
 	}
 }
 
