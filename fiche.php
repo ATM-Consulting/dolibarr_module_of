@@ -29,14 +29,14 @@ if ($user->societe_id > 0)
 
 function _action() {
 	
-$PDOdb=new TPDOdb;
-//$PDOdb->debug=true;
-
-/*******************************************************************
-* ACTIONS
-*
-* Put here all code to do according to value of "action" parameter
-********************************************************************/
+	$PDOdb=new TPDOdb;
+	//$PDOdb->debug=true;
+	
+	/*******************************************************************
+	* ACTIONS
+	*
+	* Put here all code to do according to value of "action" parameter
+	********************************************************************/
 
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
@@ -142,9 +142,26 @@ global $db,$conf;
 	}
 	 
 	$TBS=new TTemplateTBS();
+	$liste=new TListviewTBS('asset');
 	
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
+	
+	$TAssetStock = array();
+	
+	foreach($asset->TStock as &$stock) {
+	
+		$date = $stock->get_dtcre();
+		
+		$TAssetStock[]=array(
+			'type'=>$langs->trans( $link->type_document )
+			,'fk_document'=>$link->fk_document
+			,'reference'=>$reference
+			,'date'=>$date
+		);
+		
+		
+	}
 	
 	print $TBS->render( (defined('ASSET_FICHE_TPL') ? './tpl/'.ASSET_FICHE_TPL : './tpl/fiche.tpl.php')
 		,array(
@@ -172,15 +189,20 @@ global $db,$conf;
 				'mode'=>$mode
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Equipement')
-				
+				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
+					,array(
+						'hide'=>array('fk_document')
+						,'title'=>array(
+							'type'=>'Type de lien'
+							,'reference'=>'Numéro du document'
+							,'date'=>'Date du document'
+						)
+					)
+				)
 			)
-			
 		)
 	);
 	
-	
-	 
-
 	echo $form->end_form();
 	// End of page
 	

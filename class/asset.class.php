@@ -25,6 +25,7 @@ class TAsset extends TObjetStd{
 	    $this->start();
 		
 		$this->TLink=array(); // liaison document
+		$this->TStock=array(); // liaison mouvement stock
 		$this->error='Erreur dans objet equipement';
 		
 		$this->date_shipping=time();
@@ -39,11 +40,17 @@ class TAsset extends TObjetStd{
 			$this->TLink[$i]->rowid=0;
 			$this->TLink[$i]->fk_asset=0;
 		}
+		$nb=count($this->TStock);
+		for($i=0;$i<$nb;$i++) {
+			$this->TStock[$i]->rowid=0;
+			$this->TStock[$i]->fk_asset=0;
+		}
 	}
 	
 	function load(&$db, $id, $annexe=true) {
 		$res = parent::load($db,$id);
 		if($annexe)$this->load_link($db);
+		$this->load_stock($db);
 		
 		return $res;
 	}
@@ -128,7 +135,25 @@ class TAsset extends TObjetStd{
 		
 	}
 	
+	function load_stock($db){
+		$this->TStock=array();
+		$Tab = $this->_get_stock_id($db);
+		
+		foreach ($Tab as $i=>$id) {
+			$this->TStock[$i]=new TAssetStock;
+			$this->TStock[$i]->load($db, $id);	
+		}
+	}
 	
+	private function _get_stock_id(&$db) {
+		$db->Execute("SELECT rowid FROM ".MAIN_DB_PREFIX.$this->get_table()."_stock WHERE fk_asset=".$this->rowid);
+		$Tab=array();
+		while($db->Get_line()) {
+			$Tab[]=$db->Get_field('rowid');
+		}
+		
+		return $Tab;
+	}
 } 
 class TAssetLink extends TObjetStd{
 /*

@@ -25,7 +25,13 @@
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
 			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
+			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit_stock" class="butAction">Ajouter un mouvement de stock</a>
 		</div>
+		
+		<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
+			<tr><td valign="middle" class="nobordernopadding"><div class="titre">Mouvements de stock</div></td></tr>
+		</table>
+		[view.liste;strconv=no]
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']
 
