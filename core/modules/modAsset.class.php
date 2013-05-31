@@ -124,8 +124,8 @@ class modAsset extends DolibarrModules
         	,'product:Equipements:@asset:$user->rights->asset->read:/equipement/equipement.php?pid=__ID__'
         );*/
 		$this->tabs = array(
-			'product:+tabEquipement1:Equipements:@asset:/equipement/liste.php?fk_product=__ID__'
-			,'thirdparty:+tabEquipement2:Equipements:@asset:/equipement/liste.php?fk_soc=__ID__'
+			'product:+tabEquipement1:Equipements:@asset:/asset/liste.php?fk_product=__ID__'
+			,'thirdparty:+tabEquipement2:Equipements:@asset:/asset/liste.php?fk_soc=__ID__'
 		);
 
         // Dictionnaries
@@ -186,7 +186,7 @@ class modAsset extends DolibarrModules
 					'titre'=>'Equipement',
 					'mainmenu'=>'asset',
 					'leftmenu'=>'1',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/equipement/liste.php',
+					'url'=>'/asset/liste.php',
 					'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>100,
 					'enabled'=>'$conf->asset->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -198,7 +198,7 @@ class modAsset extends DolibarrModules
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'Equipement',
 			'mainmenu'=>'asset',
-			'url'=>'/equipement/liste.php',
+			'url'=>'/asset/liste.php',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>100,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -210,7 +210,7 @@ class modAsset extends DolibarrModules
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A completer',
 			'mainmenu'=>'asset',
-			'url'=>'/equipement/liste.php?no_serial=1',
+			'url'=>'/asset/liste.php?no_serial=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>100,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -223,7 +223,7 @@ class modAsset extends DolibarrModules
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A relancer',
 			'mainmenu'=>'asset',
-			'url'=>'/equipement/liste.php?relance=1',
+			'url'=>'/asset/liste.php?relance=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>101,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -257,15 +257,6 @@ class modAsset extends DolibarrModules
 	 */
 	function init()
 	{
-
-		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php')) {
-			copy(DOL_DOCUMENT_ROOT.'/product/fiche.php',DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php');
-			copy(DOL_DOCUMENT_ROOT.'/product/class/product.class.php',DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/product.class.php');
-		}
-		copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/deploy/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
-		copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/deploy/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.phpp');
-	
-
 		$sql = array();
 
 		$result=$this->load_tables();
@@ -281,14 +272,6 @@ class modAsset extends DolibarrModules
 	 */
 	function remove()
 	{
-			
-		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php')) {
-			copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
-			copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.php');
-		}
-		unlink(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/clients.php');	
-		unlink(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/product.class.php');	
-			
 		$sql = array();
 
 		return $this->_remove($sql);
@@ -304,8 +287,6 @@ class modAsset extends DolibarrModules
 	 */
 	function load_tables()
 	{
-		
-			
 		return $this->_load_tables('/equipement/sql/');
 	}
 }
