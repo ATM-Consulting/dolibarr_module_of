@@ -16,3 +16,6 @@
 	
 	$o=new TAssetFacturedet;
 	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetStock;
+	$o->init_db_by_vars($ATMdb);
