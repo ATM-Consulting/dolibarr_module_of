@@ -259,14 +259,12 @@ class modAsset extends DolibarrModules
 	 */
 	function init($options='')
 	{
-
 		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php')) {
 			copy(DOL_DOCUMENT_ROOT.'/product/fiche.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php');
 			copy(DOL_DOCUMENT_ROOT.'/product/class/product.class.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php');
 		}
 		copy(DOL_DOCUMENT_ROOT_ALT.'/asset/deploy/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
 		copy(DOL_DOCUMENT_ROOT_ALT.'/asset/deploy/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.phpp');
-	
 
 		$sql = array();
 
