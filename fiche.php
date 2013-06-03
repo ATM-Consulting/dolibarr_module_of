@@ -47,13 +47,15 @@ function _action() {
 				$asset->save($PDOdb);
 				_fiche($asset,'edit');
 				
-				break;	
+				break;
+			
 			case 'edit'	:
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id']);
 				
 				_fiche($asset,'edit');
 				break;
+				
 			case 'save':
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id']);
@@ -67,6 +69,7 @@ function _action() {
 				_fiche($asset,'view');
 				
 				break;
+				
 			case 'clone':
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id']);
@@ -77,11 +80,12 @@ function _action() {
 				
 				_fiche($asset,'view');
 				
-				break;$PDOdb=new TPDOdb;
+				break;
 				
 			case 'delete':
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id']);
+				
 				//$PDOdb->db->debug=true;
 				$asset->delete($PDOdb);
 				
@@ -154,10 +158,9 @@ global $db,$conf;
 		$date = $stock->get_dtcre();
 		
 		$TAssetStock[]=array(
-			'type'=>$langs->trans( $link->type_document )
-			,'fk_document'=>$link->fk_document
-			,'reference'=>$reference
-			,'date'=>$date
+			'date_cre'=>$date
+			,'qty'=>$stock->qty
+			,'type'=>$stock->type
 		);
 		
 		
@@ -182,6 +185,8 @@ global $db,$conf;
 				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
 				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units')
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', $asset->contenancereel_value, 12,10,'','','0.00')
+				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units')
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 			)
 			,'affaire'=>$TAffaire
@@ -191,11 +196,10 @@ global $db,$conf;
 				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Equipement')
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
-						'hide'=>array('fk_document')
-						,'title'=>array(
-							'type'=>'Type de lien'
-							,'reference'=>'Numéro du document'
-							,'date'=>'Date du document'
+						  'title'=>array(
+							'date_cre'=>'Date du mouvement'
+							,'qty'=>'Quantité'
+							,'type'=>'Type de mouvement'
 						)
 					)
 				)

@@ -10,7 +10,7 @@ class TAsset extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity','type=entier;');
 		
-		$this->add_champs('copy_black,copy_color', 'type=float;');
+		$this->add_champs('copy_black,copy_color,contenancereel_value', 'type=float;');
 		$this->add_champs('contenance_value,contenance_units', 'type=entier;');
 		$this->add_champs('lot_number', 'type=chaine;');
 		/*
@@ -32,7 +32,10 @@ class TAsset extends TObjetStd{
 		$this->date_achat=time();
 		$this->date_garantie=time();
 		$this->date_last_intervention=time();
+		
+		$this->old_contenancereel = 0;
 	}
+
 	function reinit() {
 		$this->rowid = 0;
 		$nb=count($this->TLink);
@@ -52,26 +55,30 @@ class TAsset extends TObjetStd{
 		if($annexe)$this->load_link($db);
 		$this->load_stock($db);
 		
+		//Sauvegarde de l'ancienne contenance réelle
+		$this->old_contenancereel = $this->contenancereel_value;
+		
 		return $res;
 	}
-	function save(&$db) {
+	function save(&$db,$type = "Equipement") {
 		parent::save($db);
-		
-		//Vérification si une entrée en stock initiale existe ou si la quantité transmise est identique à la dernière entrée en stock
-		$mvt_stock = new TAssetStock;
-		$qty_last = $mvt_stock->get_last_mouvement($db, $this->rowid);
-		
-		//Si aucune entrée existe, on créé une entrée initiale
-		if($qty_last != "error")
-			$mvt_stock->mouvement_stock($db, $this->rowid, $this->contenance_value,"Equipement",$this->rowid);
-		
 		$this->save_link($db);
+		
+		if($this->contenancereel_value != $this->old_contenancereel)
+		{
+			$stock = new TAssetStock;
+			$stock->mouvement_stock($db, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
+		}
 	}
 	function delete(&$db) {
 		parent::delete($db);
 		$nb=count($this->TLink);
 		for($i=0;$i<$nb;$i++) {
 			$this->TLink[$i]->delete($db);	
+		}
+		$nb=count($this->TStock);
+		for($i=0;$i<$nb;$i++) {
+			$this->TStock[$i]->delete($db);	
 		}
 	}
 	function load_link(&$db) {
@@ -90,6 +97,7 @@ class TAsset extends TObjetStd{
 			$this->TLink[$i]->save($db, $id);	
 		}
 	}
+	
 	function getLink($type_document='') {
 		
 		foreach($this->TLink as &$link) {
@@ -146,7 +154,7 @@ class TAsset extends TObjetStd{
 	}
 	
 	private function _get_stock_id(&$db) {
-		$db->Execute("SELECT rowid FROM ".MAIN_DB_PREFIX.$this->get_table()."_stock WHERE fk_asset=".$this->rowid);
+		$db->Execute("SELECT rowid FROM ".$this->get_table()."_stock WHERE fk_asset=".$this->rowid." ORDER BY date_cre DESC");
 		$Tab=array();
 		while($db->Get_line()) {
 			$Tab[]=$db->Get_field('rowid');

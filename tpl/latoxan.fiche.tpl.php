@@ -13,6 +13,7 @@
 				<tr><td>Numéro de lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no;protect=no]</td></tr>
 				<tr><td>Contenance</td><td>[asset.contenance_value;strconv=no][asset.contenance_units;strconv=no]</td></tr>
+				<tr><td>Contenance Réelle</td><td>[asset.contenancereel_value;strconv=no][asset.contenancereel_units;strconv=no]</td></tr>
 				</table>
 			
 [onshow;block=begin;when [view.mode]=='view']
@@ -25,7 +26,6 @@
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
 			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
-			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit_stock" class="butAction">Ajouter un mouvement de stock</a>
 		</div>
 		
 		<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
