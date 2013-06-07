@@ -21,26 +21,31 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#product_label').after('<span id="span_lot"> et/ou </span><select id="lotAff" name="lotAff" class="flat"></select>');
-				$.ajax({
-					type: "POST"
-					,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_lot.php"
-					,dataType: "json"
-					,data: {fk_product: $('#product_id').val()}
-					},"json").then(function(select){
-						if(select.length > 0){
-							$('#lotAff').empty().show();
-							$('#span_lot').show();
-							$.each(select, function(i,option){
-								$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lot+'</option>');
-							})
-							$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
-						}
-						else{
-							$('#lotAff, #span_lot').hide();
-						}
-					});
-				$('#lotAff').change($('#lot').val( $('#lotAff option:selected').val() ))
+				$('#search_idprod').after('<span id="span_lot"> et/ou </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				$('#lotAff, #span_lot').hide();
+				$('#idprod').change( function(){
+					$.ajax({
+						type: "POST"
+						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_lot.php"
+						,dataType: "json"
+						,data: {fk_product: $('#idprod').val()}
+						},"json").then(function(select){
+							if(select.length > 0){
+								$('#lotAff').empty().show();
+								$('#span_lot').show();
+								$.each(select, function(i,option){
+								$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+								})
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
+							}
+							else{
+								$('#lotAff, #span_lot').hide();
+							}
+						});
+				});
+				$('#lotAff').change(function(){
+						$('#lot').val( $('#lotAff option:selected').val() );
+				});
 			</script>
 			<?php
 			
@@ -114,8 +119,8 @@ class ActionsAsset
         {
         	?> 
 			<script type="text/javascript">
-				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#add_product_area').after('<span id="span_lot"> et/ou </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				//$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
+				$('#search_idprod').after('<span id="span_lot"> et/ou </span><select id="lotAff" name="lotAff" class="flat"></select>');
 				$('#lotAff, #span_lot').hide();
 				$('#idprod').change( function(){
 					$.ajax({

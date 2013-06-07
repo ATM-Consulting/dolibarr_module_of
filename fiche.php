@@ -57,6 +57,9 @@ function _action() {
 				break;
 				
 			case 'save':
+				/*echo '<pre>';
+				print_r($_REQUEST);
+				echo '<pre>'; exit;*/
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id']);
 				$asset->set_values($_REQUEST);
@@ -299,10 +302,17 @@ global $db;
 		ob_start();	
 		
 		$html=new FormProduct($db);
-		echo $html->select_measuring_units($name, "weight");
+		echo $html->select_measuring_units($name, "weight", $asset->$name);
 		
 		return ob_get_clean();
 		
+	}
+	else{
+		ob_start();	
+		
+		echo measuring_units_string($asset->$name, "weight");
+		
+		return ob_get_clean();
 	}
 }
 
