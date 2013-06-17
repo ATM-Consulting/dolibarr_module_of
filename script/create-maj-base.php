@@ -11,6 +11,9 @@
 	$ATMdb=new TPDOdb;
 	$ATMdb->debug=true;
 	
+	$o=new TAsset;
+	$o->init_db_by_vars($ATMdb);
+	
 	$o=new TAssetCommandedet;
 	$o->init_db_by_vars($ATMdb);
 	
