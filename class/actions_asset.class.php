@@ -21,7 +21,7 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#search_idprod').after('<span id="span_lot"> et/ou </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				$('#search_idprod').after('<span id="span_lot"> Lot : </span><select id="lotAff" name="lotAff" class="flat"></select>');
 				$('#lotAff, #span_lot').hide();
 				$('#idprod').change( function(){
 					$.ajax({
@@ -34,9 +34,17 @@ class ActionsAsset
 								$('#lotAff').empty().show();
 								$('#span_lot').show();
 								$.each(select, function(i,option){
-								$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+									if(select.length > 1){
+										$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+										test = false;
+									}
+									else{
+										$('#lotAff').prepend('<option value="'+option.lot+'" selected="selected">'+option.lotAff+'</option>');
+										test = true;
+									}
 								})
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
+								if(!test)
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
 							}
 							else{
 								$('#lotAff, #span_lot').hide();
@@ -120,7 +128,7 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				//$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#search_idprod').after('<span id="span_lot"> et/ou </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				$('#search_idprod').after('<span id="span_lot"> Lot : </span><select id="lotAff" name="lotAff" class="flat"></select>');
 				$('#lotAff, #span_lot').hide();
 				$('#idprod').change( function(){
 					$.ajax({
@@ -133,9 +141,17 @@ class ActionsAsset
 								$('#lotAff').empty().show();
 								$('#span_lot').show();
 								$.each(select, function(i,option){
-								$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+									if(select.length > 1){
+										$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+										test = false;
+									}
+									else{
+										$('#lotAff').prepend('<option value="'+option.lot+'" selected="selected">'+option.lotAff+'</option>');
+										test = true;
+									}
 								})
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
+								if(!test)
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
 							}
 							else{
 								$('#lotAff, #span_lot').hide();
