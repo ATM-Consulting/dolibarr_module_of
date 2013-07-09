@@ -9,7 +9,7 @@
 [onshow;block=end]				
 				
 				<table width="100%" class="border">
-				<tr><td width="20%">Référence de l'équipement</td><td>[asset.serial_number;strconv=no]</td></tr>
+				<tr><td width="20%">Référence du flacon</td><td>[asset.serial_number;strconv=no]</td></tr>
 				<tr><td>Numéro de lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no;protect=no]</td></tr>
 				<tr><td>Contenance</td><td>[asset.contenance_value;strconv=no][asset.contenance_units;strconv=no]</td></tr>
