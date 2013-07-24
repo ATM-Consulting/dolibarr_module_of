@@ -21,7 +21,7 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#search_idprod').after('<span id="span_lot"> Lot : </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				$('#search_idprod').after('<span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"></select>');
 				$('#lotAff, #span_lot').hide();
 				$('#idprod').change( function(){
 					$.ajax({
@@ -127,8 +127,8 @@ class ActionsAsset
         {
         	?> 
 			<script type="text/javascript">
-				//$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#search_idprod').after('<span id="span_lot"> Lot : </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				$('#addpredefinedproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
+				$('#idprod').after('<span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"></select>');
 				$('#lotAff, #span_lot').hide();
 				$('#idprod').change( function(){
 					$.ajax({
@@ -143,15 +143,12 @@ class ActionsAsset
 								$.each(select, function(i,option){
 									if(select.length > 1){
 										$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
-										test = false;
 									}
 									else{
 										$('#lotAff').prepend('<option value="'+option.lot+'" selected="selected">'+option.lotAff+'</option>');
-										test = true;
 									}
 								})
-								if(!test)
-									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un lot</option>');
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un batch</option>');
 							}
 							else{
 								$('#lotAff, #span_lot').hide();

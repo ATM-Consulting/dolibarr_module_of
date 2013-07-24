@@ -122,7 +122,7 @@ global $db,$conf;
 * Put here all code to build page
 ****************************************************/
 	
-	llxHeader('','Equipement','','');
+	llxHeader('','Flacons','','');
 	
 	
 	
@@ -196,7 +196,7 @@ global $db,$conf;
 			,'view'=>array(
 				'mode'=>$mode
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
-				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Equipement')
+				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Flacon')
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
 						  'title'=>array(

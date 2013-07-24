@@ -119,9 +119,9 @@ class InterfaceAssetWorkflow
 		 *  COMMANDES
 		 */
         if ($action == 'LINEORDER_INSERT')
-        {    	
-			if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
+        {    
+			if(isset($_REQUEST['lot']) && !empty($_REQUEST['lot'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET asset_lot = \"".$_REQUEST['lot']."\" WHERE rowid = ".$object->rowid);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
@@ -129,8 +129,8 @@ class InterfaceAssetWorkflow
         }
         elseif ($action == 'LINEORDER_UPDATE')
         {
-        	if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
+        	if(isset($_REQUEST['lot']) && !empty($_REQUEST['lot'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET asset_lot = \"".$_REQUEST['lot']."\" WHERE rowid = ".$object->rowid);
 			}
         	
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
@@ -143,8 +143,8 @@ class InterfaceAssetWorkflow
         elseif ($action == 'LINEBILL_INSERT')
         {
 			
-        	if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement	
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
+        	if(isset($_REQUEST['lot']) && !empty($_REQUEST['lot'])){ //si poids renseigné alors conditionnement	
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET asset_lot = \"".$_REQUEST['lot']."\" WHERE rowid = ".$object->rowid);
 			}	
         	
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
@@ -152,9 +152,9 @@ class InterfaceAssetWorkflow
         }
 		elseif ($action == 'LINEBILL_UPDATE')
         {
-        	if(isset($_POST['lot']) && !empty($_POST['lot'])){ //si poids renseigné alors conditionnement
+        	if(isset($_REQUEST['lot']) && !empty($_REQUEST['lot'])){ //si poids renseigné alors conditionnement
         	
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET asset_lot = \"".$_POST['lot']."\" WHERE rowid = ".$object->rowid);
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET asset_lot = \"".$_REQUEST['lot']."\" WHERE rowid = ".$object->rowid);
 			}
 			
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);

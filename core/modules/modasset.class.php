@@ -126,8 +126,8 @@ class modAsset extends DolibarrModules
         	,'product:Equipements:@asset:$user->rights->asset->read:/asset/equipement.php?pid=__ID__'
         );*/
 		$this->tabs = array(
-			'product:+tabEquipement1:Equipements:@asset:/asset/liste.php?fk_product=__ID__'
-			,'thirdparty:+tabEquipement2:Equipements:@asset:/asset/liste.php?fk_soc=__ID__'
+			'product:+tabEquipement1:Flacons:@asset:/asset/liste.php?fk_product=__ID__'
+			,'thirdparty:+tabEquipement2:Flacons:@asset:/asset/liste.php?fk_soc=__ID__'
 		);
 
         // Dictionnaries
@@ -185,7 +185,7 @@ class modAsset extends DolibarrModules
 		$r=0;
 		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
 					'type'=>'top',			// This is a Top menu entry
-					'titre'=>'Equipement',
+					'titre'=>'Flacons',
 					'mainmenu'=>'asset',
 					'leftmenu'=>'1',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/liste.php',
@@ -198,7 +198,7 @@ class modAsset extends DolibarrModules
 		$r++;
 		$this->menu[$r]=array(	'fk_menu'=>'r=0',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'Equipement',
+			'titre'=>'Flacons',
 			'mainmenu'=>'asset',
 			'url'=>'/asset/liste.php',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.

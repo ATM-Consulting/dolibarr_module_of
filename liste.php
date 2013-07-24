@@ -13,12 +13,12 @@ function _liste($id_entity) {
 global $langs,$db,$user;
 	
 
-	llxHeader('','Liste des équipements installés','','');
+	llxHeader('','Liste des flacons installés','','');
 	getStandartJS();
 	
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
-		<br><div class="error">Equipement supprim&eacute;</div><br>
+		<br><div class="error">Flacon supprim&eacute;</div><br>
 		<?
 	}
 	
@@ -166,12 +166,12 @@ global $langs,$db,$user;
 			,'hide'=>$THide
 			,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
 			,'liste'=>array(
-				'titre'=>'Liste des équipements'
+				'titre'=>'Liste des flacons'
 				,'image'=>img_picto('','title.png', '', 0)
 				,'picto_precedent'=>img_picto('','back.png', '', 0)
 				,'picto_suivant'=>img_picto('','next.png', '', 0)
 				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun équipement à afficher"
+				,'messageNothing'=>"Il n'y a aucun flacon à afficher"
 				,'picto_search'=>img_picto('','search.png', '', 0)
 			)
 			,'title'=>array(
@@ -204,12 +204,12 @@ global $langs,$db,$user;
 			,'hide'=>$THide
 			,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
 			,'liste'=>array(
-				'titre'=>'Liste des équipements'
+				'titre'=>'Liste des flacons'
 				,'image'=>img_picto('','title.png', '', 0)
 				,'picto_precedent'=>img_picto('','back.png', '', 0)
 				,'picto_suivant'=>img_picto('','next.png', '', 0)
 				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun équipement à afficher"
+				,'messageNothing'=>"Il n'y a aucun flacon à afficher"
 				,'picto_search'=>img_picto('','search.png', '', 0)
 			)
 			,'title'=>array(
@@ -227,7 +227,7 @@ global $langs,$db,$user;
 	}
 		
 	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="fiche.php?action=add&fk_soc='.$fk_soc.'">Créer un équipement</a>';
+	echo '<a class="butAction" href="fiche.php?action=add&fk_soc='.$fk_soc.'">Créer un flacon</a>';
 	echo '</div>';
 
 	$ATMdb->close();
