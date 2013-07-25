@@ -55,6 +55,13 @@ function _action() {
 				
 				_fiche($asset,'edit');
 				break;
+			
+			case 'stock':
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id']);
+				
+				_fiche($asset,'stock');
+				break;
 				
 			case 'save':
 				/*echo '<pre>';
@@ -66,8 +73,12 @@ function _action() {
 				//print_r($_REQUEST);
 				//$PDOdb->db->debug=true;
 				//print_r($_REQUEST);
-				
-				$asset->save($PDOdb);
+				if(!isset($_REQUEST['type_mvt']))
+					$asset->save($PDOdb);
+				else{
+					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] : $_REQUEST['qty'] * -1;
+					$asset->save($PDOdb,$_REQUEST['commentaire_mvt'],$qty);
+				}
 				
 				_fiche($asset,'view');
 				
@@ -128,6 +139,9 @@ global $db,$conf;
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
+	
+	$form2=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
+	$form2->Set_typeaff('edit');
 	
 	echo $form->hidden('id', $asset->rowid);
 	echo $form->hidden('action', 'save');
@@ -196,6 +210,11 @@ global $db,$conf;
 				,'commentaire'=> $form->zonetexte('','commentaire',$asset->commentaire,100)
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 			)
+			,'stock'=>array(
+				'type_mvt'=>$form2->combo('','type_mvt',array('retrait'=>'Retrait','ajout'=>'Ajout'),'retrait')
+				,'qty'=>$form2->texte('', 'qty', '', 12,10,'','','')
+				,'commentaire_mvt'=>$form2->zonetexte('','commentaire_mvt','',100)
+			)
 			,'affaire'=>$TAffaire
 			,'view'=>array(
 				'mode'=>$mode
@@ -205,8 +224,8 @@ global $db,$conf;
 					,array(
 						  'title'=>array(
 							'date_cre'=>'Date du mouvement'
-							,'qty'=>'Quantité'
-							,'type'=>'Type de mouvement'
+							,'qty'  =>'Quantité'
+							,'type' => 'Commentaire'
 						)
 					)
 				)

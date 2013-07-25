@@ -29,14 +29,25 @@
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
 			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
-			&nbsp; &nbsp; <input type="button" id="action-clone" value="Nouveau Mouvement Stock" name="mvt_stock" class="butAction" onclick="document.location.href='?action=stock&id=[asset.id]'">
+			&nbsp; &nbsp; <input type="button" id="action-mvt-stock" value="Nouveau Mouvement Stock" name="mvt_stock" class="butAction" onclick="document.location.href='?action=stock&id=[asset.id]'">
 		</div>
 		
 		<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
 			<tr><td valign="middle" class="nobordernopadding"><div class="titre">Mouvements de stock</div></td></tr>
 		</table>
 		[view.liste;strconv=no]
-[onshow;block=end]	
+[onshow;block=end]
+
+[onshow;block=begin;when [view.mode]=='stock']
+		<div class="border" style="margin-top: 25px;">
+			<table width="100%" class="border">
+				<tr><td>Type Mouvement</td><td>[stock.type_mvt;strconv=no]</td></tr>
+				<tr><td>Quantité</td><td>[stock.qty;strconv=no][asset.contenancereel_units;strconv=no]</td></tr>
+				<tr><td>Commentaire</td><td>[stock.commentaire_mvt;strconv=no]</td></tr>
+			</table>
+		</div>
+[onshow;block=end]
+
 [onshow;block=begin;when [view.mode]!='view']
 
 		<p align="center">
