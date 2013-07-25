@@ -190,6 +190,10 @@ global $db,$conf;
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units')
 				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', $asset->contenancereel_value, 12,10,'','','0.00')
 				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units')
+				,'tare'=> $form->texte('', 'tare', $asset->tare, 12,10,'','','0.00')
+				,'tare_units'=>_fiche_visu_units($asset, $mode, 'tare_units')
+				,'emplacement'=> $form->texte('', 'emplacement', $asset->emplacement, 100,100,'','','')
+				,'commentaire'=> $form->zonetexte('','commentaire',$asset->commentaire,100)
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 			)
 			,'affaire'=>$TAffaire
