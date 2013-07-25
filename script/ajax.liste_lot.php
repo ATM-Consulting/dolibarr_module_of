@@ -32,8 +32,9 @@ $Tres = array();
 $sql = "SELECT DISTINCT(lot_number) AS lot, MIN(contenancereel_units) as min_unit
 		FROM ".MAIN_DB_PREFIX."asset
 		WHERE fk_product = ".$id."
+		GROUP BY lot
 		ORDER BY date_cre DESC";
-
+		
 $ATMdb->Execute($sql);
 
 while($ATMdb->Get_line()){
