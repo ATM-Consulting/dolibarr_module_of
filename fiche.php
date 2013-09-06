@@ -51,14 +51,14 @@ function _action() {
 			
 			case 'edit'	:
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				_fiche($asset,'edit');
 				break;
 			
 			case 'stock':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				_fiche($asset,'stock');
 				break;
@@ -68,7 +68,7 @@ function _action() {
 				print_r($_REQUEST);
 				echo '<pre>'; exit;*/
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				$asset->set_values($_REQUEST);
 				//print_r($_REQUEST);
 				//$PDOdb->db->debug=true;
@@ -86,7 +86,7 @@ function _action() {
 				
 			case 'clone':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				$asset->reinit();
 				$asset->serial_number.='(copie)';
 				//$PDOdb->db->debug=true;
@@ -98,7 +98,7 @@ function _action() {
 				
 			case 'delete':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				//$PDOdb->db->debug=true;
 				$asset->delete($PDOdb);
@@ -115,7 +115,7 @@ function _action() {
 	}
 	elseif(isset($_REQUEST['id'])) {
 		$asset=new TAsset;
-		$asset->load($PDOdb, $_REQUEST['id']);
+		$asset->load($PDOdb, $_REQUEST['id'], false);
 		
 		_fiche($asset, 'view');
 	}
