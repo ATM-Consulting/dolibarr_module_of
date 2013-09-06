@@ -196,7 +196,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>'r=0',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+		/*$this->menu[$r]=array(	'fk_menu'=>'r=0',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'Flacons',
 			'mainmenu'=>'asset',
@@ -232,7 +232,7 @@ class modAsset extends DolibarrModules
 			'perms'=>'1',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
-		
+		*/
 				
 		// Exports
 		$r=1;

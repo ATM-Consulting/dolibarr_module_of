@@ -153,9 +153,9 @@ class ActionsAsset
 		
 		global $db;
 		
-		echo '<pre>';
+		/*echo '<pre>';
 		print_r($object);
-		echo '</pre>';exit;
+		echo '</pre>';exit;*/
 		
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
