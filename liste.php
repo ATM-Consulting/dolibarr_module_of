@@ -108,7 +108,7 @@ global $langs,$db,$user;
 		$fields=ASSET_LIST_FIELDS;
 	} else {
 		if(defined('ASSET_LISTE_TYPE') && ASSET_LISTE_TYPE == 'latoxan'){
-			$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.date_cre as 'Création'"; 
+			$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.contenancereel_value as 'contenance', e.contenancereel_units as 'unite', e.date_cre as 'Création'"; 
 		}
 		else{
 			$fields ="e.rowid as 'ID',e.serial_number,p.rowid as 'fk_product', p.label,e.fk_soc as 'fk_soc',s.nom,
@@ -146,6 +146,20 @@ global $langs,$db,$user;
 		$THide[] = 'Produit';
 	}
 	
+	function get_unit($unite){
+		switch($unite){
+			case -6:
+				$unite = 'mg';
+				break;
+			case -3:
+				$unite = 'g';
+				break;
+			case 0:
+				$unite = 'kg';
+				break;
+		}
+		return $unite;
+	}	
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	
@@ -161,10 +175,17 @@ global $langs,$db,$user;
 				'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 				,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
 				,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+				,'unite'=>get_unit('@unite@')
 			)
 			,'translate'=>array()
 			,'hide'=>$THide
-			,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
+			,'type'=>array(
+				'Date garantie'=>'date'
+				,'Date dernière intervention'=>'date'
+				, 'Date livraison'=>'date'
+				, 'Création'=>'date'
+				, 'contenance'=>'number'
+				)
 			,'liste'=>array(
 				'titre'=>'Liste des flacons'
 				,'image'=>img_picto('','title.png', '', 0)
@@ -179,6 +200,8 @@ global $langs,$db,$user;
 				,'lot_number'=>'Numéro de lot'
 				,'nom'=>'Société'
 				,'label'=>'Produit'
+				,'contenance' => 'Contenance Réelle'
+				,'unite' => 'Unité'
 			)
 			,'search'=>array(
 				'serial_number'=>true
