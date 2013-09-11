@@ -148,17 +148,19 @@ global $langs,$db,$user;
 	
 	function get_unit($unite){
 		switch($unite){
-			case -6:
-				$unite = 'mg';
+			case '-6':
+				return 'mg';
 				break;
-			case -3:
-				$unite = 'g';
+			case '-3':
+				return 'g';
 				break;
-			case 0:
-				$unite = 'kg';
+			case '0':
+				return 'kg';
+				break;
+			default:
+				return '';
 				break;
 		}
-		return $unite;
 	}	
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
@@ -175,7 +177,6 @@ global $langs,$db,$user;
 				'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 				,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
 				,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
-				,'unite'=>get_unit('@unite@')
 			)
 			,'translate'=>array()
 			,'hide'=>$THide
@@ -208,6 +209,9 @@ global $langs,$db,$user;
 				,'lot_number'=>true
 				,'nom'=>array('recherche'=>true, 'table'=>'s')
 				,'label'=>array('recherche'=>true, 'table'=>'')
+			)
+			,'eval'=>array(
+				'unite' => 'get_unit("@val@")'
 			)
 			
 		));
