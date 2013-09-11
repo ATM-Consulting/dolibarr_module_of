@@ -202,7 +202,7 @@ global $db,$conf;
 				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
 				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units')
-				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2), 12,10,'','','0.00')
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,0,'.',''), 12,10,'','','0.00')
 				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units')
 				,'tare'=> $form->texte('', 'tare', $asset->tare, 12,10,'','','0.00')
 				,'tare_units'=>_fiche_visu_units($asset, $mode, 'tare_units')
