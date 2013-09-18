@@ -28,7 +28,7 @@ if ($user->societe_id > 0)
 }
 
 function _action() {
-	
+	global $user;	
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 	
@@ -76,11 +76,15 @@ function _action() {
 				if(!isset($_REQUEST['type_mvt']))
 					$asset->save($PDOdb);
 				else{
-					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] : $_REQUEST['qty'] * -1;
-					$asset->save($PDOdb,$_REQUEST['commentaire_mvt'],$qty);
+					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
+					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
 				}
 				
-				_fiche($asset,'view');
+				?>
+				<script language="javascript">
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?=$asset->rowid?>";					
+				</script>
+				<?
 				
 				break;
 				
@@ -177,6 +181,7 @@ global $db,$conf;
 		$TAssetStock[]=array(
 			'date_cre'=>$date
 			,'qty'=>$stock->qty
+			,'lot' =>$stock->lot
 			,'type'=>$stock->type
 		);
 		
@@ -225,6 +230,7 @@ global $db,$conf;
 						  'title'=>array(
 							'date_cre'=>'Date du mouvement'
 							,'qty'  =>'Quantité'
+							,'lot' => 'Numéro batch'
 							,'type' => 'Commentaire'
 						)
 					)

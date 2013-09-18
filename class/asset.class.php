@@ -60,21 +60,21 @@ class TAsset extends TObjetStd{
 		
 		return $res;
 	}
-	function save(&$db,$type = "Modification manuelle", $qty='') {
+	function save(&$db,$user='',$type = "Modification manuelle", $qty='') {
 		parent::save($db);
 		$this->save_link($db);
 		
 		if($this->contenancereel_value != $this->old_contenancereel)
 		{
 			$stock = new TAssetStock;
-			$stock->mouvement_stock($db, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
+			$stock->mouvement_stock($db, $user, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
 		}
 		elseif($qty != ''){
 			$this->contenancereel_value = $this->contenancereel_value - $qty;
 			parent::save($db);
 			
 			$stock = new TAssetStock;
-			$stock->mouvement_stock($db, $this->rowid, $qty, $type, $this->rowid);
+			$stock->mouvement_stock($db, $user, $this->rowid, $qty, $type, $this->rowid);
 		}
 	}
 	function delete(&$db) {
@@ -232,8 +232,8 @@ class TAssetStock extends TObjetStd{
 		parent::add_champs('fk_asset','type=eniter;index;');	  
 		parent::add_champs('qty','type=float;');
 		parent::add_champs('date_mvt','type=date;');
-		parent::add_champs('type','type=chaine;');
-		parent::add_champs('source','type=entier;');
+		parent::add_champs('type,lot','type=chaine;');
+		parent::add_champs('source,user','type=entier;');
 				
 		parent::_init_vars();
 		
@@ -241,13 +241,18 @@ class TAssetStock extends TObjetStd{
 	}
 	
 	//Création d'une nouvelle entrée en stock
-	function mouvement_stock(&$ATMdb,$fk_asset,$qty,$type,$id_source){
+	function mouvement_stock(&$ATMdb,$user,$fk_asset,$qty,$type,$id_source){
+		
+		$asset = new TAsset;
+		$asset->load($ATMdb, $fk_asset);
 		
 		$this->fk_asset = $fk_asset;
 		$this->qty = $qty;
 		$this->date_mvt = date('Y-m-d H:i:s');
 		$this->type = $type;
 		$this->source = $id_source;
+		$this->lot = $asset->lot_number;
+		$this->user = $user->id;
 		
 		$this->save($ATMdb);
 	}
