@@ -165,7 +165,7 @@ class modAsset extends DolibarrModules
 		
 		$r++;
 		$this->rights[$r][0] = 10000;
-		$this->rights[$r][1] = 'Lire les équipements';
+		$this->rights[$r][1] = 'Lire les flacons';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'all';
 		$this->rights[$r][5] = 'lire';
