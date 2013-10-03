@@ -60,7 +60,7 @@ class TAsset extends TObjetStd{
 		
 		return $res;
 	}
-	function save(&$db,$user='',$type = "Modification manuelle", $qty='') {
+	function save(&$db,$user='',$type = "Modification manuelle", $qty=0) {
 		parent::save($db);
 		$this->save_link($db);
 		
@@ -69,8 +69,8 @@ class TAsset extends TObjetStd{
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($db, $user, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
 		}
-		elseif($qty != ''){
-			$this->contenancereel_value = $this->contenancereel_value - $qty;
+		elseif($qty != 0){
+			$this->contenancereel_value = $this->contenancereel_value + $qty;
 			parent::save($db);
 			
 			$stock = new TAssetStock;
