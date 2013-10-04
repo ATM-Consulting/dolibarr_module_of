@@ -76,7 +76,11 @@ class TAsset extends TObjetStd{
 			$mouvS = new MouvementStock($db);
 			// We decrement stock of product (and sub-products)
 			// We use warehouse selected for each line
-			$result=$mouvS->livraison($user, $this->fk_product, 1, $this->contenancereel_value - $this->old_contenancereel, 0, $type);
+			if($qty > 0) {
+				$result=$mouvS->reception($user, $this->fk_product, 1, $this->contenancereel_value - $this->old_contenancereel, 0, $type);
+			} else {
+				$result=$mouvS->livraison($user, $this->fk_product, 1, $this->contenancereel_value - $this->old_contenancereel, 0, $type);
+			}
 		}
 		elseif($qty != 0){
 			$this->contenancereel_value = $this->contenancereel_value + $qty;
@@ -92,7 +96,11 @@ class TAsset extends TObjetStd{
 			$mouvS = new MouvementStock($db);
 			// We decrement stock of product (and sub-products)
 			// We use warehouse selected for each line
-			$result=$mouvS->livraison($user, $this->fk_product, 1, $qty, 0, $type);
+			if($qty > 0) {
+				$result=$mouvS->reception($user, $this->fk_product, 1, $qty, 0, $type);
+			} else {
+				$result=$mouvS->livraison($user, $this->fk_product, 1, $qty, 0, $type);
+			}
 		}
 	}
 	function delete(&$db) {
