@@ -43,8 +43,6 @@ function _action() {
 			case 'add':
 				$asset=new TAsset();
 				$asset->set_values($_REQUEST);
-	
-				$asset->save($PDOdb);
 				_fiche($asset,'new');
 				
 				break;

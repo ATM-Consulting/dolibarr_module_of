@@ -52,6 +52,6 @@
 
 		<p align="center">
 			<input type="submit" value="Enregistrer" name="save" class="button"> 
-			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[asset.id]'">
+			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="history.back();">
 		</p>
 [onshow;block=end]	
