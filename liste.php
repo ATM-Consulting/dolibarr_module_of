@@ -254,7 +254,7 @@ global $langs,$db,$user;
 	}
 		
 	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="fiche.php?action=add&fk_soc='.$fk_soc.'">Créer un flacon</a>';
+	echo '<a class="butAction" href="fiche.php?action=add&fk_soc='.$fk_soc.'&fk_product='.$product->id.'">Créer un flacon</a>';
 	echo '</div>';
 
 	$ATMdb->close();

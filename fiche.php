@@ -45,7 +45,7 @@ function _action() {
 				$asset->set_values($_REQUEST);
 	
 				$asset->save($PDOdb);
-				_fiche($asset,'edit');
+				_fiche($asset,'new');
 				
 				break;
 			
@@ -206,11 +206,11 @@ global $db,$conf;
 				,'copy_black'=>$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00')
 				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
 				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
-				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units')
+				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
 				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2,',',''), 12,10,'','','0.00')
-				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units')
+				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
 				,'tare'=> $form->texte('', 'tare', $asset->tare, 12,10,'','','0.00')
-				,'tare_units'=>_fiche_visu_units($asset, $mode, 'tare_units')
+				,'tare_units'=>_fiche_visu_units($asset, $mode, 'tare_units',-3)
 				,'emplacement'=> $form->texte('', 'emplacement', $asset->emplacement, 100,100,'','','')
 				,'commentaire'=> $form->zonetexte('','commentaire',$asset->commentaire,100)
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
@@ -248,10 +248,10 @@ global $db,$conf;
 function _fiche_visu_produit(&$asset, $mode) {
 global $db, $conf;
 	
-	if($mode=='edit') {
+	if($mode=='edit' || $mode=='new') {
 		ob_start();	
 		$html=new Form($db);
-		$html->select_produits($asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+		$html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
 		
 		return ob_get_clean();
 		
@@ -321,7 +321,7 @@ global $db;
 	}
 }
 
-function _fiche_visu_units(&$asset, $mode, $name) {
+function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
 global $db;
 	
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
@@ -331,10 +331,22 @@ global $db;
 		ob_start();	
 		
 		$html=new FormProduct($db);
+		
 		echo $html->select_measuring_units($name, "weight", $asset->$name);
+		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
 		
+	}
+	elseif($mode=='new'){
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $defaut);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
 	}
 	else{
 		ob_start();	
