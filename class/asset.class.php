@@ -68,6 +68,15 @@ class TAsset extends TObjetStd{
 		{
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($db, $user, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
+			
+			// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
+			global $db, $user;
+			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
+
+			$mouvS = new MouvementStock($db);
+			// We decrement stock of product (and sub-products)
+			// We use warehouse selected for each line
+			$result=$mouvS->livraison($user, $this->fk_product, 1, $this->contenancereel_value - $this->old_contenancereel, 0, $type);
 		}
 		elseif($qty != 0){
 			$this->contenancereel_value = $this->contenancereel_value + $qty;
@@ -75,6 +84,15 @@ class TAsset extends TObjetStd{
 			
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($db, $user, $this->rowid, $qty, $type, $this->rowid);
+			
+			// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
+			global $db, $user;
+			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
+
+			$mouvS = new MouvementStock($db);
+			// We decrement stock of product (and sub-products)
+			// We use warehouse selected for each line
+			$result=$mouvS->livraison($user, $this->fk_product, 1, $qty, 0, $type);
 		}
 	}
 	function delete(&$db) {
