@@ -147,6 +147,7 @@ global $db,$conf;
 	
 	echo $form->hidden('id', $asset->rowid);
 	echo $form->hidden('action', 'save');
+	echo $form->hidden('entity', $conf->entity);
 	
 	
 	/*

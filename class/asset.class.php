@@ -71,6 +71,7 @@ class TAsset extends TObjetStd{
 			
 			// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
 			global $db, $user;
+			require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 
 			$mouvS = new MouvementStock($db);
