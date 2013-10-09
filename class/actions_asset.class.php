@@ -30,7 +30,7 @@ class ActionsAsset
 		        	?> 
 					<script type="text/javascript">
 						$(document).ready(function(){
-							$('#row-<?php echo $line->rowid; ?> :first-child > td').append(' - <?php echo $res->asset_lot; ?>');
+							$('#row-<?php echo $line->rowid; ?> :first-child > td:last').append(' - <?php echo $res->asset_lot; ?>');
 						});
 					</script>
 					<?php
@@ -60,7 +60,7 @@ class ActionsAsset
 			<script type="text/javascript">
 			$(document).ready(function(){
 				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#product_desc').after('<span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"></select>');
+				$('#product_desc').before('<div><span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
 				$('#lotAff').change(function(){
 						$('#lot').val( $('#lotAff option:selected').val() );
 				});
@@ -112,8 +112,7 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				$('#addpredefinedproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#idprod').after('<span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"></select>');
-				$('#lotAff, #span_lot').hide();
+				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un batch</option></select>');
 				$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
@@ -135,7 +134,8 @@ class ActionsAsset
 								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un batch</option>');
 							}
 							else{
-								$('#lotAff, #span_lot').hide();
+								$('#lotAff').empty();
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un batch</option>');
 							}
 						});
 				});
