@@ -213,7 +213,9 @@ global $langs,$db,$user;
 			,'eval'=>array(
 				'unite' => 'get_unit("@val@")'
 			)
-			
+			,'math'=>array(
+				'contenance'=>'sum'
+			)
 		));
 	}
 	else{
@@ -249,7 +251,6 @@ global $langs,$db,$user;
 				,'nom'=>array('recherche'=>true, 'table'=>'s')
 				,'label'=>array('recherche'=>true, 'table'=>'')
 			)
-			
 		));
 	}
 		
