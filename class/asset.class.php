@@ -57,6 +57,7 @@ class TAsset extends TObjetStd{
 		
 		//Sauvegarde de l'ancienne contenance réelle
 		$this->old_contenancereel = $this->contenancereel_value;
+		$this->old_contenancereel_units = $this->contenancereel_units;
 		
 		return $res;
 	}
@@ -64,7 +65,7 @@ class TAsset extends TObjetStd{
 		parent::save($db);
 		$this->save_link($db);
 		
-		if($this->contenancereel_value != $this->old_contenancereel)
+		if($this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units))
 		{
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($db, $user, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
