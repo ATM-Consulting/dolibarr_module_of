@@ -262,7 +262,7 @@ class TAssetStock extends TObjetStd{
 		parent::add_champs('qty','type=float;');
 		parent::add_champs('date_mvt','type=date;');
 		parent::add_champs('type,lot','type=chaine;');
-		parent::add_champs('source,user','type=entier;');
+		parent::add_champs('source,user,weight_units','type=entier;');
 				
 		parent::_init_vars();
 		
@@ -282,6 +282,7 @@ class TAssetStock extends TObjetStd{
 		$this->source = $id_source;
 		$this->lot = $asset->lot_number;
 		$this->user = $user->id;
+		$this->weight_units = $asset->contenancereel_units;
 		
 		$this->save($ATMdb);
 	}
