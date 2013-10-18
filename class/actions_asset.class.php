@@ -30,7 +30,7 @@ class ActionsAsset
 		        	?> 
 					<script type="text/javascript">
 						$(document).ready(function(){
-							$('#row-<?php echo $line->rowid; ?> :first-child > td:last').append(' - <?php echo $res->asset_lot; ?>');
+							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - Batch : <?php echo $res->asset_lot; ?>');
 						});
 					</script>
 					<?php
