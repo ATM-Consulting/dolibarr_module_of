@@ -5,6 +5,7 @@ require('config.php');
 require('./class/asset.class.php');
 require('./lib/asset.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -180,6 +181,7 @@ global $db,$conf;
 		$TAssetStock[]=array(
 			'date_cre'=>$date
 			,'qty'=>$stock->qty
+			,'weight_units'=>measuring_units_string($stock->weight_units,"weight")
 			,'lot' =>$stock->lot
 			,'type'=>$stock->type
 		);
@@ -229,6 +231,7 @@ global $db,$conf;
 						  'title'=>array(
 							'date_cre'=>'Date du mouvement'
 							,'qty'  =>'Quantité'
+							,'weight_units' => 'Unité'
 							,'lot' => 'Numéro batch'
 							,'type' => 'Commentaire'
 						)
