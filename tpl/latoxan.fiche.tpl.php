@@ -12,8 +12,8 @@
 				<tr><td width="20%">Référence du flacon</td><td>[asset.serial_number;strconv=no]</td></tr>
 				<tr><td>Numéro batch</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no;protect=no]</td></tr>
-				<tr><td>Contenance</td><td>[asset.contenance_value;strconv=no][asset.contenance_units;strconv=no]</td></tr>
-				<tr><td>Contenance Réelle</td><td>[asset.contenancereel_value;strconv=no][asset.contenancereel_units;strconv=no]</td></tr>
+				<tr><td>Contenance du flacon</td><td>[asset.contenance_value;strconv=no][asset.contenance_units;strconv=no]</td></tr>
+				<tr><td>Quantité de produit</td><td>[asset.contenancereel_value;strconv=no][asset.contenancereel_units;strconv=no]</td></tr>
 				<tr><td>Tare</td><td>[asset.tare;strconv=no][asset.tare_units;strconv=no]</td></tr>
 				<tr><td>Emplacement</td><td>[asset.emplacement;strconv=no]</td></tr>
 				<tr><td>Commentaire</td><td>[asset.commentaire;strconv=no]</td></tr>
