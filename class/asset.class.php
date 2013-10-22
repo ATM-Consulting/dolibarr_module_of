@@ -102,7 +102,7 @@ class TAsset extends TObjetStd{
 			if($qty > 0) {
 				$result=$mouvS->reception($user, $this->fk_product, 1, $qty, 0, $type);
 			} else {
-				$result=$mouvS->livraison($user, $this->fk_product, 1, $qty, 0, $type);
+				$result=$mouvS->livraison($user, $this->fk_product, 1, -$qty, 0, $type);
 			}
 		}
 	}
