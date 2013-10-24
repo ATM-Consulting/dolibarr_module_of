@@ -65,29 +65,18 @@ class TAsset extends TObjetStd{
 		parent::save($db);
 		$this->save_link($db);
 		
-		if($this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units))
-		{
-			$stock = new TAssetStock;
-			$stock->mouvement_stock($db, $user, $this->rowid, $this->contenancereel_value - $this->old_contenancereel, $type, $this->rowid);
-			
-			// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
-			global $db, $user;
-			require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-
-			$mouvS = new MouvementStock($db);
-			// We decrement stock of product (and sub-products)
-			// We use warehouse selected for each line
-			if($this->contenancereel_value - $this->old_contenancereel < 0) {
-				$result=$mouvS->reception($user, $this->fk_product, 1, $this->contenancereel_value - $this->old_contenancereel, 0, $type);
-			} else {
-				$result=$mouvS->livraison($user, $this->fk_product, 1, $this->contenancereel_value - $this->old_contenancereel, 0, $type);
-			}
-		}
-		elseif($qty != 0){
+		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
+		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
+			$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
+			$qty = $qtyKg * pow(10, -$this->contenancereel_units);
+		} else if(!empty($qty)) {
 			$this->contenancereel_value = $this->contenancereel_value + $qty;
 			parent::save($db);
-			
+		}
+		
+		// Enregistrement des mouvements
+		if(!empty($qty))
+		{
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($db, $user, $this->rowid, $qty, $type, $this->rowid);
 			
