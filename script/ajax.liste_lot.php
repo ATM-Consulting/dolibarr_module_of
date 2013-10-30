@@ -17,9 +17,6 @@ function _unit($unite){
 		case -3:
 			return 'g';
 			break;
-		case -3:
-			return 'gr';
-			break;
 		case 0:
 			return 'kg';
 			break;
