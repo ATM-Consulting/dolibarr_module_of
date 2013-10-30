@@ -69,9 +69,9 @@ class ActionsAsset
 			<script type="text/javascript">
 			$(document).ready(function(){
 				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#product_desc').before('<div><span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
+				$('#product_desc').before('<div><span id="span_lot"> Flacon : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
 				$('#lotAff').change(function(){
-						$('#lot').val( $('#lotAff option:selected').val() );
+					$('#lot').val( $('#lotAff option:selected').val() );
 				});
 				$('#product_id').change( function(){
 					$.ajax({
@@ -82,7 +82,7 @@ class ActionsAsset
 						},"json").then(function(select){
 							if(select.length > 0){
 								$.each(select, function(i,option){
-									if(option.lot == "<?php echo $res->asset_lot; ?>")
+									if(option.flacon == "<?php echo $res->asset_lot; ?>")
 										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
 									else
 										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
@@ -149,7 +149,7 @@ class ActionsAsset
 						});
 				});
 				$('#lotAff').change(function(){
-						$('#lot').val( $('#lotAff option:selected').val() );
+					$('#lot').val( $('#lotAff option:selected').val() );
 				});
 			</script>
 			<?php
