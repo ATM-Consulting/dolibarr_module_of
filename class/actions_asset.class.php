@@ -18,6 +18,10 @@ class ActionsAsset
 		
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
+        	define('INC_FROM_DOLIBARR',true);
+        	dol_include_once("/asset/config.php");
+			dol_include_once('/asset/class/asset.class.php');
+			
         	foreach($object->lines as $line){
         		/*echo '<pre>';
 				print_r($object);
@@ -25,12 +29,17 @@ class ActionsAsset
 	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->rowid);
 				$res = $db->fetch_object($resql);
 				
+				$ATMdb = new Tdb;
+				$asset = new TAsset();
+				$asset->load($ATMdb, $res->asset_lot);
+				$link = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>';
+				
 				if(!is_null($res->asset_lot))
 				{
 		        	?> 
 					<script type="text/javascript">
 						$(document).ready(function(){
-							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - Batch : <?php echo $res->asset_lot; ?>');
+							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - Flacon : <?php echo $link; ?>');
 						});
 					</script>
 					<?php
@@ -67,18 +76,18 @@ class ActionsAsset
 				$('#product_id').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_lot.php"
+						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 2) ?>"
 						,dataType: "json"
 						,data: {fk_product: $('#product_id').val()}
 						},"json").then(function(select){
 							if(select.length > 0){
 								$.each(select, function(i,option){
 									if(option.lot == "<?php echo $res->asset_lot; ?>")
-										$('#lotAff').prepend('<option value="'+option.lot+'" selected="selected">'+option.lotAff+'</option>');
+										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
 									else
-										$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
 								})
-								$('#lotAff').prepend('<option value="0">S&eacute;lectionnez un lot</option>');
+								$('#lotAff').prepend('<option value="0">S&eacute;lectionnez un flacon</option>');
 							}
 						});
 				});
@@ -112,11 +121,11 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				$('#addpredefinedproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> Batch : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un batch</option></select>');
+				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> Flacon : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un flacon</option></select>');
 				$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_lot.php"
+						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 2) ?>"
 						,dataType: "json"
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){
@@ -125,17 +134,17 @@ class ActionsAsset
 								$('#span_lot').show();
 								$.each(select, function(i,option){
 									if(select.length > 1){
-										$('#lotAff').prepend('<option value="'+option.lot+'">'+option.lotAff+'</option>');
+										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
 									}
 									else{
-										$('#lotAff').prepend('<option value="'+option.lot+'" selected="selected">'+option.lotAff+'</option>');
+										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
 									}
 								})
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un batch</option>');
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un flacon</option>');
 							}
 							else{
 								$('#lotAff').empty();
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un batch</option>');
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un flacon</option>');
 							}
 						});
 				});
