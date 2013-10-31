@@ -32,7 +32,7 @@ class ActionsAsset
 				$ATMdb = new Tdb;
 				$asset = new TAsset();
 				$asset->load($ATMdb, $res->asset_lot);
-				$link = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>';
+				$link = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),1).'">'.$asset->serial_number.'</a>';
 				
 				if(!is_null($res->asset_lot))
 				{
@@ -76,7 +76,7 @@ class ActionsAsset
 				$('#product_id').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_flacon.php"
+						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 1) ?>"
 						,dataType: "json"
 						,data: {fk_product: $('#product_id').val()}
 						},"json").then(function(select){
@@ -125,7 +125,7 @@ class ActionsAsset
 				$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_flacon.php"
+						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 1) ?>"
 						,dataType: "json"
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){
