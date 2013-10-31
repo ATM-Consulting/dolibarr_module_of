@@ -125,7 +125,7 @@ class ActionsAsset
 				$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 2) ?>"
+						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_flacon.php"
 						,dataType: "json"
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){
