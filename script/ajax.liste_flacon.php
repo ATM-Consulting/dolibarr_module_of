@@ -5,8 +5,8 @@ dol_include_once('/core/lib/product.lib.php');
 
 $langs->load('other');
 
-if(isset($_POST['fk_product'])){
-	$id = $_POST['fk_product'];
+if(isset($_REQUEST['fk_product'])){
+	$id = $_REQUEST['fk_product'];
 }
 
 $ATMdb = new Tdb;
