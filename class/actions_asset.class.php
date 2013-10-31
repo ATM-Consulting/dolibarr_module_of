@@ -76,7 +76,7 @@ class ActionsAsset
 				$('#product_id').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 2) ?>"
+						,url: "<?=DOL_URL_ROOT; ?>/custom/asset/script/ajax.liste_flacon.php"
 						,dataType: "json"
 						,data: {fk_product: $('#product_id').val()}
 						},"json").then(function(select){
