@@ -42,7 +42,7 @@ global $conf, $langs;
 		
 		if($link->type_document=='affaire' && isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 			$affaire=new TFin_affaire;
-			$affaire->load($PDOdb, $link->fk_document);
+			$affaire->load($PDOdb, $link->fk_document, false);
 			$reference ='<a href="'.DOL_URL_ROOT_ALT.'/financement/affaire.php?id='.$affaire->getId().'">'. $affaire->reference .'</a>';
 			$date = $affaire->get_date('date_affaire');
 		}

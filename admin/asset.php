@@ -37,7 +37,7 @@
 //if (! defined("NOLOGIN"))        define("NOLOGIN",'1');		// If this page is public (can be called outside logged session)
 
 // Change this following line to use the correct relative path (../, ../../, etc)
-require('config.php');
+require('../config.php');
 
 // Get parameters
 $myparam = isset($_GET["myparam"])?$_GET["myparam"]:'';

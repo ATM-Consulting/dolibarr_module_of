@@ -72,8 +72,10 @@ class modAsset extends DolibarrModules
 		$this->picto='generic';
 
 		// Defined if the directory /mymodule/includes/triggers/ contains triggers or not
-		$this->triggers = 0;
-
+		
+		
+		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard'),'triggers' => 1);
+		
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
 		$this->dirs = array();
@@ -120,12 +122,12 @@ class modAsset extends DolibarrModules
 		// 'contact'          to add a tab in contact view
 		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
         /*$this->tabs = array(
-        	'thirdparty:Equipements:@asset:$user->rights->asset->read:/custom/equipement/equipement.php?tid=__ID__'
-        	,'product:Equipements:@asset:$user->rights->asset->read:/equipement/equipement.php?pid=__ID__'
+        	'thirdparty:Equipements:@asset:$user->rights->asset->read:/custom/asset/equipement.php?tid=__ID__'
+        	,'product:Equipements:@asset:$user->rights->asset->read:/asset/equipement.php?pid=__ID__'
         );*/
 		$this->tabs = array(
-			'product:+tabEquipement1:Equipements:@asset:/equipement/liste.php?fk_product=__ID__'
-			,'thirdparty:+tabEquipement2:Equipements:@asset:/equipement/liste.php?fk_soc=__ID__'
+			'product:+tabEquipement1:Flacons:@asset:/asset/liste.php?fk_product=__ID__'
+			//,'thirdparty:+tabEquipement2:Flacons:@asset:/asset/liste.php?fk_soc=__ID__'
 		);
 
         // Dictionnaries
@@ -163,10 +165,10 @@ class modAsset extends DolibarrModules
 		
 		$r++;
 		$this->rights[$r][0] = 10000;
-		$this->rights[$r][1] = 'Lire les équipements';
-		$this->rights[$r][2] = 'a';
+		$this->rights[$r][1] = 'Lire les flacons';
 		$this->rights[$r][3] = 1;
-		$this->rights[$r][4] = 'lire';
+		$this->rights[$r][4] = 'all';
+		$this->rights[$r][5] = 'lire';
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
@@ -183,22 +185,22 @@ class modAsset extends DolibarrModules
 		$r=0;
 		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
 					'type'=>'top',			// This is a Top menu entry
-					'titre'=>'Equipement',
+					'titre'=>'Flacons',
 					'mainmenu'=>'asset',
 					'leftmenu'=>'1',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/equipement/liste.php',
+					'url'=>'/asset/liste.php',
 					'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>100,
-					'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'1',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'enabled'=>'$conf->asset->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->all->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>'r=0',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+		/*$this->menu[$r]=array(	'fk_menu'=>'r=0',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'Equipement',
+			'titre'=>'Flacons',
 			'mainmenu'=>'asset',
-			'url'=>'/equipement/liste.php',
+			'url'=>'/asset/liste.php',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>100,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -210,7 +212,7 @@ class modAsset extends DolibarrModules
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A completer',
 			'mainmenu'=>'asset',
-			'url'=>'/equipement/liste.php?no_serial=1',
+			'url'=>'/asset/liste.php?no_serial=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>100,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -223,14 +225,14 @@ class modAsset extends DolibarrModules
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A relancer',
 			'mainmenu'=>'asset',
-			'url'=>'/equipement/liste.php?relance=1',
+			'url'=>'/asset/liste.php?relance=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>101,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 			'perms'=>'1',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
-		
+		*/
 				
 		// Exports
 		$r=1;
@@ -255,22 +257,23 @@ class modAsset extends DolibarrModules
 	 *		It also creates data directories.
 	 *      @return     int             1 if OK, 0 if KO
 	 */
-	function init()
+	function init($options='')
 	{
-
-		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php')) {
-			copy(DOL_DOCUMENT_ROOT.'/product/fiche.php',DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php');
-			copy(DOL_DOCUMENT_ROOT.'/product/class/product.class.php',DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/product.class.php');
+		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php')) {
+			copy(DOL_DOCUMENT_ROOT.'/product/fiche.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php');
+			copy(DOL_DOCUMENT_ROOT.'/product/class/product.class.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php');
 		}
-		copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/deploy/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
-		copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/deploy/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.phpp');
-	
+		copy(DOL_DOCUMENT_ROOT_ALT.'/asset/deploy/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
+		copy(DOL_DOCUMENT_ROOT_ALT.'/asset/deploy/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.phpp');
 
 		$sql = array();
 
 		$result=$this->load_tables();
 
-		return $this->_init($sql);
+		$url ='http://'.$_SERVER['SERVER_NAME']. DOL_URL_ROOT_ALT."/asset/script/create-maj-base.php";
+		file_get_contents($url);
+
+		return $this->_init($sql, $options);
 	}
 
 	/**
@@ -282,12 +285,12 @@ class modAsset extends DolibarrModules
 	function remove()
 	{
 			
-		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php')) {
-			copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
-			copy(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.php');
+		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php')) {
+			copy(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
+			copy(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.php');
 		}
-		unlink(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/clients.php');	
-		unlink(DOL_DOCUMENT_ROOT_ALT.'/equipement/backup/product.class.php');	
+		unlink(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/clients.php');	
+		unlink(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php');	
 			
 		$sql = array();
 
@@ -306,7 +309,7 @@ class modAsset extends DolibarrModules
 	{
 		
 			
-		return $this->_load_tables('/equipement/sql/');
+		return $this->_load_tables('/asset/sql/');
 	}
 }
 

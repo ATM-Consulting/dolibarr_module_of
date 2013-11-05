@@ -4,10 +4,16 @@ require('config.php');
 
 require('./class/asset.class.php');
 require('./lib/asset.lib.php');
+require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+
+
+if(!$user->rights->asset->all->lire) accessforbidden();
 
 if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 	dol_include_once('/financement/class/affaire.class.php');
 }
+
 
 // Load traductions files requiredby by page
 $langs->load("companies");
@@ -23,48 +29,67 @@ if ($user->societe_id > 0)
 }
 
 function _action() {
+	global $user;	
+	$PDOdb=new TPDOdb;
+	//$PDOdb->debug=true;
 	
-$PDOdb=new TPDOdb;
-//$PDOdb->debug=true;
-
-/*******************************************************************
-* ACTIONS
-*
-* Put here all code to do according to value of "action" parameter
-********************************************************************/
+	/*******************************************************************
+	* ACTIONS
+	*
+	* Put here all code to do according to value of "action" parameter
+	********************************************************************/
 
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
 				$asset=new TAsset();
 				$asset->set_values($_REQUEST);
-	
-				$asset->save($PDOdb);
-				_fiche($asset,'edit');
+				_fiche($asset,'new');
 				
-				break;	
+				break;
+			
 			case 'edit'	:
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				_fiche($asset,'edit');
 				break;
-			case 'save':
+			
+			case 'stock':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
+				
+				_fiche($asset,'stock');
+				break;
+				
+			case 'save':
+				/*echo '<pre>';
+				print_r($_REQUEST);
+				echo '<pre>'; exit;*/
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				$asset->set_values($_REQUEST);
 				//print_r($_REQUEST);
 				//$PDOdb->db->debug=true;
 				//print_r($_REQUEST);
+				if(!isset($_REQUEST['type_mvt']))
+					$asset->save($PDOdb);
+				else{
+					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
+					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
+				}
 				
-				$asset->save($PDOdb);
-				
-				_fiche($asset,'view');
+				?>
+				<script language="javascript">
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?=$asset->rowid?>";					
+				</script>
+				<?
 				
 				break;
+				
 			case 'clone':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
 				$asset->reinit();
 				$asset->serial_number.='(copie)';
 				//$PDOdb->db->debug=true;
@@ -72,11 +97,12 @@ $PDOdb=new TPDOdb;
 				
 				_fiche($asset,'view');
 				
-				break;$PDOdb=new TPDOdb;
+				break;
 				
 			case 'delete':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load($PDOdb, $_REQUEST['id'], false);
+				
 				//$PDOdb->db->debug=true;
 				$asset->delete($PDOdb);
 				
@@ -92,7 +118,7 @@ $PDOdb=new TPDOdb;
 	}
 	elseif(isset($_REQUEST['id'])) {
 		$asset=new TAsset;
-		$asset->load($PDOdb, $_REQUEST['id']);
+		$asset->load($PDOdb, $_REQUEST['id'], false);
 		
 		_fiche($asset, 'view');
 	}
@@ -103,22 +129,26 @@ $PDOdb=new TPDOdb;
 }
 
 function _fiche(&$asset, $mode='edit') {
-global $conf;
+global $db,$conf;
 /***************************************************
 * PAGE
 *
 * Put here all code to build page
 ****************************************************/
 	
-	llxHeader('','Equipement','','');
+	llxHeader('','Flacons','','');
 	
 	
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
 	
+	$form2=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
+	$form2->Set_typeaff('edit');
+	
 	echo $form->hidden('id', $asset->rowid);
 	echo $form->hidden('action', 'save');
+	echo $form->hidden('entity', $conf->entity);
 	
 	
 	/*
@@ -128,7 +158,7 @@ global $conf;
   		$PDOdb=new TPDOdb;
 	 	$id_affaire = $asset->getLink('affaire')->fk_document;
 		$affaire=new TFin_affaire;
-		$affaire->load($PDOdb, $id_affaire);
+		$affaire->load($PDOdb, $id_affaire, false);
  		
 		$TAffaire = $affaire->get_values();
  	}
@@ -137,9 +167,27 @@ global $conf;
 	}
 	 
 	$TBS=new TTemplateTBS();
+	$liste=new TListviewTBS('asset');
 	
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
+	
+	$TAssetStock = array();
+	
+	foreach($asset->TStock as &$stock) {
+	
+		$date = $stock->get_dtcre();
+		
+		$TAssetStock[]=array(
+			'date_cre'=>$date
+			,'qty'=>$stock->qty
+			,'weight_units'=>measuring_units_string($stock->weight_units,"weight")
+			,'lot' =>$stock->lot
+			,'type'=>$stock->type
+		);
+		
+		
+	}
 	
 	print $TBS->render( (defined('ASSET_FICHE_TPL') ? './tpl/'.ASSET_FICHE_TPL : './tpl/fiche.tpl.php')
 		,array(
@@ -158,21 +206,41 @@ global $conf;
 				,'date_last_intervention'=>$form->calendrier('', 'date_last_intervention', $asset->get_date('date_last_intervention'),10)
 				,'copy_black'=>$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00')
 				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
+				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
+				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2,',',''), 12,10,'','','0.00')
+				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
+				,'tare'=> $form->texte('', 'tare', $asset->tare, 12,10,'','','0.00')
+				,'tare_units'=>_fiche_visu_units($asset, $mode, 'tare_units',-3)
+				,'emplacement'=> $form->texte('', 'emplacement', $asset->emplacement, 100,100,'','','')
+				,'commentaire'=> $form->zonetexte('','commentaire',$asset->commentaire,100)
+				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
+			)
+			,'stock'=>array(
+				'type_mvt'=>$form2->combo('','type_mvt',array('retrait'=>'Retrait','ajout'=>'Ajout'),'retrait')
+				,'qty'=>$form2->texte('', 'qty', '', 12,10,'','','')
+				,'commentaire_mvt'=>$form2->zonetexte('','commentaire_mvt','',100)
 			)
 			,'affaire'=>$TAffaire
 			,'view'=>array(
 				'mode'=>$mode
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
-				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Equipement')
-				
+				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Flacon')
+				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
+					,array(
+						  'title'=>array(
+							'date_cre'=>'Date du mouvement'
+							,'qty'  =>'Quantité'
+							,'weight_units' => 'Unité'
+							,'lot' => 'Numéro batch'
+							,'type' => 'Commentaire'
+						)
+					)
+				)
 			)
-			
 		)
 	);
 	
-	
-	 
-
 	echo $form->end_form();
 	// End of page
 	
@@ -180,12 +248,12 @@ global $conf;
 }
 
 function _fiche_visu_produit(&$asset, $mode) {
-global $db;
+global $db, $conf;
 	
-	if($mode=='edit') {
+	if($mode=='edit' || $mode=='new') {
 		ob_start();	
 		$html=new Form($db);
-		$html->select_produits($asset->fk_product,'fk_product','',$conf->product->limit_size);
+		$html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
 		
 		return ob_get_clean();
 		
@@ -252,6 +320,42 @@ global $db;
 		} else {
 			return 'Non défini';
 		}
+	}
+}
+
+function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
+global $db;
+	
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	
+	if($mode=='edit') {
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $asset->$name);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
+		
+	}
+	elseif($mode=='new'){
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $defaut);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
+	}
+	else{
+		ob_start();	
+		
+		echo measuring_units_string($asset->$name, "weight");
+		
+		return ob_get_clean();
 	}
 }
 
