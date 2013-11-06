@@ -129,7 +129,7 @@ function _action() {
 }
 
 function _fiche(&$asset, $mode='edit') {
-global $db,$conf;
+global $db,$conf, $ASSET_LINK_ON_FIELD;
 /***************************************************
 * PAGE
 *
@@ -235,6 +235,7 @@ global $db,$conf;
 							,'lot' => 'Numéro batch'
 							,'type' => 'Commentaire'
 						)
+						,'link'=>array_merge($ASSET_LINK_ON_FIELD,array())
 					)
 				)
 			)

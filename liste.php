@@ -10,7 +10,7 @@
 	_liste($user->entity);
 
 function _liste($id_entity) {
-global $langs,$db,$user;
+global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	
 
 	llxHeader('','Liste des flacons installés','','');
@@ -173,11 +173,11 @@ global $langs,$db,$user;
 				'nbLine'=>'30'
 			)
 			,'subQuery'=>array()
-			,'link'=>array(
+			,'link'=>array_merge($ASSET_LINK_ON_FIELD,array(
 				'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 				,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
 				,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
-			)
+			))
 			,'translate'=>array()
 			,'hide'=>$THide
 			,'type'=>array(
