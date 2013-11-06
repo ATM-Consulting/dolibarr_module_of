@@ -74,16 +74,9 @@ function _action() {
 				//print_r($_REQUEST);
 				if(!isset($_REQUEST['type_mvt']))
 					$asset->save($PDOdb);
-				elseif(!empty($_REQUEST['type_mvt'])){
+				else{
 					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
 					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
-				}
-				else{
-					?>
-					<script language="javascript">
-						document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?=$asset->rowid?>&error=error";					
-					</script>
-					<?
 				}
 				
 				?>
@@ -201,6 +194,17 @@ global $db,$conf, $ASSET_LINK_ON_FIELD;
 		
 	}
 	
+	?>
+	<script type="text/javascript">
+		$('#formeq').submit(function(){
+			if($('#type_mvt').val() == ''){
+				alert('Type de mouvement incorrect');
+				return false;
+			}
+		})
+	</script>
+	<?php
+
 	print $TBS->render( (defined('ASSET_FICHE_TPL') ? './tpl/'.ASSET_FICHE_TPL : './tpl/fiche.tpl.php')
 		,array(
 		)
