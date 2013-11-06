@@ -74,9 +74,16 @@ function _action() {
 				//print_r($_REQUEST);
 				if(!isset($_REQUEST['type_mvt']))
 					$asset->save($PDOdb);
-				else{
+				elseif(!empty($_REQUEST['type_mvt'])){
 					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
 					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
+				}
+				else{
+					?>
+					<script language="javascript">
+						document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?=$asset->rowid?>&error=error";					
+					</script>
+					<?
 				}
 				
 				?>
@@ -139,6 +146,11 @@ global $db,$conf, $ASSET_LINK_ON_FIELD;
 	llxHeader('','Flacons','','');
 	
 	
+	if(isset($_REQUEST['error'])) {
+		?>
+		<br><div class="error">Type de mouvement incorrect</div><br>
+		<?
+	}
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
@@ -217,7 +229,7 @@ global $db,$conf, $ASSET_LINK_ON_FIELD;
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 			)
 			,'stock'=>array(
-				'type_mvt'=>$form2->combo('','type_mvt',array('retrait'=>'Retrait','ajout'=>'Ajout'),'retrait')
+				'type_mvt'=>$form2->combo('','type_mvt',array(''=>'','retrait'=>'Retrait','ajout'=>'Ajout'),'')
 				,'qty'=>$form2->texte('', 'qty', '', 12,10,'','','')
 				,'commentaire_mvt'=>$form2->zonetexte('','commentaire_mvt','',100)
 			)
