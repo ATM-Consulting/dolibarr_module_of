@@ -18,6 +18,7 @@ if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 // Load traductions files requiredby by page
 $langs->load("companies");
 $langs->load("other");
+$langs->load("asset@asset");
 
 // Get parameters
 _action();
@@ -129,14 +130,14 @@ function _action() {
 }
 
 function _fiche(&$asset, $mode='edit') {
-global $db,$conf, $ASSET_LINK_ON_FIELD;
+global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 /***************************************************
 * PAGE
 *
 * Put here all code to build page
 ****************************************************/
 	
-	llxHeader('','Flacons','','');
+	llxHeader('',$langs->trans('Asset'),'','');
 	
 	
 	if(isset($_REQUEST['error'])) {

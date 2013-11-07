@@ -8,17 +8,11 @@ class TAsset extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_soc,fk_product,periodicity,qty,entity','type=entier;');
+		$this->add_champs('fk_soc,fk_product,entity','type=entier;');
+		$this->add_champs('commentaire', 'type=chaine;');
 		
-		$this->add_champs('copy_black,copy_color,contenancereel_value, contenance_value, tare', 'type=float;');
-		$this->add_champs('contenance_units, contenancereel_units, tare_units', 'type=entier;');
-		$this->add_champs('lot_number,emplacement,commentaire', 'type=chaine;');
-		/*
-		 * periodicity : nombre de jour depuis dernière intervention avant nouvelle intervention
-		 * qty : quantité (champs présent dans la gestion oracle pour une raison qui nous échappe)
-		 */
-		
-		$this->add_champs('date_achat,date_shipping,date_garantie,date_last_intervention','type=date;');
+		//clé étrangère : type de la ressource
+		parent::add_champs('fk_asset_type','type=entier;index;');
 		
 		$this->_init_vars('serial_number');
 		
@@ -28,12 +22,9 @@ class TAsset extends TObjetStd{
 		$this->TStock=array(); // liaison mouvement stock
 		$this->error='Erreur dans objet equipement';
 		
-		$this->date_shipping=time();
-		$this->date_achat=time();
-		$this->date_garantie=time();
-		$this->date_last_intervention=time();
-		
-		$this->old_contenancereel = 0;
+		$this->TField=array();
+		$this->assetType=new TAsset_type;
+		$this->TType = array();
 	}
 
 	function reinit() {
@@ -61,6 +52,38 @@ class TAsset extends TObjetStd{
 		
 		return $res;
 	}
+	
+	function load_liste_type_asset(&$ATMdb){
+		//chargement d'une liste de tout les types de ressources
+		$temp = new TAsset_type;
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array());
+		$this->TType = array('');
+		foreach($Tab as $k=>$id){
+			$temp->load($ATMdb, $id);
+			$this->TType[$temp->getId()] = $temp->libelle;
+		}
+		
+	}
+	
+	function load_asset_type(&$ATMdb) {
+		//on prend le type de ressource associé
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
+		$this->assetType->load($ATMdb, $Tab[0]);
+		$this->fk_asset_type = $this->assetType->getId();
+		
+		//on charge les champs associés au type.
+		$this->init_variables($ATMdb);
+		
+	}
+	
+	function init_variables(&$ATMdb) {
+		foreach($this->assetType->TField as $field) {
+			$this->add_champs($field->code, 'type=chaine;');
+		}
+		$this->init_db_by_vars($ATMdb);
+		parent::load($ATMdb, $this->getId());
+	}
+	
 	function save(&$db,$user='',$type = "Modification manuelle", $qty=0) {
 		parent::save($db);
 		$this->save_link($db);
@@ -95,6 +118,7 @@ class TAsset extends TObjetStd{
 			}
 		}
 	}
+
 	function delete(&$db) {
 		parent::delete($db);
 		$nb=count($this->TLink);
@@ -106,6 +130,7 @@ class TAsset extends TObjetStd{
 			$this->TStock[$i]->delete($db);	
 		}
 	}
+	
 	function load_link(&$db) {
 		$this->TLink=array();
 		$Tab = $this->_get_link_id($db);
@@ -115,6 +140,7 @@ class TAsset extends TObjetStd{
 			$this->TLink[$i]->load($db, $id);	
 		}
 	}
+	
 	function save_link(&$db) {
 		$nb=count($this->TLink);
 		for($i=0;$i<$nb;$i++) {
@@ -132,6 +158,7 @@ class TAsset extends TObjetStd{
 		}
 		
 	}
+	
 	private function _get_link_id(&$db) {
 		$db->Execute("SELECT rowid FROM ".$this->get_table()."_link WHERE fk_asset=".$this->rowid);
 		$Tab=array();
@@ -187,7 +214,8 @@ class TAsset extends TObjetStd{
 		
 		return $Tab;
 	}
-} 
+}
+
 class TAssetLink extends TObjetStd{
 /*
  * Liaison entre les équipements et les documents
@@ -287,4 +315,221 @@ class TAssetStock extends TObjetStd{
 	}
 }
 
-?>
+class TAsset_type extends TObjetStd {
+	function __construct() { /* declaration */
+		parent::set_table(MAIN_DB_PREFIX.'asset_type');
+		parent::add_champs('libelle,code','type=chaine;');
+		parent::add_champs('entity','type=entier;index;');
+		parent::add_champs('supprimable','type=entier;');
+				
+		parent::_init_vars();
+		parent::start();
+		$this->TField=array();
+		$this->TType=array('chaine'=>'Texte','entier'=>'Entier','float'=>'Float',"liste"=>'Liste','date'=>'Date', "checkbox"=>'Case à cocher');
+	}
+	
+	
+	function load_by_code(&$ATMdb, $code){
+		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_type WHERE code='".$code."'";
+		$ATMdb->Execute($sqlReq);
+		
+		if ($ATMdb->Get_line()) {
+			$this->load($ATMdb, $ATMdb->Get_field('rowid'));
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Attribut les champs directement, pour créer les types par défauts par exemple. 
+	 */
+	function chargement(&$db, $libelle, $code, $supprimable){
+		$this->load_by_code($db, $code);
+		$this->libelle = $libelle;
+		$this->code = $code;
+		$this->supprimable = $supprimable;
+		$this->save($db);
+	}
+	
+	function load(&$ATMdb, $id) {
+		parent::load($ATMdb, $id);
+		$this->load_field($ATMdb);
+	}
+	
+	/**
+	 * Renvoie true si ce type est utilisé par une des ressources.
+	 */
+	function isUsedByRessource(&$ATMdb){
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('fk_asset_type'=>$this->getId()));
+		if (count($Tab)>0) return true;
+		return false;
+
+	}
+	
+	function load_field(&$ATMdb) {
+		global $conf;
+		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE fk_asset_type=".$this->getId()." ORDER BY ordre ASC;";
+		$ATMdb->Execute($sqlReq);
+		
+		$Tab = array();
+		while($ATMdb->Get_line()) {
+			$Tab[]= $ATMdb->Get_field('rowid');
+		}
+		
+		$this->TField=array();
+		foreach($Tab as $k=>$id) {
+			$this->TField[$k]=new TAsset_field;
+			$this->TField[$k]->load($ATMdb, $id);
+		}
+	}
+	
+	function addField(&$ATMdb, $TNField) {
+		$k=count($this->TField);
+		$this->TField[$k]=new TAsset_field;
+		$this->TField[$k]->set_values($TNField);
+		
+		$p=new TAsset;				
+		$p->add_champs($TNField['code'] ,'type=chaine' );
+		$p->init_db_by_vars($ATMdb);
+					
+		return $k;
+	}
+	
+	function delField(&$ATMdb, $id){
+		$toDel = new TAsset_field;
+		$toDel->load($ATMdb,$id);
+		return $toDel->delete($ATMdb);
+	}
+	
+	function delete(&$ATMdb) {
+		global $conf;
+		if ($this->supprimable){
+			//on supprime les champs associés à ce type
+			$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE fk_asset_type=".$this->getId();
+			$ATMdb->Execute($sqlReq);
+			$Tab = array();
+			while($ATMdb->Get_line()) {
+				$Tab[]= $ATMdb->Get_field('rowid');
+			}
+			$temp = new TAsset_field;
+			foreach ($Tab as $k => $id) {
+				$temp->load($ATMdb, $id);
+				$temp->delete($ATMdb);
+			}
+			//puis on supprime le type
+			parent::delete($ATMdb);
+			return true;
+		}
+		else {return false;}
+		
+	}
+	function save(&$db) {
+		global $conf;
+		
+		$this->entity = $conf->entity;
+		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
+		
+		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
+		
+		parent::save($db);
+		
+		foreach($this->TField as $field) {
+			$field->fk_asset_type = $this->getId();
+			$field->save($db);
+		}
+		
+	}	
+	
+	static function code_format($s){
+		$r=""; $s = strtolower($s);
+		$nb=strlen($s);
+		for($i = 0; $i < $nb; $i++){
+			if(ctype_alnum($s[$i])){
+				$r.=$s[$i];			
+			}
+		} // for
+		return $r;
+	}
+		
+}
+
+class TAsset_field extends TObjetStd {
+	function __construct() { /* declaration */
+		parent::set_table(MAIN_DB_PREFIX.'asset_field');
+		parent::add_champs('code,libelle','type=chaine;');
+		parent::add_champs('type','type=chaine;');
+		parent::add_champs('obligatoire','type=entier;');
+		parent::add_champs('ordre','type=entier;');
+		parent::add_champs('options','type=chaine;');
+		parent::add_champs('supprimable','type=entier;');
+		parent::add_champs('inliste,inlibelle','type=chaine;'); //varchar booléen : oui/non si le champs sera dans la liste de Ressource.
+		parent::add_champs('fk_asset_type,entity','type=entier;index;');
+		
+		$this->TListe = array();
+		parent::_init_vars();
+		parent::start();
+		
+	}
+	
+	function load_by_code(&$db, $code){
+		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE code='".$code."'";
+		$db->Execute($sqlReq);
+		
+		if ($db->Get_line()) {
+			$this->load($db, $db->Get_field('rowid'));
+			return true;
+		}
+		return false;
+	}
+	
+	
+	function chargement(&$db, $libelle, $code, $type, $obligatoire, $ordre, $options, $supprimable, $fk_asset_type, $inliste = "non", $inlibelle = "non"){
+		$this->load_by_code($db, $code);	
+		$this->libelle = $libelle;
+		$this->code = $code;
+		$this->type = $type;
+		$this->obligatoire = $obligatoire;
+		$this->ordre = $ordre;
+		$this->options = $options;
+		$this->supprimable = $supprimable;
+		$this->inliste = $inliste;
+		$this->inlibelle = $inlibelle;
+		$this->fk_asset_type = $fk_rh_ressource_type;
+		
+		
+		$this->save($db);
+	}
+	
+	function load(&$ATMdb, $id){
+		parent::load($ATMdb, $id);
+		$this->TListe = array();
+		foreach (explode(";",$this->options) as $key => $value) {
+			$this->TListe[$value] = $value;
+		}
+	}
+	
+	function save(&$db) {
+		global $conf;
+		
+		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
+		
+		$this->entity = $conf->entity;
+		if (empty($this->supprimable)){$this->supprimable = 0;}
+		parent::save($db);
+	}
+
+	function delete(&$ATMdb) {
+		global $conf;
+		
+		//on supprime le champs que si il est par défault.
+		if (! $this->supprimable){
+			parent::delete($ATMdb);	
+			return true;
+		}
+		else {return false;}
+		
+		
+	}
+
+}
+

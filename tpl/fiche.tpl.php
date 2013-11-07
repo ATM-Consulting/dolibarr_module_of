@@ -10,18 +10,15 @@
 				
 			<table width="100%" class="border">
 			<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td></tr>
-			<tr><td>Périodicité (en jours)</td><td>[asset.periodicity;strconv=no]</td></tr>
 			<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
 			<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
 			<tr><td>[onshow;block=tr; when[view.module_financement]==1 ]Affaire</td><td><a href="[onshow.DOL_URL_ROOT_ALT]/financement/affaire.php?id=[affaire.rowid]">[affaire.reference]</a></td></tr>
-			<tr><td>date d'achat</td><td>[asset.date_achat;strconv=no]</td></tr>
-			<tr><td>date de livraison</td><td>[asset.date_shipping;strconv=no]</td></tr>
-			<tr><td>date de garantie</td><td>[asset.date_garantie;strconv=no]</td></tr>
-			<tr><td>date de dernière intervention</td><td>[asset.date_last_intervention;strconv=no]</td></tr>
-
-			<tr><td>Coût copie noir & blanc</td><td>[asset.copy_black;strconv=no]</td></tr>
-			<tr><td>Coût copie couleur</td><td>[asset.copy_color;strconv=no]</td></tr>
-
+			
+			<tr>
+				<td style="width:20%" [assetField.obligatoire;strconv=no;protect=no]>[assetField.libelle;block=tr;strconv=no;protect=no] </td>
+				<td>[assetField.valeur;strconv=no;protect=no] </td>
+			</tr>
+			
 			</table>
 			
 [onshow;block=begin;when [view.mode]=='view']
@@ -34,11 +31,7 @@
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
 		&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 		&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
-		
-		<!-- 
-			**** Version module 1.0+
-			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit_stock" class="butAction">Ajouter un mouvement de stock</a> 
-		-->
+		&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit_stock" class="butAction">Ajouter un mouvement de stock</a>
 		
 		</div>
 [onshow;block=end]	
