@@ -70,13 +70,10 @@ function _action() {
 				break;
 				
 			case 'save':
-				/*echo '<pre>';
-				print_r($_REQUEST);
-				echo '<pre>'; exit;*/
 				$asset=new TAsset;
 				$asset->load_liste_type_asset($PDOdb);
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
-				$asset->load($PDOdb, $_REQUEST['id'], false);
+				if(!empty($_REQUEST['id'])) $asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				//on vérifie que le libellé est renseigné
 				if  ( empty($_REQUEST['numId']) ){
