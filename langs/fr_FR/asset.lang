@@ -1,9 +1,9 @@
 # Dolibarr language file - fr_FR - multicompany
 CHARSET=UTF-8
 
-Asset=Flacon
-ListAsset=Liste des flacons installés
-AssetDeleted=Flacon supprimé
+Asset=Equipement
+ListAsset=Liste des équipements installés
+AssetDeleted=Equipement supprimé
 AssetType=Type d'Equipement
 AssetListType=Liste des types d'équipements
 AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher

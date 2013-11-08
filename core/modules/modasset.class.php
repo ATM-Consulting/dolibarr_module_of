@@ -93,7 +93,7 @@ class modAsset extends DolibarrModules
 		$this->phpmin = array(5,0);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,0);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("asset@asset");
-
+		$langs->load('asset@asset');
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
 		// Example: $this->const=array(0=>array('MYMODULE_MYNEWCONST1','chaine','myvalue','This is a constant to add',1),
@@ -126,7 +126,7 @@ class modAsset extends DolibarrModules
         	,'product:Equipements:@asset:$user->rights->asset->read:/asset/equipement.php?pid=__ID__'
         );*/
 		$this->tabs = array(
-			'product:+tabEquipement1:Flacons:@asset:/asset/liste.php?fk_product=__ID__'
+			'product:+tabEquipement1:'.$langs->trans('Asset').':@asset:/asset/liste.php?fk_product=__ID__'
 			//,'thirdparty:+tabEquipement2:Flacons:@asset:/asset/liste.php?fk_soc=__ID__'
 		);
 
@@ -165,7 +165,7 @@ class modAsset extends DolibarrModules
 		
 		$r++;
 		$this->rights[$r][0] = 10000;
-		$this->rights[$r][1] = 'Lire les flacons';
+		$this->rights[$r][1] = 'Lire les '.$langs->trans('Asset');
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'all';
 		$this->rights[$r][5] = 'lire';
@@ -185,7 +185,7 @@ class modAsset extends DolibarrModules
 		$r=0;
 		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
 					'type'=>'top',			// This is a Top menu entry
-					'titre'=>'Flacons',
+					'titre'=>$langs->trans('Asset'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'1',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/liste.php',

@@ -45,6 +45,7 @@ function _action() {
 			case 'new':
 			case 'add':
 				$asset=new TAsset;
+				$asset->load_liste_type_asset($PDOdb);
 				$asset->set_values($_REQUEST);
 				_fiche($asset,'new');
 				
@@ -53,6 +54,7 @@ function _action() {
 			case 'edit'	:
 				$asset=new TAsset;
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
+				$asset->load_liste_type_asset($PDOdb);
 				$asset->load_asset_type($PDOdb);
 				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
@@ -61,6 +63,7 @@ function _action() {
 			
 			case 'stock':
 				$asset=new TAsset;
+				$asset->load_liste_type_asset($PDOdb);
 				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				_fiche($asset,'stock');
@@ -71,6 +74,7 @@ function _action() {
 				print_r($_REQUEST);
 				echo '<pre>'; exit;*/
 				$asset=new TAsset;
+				$asset->load_liste_type_asset($PDOdb);
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
@@ -132,6 +136,7 @@ function _action() {
 			case 'clone':
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load_liste_type_asset($PDOdb);
 				$asset->load_asset_type($PDOdb);
 				$asset->reinit();
 				$asset->serial_number.='(copie)';
@@ -145,6 +150,7 @@ function _action() {
 			case 'delete':
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load_liste_type_asset($PDOdb);
 				
 				//$PDOdb->db->debug=true;
 				$asset->delete($PDOdb);
@@ -163,6 +169,7 @@ function _action() {
 		$asset=new TAsset;
 		$asset->load($PDOdb, $_REQUEST['id'], false);
 		$asset->load_asset_type($PDOdb);
+		$asset->load_liste_type_asset($PDOdb);
 		
 		_fiche($asset, 'view');
 	}
@@ -201,7 +208,6 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	}
 	else {echo $form->hidden('action', 'save');}
 	echo $form->hidden('entity', $conf->entity);
-	
 	
 	/*
 	 * affichage données équipement lié à une affaire du module financement
@@ -333,7 +339,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'commentaire_mvt'=>$form2->zonetexte('','commentaire_mvt','',100)
 			)
 			,'assetNew' =>array(
-				'typeCombo'=> count($asset->TType) ? $form->combo('','fk_rh_ressource_type',$asset->TType,$asset->fk_asset_type): "Aucun type"
+				'typeCombo'=> count($asset->TType) ? $form->combo('','fk_asset_type',$asset->TType,$asset->fk_asset_type): "Aucun type"
 				,'validerType'=>$form->btsubmit('Valider', 'validerType')
 				
 			)
@@ -341,7 +347,6 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			,'view'=>array(
 				'mode'=>$mode
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
-				,'head'=>dol_get_fiche_head(assetPrepareHead($asset)  , 'fiche', 'Flacon')
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
 						  'title'=>array(

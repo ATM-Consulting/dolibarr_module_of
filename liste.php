@@ -141,12 +141,12 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 				, 'contenance'=>'number'
 				)
 			,'liste'=>array(
-				'titre'=>'Liste des flacons'
+				'titre'=>'Liste des '.$langs->trans('Asset')
 				,'image'=>img_picto('','title.png', '', 0)
 				,'picto_precedent'=>img_picto('','back.png', '', 0)
 				,'picto_suivant'=>img_picto('','next.png', '', 0)
 				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun flacon à afficher"
+				,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Asset')." à afficher"
 				,'picto_search'=>img_picto('','search.png', '', 0)
 			)
 			,'title'=>array(
@@ -186,12 +186,12 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 			,'hide'=>$THide
 			,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
 			,'liste'=>array(
-				'titre'=>'Liste des flacons'
+				'titre'=>'Liste des '.$langs->trans('Asset')
 				,'image'=>img_picto('','title.png', '', 0)
 				,'picto_precedent'=>img_picto('','back.png', '', 0)
 				,'picto_suivant'=>img_picto('','next.png', '', 0)
 				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun flacon à afficher"
+				,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Asset')." à afficher"
 				,'picto_search'=>img_picto('','search.png', '', 0)
 			)
 			,'title'=>array(
@@ -208,7 +208,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	}
 		
 	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="fiche.php?action=new&fk_soc='.$fk_soc.'&fk_product='.$product->id.'">Créer un flacon</a>';
+	echo '<a class="butAction" href="fiche.php?action=new&fk_soc='.$fk_soc.'&fk_product='.$product->id.'">Créer un '.$langs->trans('Asset').'</a>';
 	echo '</div>';
 
 	$ATMdb->close();

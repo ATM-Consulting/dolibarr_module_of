@@ -2,7 +2,6 @@
 
 	
 		<div class="fiche"> <!-- begin div class="fiche" -->
-		[view.head;strconv=no]
 		
 			<div class="tabBar">
 				
@@ -35,17 +34,19 @@
 		</div>
 		
 		<div class="tabsAction">
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
-		&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
-		&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
-		&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit_stock" class="butAction">Ajouter un mouvement de stock</a>
+			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
+			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
+			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
+			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit_stock" class="butAction">Ajouter un mouvement de stock</a>
 		
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']
 
 		<p align="center">
-			<input type="submit" value="Enregistrer" name="save" class="button"> 
-			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[asset.id]'">
+			[onshow;block=begin;when [view.mode]=='edit']
+				<input type="submit" value="Enregistrer" name="save" class="button">
+				&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[asset.id]'">
+			[onshow;block=end]
 		</p>
 [onshow;block=end]	

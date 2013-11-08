@@ -10,8 +10,8 @@ class ActionsAsset
       
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  
-      	global $db;
-		
+      	global $langs,$db;
+		$langs->load('asset@asset');
 		/*echo '<pre>';
 		print_r($object);
 		echo '</pre>';exit;*/
@@ -39,7 +39,7 @@ class ActionsAsset
 		        	?> 
 					<script type="text/javascript">
 						$(document).ready(function(){
-							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - Flacon : <?php echo $link; ?>');
+							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - <?= $langs->trans('Asset'); ?> : <?php echo $link; ?>');
 						});
 					</script>
 					<?php
@@ -69,7 +69,7 @@ class ActionsAsset
 			<script type="text/javascript">
 			$(document).ready(function(){
 				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#product_desc').before('<div><span id="span_lot"> Flacon : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
+				$('#product_desc').before('<div><span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
 				$('#lotAff').change(function(){
 					$('#lot').val( $('#lotAff option:selected').val() );
 				});
@@ -87,7 +87,7 @@ class ActionsAsset
 									else
 										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
 								})
-								$('#lotAff').prepend('<option value="0">S&eacute;lectionnez un flacon</option>');
+								$('#lotAff').prepend('<option value="0">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
 							}
 						});
 				});
@@ -121,7 +121,7 @@ class ActionsAsset
         	?> 
 			<script type="text/javascript">
 				$('#addpredefinedproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> Flacon : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un flacon</option></select>');
+				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
 				$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
@@ -140,11 +140,11 @@ class ActionsAsset
 										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
 									}
 								})
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un flacon</option>');
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
 							}
 							else{
 								$('#lotAff').empty();
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un flacon</option>');
+								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
 							}
 						});
 				});

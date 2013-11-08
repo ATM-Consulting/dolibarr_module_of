@@ -59,6 +59,7 @@ class TAsset extends TObjetStd{
 		//chargement d'une liste de tout les types de ressources
 		$temp = new TAsset_type;
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array());
+		
 		$this->TType = array('');
 		foreach($Tab as $k=>$id){
 			$temp->load($ATMdb, $id);
@@ -70,8 +71,6 @@ class TAsset extends TObjetStd{
 	function load_asset_type(&$ATMdb) {
 		//on prend le type de ressource associé
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
-		
-		print_r($this->fk_asset_type);exit;
 		
 		$this->assetType->load($ATMdb, $Tab[0]);
 		$this->fk_asset_type = $this->assetType->getId();
