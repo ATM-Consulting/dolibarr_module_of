@@ -9,16 +9,23 @@
 [onshow;block=end]				
 				
 			<table width="100%" class="border">
-			<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td></tr>
-			<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
-			<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
-			<tr><td>[onshow;block=tr; when[view.module_financement]==1 ]Affaire</td><td><a href="[onshow.DOL_URL_ROOT_ALT]/financement/affaire.php?id=[affaire.rowid]">[affaire.reference]</a></td></tr>
-			
-			<tr>
-				<td style="width:20%" [assetField.obligatoire;strconv=no;protect=no]>[assetField.libelle;block=tr;strconv=no;protect=no] </td>
-				<td>[assetField.valeur;strconv=no;protect=no] </td>
-			</tr>
-			
+				[onshow;block=begin;when [view.mode]=='new']
+					<tr>
+						<td style="width:20%">Type</td>
+						<td>[assetNew.typeCombo;strconv=no;protect=no]</td>
+						<td>[assetNew.validerType;strconv=no;protect=no]</td>
+					</tr>
+				[onshow;block=end]
+				[onshow;block=begin;when [view.mode]!='new']
+				<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td>[asset.typehidden;strconv=no;protect=no]</tr>
+				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
+				<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
+				
+				<tr>
+					<td style="width:20%" [assetField.obligatoire;strconv=no;protect=no]>[assetField.libelle;block=tr;strconv=no;protect=no] </td>
+					<td>[assetField.valeur;strconv=no;protect=no] </td>
+				</tr>
+				[onshow;block=end]
 			</table>
 			
 [onshow;block=begin;when [view.mode]=='view']

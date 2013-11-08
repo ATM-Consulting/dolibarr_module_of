@@ -42,8 +42,9 @@ function _action() {
 
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
+			case 'new':
 			case 'add':
-				$asset=new TAsset();
+				$asset=new TAsset;
 				$asset->set_values($_REQUEST);
 				_fiche($asset,'new');
 				
@@ -51,6 +52,8 @@ function _action() {
 			
 			case 'edit'	:
 				$asset=new TAsset;
+				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
+				$asset->load_asset_type($PDOdb);
 				$asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				_fiche($asset,'edit');
@@ -68,11 +71,49 @@ function _action() {
 				print_r($_REQUEST);
 				echo '<pre>'; exit;*/
 				$asset=new TAsset;
+				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load($PDOdb, $_REQUEST['id'], false);
+				
+				//on vérifie que le libellé est renseigné
+				if  ( empty($_REQUEST['numId']) ){
+					$mesg .= '<div class="error">Le numéro Id doit être renseigné.</div>';
+				}
+				
+				if  ( empty($_REQUEST['libelle']) ){
+					$mesg .= '<div class="error">Le libellé doit être renseigné.</div>';
+				}
+				
+				//on vérifie que les champs obligatoires sont renseignés
+				foreach($asset->assetType->TField as $k=>$field) {
+					if (! $field->obligatoire){
+						if  ( empty($_REQUEST[$field->code]) ){
+							$mesg .= '<div class="error">Le champs '.$field->libelle.' doit être renseigné.</div>';
+						}
+					}
+				}
+				
+				//ensuite on vérifie ici que les champs (OBLIGATOIRE OU REMPLIS) sont bien du type attendu
+				if ($mesg == ''){
+					foreach($asset->assetType->TField as $k=>$field) {
+						if (! $field->obligatoire || ! empty($_REQUEST[$field->code])){
+							switch ($field->type){
+								case 'float':
+								case 'entier':
+									//la conversion en entier se fera lors de la sauvegarde dans l'objet.
+									if (! is_numeric($_REQUEST[$field->code]) ){
+										$mesg .= '<div class="error">Le champ '.$field->libelle.' doit être un nombre.</div>';
+										}
+									break;
+								default :
+									break;
+							}
+						}
+					}
+				}
+				
+				
 				$asset->set_values($_REQUEST);
-				//print_r($_REQUEST);
-				//$PDOdb->db->debug=true;
-				//print_r($_REQUEST);
+				
 				if(!isset($_REQUEST['type_mvt']))
 					$asset->save($PDOdb);
 				else{
@@ -91,6 +132,7 @@ function _action() {
 			case 'clone':
 				$asset=new TAsset;
 				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load_asset_type($PDOdb);
 				$asset->reinit();
 				$asset->serial_number.='(copie)';
 				//$PDOdb->db->debug=true;
@@ -120,6 +162,7 @@ function _action() {
 	elseif(isset($_REQUEST['id'])) {
 		$asset=new TAsset;
 		$asset->load($PDOdb, $_REQUEST['id'], false);
+		$asset->load_asset_type($PDOdb);
 		
 		_fiche($asset, 'view');
 	}
@@ -138,7 +181,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 ****************************************************/
 	
 	llxHeader('',$langs->trans('Asset'),'','');
-	
+	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'fiche', $langs->trans('Asset'));
 	
 	if(isset($_REQUEST['error'])) {
 		?>
@@ -153,7 +196,10 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	$form2->Set_typeaff('edit');
 	
 	echo $form->hidden('id', $asset->rowid);
-	echo $form->hidden('action', 'save');
+	if ($mode=='new'){
+		echo $form->hidden('action', 'edit');
+	}
+	else {echo $form->hidden('action', 'save');}
 	echo $form->hidden('entity', $conf->entity);
 	
 	
@@ -205,38 +251,91 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 		})
 	</script>
 	<?php
+	
+	$TFields=array();
+	
+	?>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			
+		<?php
+		foreach($asset->assetType->TField as $k=>$field) {
+			switch($field->type){
+				case liste:
+					$temp = $form->combo('',$field->code,$field->TListe,$asset->{$field->code});
+					break;
+				case checkbox:
+					$temp = $form->combo('',$field->code,array('oui'=>'Oui', 'non'=>'Non'),$asset->{$field->code});
+					break;
+				default:
+					$temp = $form->texte('', $field->code, $asset->{$field->code}, 50,255,'','','-');
+					break;
+			}
+			
+			$TFields[$k]=array(
+					'libelle'=>$field->libelle
+					,'valeur'=>$temp
+					//champs obligatoire : 0 = obligatoire ; 1 = non obligatoire
+					,'obligatoire'=>$field->obligatoire ? 'class="field"': 'class="fieldrequired"' 
+				);
+			
+			//Autocompletion
+			if($field->type != combo && $field->type != liste){
+				?>
+				$("#<?=$field->code; ?>").autocomplete({
+					source: "script/interface.php?get=autocomplete&json=1&fieldcode=<?=$field->code; ?>",
+					minLength : 1
+				});
+				
+				<?php
+			}
+		}
 
-	print $TBS->render( (defined('ASSET_FICHE_TPL') ? './tpl/'.ASSET_FICHE_TPL : './tpl/fiche.tpl.php')
+		//Concaténation des champs dans le libelle asset
+		foreach($asset->assetType->TField as $k=>$field) {
+			
+			if($field->inlibelle == "oui"){
+				$chaineid .= "#".$field->code.", ";
+				$chaineval .= "$('#".$field->code."').val().toUpperCase()+' '+";
+			}
+			
+		}
+		$chaineval = substr($chaineval, 0,-5);
+		$chaineid = substr($chaineid, 0,-2);
+		?>
+			$('<?=$chaineid; ?>').bind("keyup change", function(e) {
+				$('#libelle').val(<?=$chaineval; ?>);
+			});
+		});
+	</script>
+	<?php
+	
+	/*echo '<pre>';
+	print_r($TFields);
+	echo '</pre>';exit;*/
+	
+	print $TBS->render('tpl/fiche.tpl.php'
 		,array(
+			'assetField'=>$TFields
 		)
 		,array(
 			'asset'=>array(
 				'id'=>$asset->getId()
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'serial_number'=>$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir')
-				,'periodicity'=>$form->texte('', 'periodicity', $asset->periodicity, 8,10,'','','à saisir')
 				,'produit'=>_fiche_visu_produit($asset,$mode)
 				,'societe'=>_fiche_visu_societe($asset,$mode)
-				,'date_achat'=>$form->calendrier('', 'date_achat', $asset->get_date('date_achat'),10)
-				,'date_shipping'=>$form->calendrier('', 'date_shipping', $asset->get_date('date_shipping'),10)
-				,'date_garantie'=>$form->calendrier('', 'date_garantie', $asset->get_date('date_garantie'),10)
-				,'date_last_intervention'=>$form->calendrier('', 'date_last_intervention', $asset->get_date('date_last_intervention'),10)
-				,'copy_black'=>$form->texte('', 'copy_black', $asset->copy_black, 12,10,'','','0.00')
-				,'copy_color'=>$form->texte('', 'copy_color', $asset->copy_black, 12,10,'','','0.00')
-				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
-				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
-				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2,',',''), 12,10,'','','0.00')
-				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
-				,'tare'=> $form->texte('', 'tare', $asset->tare, 12,10,'','','0.00')
-				,'tare_units'=>_fiche_visu_units($asset, $mode, 'tare_units',-3)
-				,'emplacement'=> $form->texte('', 'emplacement', $asset->emplacement, 100,100,'','','')
-				,'commentaire'=> $form->zonetexte('','commentaire',$asset->commentaire,100)
-				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
+				,'typehidden'=>$form->hidden('fk_asset_type', $asset->fk_asset_type)
 			)
 			,'stock'=>array(
 				'type_mvt'=>$form2->combo('','type_mvt',array(''=>'','retrait'=>'Retrait','ajout'=>'Ajout'),'')
 				,'qty'=>$form2->texte('', 'qty', '', 12,10,'','','')
 				,'commentaire_mvt'=>$form2->zonetexte('','commentaire_mvt','',100)
+			)
+			,'assetNew' =>array(
+				'typeCombo'=> count($asset->TType) ? $form->combo('','fk_rh_ressource_type',$asset->TType,$asset->fk_asset_type): "Aucun type"
+				,'validerType'=>$form->btsubmit('Valider', 'validerType')
+				
 			)
 			,'affaire'=>$TAffaire
 			,'view'=>array(

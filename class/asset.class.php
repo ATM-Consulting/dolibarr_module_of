@@ -42,10 +42,12 @@ class TAsset extends TObjetStd{
 	}
 	
 	function load(&$db, $id, $annexe=true) {
+		global $conf;
+		
 		$res = parent::load($db,$id);
 		if($annexe)$this->load_link($db);
 		$this->load_stock($db);
-		
+		$this->load_asset_type($db);
 		//Sauvegarde de l'ancienne contenance réelle
 		$this->old_contenancereel = $this->contenancereel_value;
 		$this->old_contenancereel_units = $this->contenancereel_units;
@@ -68,6 +70,9 @@ class TAsset extends TObjetStd{
 	function load_asset_type(&$ATMdb) {
 		//on prend le type de ressource associé
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
+		
+		print_r($this->fk_asset_type);exit;
+		
 		$this->assetType->load($ATMdb, $Tab[0]);
 		$this->fk_asset_type = $this->assetType->getId();
 		
