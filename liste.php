@@ -57,31 +57,16 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 
 	$form=new TFormCore;
 
-	if(defined('ASSET_LIST_FIELDS')) {
-		$fields=ASSET_LIST_FIELDS;
-	} else {
-		if(defined('ASSET_LISTE_TYPE') && ASSET_LISTE_TYPE == 'latoxan'){
-			$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.contenancereel_value as 'contenance', e.contenancereel_units as 'unite', e.date_cre as 'Création'"; 
-		}
-		else{
-			$fields ="e.rowid as 'ID',e.serial_number,p.rowid as 'fk_product', p.label,e.fk_soc as 'fk_soc',s.nom,
-			e.date_garantie as 'Date garantie', e.date_last_intervention as 'Date dernière intervention', e.date_cre as 'Création'"; 
-		}
-	} 		
+	$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.contenancereel_value as 'contenance', e.contenancereel_units as 'unite', e.date_cre as 'Création'"; 
+	
 	$asset=new TAsset;
 	$r = new TSSRenderControler($asset);
 	
-	if(defined('ASSET_LISTE_TYPE') && ASSET_LISTE_TYPE == 'latoxan'){
-		$sql="SELECT ".$fields."
-			  FROM llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid)
-			  WHERE 1 ";
-	}
-	else{
-		$sql="SELECT ".$fields."
-			  FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
-					LEFT OUTER JOIN llx_societe s ON (e.fk_soc=s.rowid))
-			  WHERE 1 ";
-	}
+	$sql="SELECT ".$fields."
+		  FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
+				LEFT OUTER JOIN llx_societe s ON (e.fk_soc=s.rowid))
+		  WHERE 1 ";
+			  
 	$fk_soc=0;$fk_product=0;
 	if(isset($_REQUEST['fk_soc'])) {$sql.=" AND e.fk_soc=".$_REQUEST['fk_soc']; $fk_soc=$_REQUEST['fk_soc'];}
 	if(isset($_REQUEST['fk_product'])){$sql.=" AND e.fk_product=".$_REQUEST['fk_product']; $fk_product=$_REQUEST['fk_product'];}
@@ -99,113 +84,49 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 		$THide[] = 'Produit';
 	}
 	
-	function get_unit($unite){
-		switch($unite){
-			case '-6':
-				return 'mg';
-				break;
-			case '-3':
-				return 'g';
-				break;
-			case '0':
-				return 'kg';
-				break;
-			default:
-				return '';
-				break;
-		}
-	}	
-	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	
 	$ATMdb=new TPDOdb;
 	
-	if(defined('ASSET_LISTE_TYPE') && ASSET_LISTE_TYPE == 'latoxan'){
-		$r->liste($ATMdb, $sql, array(
-			'limit'=>array(
-				'nbLine'=>'30'
-			)
-			,'subQuery'=>array()
-			,'link'=>array_merge($ASSET_LINK_ON_FIELD,array(
-				'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
-				,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
-				,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
-			))
-			,'translate'=>array()
-			,'hide'=>$THide
-			,'type'=>array(
-				'Date garantie'=>'date'
-				,'Date dernière intervention'=>'date'
-				, 'Date livraison'=>'date'
-				, 'Création'=>'date'
-				, 'contenance'=>'number'
-				)
-			,'liste'=>array(
-				'titre'=>'Liste des '.$langs->trans('Asset')
-				,'image'=>img_picto('','title.png', '', 0)
-				,'picto_precedent'=>img_picto('','back.png', '', 0)
-				,'picto_suivant'=>img_picto('','next.png', '', 0)
-				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Asset')." à afficher"
-				,'picto_search'=>img_picto('','search.png', '', 0)
-			)
-			,'title'=>array(
-				'serial_number'=>'Numéro de série'
-				,'lot_number'=>'Numéro de lot'
-				,'nom'=>'Société'
-				,'label'=>'Produit'
-				,'contenance' => 'Contenance Réelle'
-				,'unite' => 'Unité'
-			)
-			,'search'=>array(
-				'serial_number'=>true
-				,'lot_number'=>true
-				,'nom'=>array('recherche'=>true, 'table'=>'s')
-				,'label'=>array('recherche'=>true, 'table'=>'')
-			)
-			,'eval'=>array(
-				'unite' => 'get_unit("@val@")'
-			)
-			,'math'=>array(
-				'contenance'=>'sum'
-			)
-		));
-	}
-	else{
-		$r->liste($ATMdb, $sql, array(
-			'limit'=>array(
-				'nbLine'=>'30'
-			)
-			,'subQuery'=>array()
-			,'link'=>array(
-				'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
-				,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
-				,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
-			)
-			,'translate'=>array()
-			,'hide'=>$THide
-			,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
-			,'liste'=>array(
-				'titre'=>'Liste des '.$langs->trans('Asset')
-				,'image'=>img_picto('','title.png', '', 0)
-				,'picto_precedent'=>img_picto('','back.png', '', 0)
-				,'picto_suivant'=>img_picto('','next.png', '', 0)
-				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Asset')." à afficher"
-				,'picto_search'=>img_picto('','search.png', '', 0)
-			)
-			,'title'=>array(
-				'serial_number'=>'Numéro de série'
-				,'nom'=>'Société'
-				,'label'=>'Produit'
-			)
-			,'search'=>array(
-				'serial_number'=>true
-				,'nom'=>array('recherche'=>true, 'table'=>'s')
-				,'label'=>array('recherche'=>true, 'table'=>'')
-			)
-		));
-	}
+	$r->liste($ATMdb, $sql, array(
+		'limit'=>array(
+			'nbLine'=>'30'
+		)
+		,'subQuery'=>array()
+		,'link'=>array(
+			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
+			,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+		)
+		,'translate'=>array()
+		,'hide'=>$THide
+		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
+		,'liste'=>array(
+			'titre'=>'Liste des '.$langs->trans('Asset')
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
+			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Asset')." à afficher"
+			,'picto_search'=>img_picto('','search.png', '', 0)
+		)
+		,'title'=>array(
+			'serial_number'=>'Numéro de série'
+			,'nom'=>'Société'
+			,'label'=>'Produit'
+			,'lot_number'=>'Numéro de Lot'
+			,'contenance'=>'Contenance Actuelle'
+			,'unite'=>'Unité'
+		)
+		,'search'=>array(
+			'serial_number'=>true
+			,'nom'=>array('recherche'=>true, 'table'=>'s')
+			,'label'=>array('recherche'=>true, 'table'=>'')
+		)
+		,'eval'=>array(
+			'unite'=>'measuring_units_string(@val@,"weight")'
+		)
+	));
 		
 	echo '<div class="tabsAction">';
 	echo '<a class="butAction" href="fiche.php?action=new&fk_soc='.$fk_soc.'&fk_product='.$product->id.'">Créer un '.$langs->trans('Asset').'</a>';

@@ -6,6 +6,7 @@ require('./class/asset.class.php');
 require('./lib/asset.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -71,7 +72,6 @@ function _action() {
 				
 			case 'save':
 				$asset=new TAsset;
-				$asset->load_liste_type_asset($PDOdb);
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				if(!empty($_REQUEST['id'])) $asset->load($PDOdb, $_REQUEST['id'], false);
 				
@@ -114,6 +114,10 @@ function _action() {
 				
 				
 				$asset->set_values($_REQUEST);
+				
+				/*echo '<pre>';
+				print_r($asset);
+				echo '</pre>';exit;*/
 				
 				if(!isset($_REQUEST['type_mvt']))
 					$asset->save($PDOdb);
@@ -196,7 +200,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
 	
-	$form2=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
+	$form2=new TFormCore($_SERVER['PHP_SELF'],'form','POST');
 	$form2->Set_typeaff('edit');
 	
 	echo $form->hidden('id', $asset->rowid);
@@ -328,6 +332,11 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'serial_number'=>$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir')
 				,'produit'=>_fiche_visu_produit($asset,$mode)
 				,'societe'=>_fiche_visu_societe($asset,$mode)
+				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
+				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
+				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2,',',''), 12,10,'','','0.00')
+				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
 				,'typehidden'=>$form->hidden('fk_asset_type', $asset->fk_asset_type)
 			)
 			,'stock'=>array(
@@ -350,7 +359,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 							'date_cre'=>'Date du mouvement'
 							,'qty'  =>'Quantité'
 							,'weight_units' => 'Unité'
-							,'lot' => 'Numéro batch'
+							,'lot' => 'Lot'
 							,'type' => 'Commentaire'
 						)
 						,'link'=>array_merge($ASSET_LINK_ON_FIELD,array())

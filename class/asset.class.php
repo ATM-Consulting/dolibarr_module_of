@@ -9,7 +9,9 @@ class TAsset extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_soc,fk_product,entity','type=entier;');
-		$this->add_champs('commentaire', 'type=chaine;');
+		$this->add_champs('contenancereel_value, contenance_value', 'type=float;');
+		$this->add_champs('contenance_units, contenancereel_units', 'type=entier;');
+		$this->add_champs('commentaire,lot_number', 'type=chaine;');
 		
 		//clé étrangère : type de la ressource
 		parent::add_champs('fk_asset_type','type=entier;index;');
@@ -92,6 +94,10 @@ class TAsset extends TObjetStd{
 		parent::save($db);
 		$this->save_link($db);
 		
+		/*echo '<pre>';
+		print_r($this);
+		echo '</pre>';exit;
+		*/
 		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
 		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
 			$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
