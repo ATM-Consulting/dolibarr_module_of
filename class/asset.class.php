@@ -504,7 +504,7 @@ class TAsset_field extends TObjetStd {
 		$this->supprimable = $supprimable;
 		$this->inliste = $inliste;
 		$this->inlibelle = $inlibelle;
-		$this->fk_asset_type = $fk_rh_ressource_type;
+		$this->fk_asset_type = $fk_asset_type;
 		
 		
 		$this->save($db);
