@@ -21,12 +21,22 @@ class TAssetOF extends TObjetStd{
 	    $this->start();
 		
 		$this->TType=array('NEEDED','TO_MAKE');
-		$this->TOrdre=array('Au plut tôt','Dans la journée','Demain','Dans la semaine','Dans le mois');
+		$this->TOrdre=array(1=>'Au plut tôt',2=>'Dans la journée',3=>'Demain',4=>'Dans la semaine',5=>'Dans le mois');
 		$this->TStatus=array('Brouillon','Lancé','Terminé');
+		$this->TWorkstation=array();
 		
 		//Tableaux de produit lié à l'OF
 		$this->TNeededProduct=array();
 		$this->TToMakeProduct=array();
+	}
+	
+	function load(&$db, $id) {
+		global $conf;
+		
+		$res = parent::load($db,$id);
+		$this->loadWorkstations($db);
+		
+		return $res;
 	}
 	
 	function setEquipement(){
@@ -52,6 +62,19 @@ class TAssetOF extends TObjetStd{
 	function getProductComposition($id_product){
 		
 		return array();
+	}
+	
+	function createCommandeFournisseur(){
+		
+		return $id_cmd_four;
+	}
+	
+	function loadWorkstations(&$ATMdb){
+		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation";
+		$ATMdb->Execute($sql);
+		while($ATMdb->Get_line()){
+			$this->TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
+		}
 	}
 }
 

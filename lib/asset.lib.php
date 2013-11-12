@@ -15,5 +15,10 @@ function assetPrepareHead(&$asset,$type='type-asset') {
 					array(DOL_URL_ROOT_ALT.'/asset/fiche.php?id='.$asset->getId(), 'Fiche','fiche')
 				);
 			break;
+		case 'assetOF':
+			return array(
+					array(DOL_URL_ROOT_ALT.'/asset/fiche_of.php?id='.$asset->getId(), 'Fiche','fiche')
+				);
+			break;
 	}
 }
