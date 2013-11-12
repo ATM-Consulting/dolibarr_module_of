@@ -127,7 +127,7 @@ class modAsset extends DolibarrModules
         );*/
 		$this->tabs = array(
 			'product:+tabEquipement1:'.$langs->trans('Asset').':@asset:/asset/liste.php?fk_product=__ID__'
-			//,'thirdparty:+tabEquipement2:Flacons:@asset:/asset/liste.php?fk_soc=__ID__'
+			,'product:+tabEquipement2:Ordre de Fabrication:@asset:/asset/liste_of.php?fk_product=__ID__'
 		);
 
         // Dictionnaries
@@ -171,14 +171,14 @@ class modAsset extends DolibarrModules
 		$this->rights[$r][5] = 'lire';
 		
 		$r++;
-		$this->rights[$r][0] = 10000;
+		$this->rights[$r][0] = 10001;
 		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
 		
 		$r++;
-		$this->rights[$r][0] = 10000;
+		$this->rights[$r][0] = 10002;
 		$this->rights[$r][1] = 'Créer des Ordres de fabrication';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';

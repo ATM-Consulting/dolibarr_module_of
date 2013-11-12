@@ -24,7 +24,22 @@ function _liste($id_entity) {
 		<br><div class="error"><?= $langs->trans('OFAssetDeleted'); ?></div><br>
 		<?
 	}
-
+	
+	if(isset($_REQUEST['fk_product'])){
+		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
+		else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
+		
+		require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
+			
+		$product = new Product($db);
+		$result=$product->fetch($_REQUEST['fk_product']);	
+			
+		$head=product_prepare_head($product, $user);
+		$titre=$langs->trans("CardProduct".$product->type);
+		$picto=($product->type==1?'service':'product');
+		dol_fiche_head($head, 'tabEquipement2', $titre, 0, $picto);
+	}
+	
 	$form=new TFormCore;
 
 	$fields ="ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, u.login ,ofe.fk_user"; 
@@ -33,8 +48,10 @@ function _liste($id_entity) {
 	$r = new TSSRenderControler($assetOf);
 	
 	$sql="SELECT ".$fields."
-		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
+		  FROM ".MAIN_DB_PREFIX."assetOf as ofe
+		  	LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofel ON (ofel.fk_assetOf = ofe.rowid)
 		  	LEFT JOIN ".MAIN_DB_PREFIX."user as u ON (ofe.fk_user=u.rowid)
+		  	LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = ofel.fk_product)
 		  WHERE 1 ";
 			  
 	$fk_soc=0;$fk_product=0;
@@ -43,6 +60,9 @@ function _liste($id_entity) {
 	
 	if($id_entity!=0) {
 		$sql.= ' AND ofe.entity='.$id_entity;		
+	}
+	if(isset($_REQUEST['fk_product'])) {
+		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		
 	}
 	
 	
@@ -91,7 +111,7 @@ function _liste($id_entity) {
 	));
 		
 	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="fiche.php?action=new">Créer un '.$langs->trans('OFAsset').'</a>';
+	echo '<a class="butAction" href="fiche_of.php?action=new'.((isset($_REQUEST['fk_product'])) ? '&fk_product='.$_REQUEST['fk_product'] : '' ).'">Créer un '.$langs->trans('OFAsset').'</a>';
 	echo '</div>';
 
 	$ATMdb->close();

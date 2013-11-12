@@ -6,6 +6,7 @@
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	
 	_liste($user->entity);
 

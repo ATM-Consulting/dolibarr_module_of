@@ -7,6 +7,7 @@
 	
 	require('../config.php');
 	require('../class/asset.class.php');
+	require('../class/ordre_fabrication_asset.class.php');
 
 	$ATMdb=new TPDOdb;
 	$ATMdb->debug=true;
@@ -27,4 +28,13 @@
 	$o->init_db_by_vars($ATMdb);
 	
 	$o=new TAssetStock;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetOF;
+	$o->init_db_by_vars($ATMdb);
+
+	$o=new TAssetOF_line;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetWorkstation;
 	$o->init_db_by_vars($ATMdb);

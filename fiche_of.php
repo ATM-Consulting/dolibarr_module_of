@@ -44,6 +44,7 @@ function _action() {
 			case 'add':
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
+				$assetOf->loadWorkstations($PDOdb);
 				_fiche($assetOf,'new');
 
 				break;
@@ -124,6 +125,7 @@ function _fiche(&$assetOf, $mode='edit') {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
+	$doliform = new Form($db);
 	
 	echo $form->hidden('id', $assetOf->rowid);
 	if ($mode=='new'){
@@ -137,12 +139,14 @@ function _fiche(&$assetOf, $mode='edit') {
 
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
-
-	$TFields=array();
 	
-	/*echo '<pre>';
-	print_r($TFields);
-	echo '</pre>';exit;*/
+	$PDOdb = new TPDOdb;
+	
+	if(isset($_REQUEST['fk_product'])){
+		$assetOf->loadToMakeProduct($PDOdb,$_REQUEST['fk_product']);
+	}
+	
+	$assetOf->
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array()
@@ -150,28 +154,19 @@ function _fiche(&$assetOf, $mode='edit') {
 			'assetOf'=>array(
 				'id'=>$assetOf->getId()
 				,'numero'=>$form->texte('', 'numero', $assetOf->numero, 100,255,'','','à saisir')
-				,'ordre'=>$form->combo('','ordre',$assetOf->TOrdre,1)
+				,'ordre'=>$form->combo('','ordre',$assetOf->TOrdre,0)
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
-				,'temps_estime_fabrication'=>$form->texte('','temps_estime_fabrication',$assetOf->temps_estime_fabrication, 12,10,'','','0,00')
-				,'temps_reel_fabrication'=>$form->texte('','temps_reel_fabrication', $assetOf->temps_reel_fabrication, 12,10,'','','0,00')
-				,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',$assetOf->TWorkstation,1)
-				//,'fk_user'=>$form->combo('','fk_user',$assetOf->TWorkstation,1)
+				,'temps_estime_fabrication'=>$form->texte('','temps_estime_fabrication',$assetOf->temps_estime_fabrication, 12,10,'','','0')
+				,'temps_reel_fabrication'=>$form->texte('','temps_reel_fabrication', $assetOf->temps_reel_fabrication, 12,10,'','','0')
+				,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',$assetOf->TWorkstation,0)
+				//,'fk_user'=>$doliform->select_users('','fk_user')
+				,'status'=>$form->combo('','status',$assetOf->TStatus,0)
 			)
-			/*,'stock'=>array(
-				'type_mvt'=>$form2->combo('','type_mvt',array(''=>'','retrait'=>'Retrait','ajout'=>'Ajout'),'')
-				,'qty'=>$form2->texte('', 'qty', '', 12,10,'','','')
-				,'commentaire_mvt'=>$form2->zonetexte('','commentaire_mvt','',100)
-			)
-			,'assetNew' =>array(
-				'typeCombo'=> count($asset->TType) ? $form->combo('','fk_asset_type',$asset->TType,$asset->fk_asset_type): "Aucun type"
-				,'validerType'=>$form->btsubmit('Valider', 'validerType')
-				
-			)
-			,'affaire'=>$TAffaire
-			,'view'=>array(
+			,'needed'=>$assetOf->TNeededProduct
+			,'tomake' =>$assetOf->TToMakeProduct
+			/*,'view'=>array(
 				'mode'=>$mode
-				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
 						  'title'=>array(
