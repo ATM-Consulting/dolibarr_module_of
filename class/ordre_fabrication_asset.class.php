@@ -13,13 +13,16 @@ class TAssetOF extends TObjetStd{
 		$this->add_champs('ordre','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,temps_estime_fabrication,temps_reel_fabrication','type=date;');
 		
-		//clé étrangère : type de la ressource
+		//clé étrangère : atelier
 		parent::add_champs('fk_asset_workstation','type=entier;index;');
+		
+		parent::add_champs('fk_assetOf_parent','type=entier;index;');
 		
 	    $this->start();
 		
 		$this->TType=array('NEEDED','TO_MAKE');
 		$this->TOrdre=array('Au plut tôt','Dans la journée','Demain','Dans la semaine','Dans le mois');
+		$this->TStatus=array('Brouillon','Lancé','Terminé');
 		
 		//Tableaux de produit lié à l'OF
 		$this->TNeededProduct=array();

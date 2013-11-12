@@ -169,6 +169,20 @@ class modAsset extends DolibarrModules
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'all';
 		$this->rights[$r][5] = 'lire';
+		
+		$r++;
+		$this->rights[$r][0] = 10000;
+		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'of';
+		$this->rights[$r][5] = 'lire';
+		
+		$r++;
+		$this->rights[$r][0] = 10000;
+		$this->rights[$r][1] = 'Créer des Ordres de fabrication';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'of';
+		$this->rights[$r][5] = 'write';
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
