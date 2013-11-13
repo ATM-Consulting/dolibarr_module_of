@@ -4,6 +4,8 @@ define('INC_FROM_CRON_SCRIPT', true);
 set_time_limit(0);
 require('../config.php');
 require('../lib/asset.lib.php');
+require('../class/asset.class.php');
+require('../class/ordre_fabrication_asset.class.php');
 
 //Interface qui renvoie les emprunts de ressources d'un utilisateur
 $ATMdb=new TPDOdb;
@@ -16,6 +18,9 @@ function _get(&$ATMdb, $case) {
 	switch (strtolower($case)) {
 		case 'autocomplete':
 			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term']));
+			break;
+		case 'addofproduct':
+			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));
 			break;
 	}
 }
@@ -34,4 +39,11 @@ function _autocomplete(&$ATMdb,$fieldcode,$value){
 	
 	$ATMdb->close();
 	return $TResult;
+}
+
+function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type){
+	$TassetOF = new TAssetOF;
+	$TassetOF->load($ATMdb, $id_assetOf);
+	$TassetOF->addLine($ATMdb, $fk_product, $type);
+	$TassetOF->save($ATMdb);
 }

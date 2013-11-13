@@ -42,28 +42,25 @@ function _liste($id_entity) {
 	
 	$form=new TFormCore;
 
-	$fields ="ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, u.login ,ofe.fk_user"; 
+	$fields ="ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user"; 
 	
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 	
 	$sql="SELECT ".$fields."
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe
-		  	LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofel ON (ofel.fk_assetOf = ofe.rowid)
-		  	LEFT JOIN ".MAIN_DB_PREFIX."user as u ON (ofe.fk_user=u.rowid)
-		  	LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = ofel.fk_product)
 		  WHERE 1 ";
-			  
+	
 	$fk_soc=0;$fk_product=0;
 	if(isset($_REQUEST['fk_soc'])) {$sql.=" AND e.fk_soc=".$_REQUEST['fk_soc']; $fk_soc=$_REQUEST['fk_soc'];}
-	if(isset($_REQUEST['fk_product'])){$sql.=" AND e.fk_product=".$_REQUEST['fk_product']; $fk_product=$_REQUEST['fk_product'];}
+	//if(isset($_REQUEST['fk_product'])){$sql.=" AND e.fk_product=".$_REQUEST['fk_product']; $fk_product=$_REQUEST['fk_product'];}
 	
 	if($id_entity!=0) {
 		$sql.= ' AND ofe.entity='.$id_entity;		
 	}
-	if(isset($_REQUEST['fk_product'])) {
+	/*if(isset($_REQUEST['fk_product'])) {
 		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		
-	}
+	}*/
 	
 	
 	$THide = array('rowid','fk_user');
@@ -79,6 +76,7 @@ function _liste($id_entity) {
 		,'subQuery'=>array()
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
+			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide

@@ -8,6 +8,7 @@ require('./lib/asset.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -44,7 +45,6 @@ function _action() {
 			case 'add':
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
-				$assetOf->loadWorkstations($PDOdb);
 				_fiche($assetOf,'new');
 
 				break;
@@ -60,28 +60,37 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->set_values($_REQUEST);
-				
+				$assetOf->save($PDOdb);
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->rowid?>";					
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
 				</script>
 				<?
-				
 				break;
 				
-			/*case 'clone':
-				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id'], false);
-				$asset->load_liste_type_asset($PDOdb);
-				$asset->load_asset_type($PDOdb);
-				$asset->reinit();
-				$asset->serial_number.='(copie)';
-				//$PDOdb->db->debug=true;
-				$asset->save($PDOdb);
+			case 'lancer':
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				$assetOf->status = "OPEN";
+				$assetOf->save($PDOdb);
+				?>
+				<script language="javascript">
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
+				</script>
+				<?
+				break;
 				
-				_fiche($asset,'view');
-				
-				break;*/
+			case 'terminer':
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				$assetOf->closeOF($PDOdb);
+				$assetOf->save($PDOdb);
+				?>
+				<script language="javascript">
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
+				</script>
+				<?
+				break;
 				
 			case 'delete':
 				$assetOf=new TAssetOF;
@@ -106,9 +115,6 @@ function _action() {
 		
 		_fiche($assetOf, 'view');
 	}
-
-
-	
 	
 }
 
@@ -127,13 +133,15 @@ function _fiche(&$assetOf, $mode='edit') {
 	$form->Set_typeaff($mode);
 	$doliform = new Form($db);
 	
+	//Ajout des champs hidden
 	echo $form->hidden('id', $assetOf->rowid);
 	if ($mode=='new'){
-		echo $form->hidden('action', 'edit');
+		echo $form->hidden('action', 'save');
 	}
 	else {echo $form->hidden('action', 'save');}
 	echo $form->hidden('entity', $conf->entity);
-
+	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
+	
 	$TBS=new TTemplateTBS();
 	$liste=new TListviewTBS('asset');
 
@@ -142,44 +150,73 @@ function _fiche(&$assetOf, $mode='edit') {
 	
 	$PDOdb = new TPDOdb;
 	
-	if(isset($_REQUEST['fk_product'])){
-		$assetOf->loadToMakeProduct($PDOdb,$_REQUEST['fk_product']);
-	}
+	?>
+	<script type="text/javascript">
+		$(function() {
+			var type = "";
+			
+			$( "#dialog" ).dialog({
+				autoOpen: false,
+				show: {
+					effect: "blind",
+					duration: 1000
+				},
+				buttons: {
+					"Annuler": function() {
+						$( this ).dialog( "close" );
+					},				
+					"Ajouter": function(){
+						var idassetOf = <?php echo $assetOf->getId(); ?>;
+						var fk_product = $('#fk_product').val();
+						
+						$.ajax(
+							{url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type}
+						).done(function(){
+							document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";
+						});
+					}
+				}
+			});
+			$( ".btnaddproduct" ).click(function() {
+				type = $(this).attr('id');
+				$( "#dialog" ).dialog( "open" );
+			});
+		});
+	</script>
+	<?php
 	
-	$assetOf->
+	$TabToMake = array();
+	$TabNeeded = array();
+	
+	$TNeeded = $assetOf->TAssetOFLineNeededAsArray();
+	$TToMake = $assetOf->TAssetOFLineToMakeAsArray();
+	
+	/*echo '<pre>';
+	print_r($TToMake);
+	echo '</pre>'; exit;*/
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
-		,array()
+		,array(
+			'TNeeded'=>$TNeeded
+			,'TTomake'=>$TToMake
+		)
 		,array(
 			'assetOf'=>array(
 				'id'=>$assetOf->getId()
 				,'numero'=>$form->texte('', 'numero', $assetOf->numero, 100,255,'','','à saisir')
-				,'ordre'=>$form->combo('','ordre',$assetOf->TOrdre,0)
+				,'ordre'=>$form->combo('','ordre',$assetOf->TOrdre,$assetOf->ordre)
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$form->texte('','temps_estime_fabrication',$assetOf->temps_estime_fabrication, 12,10,'','','0')
 				,'temps_reel_fabrication'=>$form->texte('','temps_reel_fabrication', $assetOf->temps_reel_fabrication, 12,10,'','','0')
-				,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',$assetOf->TWorkstation,0)
+				,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',TAssetWorkstation::getWorstations($PDOdb),$assetOf->fk_asset_workstation)
 				//,'fk_user'=>$doliform->select_users('','fk_user')
-				,'status'=>$form->combo('','status',$assetOf->TStatus,0)
+				,'status'=>$form->combo('','status',$assetOf->TStatus,$assetOf->status)
 			)
-			,'needed'=>$assetOf->TNeededProduct
-			,'tomake' =>$assetOf->TToMakeProduct
-			/*,'view'=>array(
+			,'view'=>array(
 				'mode'=>$mode
-				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
-					,array(
-						  'title'=>array(
-							'date_cre'=>'Date du mouvement'
-							,'qty'  =>'Quantité'
-							,'weight_units' => 'Unité'
-							,'lot' => 'Lot'
-							,'type' => 'Commentaire'
-						)
-						,'link'=>array_merge($ASSET_LINK_ON_FIELD,array())
-					)
-				)
-			)*/
+				,'status'=>$assetOf->status
+			)
 		)
 	);
 	
@@ -187,6 +224,19 @@ function _fiche(&$assetOf, $mode='edit') {
 	// End of page
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
-	}
+}
 
 ?>
+<div id="dialog" title="Ajout de Produit">
+	<table>
+		<tr>
+			<td>Produit : </td>
+			<td>
+				<?php
+					$html=new Form($db);
+					$html->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+				?>
+			</td>
+		</tr>
+	</table>
+</div>

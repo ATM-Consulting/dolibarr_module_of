@@ -94,10 +94,6 @@ class TAsset extends TObjetStd{
 		parent::save($db);
 		$this->save_link($db);
 		
-		/*echo '<pre>';
-		print_r($this);
-		echo '</pre>';exit;
-		*/
 		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
 		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
 			$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
@@ -109,26 +105,30 @@ class TAsset extends TObjetStd{
 		
 		// Enregistrement des mouvements
 		if(!empty($qty))
-		{
-			$stock = new TAssetStock;
-			$stock->mouvement_stock($db, $user, $this->rowid, $qty, $type, $this->rowid);
-			
-			// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
-			global $db, $user;
-			require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
+			$this->addStockMouvement($qty,$type);
+	}
+	
+	function addStockMouvement($qty,$type){
+		global $db, $user;
+		
+		$stock = new TAssetStock;
+		$stock->mouvement_stock($db, $user, $this->rowid, $qty, $type, $this->rowid);
+		
+		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
+		global $db, $user;
+		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 
-			$mouvS = new MouvementStock($db);
-			// We decrement stock of product (and sub-products)
-			// We use warehouse selected for each line
-			if($qty > 0) {
-				$result=$mouvS->reception($user, $this->fk_product, 1, $qty, 0, $type);
-			} else {
-				$result=$mouvS->livraison($user, $this->fk_product, 1, -$qty, 0, $type);
-			}
+		$mouvS = new MouvementStock($db);
+		// We decrement stock of product (and sub-products)
+		// We use warehouse selected for each line
+		if($qty > 0) {
+			$result=$mouvS->reception($user, $this->fk_product, 1, $qty, 0, $type);
+		} else {
+			$result=$mouvS->livraison($user, $this->fk_product, 1, -$qty, 0, $type);
 		}
 	}
-
+	
 	function delete(&$db) {
 		parent::delete($db);
 		$nb=count($this->TLink);

@@ -27,6 +27,13 @@
 		<div class="tabsAction">
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
 			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
+			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=valider" class="butAction">Valider</a>
+			[onshow;block=begin;when [view.status]=='DRAFT']
+				&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=lancer" class="butAction">Lancer</a>
+			[onshow;block=end]
+			[onshow;block=begin;when [view.status]!='DRAFT']
+				&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" class="butAction">Terminer</a>
+			[onshow;block=end]
 		</div>
 
 [onshow;block=end]
@@ -34,7 +41,78 @@
 [onshow;block=begin;when [view.mode]=='view']
 		<div class="border" style="margin-top: 25px;">
 			<table width="100%" class="border">
-				
+				<tr>
+					<td>Produits nécessaire à la fabrication</td><td><a href="#null" class="butAction btnaddproduct" id="NEEDED">Ajouter produit</a></td>
+					<td>Produits à créer</td><td><a href="#null" class="butAction btnaddproduct" id="TO_MAKE">Ajouter produit</a></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<!-- NEEDED -->
+						<table width="100%" class="border">
+							<tr>
+								<!-- Lot
+								<td>Lot</td>
+								<!-- Equipement
+								<td>Equipement</td>
+								<!-- Produit -->
+								<td>Produit</td>
+								<!-- Quantité nécessaire -->
+								<td>Quantité nécessaire</td>
+								<!-- Quantité -->
+								<td>Quantité</td>
+								<!-- Quantité non pourvu -->
+								<td>Quantité non pourvu</td>
+								<!-- Qauntité utilisé -->
+								<td>Qauntité utilisé</td>
+								<!-- Action -->
+								<td>Action</td>
+							</tr>
+							<tr>
+								<!-- Lot
+								<td>Lot</td>
+								<!-- Equipement
+								<td>Equipement</td>
+								<!-- Produit -->
+								<td>[TNeeded.libelle;block=tr]</td>
+								<!-- Quantité nécessaire -->
+								<td>[TNeeded.qty]</td>
+								<!-- Quantité -->
+								<td>Quantité</td>
+								<!-- Quantité non pourvu -->
+								<td>Quantité non pourvu</td>
+								<!-- Qauntité utilisé -->
+								<td>Qauntité utilisé</td>
+								<!-- Action -->
+								<td>Action</td>
+							</tr>
+						</table>
+					</td>
+					<td colspan="2">
+						<!-- TO_MAKE -->
+						<table width="100%" class="border">
+							<tr>
+								<!-- Action : ajout auto des produits NEEDED -->
+								<td>Action</td>
+								<!-- Produit -->
+								<td>Produit</td>
+								<!-- Quantité à produire -->
+								<td>Quantité à produire</td>
+								<!-- Action -->
+								<td>Action</td>
+							</tr>
+							<tr>
+								<!-- Action : ajout auto des produits NEEDED -->
+								<td>Action</td>
+								<!-- Produit -->
+								<td>[TTomake.libelle;block=tr]</td>
+								<!-- Quantité à produire -->
+								<td>Quantité à produire</td>
+								<!-- Action -->
+								<td>Action</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
 			</table>
 		</div>
 [onshow;block=end]
