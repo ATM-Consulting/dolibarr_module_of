@@ -20,20 +20,32 @@ class TAssetOF extends TObjetStd{
 		
 	    $this->start();
 		
-		$this->TOrdre=array('Au plut tôt','Dans la journée','Demain','Dans la semaine','Dans le mois');
-		$this->TStatus=array('Brouillon','Lancé','Terminé');
-		$this->TWorkstation=array();
+		$this->TOrdre=array(
+			'ASAP'=>'Au plut tôt'
+			,'TODAY'=>'Dans la journée'
+			,'TOMORROW'=> 'Demain'
+			,'WEEK'=>'Dans la semaine'
+			,'MONTH'=>'Dans le mois'
+			
+		);
+		$this->TStatus=array(
+			'DRAFT'=>'Brouillon'
+			,'OPEN'=>'Lancé'
+			,'CLOSE'=>'Terminé'
+		);
 		
-		//Tableaux de produit lié à l'OF
-		$this->TNeededProduct=array();
-		$this->TToMakeProduct=array();
+		$this->workstation=null;
+		
+		$this->setChild('TAssetOF_line','fk_assetOf');
+		$this->setChild('TAssetOF','fk_assetOf_parent');
+		
 	}
 	
 	function load(&$db, $id) {
 		global $conf;
 		
 		$res = parent::load($db,$id);
-		$this->loadWorkstations($db);
+		$this->loadWorkstation($db);
 		
 		return $res;
 	}
@@ -54,50 +66,97 @@ class TAssetOF extends TObjetStd{
 		return true;
 	}
 	
-	function delLine(&$ATMdb,$id_line){
-		$TAssetOF_line = new TAssetOF_line;
-		if($TAssetOF_line->load($ATMdb, $id_line)){
-			$TAssetOF_line->delete($ATMdb);
-			return true;	
-		}
-		else
-			return false;
+	function delLine(&$ATMdb,$iline){
+		
+		$this->TAssetOF_line[$iline]->to_delete=true;
+		
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
-	function addProductComposition($id_product){
-		global $user;
+	function addProductComposition(&$ATMdb, $fk_product, $quantite_to_make=1){
+			
+		$Tab = $this->getProductComposition($ATMdb,$fk_product);
 		
-		$PDOdb = new TPDOdb;
-		
-		$TAssetOF_line = new TAssetOF_line;
-		$TAssetOF_line->entity = $user->entity;
-		$TAssetOF_line->fk_assetOf = $this->rowid;
-		$TAssetOF_line->fk_product = $id_product;
-		$TAssetOF_line->type = 'TO_MAKE';
-		$TAssetOF_line->save($PDOdb);
-		
-		$PDOdb->close();
+		foreach($Tab as $prod) {
+			
+			$this->addLine($ATMdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make);
+			
+		}
 		
 		return true;
 	}
 	
 	//Retourne les produits NEEDED de l'OF concernant le produit $id_produit
-	function getProductComposition($id_product){
-		$Tab = array();
+	function getProductComposition(&$ATMdb,$id_product){
+		global $db;	
 		
-		$PDOdb = new TPDOdb;
+		$Tab=array();
+		$product = new Product($db);
+		$product->fetch($id_product);
+		$TRes = $product->getChildArbo($product->id);
 		
-		$Tid = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX.'assetOf_line', array('fk_product'=>$id_product));
+		$this->getProductComposition_arrayMerge($ATMdb,$Tab, $TRes);
 		
-		foreach($Tid as $id){
-			$TAssetOF_line = new TAssetOF_line;
-			$Tab[] = $TAssetOF_line->load($PDOdb, $id);
+		return $Tab; 
+	}
+	
+	private function getProductComposition_arrayMerge(&$ATMdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) {
+		
+		foreach($TRes as $row) {
+			
+			$prod = new stdClass;
+			$prod->fk_product = $row[0];
+			$prod->qty = $row[1];
+			
+			if(isset($Tab[$prod->fk_product])) {
+				$Tab[$prod->fk_product]->qty += $prod->qty * $qty_parent;
+			}
+			else {
+				$Tab[$prod->fk_product]=$prod;	
+			}
+			
+			if(!empty($row['childs'])) {
+				
+				if($createOF) {
+					$this->createOFifneeded($ATMdb,$fk_product, $needed);
+				}
+				else {
+					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);	
+				}
+				
+				
+			}
+			
+			
 		}
 		
-		$PDOdb->close();
+	} 
+	
+	/*
+	 * Crée une OF si produit composé pas en stock
+	 */
+	function createOFifneeded(&$ATMdb,$fk_product, $qty_needed) {
 		
-		return $Tab;
+		$reste = $this->getProductStock($fk_product)-$qty_needed;
+		
+		if($reste>0) {
+			null;
+		}
+		else {
+			
+			$k=$this->addChild('TAssetOF');
+			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($reste));
+			
+		}
+		
+	}
+	/*
+	 * retourne le stock restant du produit
+	 */
+	function getProductStock($fk_product) {
+		
+		return 0;//TODO
+		
 	}
 	
 	function createCommandeFournisseur($type='externe'){
@@ -107,11 +166,12 @@ class TAssetOF extends TObjetStd{
 		return $id_cmd_four;
 	}
 	
-	function loadWorkstations(&$ATMdb){
-		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation";
-		$ATMdb->Execute($sql);
-		while($ATMdb->Get_line()){
-			$this->TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
+	function loadWorkstation(&$ATMdb){
+		if(empty($this->workstation)) {
+			
+			$this->workstation=new TAssetWorkstation;
+			$this->workstation->load($ATMdb, $this->fk_asset_workstation);
+			
 		}
 	}
 	
@@ -129,13 +189,25 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Ajoute une ligne de produit à l'OF
-	function addLine($fk_product,$type){
-		if($type=='TO_MAKE')
-			$this->addProductComposition($fk_product,$type);
-		else
-			$this->getProductComposition($fk_product);
+	function addLine(&$ATMdb, $fk_product, $type, $quantite=1){
+		global $user;
+		
+		$k = $this->addChild($ATMdb, 'TAssetOF_line');
+		
+		$TAssetOF_line = &$this->TAssetOF_line[$k];
+		
+		$TAssetOF_line->entity = $user->entity;
+		$TAssetOF_line->fk_product = $fk_product;
+		$TAssetOF_line->type = 'TO_MAKE';
+		$TAssetOF_line->qty = $quantite;
+		
+		if($type=='TO_MAKE') {
+			$this->addProductComposition($ATMdb,$fk_product,$type, $quantite);
+		}
+			
 		
 	}
+	
 }
 
 class TAssetOF_line extends TObjetStd{
@@ -195,4 +267,15 @@ class TAssetWorkstation extends TObjetStd{
 		
 	    $this->start();
 	}
+	
+	static function getWorstations($ATMdb) {
+		$TWorkstation=array();
+		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation";
+		$ATMdb->Execute($sql);
+		while($ATMdb->Get_line()){
+			$TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
+		}
+		return $TWorkstation;
+	}
+	
 }
