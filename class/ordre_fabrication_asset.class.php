@@ -30,6 +30,7 @@ class TAssetOF extends TObjetStd{
 		);
 		$this->TStatus=array(
 			'DRAFT'=>'Brouillon'
+			,'VALID'=>'Validé'
 			,'OPEN'=>'Lancé'
 			,'CLOSE'=>'Terminé'
 		);
@@ -221,19 +222,21 @@ class TAssetOF extends TObjetStd{
 			
 			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 				$TRes[]= array(
-					'libelle'=>$product->libelle
+					'id'=>$TAssetOFLine->getId()
+					,'libelle'=>$product->libelle
 					,'qty_needed'=>$TAssetOFLine->qty
 					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty_used, 5,5,'','','à saisir')
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',"NEEDED");">'.img_picto('Supprimer', 'delete.png').'</a>'
+					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
 			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 				$TRes[]= array(
-					'libelle'=>$product->libelle
+					'id'=>$TAssetOFLine->getId()
+					,'libelle'=>$product->libelle
 					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().');">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',"TO_MAKE");">'.img_picto('Supprimer', 'delete.png').'</a>'
+					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
 		}

@@ -27,13 +27,6 @@
 		<div class="tabsAction">
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
 			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
-			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=valider" class="butAction">Valider</a>
-			[onshow;block=begin;when [view.status]=='DRAFT']
-				&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=lancer" class="butAction">Lancer</a>
-			[onshow;block=end]
-			[onshow;block=begin;when [view.status]!='DRAFT']
-				&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" class="butAction">Terminer</a>
-			[onshow;block=end]
 		</div>
 
 [onshow;block=end]
@@ -63,7 +56,7 @@
 								[onshow;block=end]
 								<td style="width:20px;">Action</td>
 							</tr>
-							<tr>
+							<tr id="[TNeeded.id]">
 								<!--<td>Lot</td>
 								<td>Equipement</td>-->
 								<td>[TNeeded.libelle;block=tr]</td>
@@ -90,7 +83,7 @@
 								<td>Quantité à produire</td>
 								<td style="width:20px;">Action</td>
 							</tr>
-							<tr>
+							<tr id="[TTomake.id]">
 								[onshow;block=begin;when [view.status]=='DRAFT']
 									<td>[TTomake.addneeded;strconv=no]</td>
 								[onshow;block=end]
@@ -105,6 +98,20 @@
 				</tr>
 			</table>
 		</div>
+[onshow;block=end]
+
+[onshow;block=begin;when [view.mode]=='view']
+	<div class="tabsAction">
+		[onshow;block=begin;when [view.status]=='DRAFT']
+			[onshow;block=begin;when [view.status]!='VALID']
+				<a href="?id=[assetOf.id]&action=valider" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction">Valider</a>
+			[onshow;block=end]
+			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=lancer" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction">Lancer</a>
+		[onshow;block=end]
+		[onshow;block=begin;when [view.status]!='DRAFT']
+			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
+		[onshow;block=end]
+	</div>
 [onshow;block=end]
 	
 [onshow;block=begin;when [view.mode]!='view']

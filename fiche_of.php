@@ -177,11 +177,28 @@ function _fiche(&$assetOf, $mode='edit') {
 					}
 				}
 			});
+			
 			$( ".btnaddproduct" ).click(function() {
 				type = $(this).attr('id');
 				$( "#dialog" ).dialog( "open" );
 			});
 		});
+		
+		function deleteLine(idLine,type){
+			$.ajax(
+				{url : "script/interface.php?get=deletelineof&idLine="+idLine+"&type="+type}
+			).done(function(){
+				$("#"+idLine).remove();
+			});
+		}
+		
+		function addAllLines(idLine){
+			$.ajax(
+				{url : "script/interface.php?get=addlines&idLine="+idLine}
+			).done(function(){
+				document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";
+			});
+		}
 	</script>
 	<?php
 	
