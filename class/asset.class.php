@@ -90,7 +90,7 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$ATMdb,$user='',$type = "Modification manuelle", $qty=0) {
+	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0) {
 		parent::save($ATMdb);
 		$this->save_link($ATMdb);
 		
@@ -104,27 +104,35 @@ class TAsset extends TObjetStd{
 		}
 		
 		// Enregistrement des mouvements
-		if(!empty($qty))
-			$this->addStockMouvement($ATMdb,$qty,$type);
+		if(!empty($qty)){
+			$this->addStockMouvement($ATMdb,$qty,$description);
+			
+		}
 	}
 	
-	function addStockMouvement(&$ATMdb,$qty,$type){
-		global $db, $user;
+	function addStockMouvement(&$ATMdb,$qty,$description){
 		
 		$stock = new TAssetStock;
-		$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $type, $this->rowid);
+		$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
 		
+		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description);
+	}
+	
+	function addStockMouvementDolibarr($fk_product,$qty,$description){
+		global $db, $user;
+		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
 		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-
+	
 		$mouvS = new MouvementStock($db);
 		// We decrement stock of product (and sub-products)
 		// We use warehouse selected for each line
+		
 		if($qty > 0) {
-			$result=$mouvS->reception($user, $this->fk_product, 1, $qty, 0, $type);
+			$result=$mouvS->reception($user, $fk_product, 1, $qty, 0, $description);
 		} else {
-			$result=$mouvS->livraison($user, $this->fk_product, 1, -$qty, 0, $type);
+			$result=$mouvS->livraison($user,$fk_product, 1, -$qty, 0, $description);
 		}
 	}
 	

@@ -73,7 +73,6 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "VALID";
-				
 				$assetOf->updateLines($PDOdb,$_REQUEST['qty']);
 				$assetOf->save($PDOdb);
 				?>
@@ -87,6 +86,7 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "OPEN";
+				$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
 				?>
 				<script language="javascript">
@@ -98,6 +98,7 @@ function _action() {
 			case 'terminer':
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				$assetOf->status = "CLOSE";
 				$assetOf->closeOF($PDOdb);
 				$assetOf->save($PDOdb);
 				?>

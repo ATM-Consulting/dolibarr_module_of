@@ -205,18 +205,25 @@ class TAssetOF extends TObjetStd{
 	function closeOF(&$ATMdb){
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
-		foreach($this->TAssetOFLine as $TAssetOFLine){
+		foreach($this->TAssetOFLine as $AssetOFLine){
 			$asset = new TAsset;
 			
-			if($TAssetOFLine->type == "NEEDED"){
-				$asset->load($ATMdb,$TAssetOFLine->fk_asset);
+			if($AssetOFLine->type == "TO_MAKE"){
+				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used);
 			}
-			elseif($TAssetOFLine->type == "TO_MAKE"){
-				$asset = $TAssetOFLine->makeAsset($ATMdb,$TAssetOFLine->fk_product,$TAssetOFLine->qty);
-			}
+		}
+	}
+	
+	function openOF(&$ATMdb){
+		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		
+		foreach($this->TAssetOFLine as $AssetOFLine){
+			$asset = new TAsset;
 			
-			//Save quipement et effectue les entrée/sorties de stock
-			$asset->save($ATMdb,$user,'Création via Ordre de Fabrication',$TAssetOFLine->qty);
+			if($AssetOFLine->type == "NEEDED"){
+				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
+				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication');
+			}
 		}
 	}
 	
@@ -300,7 +307,7 @@ class TAssetOFLine extends TObjetStd{
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
 	function makeAsset(&$ATMdb,$fk_product,$qty){
-		global $user;
+		global $user,$conf;
 		include_once 'asset.class.php';
 		
 		$TAsset = new TAsset;
@@ -308,9 +315,17 @@ class TAssetOFLine extends TObjetStd{
 		$TAsset->fk_product = $fk_product;
 		$TAsset->entity = $user->entity;
 		
-		$TAsset->save($ATMdb);
+		/*echo '<pre>';
+		print_r($TAsset);
+		echo '</pre>';*/
 		
-		return $TAsset;
+		/*
+		 * Empêche l'ajout en stock des sous-produit d'un produit composé
+		 */
+		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
+		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
+		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication',$qty);
+		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 	}
 }
 

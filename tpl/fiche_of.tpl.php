@@ -34,7 +34,7 @@
 [onshow;block=begin;when [view.mode]=='view']
 		<div class="border" style="margin-top: 25px;">
 			<table width="100%" class="border">
-				<tr>
+				<tr height="40px;">
 					<td>Produits nécessaire à la fabrication</td><td><a href="#null" class="butAction btnaddproduct" id="NEEDED">Ajouter produit</a></td>
 					<td>Produits à créer</td><td><a href="#null" class="butAction btnaddproduct" id="TO_MAKE">Ajouter produit</a></td>
 				</tr>
@@ -109,12 +109,12 @@
 [onshow;block=begin;when [view.mode]=='view']
 	<div class="tabsAction">
 		[onshow;block=begin;when [view.status]=='DRAFT']
-			[onshow;block=begin;when [view.status]!='VALID']
-				<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
-			[onshow;block=end]
+			<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
+		[onshow;block=end]
+		[onshow;block=begin;when [view.status]=='VALID']
 			&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer">
 		[onshow;block=end]
-		[onshow;block=begin;when [view.status]!='DRAFT']
+		[onshow;block=begin;when [view.status]=='OPEN']
 			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
 		[onshow;block=end]
 	</div>
