@@ -90,9 +90,9 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$db,$user='',$type = "Modification manuelle", $qty=0) {
-		parent::save($db);
-		$this->save_link($db);
+	function save(&$ATMdb,$user='',$type = "Modification manuelle", $qty=0) {
+		parent::save($ATMdb);
+		$this->save_link($ATMdb);
 		
 		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
 		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
@@ -100,22 +100,21 @@ class TAsset extends TObjetStd{
 			$qty = $qtyKg * pow(10, -$this->contenancereel_units);
 		} else if(!empty($qty)) {
 			$this->contenancereel_value = $this->contenancereel_value + $qty;
-			parent::save($db);
+			parent::save($ATMdb);
 		}
 		
 		// Enregistrement des mouvements
 		if(!empty($qty))
-			$this->addStockMouvement($qty,$type);
+			$this->addStockMouvement($ATMdb,$qty,$type);
 	}
 	
-	function addStockMouvement($qty,$type){
+	function addStockMouvement(&$ATMdb,$qty,$type){
 		global $db, $user;
 		
 		$stock = new TAssetStock;
-		$stock->mouvement_stock($db, $user, $this->rowid, $qty, $type, $this->rowid);
+		$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $type, $this->rowid);
 		
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
-		global $db, $user;
 		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 

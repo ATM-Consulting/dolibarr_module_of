@@ -54,7 +54,9 @@
 								[onshow;block=begin;when [view.status]!='DRAFT']
 									<td>Quantité utilisé</td>
 								[onshow;block=end]
+								[onshow;block=begin;when [view.status]=='DRAFT']
 								<td style="width:20px;">Action</td>
+								[onshow;block=end]
 							</tr>
 							<tr id="[TNeeded.id]">
 								<!--<td>Lot</td>
@@ -78,10 +80,14 @@
 						<!-- TO_MAKE -->
 						<table width="100%" class="border">
 							<tr>
+								[onshow;block=begin;when [view.status]=='DRAFT']
 								<td style="width:20px;">Action</td>
+								[onshow;block=end]
 								<td>Produit</td>
 								<td>Quantité à produire</td>
-								<td style="width:20px;">Action</td>
+								[onshow;block=begin;when [view.status]=='DRAFT']
+									<td style="width:20px;">Action</td>
+								[onshow;block=end]
 							</tr>
 							<tr id="[TTomake.id]">
 								[onshow;block=begin;when [view.status]=='DRAFT']
@@ -104,9 +110,9 @@
 	<div class="tabsAction">
 		[onshow;block=begin;when [view.status]=='DRAFT']
 			[onshow;block=begin;when [view.status]!='VALID']
-				<a href="?id=[assetOf.id]&action=valider" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction">Valider</a>
+				<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
 			[onshow;block=end]
-			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=lancer" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction">Lancer</a>
+			&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer">
 		[onshow;block=end]
 		[onshow;block=begin;when [view.status]!='DRAFT']
 			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>

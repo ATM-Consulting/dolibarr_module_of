@@ -193,13 +193,20 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
+	function updateLines(&$ATMdb,$TQty){
+		
+		foreach($this->TAssetOFLine as $TAssetOFLine){
+			$TAssetOFLine->qty_used = $TQty[$TAssetOFLine->getId()];
+			$TAssetOFLine->save($ATMdb);
+		}
+	}
+	
 	//Finalise un OF => incrémention/décrémentation du stock
 	function closeOF(&$ATMdb){
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-		global $db,$user;
 		
 		foreach($this->TAssetOFLine as $TAssetOFLine){
-			$asset = new Asset;
+			$asset = new TAsset;
 			
 			if($TAssetOFLine->type == "NEEDED"){
 				$asset->load($ATMdb,$TAssetOFLine->fk_asset);
@@ -293,7 +300,7 @@ class TAssetOFLine extends TObjetStd{
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
 	function makeAsset(&$ATMdb,$fk_product,$qty){
-		global $user,$db;
+		global $user;
 		include_once 'asset.class.php';
 		
 		$TAsset = new TAsset;
@@ -301,7 +308,7 @@ class TAssetOFLine extends TObjetStd{
 		$TAsset->fk_product = $fk_product;
 		$TAsset->entity = $user->entity;
 		
-		$TAsset->save(&$ATMdb);
+		$TAsset->save($ATMdb);
 		
 		return $TAsset;
 	}

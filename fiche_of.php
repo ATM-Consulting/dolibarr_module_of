@@ -67,6 +67,21 @@ function _action() {
 				</script>
 				<?
 				break;
+			
+			case 'valider':
+				
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				$assetOf->status = "VALID";
+				
+				$assetOf->updateLines($PDOdb,$_REQUEST['qty']);
+				$assetOf->save($PDOdb);
+				?>
+				<script language="javascript">
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
+				</script>
+				<?php
+				break;
 				
 			case 'lancer':
 				$assetOf=new TAssetOF;
@@ -182,6 +197,13 @@ function _fiche(&$assetOf, $mode='edit') {
 				type = $(this).attr('id');
 				$( "#dialog" ).dialog( "open" );
 			});
+			
+			$("input[name=valider]").click(function(){
+				$('#action').val('valider');
+			})
+			$("input[name=lancer]").click(function(){
+				$('#action').val('lancer');
+			})
 		});
 		
 		function deleteLine(idLine,type){
@@ -202,7 +224,7 @@ function _fiche(&$assetOf, $mode='edit') {
 	</script>
 	<?php
 	
-	$form2 = new TFormCore($_SERVER['PHP_SELF'],'formof','POST');
+	$form2 = new TFormCore();
 	if($assetOf->status != "DRAFT")
 		$form2->Set_typeaff('view');
 	else
@@ -239,8 +261,6 @@ function _fiche(&$assetOf, $mode='edit') {
 			)
 		)
 	);
-	
-	echo $form2->end_form();
 	
 	echo $form->end_form();
 	// End of page
