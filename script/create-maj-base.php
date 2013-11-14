@@ -33,7 +33,7 @@
 	$o=new TAssetOF;
 	$o->init_db_by_vars($ATMdb);
 
-	$o=new TAssetOF_line;
+	$o=new TAssetOFLine;
 	$o->init_db_by_vars($ATMdb);
 	
 	$o=new TAssetWorkstation;

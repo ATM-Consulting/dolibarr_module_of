@@ -46,69 +46,59 @@
 					<td>Produits à créer</td><td><a href="#null" class="butAction btnaddproduct" id="TO_MAKE">Ajouter produit</a></td>
 				</tr>
 				<tr>
-					<td colspan="2">
+					<td colspan="2" width="60%">
 						<!-- NEEDED -->
 						<table width="100%" class="border">
 							<tr>
-								<!-- Lot
-								<td>Lot</td>
-								<!-- Equipement
-								<td>Equipement</td>
-								<!-- Produit -->
+								<!--<td>Lot</td>
+								<td>Equipement</td>-->
 								<td>Produit</td>
-								<!-- Quantité nécessaire -->
 								<td>Quantité nécessaire</td>
-								<!-- Quantité -->
 								<td>Quantité</td>
-								<!-- Quantité non pourvu -->
-								<td>Quantité non pourvu</td>
-								<!-- Qauntité utilisé -->
-								<td>Qauntité utilisé</td>
-								<!-- Action -->
-								<td>Action</td>
+								[onshow;block=begin;when [view.status]=='DRAFT']
+									<td>Quantité non pourvu</td>
+								[onshow;block=end]
+								[onshow;block=begin;when [view.status]!='DRAFT']
+									<td>Quantité utilisé</td>
+								[onshow;block=end]
+								<td style="width:20px;">Action</td>
 							</tr>
 							<tr>
-								<!-- Lot
-								<td>Lot</td>
-								<!-- Equipement
-								<td>Equipement</td>
-								<!-- Produit -->
+								<!--<td>Lot</td>
+								<td>Equipement</td>-->
 								<td>[TNeeded.libelle;block=tr]</td>
-								<!-- Quantité nécessaire -->
-								<td>[TNeeded.qty]</td>
-								<!-- Quantité -->
-								<td>Quantité</td>
-								<!-- Quantité non pourvu -->
-								<td>Quantité non pourvu</td>
-								<!-- Qauntité utilisé -->
-								<td>Qauntité utilisé</td>
-								<!-- Action -->
-								<td>Action</td>
+								<td>[TNeeded.qty_needed]</td>
+								<td>[TNeeded.qty;strconv=no]</td>
+								[onshow;block=begin;when [view.status]=='DRAFT']
+									<td>[TNeeded.qty_toadd]</td>
+								[onshow;block=end]
+								[onshow;block=begin;when [view.status]!='DRAFT']
+									<td>[TNeeded.qty]</td>
+								[onshow;block=end]
+								[onshow;block=begin;when [view.status]=='DRAFT']
+									<td>[TNeeded.delete;strconv=no]</td>
+								[onshow;block=end]
 							</tr>
 						</table>
 					</td>
-					<td colspan="2">
+					<td colspan="2" width="40%">
 						<!-- TO_MAKE -->
 						<table width="100%" class="border">
 							<tr>
-								<!-- Action : ajout auto des produits NEEDED -->
-								<td>Action</td>
-								<!-- Produit -->
+								<td style="width:20px;">Action</td>
 								<td>Produit</td>
-								<!-- Quantité à produire -->
 								<td>Quantité à produire</td>
-								<!-- Action -->
-								<td>Action</td>
+								<td style="width:20px;">Action</td>
 							</tr>
 							<tr>
-								<!-- Action : ajout auto des produits NEEDED -->
-								<td>Action</td>
-								<!-- Produit -->
+								[onshow;block=begin;when [view.status]=='DRAFT']
+									<td>[TTomake.addneeded;strconv=no]</td>
+								[onshow;block=end]
 								<td>[TTomake.libelle;block=tr]</td>
-								<!-- Quantité à produire -->
-								<td>Quantité à produire</td>
-								<!-- Action -->
-								<td>Action</td>
+								<td>[TTomake.qty;strconv=no]</td>
+								[onshow;block=begin;when [view.status]=='DRAFT']
+									<td>[TTomake.delete;strconv=no]</td>
+								[onshow;block=end]
 							</tr>
 						</table>
 					</td>

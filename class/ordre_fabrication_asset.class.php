@@ -68,13 +68,13 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
-	function addProductComposition(&$ATMdb, $fk_product, $quantite_to_make=1){
+	function addProductComposition(&$ATMdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0){
 		
 		$Tab = $this->getProductComposition($ATMdb,$fk_product);
 		
 		foreach($Tab as $prod) {
 			
-			$this->addLine($ATMdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make);
+			$this->addLine($ATMdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
 			
 		}
 		
@@ -172,20 +172,23 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$ATMdb, $fk_product, $type, $quantite=1){
+	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
 		global $user;
 		
 		$k = $this->addChild($ATMdb, 'TAssetOFLine');
 		
 		$TAssetOFLine = &$this->TAssetOFLine[$k];
-		
+		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
 		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
 		$TAssetOFLine->type = $type;
 		$TAssetOFLine->qty = $quantite;
+		$TAssetOFLine->qty_used = $quantite;
+		
+		$idAssetOFLine = $TAssetOFLine->save($ATMdb);
 		
 		if($type=='TO_MAKE') {
-			$this->addProductComposition($ATMdb,$fk_product, $quantite);
+			$this->addProductComposition($ATMdb,$fk_product, $quantite,$idAssetOFLine);
 		}
 	}
 	
@@ -209,42 +212,34 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
-	function TAssetOFLineNeededAsArray(){
+	function TAssetOFLineAsArray($type,&$form){
 		global $db;
 		
 		foreach($this->TAssetOFLine as $TAssetOFLine){
-			if($TAssetOFLine->type == "NEEDED"){
-				$product = new Product($db);
-				$product->fetch($TAssetOFLine->fk_product);
-				
-				$TNeeded[]= array(
+			$product = new Product($db);
+			$product->fetch($TAssetOFLine->fk_product);
+			
+			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
+				$TRes[]= array(
 					'libelle'=>$product->libelle
-					,'qty'=>$TAssetOFLine->qty
 					,'qty_needed'=>$TAssetOFLine->qty
+					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty_used, 5,5,'','','à saisir')
+					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
+					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',"NEEDED");">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
-		}
-		
-		return $TNeeded;
-	}
-
-	function TAssetOFLineToMakeAsArray(){
-		global $db;
-		
-		foreach($this->TAssetOFLine as $TAssetOFLine){
-			if($TAssetOFLine->type == "TO_MAKE"){
-				$product = new Product($db);
-				$product->fetch($TAssetOFLine->fk_product);
-				
-				$TToMake[]= array(
+			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
+				$TRes[]= array(
 					'libelle'=>$product->libelle
+					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().');">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
+					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',"TO_MAKE");">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
 		}
 		
-		return $TToMake;
+		return $TRes;
 	}
-	
 }
 
 class TAssetOFLine extends TObjetStd{
@@ -256,7 +251,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset','type=entier;');
-		$this->add_champs('qty','type=float;');
+		$this->add_champs('qty,qty_used','type=float;');
 		$this->add_champs('type','type=chaine;');
 		
 		//clé étrangère

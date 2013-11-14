@@ -22,6 +22,9 @@ function _get(&$ATMdb, $case) {
 		case 'addofproduct':
 			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));
 			break;
+		case 'deletelineof':
+			__out(_deletelineof($ATMdb,$_REQUEST['idLine'],$_REQUEST['type']));
+			break;
 	}
 }
 
@@ -46,4 +49,10 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type){
 	$TassetOF->load($ATMdb, $id_assetOf);
 	$TassetOF->addLine($ATMdb, $fk_product, $type);
 	$TassetOF->save($ATMdb);
+}
+
+function _deletelineof(&$ATMdb,$idLine,$type){
+	$TAssetOFLine = new TAssetOFLine;
+	$TAssetOFLine->load($ATMdb, $idLine);
+	$TAssetOFLine->delete($ATMdb);
 }

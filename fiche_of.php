@@ -185,14 +185,17 @@ function _fiche(&$assetOf, $mode='edit') {
 	</script>
 	<?php
 	
-	$TabToMake = array();
-	$TabNeeded = array();
+	$form2 = new TFormCore($_SERVER['PHP_SELF'],'formof','POST');
+	if($assetOf->status != "DRAFT")
+		$form2->Set_typeaff('view');
+	else
+		$form2->Set_typeaff('edit');
 	
-	$TNeeded = $assetOf->TAssetOFLineNeededAsArray();
-	$TToMake = $assetOf->TAssetOFLineToMakeAsArray();
+	$TNeeded = $assetOf->TAssetOFLineAsArray("NEEDED",$form2);
+	$TToMake = $assetOf->TAssetOFLineAsArray("TO_MAKE",$form2);
 	
 	/*echo '<pre>';
-	print_r($TToMake);
+	print_r($TNeeded);
 	echo '</pre>'; exit;*/
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
@@ -219,6 +222,8 @@ function _fiche(&$assetOf, $mode='edit') {
 			)
 		)
 	);
+	
+	echo $form2->end_form();
 	
 	echo $form->end_form();
 	// End of page
