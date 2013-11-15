@@ -274,6 +274,9 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				case checkbox:
 					$temp = $form->combo('',$field->code,array('oui'=>'Oui', 'non'=>'Non'),$asset->{$field->code});
 					break;
+				case date:
+					$temp = $form->calendrier('',$field->code,$asset->{$field->code});
+					break;
 				default:
 					$temp = $form->texte('', $field->code, $asset->{$field->code}, 50,255,'','','-');
 					break;

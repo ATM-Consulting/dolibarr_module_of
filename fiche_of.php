@@ -117,7 +117,7 @@ function _action() {
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste.php?delete_ok=1";					
+					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste_of.php?delete_ok=1";					
 				</script>
 				<?
 				
@@ -215,11 +215,13 @@ function _fiche(&$assetOf, $mode='edit') {
 			});
 		}
 		
-		function addAllLines(idLine){
+		function addAllLines(idLine,btnadd){
+			//var qty = $('#qty['+idLine+']').val();
+			var qty = $(btnadd).parent().next().next().find('input[type=text]').val();
 			$.ajax(
-				{url : "script/interface.php?get=addlines&idLine="+idLine}
+				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
 			).done(function(){
-				document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";
+				//document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";
 			});
 		}
 	</script>
@@ -230,6 +232,9 @@ function _fiche(&$assetOf, $mode='edit') {
 		$form2->Set_typeaff('view');
 	else
 		$form2->Set_typeaff('edit');
+	
+	$TNeeded = array();
+	$TToMake = array();
 	
 	$TNeeded = $assetOf->TAssetOFLineAsArray("NEEDED",$form2);
 	$TToMake = $assetOf->TAssetOFLineAsArray("TO_MAKE",$form2);

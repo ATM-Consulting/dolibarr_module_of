@@ -35,14 +35,22 @@
 		<div class="border" style="margin-top: 25px;">
 			<table width="100%" class="border">
 				<tr height="40px;">
-					<td>Produits nécessaire à la fabrication</td><td><a href="#null" class="butAction btnaddproduct" id="NEEDED">Ajouter produit</a></td>
-					<td>Produits à créer</td><td><a href="#null" class="butAction btnaddproduct" id="TO_MAKE">Ajouter produit</a></td>
+					<td style="border-right: none;">Produits nécessaire à la fabrication</td>
+					<td style="border-left: none; text-align: right;">[onshow;block=begin;when [view.status]=='DRAFT']
+						<a href="#null" class="butAction btnaddproduct" id="NEEDED">Ajouter produit</a>
+						[onshow;block=end]
+					</td>
+					<td style="border-right: none; ">Produits à créer</td>
+					<td style="border-left: none; text-align: right;">[onshow;block=begin;when [view.status]=='DRAFT']
+						<a href="#null" class="butAction btnaddproduct" id="TO_MAKE">Ajouter produit</a>
+						[onshow;block=end]
+					</td>
 				</tr>
 				<tr>
 					<td colspan="2" width="60%">
 						<!-- NEEDED -->
 						<table width="100%" class="border">
-							<tr>
+							<tr style="background-color:#dedede;">
 								<!--<td>Lot</td>
 								<td>Equipement</td>-->
 								<td>Produit</td>
@@ -61,7 +69,7 @@
 							<tr id="[TNeeded.id]">
 								<!--<td>Lot</td>
 								<td>Equipement</td>-->
-								<td>[TNeeded.libelle;block=tr]</td>
+								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
 								<td>[TNeeded.qty;strconv=no]</td>
 								[onshow;block=begin;when [view.status]=='DRAFT']
@@ -79,7 +87,7 @@
 					<td colspan="2" width="40%">
 						<!-- TO_MAKE -->
 						<table width="100%" class="border">
-							<tr>
+							<tr style="background-color:#dedede;">
 								[onshow;block=begin;when [view.status]=='DRAFT']
 								<td style="width:20px;">Action</td>
 								[onshow;block=end]
@@ -93,7 +101,7 @@
 								[onshow;block=begin;when [view.status]=='DRAFT']
 									<td>[TTomake.addneeded;strconv=no]</td>
 								[onshow;block=end]
-								<td>[TTomake.libelle;block=tr]</td>
+								<td>[TTomake.libelle;block=tr;strconv=no]</td>
 								<td>[TTomake.qty;strconv=no]</td>
 								[onshow;block=begin;when [view.status]=='DRAFT']
 									<td>[TTomake.delete;strconv=no]</td>

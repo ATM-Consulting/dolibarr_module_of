@@ -120,11 +120,7 @@ class TAssetOF extends TObjetStd{
 				else {
 					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);	
 				}
-				
-				
 			}
-			
-			
 		}
 		
 	} 
@@ -151,24 +147,42 @@ class TAssetOF extends TObjetStd{
 	 * retourne le stock restant du produit
 	 */
 	function getProductStock($fk_product) {
+		global $db;
+		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
-		return 0;//TODO
+		$product = new Product($db);
+		$product->fetch($fk_product);
+		$product->load_stock();
+		
+		return $product->stock_reel;
 		
 	}
 	
-	function createCommandeFournisseur($type='externe'){
+	/*function createCommandeFournisseur($type='externe'){
+		global $db,$conf,$user;
+		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
 		
+		$id_fourn = $this->getFournisseur();
 		
+		$cmdFour = new CommandeFournisseur($db);
+		$cmdFour->ref_supplier = "";
+       	$cmdFour->note_private = "";
+        $cmdFour->note_public = "";
+        $cmdFour->socid;
 		
 		return $id_cmd_four;
 	}
 	
+	function getFournisseur(){
+		global $db;
+		
+		return 1;
+	}*/
+	
 	function loadWorkstation(&$ATMdb){
 		if(empty($this->workstation)) {
-			
 			$this->workstation=new TAssetWorkstation;
 			$this->workstation->load($ATMdb, $this->fk_asset_workstation);
-			
 		}
 	}
 	
@@ -182,6 +196,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
 		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
+		$TAssetOFLine->fk_asset = 0;
 		$TAssetOFLine->type = $type;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
@@ -237,7 +252,7 @@ class TAssetOF extends TObjetStd{
 			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
-					,'libelle'=>$product->libelle
+					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'qty_needed'=>$TAssetOFLine->qty
 					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty_used, 5,5,'','','à saisir')
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
@@ -247,8 +262,8 @@ class TAssetOF extends TObjetStd{
 			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
-					,'libelle'=>$product->libelle
-					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().');">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
+					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
@@ -256,6 +271,10 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		return $TRes;
+	}
+
+	function getOrdre($ordre){
+		return $this->TOrdre[$ordre];
 	}
 }
 

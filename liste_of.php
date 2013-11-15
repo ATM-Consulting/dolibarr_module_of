@@ -101,10 +101,8 @@ function _liste($id_entity) {
 			,'status'=>'Status'
 			,'login'=>'Utilisateur en charge'
 		)
-		/*,'search'=>array(
-			'serial_number'=>true
-			,'nom'=>array('recherche'=>true, 'table'=>'s')
-			,'label'=>array('recherche'=>true, 'table'=>'')
+		/*,'eval'=>array(
+			'ordre'=>'$assetOf->getOrdre(@val@)'
 		)*/
 	));
 		

@@ -59,7 +59,7 @@
 		<td>[assetField.inlibelle;strconv=no;protect=no]</td>
 		[onshow;block=begin;when [view.mode]=='edit']
 			<td>
-				<img src="./img/delete.png"  onclick="document.location.href='?id=[assetType.id]&idField=[assetField.id]&action=deleteField'">
+				<img src="../img/delete.png"  onclick="document.location.href='?id=[assetType.id]&idField=[assetField.id]&action=deleteField'">
 			</td>
 		[onshow;block=end]
 	</tr>

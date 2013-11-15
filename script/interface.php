@@ -26,7 +26,7 @@ function _get(&$ATMdb, $case) {
 			__out(_deletelineof($ATMdb,$_REQUEST['idLine'],$_REQUEST['type']));
 			break;
 		case 'addlines':
-			__out(_addlines($ATMdb,$_REQUEST['idLine']));
+			__out(_addlines($ATMdb,$_REQUEST['idLine'],$_REQUEST['qty']));
 			break;
 	}
 }
@@ -47,22 +47,36 @@ function _autocomplete(&$ATMdb,$fieldcode,$value){
 	return $TResult;
 }
 
-function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type){
+function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1){
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($ATMdb, $id_assetOf);
-	$TassetOF->addLine($ATMdb, $fk_product, $type);
+	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty);
 	$TassetOF->save($ATMdb);
 }
 
 function _deletelineof(&$ATMdb,$idLine,$type){
 	$TAssetOFLine = new TAssetOFLine;
-	$TAssetOFLine->load($ATMdb, $idLine);
+	$TAssetOFLine->load($ATMdb, $idLine,$qty,$fkassetOfLineParent);
 	$TAssetOFLine->delete($ATMdb);
 }
 
-function _addlines(&$ATMdb,$idLine){
+function _addlines(&$ATMdb,$idLine,$qty){
+
 	$TAssetOFLine = new TAssetOFLine;
 	$TAssetOFLine->load($ATMdb, $idLine);
+	$TAssetOFLine->save($ATMdb);
 	
-	_addofproduct(&$ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE");
+	__deleteOldLines($ATMdb,$idLine);
+	
+	_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty);
+}
+
+function __deleteOldLines(&$ATMdb,$idLine){
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetOf_line','fk_assetOf_line_parent = '.$idLine.' OR rowid = '.$idLine);
+	
+	foreach($TId as $cle => $id){
+		$assetofline = new TAssetOFLine;
+		$assetofline->load($ATMdb, $id);
+		$assetofline->delete($ATMdb);
+	}
 }
