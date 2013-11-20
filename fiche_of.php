@@ -240,7 +240,7 @@ function _fiche(&$assetOf, $mode='edit') {
 	$TToMake = $assetOf->TAssetOFLineAsArray("TO_MAKE",$form2);
 	
 	/*echo '<pre>';
-	print_r($TNeeded);
+	print_r($TToMake);
 	echo '</pre>'; exit;*/
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'

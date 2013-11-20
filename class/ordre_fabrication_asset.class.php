@@ -245,6 +245,8 @@ class TAssetOF extends TObjetStd{
 	function TAssetOFLineAsArray($type,&$form){
 		global $db;
 		
+		$TRes = array();
+		
 		foreach($this->TAssetOFLine as $TAssetOFLine){
 			$product = new Product($db);
 			$product->fetch($TAssetOFLine->fk_product);
@@ -274,7 +276,28 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function getOrdre($ordre){
-		return $this->TOrdre[$ordre];
+		
+		$TOrdre=array(
+			'ASAP'=>'Au plut tôt'
+			,'TODAY'=>'Dans la journée'
+			,'TOMORROW'=> 'Demain'
+			,'WEEK'=>'Dans la semaine'
+			,'MONTH'=>'Dans le mois'
+			
+		);
+		
+		return $TOrdre[$ordre];
+	}
+	
+	function getStatus($status){
+		$TStatus=array(
+			'DRAFT'=>'Brouillon'
+			,'VALID'=>'Validé'
+			,'OPEN'=>'Lancé'
+			,'CLOSE'=>'Terminé'
+		);
+		
+		return $TStatus[$status];
 	}
 }
 
@@ -296,6 +319,8 @@ class TAssetOFLine extends TObjetStd{
 		$this->TType=array('NEEDED','TO_MAKE');
 		
 	    $this->start();
+		
+		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
 	}
 	
 	//Affecte l'équipement à la ligne de l'OF

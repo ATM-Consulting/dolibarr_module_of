@@ -63,20 +63,10 @@ function _deletelineof(&$ATMdb,$idLine,$type){
 function _addlines(&$ATMdb,$idLine,$qty){
 
 	$TAssetOFLine = new TAssetOFLine;
+	//$ATMdb->debug = true;
 	$TAssetOFLine->load($ATMdb, $idLine);
-	$TAssetOFLine->save($ATMdb);
 	
-	__deleteOldLines($ATMdb,$idLine);
+	$TAssetOFLine->delete($ATMdb);
 	
 	_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty);
-}
-
-function __deleteOldLines(&$ATMdb,$idLine){
-	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetOf_line','fk_assetOf_line_parent = '.$idLine.' OR rowid = '.$idLine);
-	
-	foreach($TId as $cle => $id){
-		$assetofline = new TAssetOFLine;
-		$assetofline->load($ATMdb, $id);
-		$assetofline->delete($ATMdb);
-	}
 }

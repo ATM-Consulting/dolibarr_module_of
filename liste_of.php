@@ -101,9 +101,10 @@ function _liste($id_entity) {
 			,'status'=>'Status'
 			,'login'=>'Utilisateur en charge'
 		)
-		/*,'eval'=>array(
-			'ordre'=>'$assetOf->getOrdre(@val@)'
-		)*/
+		,'eval'=>array(
+			'ordre'=>'TAssetOF::getOrdre(@val@)'
+			,'status'=>'TAssetOF::getStatus(@val@)'
+		)
 	));
 		
 	echo '<div class="tabsAction">';
