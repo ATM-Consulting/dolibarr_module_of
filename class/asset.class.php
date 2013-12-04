@@ -9,9 +9,9 @@ class TAsset extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_soc,fk_product,entity','type=entier;');
-		$this->add_champs('contenancereel_value, contenance_value', 'type=float;');
+		$this->add_champs('contenancereel_value, contenance_value,point_chute', 'type=float;');
 		$this->add_champs('contenance_units, contenancereel_units', 'type=entier;');
-		$this->add_champs('commentaire,lot_number', 'type=chaine;');
+		$this->add_champs('commentaire,lot_number,gestion_stock,masque,reutilisable,status', 'type=chaine;');
 		
 		//clé étrangère : type de la ressource
 		parent::add_champs('fk_asset_type','type=entier;index;');
@@ -23,6 +23,17 @@ class TAsset extends TObjetStd{
 		$this->TLink=array(); // liaison document
 		$this->TStock=array(); // liaison mouvement stock
 		$this->error='Erreur dans objet equipement';
+		
+		$this->TGestionStock = array(
+				'UNIT'=>'Unitaire',
+				'QUANTITY'=>'Quantitative'
+			);
+		
+		$this->TStatus = array(
+				'USED'=>'Consommé',
+				'PARTUSED'=>'Partiellement consommé',
+				'NOTUSED'=>'Non consommé'
+			);
 		
 		$this->TField=array();
 		$this->assetType=new TAsset_type;
@@ -61,7 +72,7 @@ class TAsset extends TObjetStd{
 		//chargement d'une liste de tout les types de ressources
 		$temp = new TAsset_type;
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array());
-		
+
 		$this->TType = array('');
 		foreach($Tab as $k=>$id){
 			$temp->load($ATMdb, $id);
@@ -73,13 +84,13 @@ class TAsset extends TObjetStd{
 	function load_asset_type(&$ATMdb) {
 		//on prend le type de ressource associé
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
-		
+
 		$this->assetType->load($ATMdb, $Tab[0]);
 		$this->fk_asset_type = $this->assetType->getId();
 		
 		//on charge les champs associés au type.
 		$this->init_variables($ATMdb);
-		
+
 	}
 	
 	function init_variables(&$ATMdb) {
@@ -106,7 +117,7 @@ class TAsset extends TObjetStd{
 		// Enregistrement des mouvements
 		if(!empty($qty)){
 			$this->addStockMouvement($ATMdb,$qty,$description);
-			
+
 		}
 	}
 	
@@ -114,7 +125,7 @@ class TAsset extends TObjetStd{
 		
 		$stock = new TAssetStock;
 		$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
-		
+
 		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description);
 	}
 	
@@ -124,7 +135,7 @@ class TAsset extends TObjetStd{
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
 		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-	
+
 		$mouvS = new MouvementStock($db);
 		// We decrement stock of product (and sub-products)
 		// We use warehouse selected for each line
@@ -335,14 +346,20 @@ class TAssetStock extends TObjetStd{
 class TAsset_type extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'asset_type');
-		parent::add_champs('libelle,code','type=chaine;');
+		parent::add_champs('libelle,code,reutilisable,masque,gestion_stock','type=chaine;');
 		parent::add_champs('entity','type=entier;index;');
+		parent::add_champs('contenance_value, contenancereel_value, point_chute', 'type=float;');
+		parent::add_champs('contenance_units, contenancereel_units', 'type=entier;');
 		parent::add_champs('supprimable','type=entier;');
 				
 		parent::_init_vars();
 		parent::start();
 		$this->TField=array();
 		$this->TType=array('chaine'=>'Texte','entier'=>'Entier','float'=>'Float',"liste"=>'Liste','date'=>'Date', "checkbox"=>'Case à cocher');
+		$this->TGestionStock = array(
+				'UNIT'=>'Unitaire',
+				'QUANTITY'=>'Quantitative'
+			);
 	}
 	
 	

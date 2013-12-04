@@ -149,6 +149,10 @@ function _liste(&$ATMdb, &$asset) {
 		
 	));
 	
+	echo '<div class="tabsAction">';
+	echo '<a class="butAction" href="typeAsset.php?action=new">Nouveau type</a>';
+	echo '</div>';
+	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();

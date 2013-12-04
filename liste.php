@@ -13,6 +13,8 @@
 function _liste($id_entity) {
 global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	
+	$ATMdb=new TPDOdb;
+	
 	$langs->load('asset@asset');
 	
 	llxHeader('',$langs->trans('ListAsset'),'','');
@@ -42,8 +44,13 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 		require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 			
 		$product = new Product($db);
-		$result=$product->fetch($_REQUEST['fk_product']);	
-			
+		$result=$product->fetch($_REQUEST['fk_product']);
+		
+		$sql = "SELECT type_asset FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$product->id;
+		$ATMdb->Execute($sql);
+		$ATMdb->Get_line();
+		$fk_asset_type = $ATMdb->Get_field('type_asset');
+						
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
 		$picto=($product->type==1?'service':'product');
@@ -87,8 +94,6 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	
-	$ATMdb=new TPDOdb;
-	
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'nbLine'=>'30'
@@ -128,10 +133,12 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 			'unite'=>'measuring_units_string(@val@,"weight")'
 		)
 	));
-		
-	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="fiche.php?action=new&fk_soc='.$fk_soc.'&fk_product='.$product->id.'">Créer un '.$langs->trans('Asset').'</a>';
-	echo '</div>';
+	
+	if(isset($_REQUEST['fk_product'])){
+		echo '<div class="tabsAction">';
+		echo '<a class="butAction" href="fiche.php?action=edit&fk_soc='.$fk_soc.'&fk_product='.$product->id.'&fk_asset_type='.$fk_asset_type.'">Créer un '.$langs->trans('Asset').'</a>';
+		echo '</div>';
+	}
 
 	$ATMdb->close();
 

@@ -340,6 +340,10 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
 				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2,',',''), 12,10,'','','0.00')
 				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
+				,'point_chute'=>$form->texte('', 'serial_number', $asset->point_chute, 12,10,'','','à saisir')
+				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
+				,'status'=>$form->combo('','status',$asset->TStatus,$asset->status)
+				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)
 				,'typehidden'=>$form->hidden('fk_asset_type', $asset->fk_asset_type)
 			)
 			,'stock'=>array(
