@@ -53,6 +53,7 @@ function _action() {
 				break;
 			
 			case 'edit'	:
+			
 				$asset=new TAsset;
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load_liste_type_asset($PDOdb);
@@ -336,14 +337,14 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'produit'=>_fiche_visu_produit($asset,$mode)
 				,'societe'=>_fiche_visu_societe($asset,$mode)
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
-				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','0.00')
+				,'contenance_value'=>$form->texte('', 'contenance_value', ($asset->getId()) ? $asset->contenance_value : $asset->assetType->contenance_value, 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
-				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format($asset->contenancereel_value,2,',',''), 12,10,'','','0.00')
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format(($asset->getId()) ? $asset->contenancereel_value :  $asset->assetType->contenancereel_value,2,',',''), 12,10,'','','0.00')
 				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
-				,'point_chute'=>$form->texte('', 'serial_number', $asset->point_chute, 12,10,'','','à saisir')
-				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
+				,'point_chute'=>$form->texte('', 'serial_number', ($asset->getId()) ? $asset->point_chute : $asset->assetType->point_chute, 12,10,'','','à saisir')
+				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,($asset->getId()) ? $asset->gestion_stock : $asset->assetType->gestion_stock)
 				,'status'=>$form->combo('','status',$asset->TStatus,$asset->status)
-				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)
+				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),($asset->getId()) ? $asset->reutilisable : $asset->assetType->reutilisable)
 				,'typehidden'=>$form->hidden('fk_asset_type', $asset->fk_asset_type)
 			)
 			,'stock'=>array(
@@ -469,7 +470,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, "weight", $asset->$name);
+		echo $html->select_measuring_units($name, "weight", ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
@@ -480,7 +481,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, "weight", $defaut);
+		echo $html->select_measuring_units($name, "weight", ($asset->getId()) ? $defaut : $asset->assetType->$name);
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
