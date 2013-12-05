@@ -142,8 +142,7 @@ function _liste(&$ATMdb, &$asset) {
 	
 function _fiche(&$ATMdb, &$asset, $mode) {
 	global $langs,$db,$user;
-
-
+	
 	llxHeader('',$langs->trans('AssetType'), '', '', 0, 0);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'form1','POST');
@@ -185,6 +184,13 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				'id'=>$asset->getId()
 				,'code'=> $asset->code
 				,'libelle'=> $asset->libelle
+				,'point_chute'=>$asset->point_chute
+				,'gestion_stock'=>$asset->TGestionStock[$asset->gestion_stock]
+				,'reutilisable'=>$asset->reutilisable
+				,'contenance_value'=>$asset->contenance_value
+				,'contenance_units'=>_fiche_visu_units($asset, 'view', 'contenance_units',-6)
+				,'contenancereel_value'=>$asset->contenancereel_value
+				,'contenancereel_units'=>_fiche_visu_units($asset, 'view', 'contenancereel_units',-6)
 				,'titreChamps'=>load_fiche_titre($langs->trans('AssetListFields'),'', 'title.png', 0, '')
 				,'pictoMove'=>img_picto('','grip.png', '', 0)
 			)
@@ -219,5 +225,38 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	llxFooter();
 }
 
+function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
+	global $db;
 	
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	
+	if($mode=='edit') {
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $asset->$name);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
+		
+	}
+	elseif($mode=='new'){
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $defaut);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
+	}
+	else{
+		ob_start();	
+		
+		echo measuring_units_string($asset->$name, "weight");
+		
+		return ob_get_clean();
+	}
+}

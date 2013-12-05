@@ -14,6 +14,11 @@
 			
 			<tr><td width="20%">Libellé</td><td>[assetType.libelle; strconv=no]</td></tr>
 			<tr><td width="20%">Code</td><td>[assetType.code; strconv=no]</td></tr>
+			<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
+			<tr><td width="20%">Gestion du stock</td><td>[assetType.gestion_stock; strconv=no]</td></tr>
+			<tr><td width="20%">Réutilisable</td><td>[assetType.reutilisable; strconv=no]</td></tr>
+			<tr><td width="20%">Contenance maximum</td><td>[assetType.contenance_value;strconv=no] [assetType.contenance_units;strconv=no]</td></tr>
+			<tr><td width="20%">Contenance par défaut</td><td>[assetType.contenancereel_value;strconv=no] [assetType.contenancereel_units;strconv=no]</td></tr>
 			</table>
 	
 	<br>

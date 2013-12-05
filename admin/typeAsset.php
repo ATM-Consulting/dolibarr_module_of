@@ -6,11 +6,13 @@
 	$langs->load('asset@asset');
 	
 	//if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
-	$ATMdb=new Tdb;
+	$ATMdb=new TPDOdb;
 	$asset=new TAsset_type;
 	
 	$mesg = '';
 	$error=false;
+	
+	//pre($_REQUEST);
 	
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
@@ -160,7 +162,8 @@ function _liste(&$ATMdb, &$asset) {
 	
 function _fiche(&$ATMdb, &$asset, $mode) {
 	global $langs,$db,$user;
-
+	
+	//pre($asset);
 
 	llxHeader('',$langs->trans('AssetType'), '', '', 0, 0);
 	
@@ -168,10 +171,6 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	$form->Set_typeaff($mode);
 	echo $form->hidden('id', $asset->getId());
 	echo $form->hidden('action', 'save');
-	
-	
-	
-	
 	
 	$TBS=new TTemplateTBS();
 	
@@ -182,6 +181,13 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				'id'=>$asset->getId()
 				,'code'=>$form->texte('', 'code', $asset->code, 20,255,'','','à saisir')
 				,'libelle'=>$form->texte('', 'libelle', $asset->libelle, 20,255,'','','à saisir') 
+				,'point_chute'=>$form->texte('', 'point_chute', $asset->point_chute, 12,10,'','','à saisir')
+				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
+				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)
+				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','')
+				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', $asset->contenancereel_value, 12,10,'','','')
+				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
 				,'supprimable'=>$form->hidden('supprimable', 1)
 			)
 			,'view'=>array(
@@ -203,5 +209,39 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	llxFooter();
 }
 
+function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
+	global $db;
 	
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	
+	if($mode=='edit') {
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $asset->$name);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
+		
+	}
+	elseif($mode=='new'){
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->select_measuring_units($name, "weight", $defaut);
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
+	}
+	else{
+		ob_start();	
+		
+		echo measuring_units_string($asset->$name, "weight");
+		
+		return ob_get_clean();
+	}
+}
 	

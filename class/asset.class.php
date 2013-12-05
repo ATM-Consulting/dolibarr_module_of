@@ -30,9 +30,9 @@ class TAsset extends TObjetStd{
 			);
 		
 		$this->TStatus = array(
-				'USED'=>'Consommé',
+				'NOTUSED'=>'Non consommé',
 				'PARTUSED'=>'Partiellement consommé',
-				'NOTUSED'=>'Non consommé'
+				'USED'=>'Consommé'
 			);
 		
 		$this->TField=array();
@@ -393,7 +393,7 @@ class TAsset_type extends TObjetStd {
 	/**
 	 * Renvoie true si ce type est utilisé par une des ressources.
 	 */
-	function isUsedByRessource(&$ATMdb){
+	function isUsedByAsset(&$ATMdb){
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('fk_asset_type'=>$this->getId()));
 		if (count($Tab)>0) return true;
 		return false;
