@@ -297,6 +297,10 @@ class modAsset extends DolibarrModules
 		$sql = array();
 
 		$result=$this->load_tables();
+		
+		require_once(DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php');
+        $extrafields=new ExtraFields($this->db);
+		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'varchar', 0, 255, 'product');		
 
 		$url ='http://'.$_SERVER['SERVER_NAME']. DOL_URL_ROOT_ALT."/asset/script/create-maj-base.php";
 		file_get_contents($url);
