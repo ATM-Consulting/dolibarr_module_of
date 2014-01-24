@@ -107,7 +107,7 @@ class ActionsAsset
 
 	function formAddObjectLine ($parameters, &$object, &$action, $hookmanager) {
 		
-		global $db;
+		global $db,$langs;
 		
 		/*echo '<pre>';
 		print_r($parameters);
