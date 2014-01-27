@@ -15,6 +15,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	
 	$ATMdb=new TPDOdb;
 	
+	$langs->load('other');
 	$langs->load('asset@asset');
 	
 	llxHeader('',$langs->trans('ListAsset'),'','');

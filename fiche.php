@@ -167,13 +167,20 @@ function _action() {
 		}
 		
 	}
-	elseif(isset($_REQUEST['id'])) {
+	elseif(isset($_REQUEST['id']) && !empty($_REQUEST['id'])) {
 		$asset=new TAsset;
 		$asset->load($PDOdb, $_REQUEST['id'], false);
 		$asset->load_asset_type($PDOdb);
 		$asset->load_liste_type_asset($PDOdb);
 		
 		_fiche($asset, 'view');
+	}
+	else{
+		?>
+		<script language="javascript">
+			document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste.php";					
+		</script>
+		<?
 	}
 
 

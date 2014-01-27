@@ -89,7 +89,7 @@
 				break;
 		}
 	}
-	elseif(isset($_REQUEST['id'])) {
+	elseif(isset($_REQUEST['id']) && !empty($_REQUEST['id'])) {
 		$asset->load($ATMdb, $_REQUEST['id']);
 		
 		_fiche($ATMdb, $asset, 'view');
