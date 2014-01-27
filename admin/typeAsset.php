@@ -210,10 +210,12 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 }
 
 function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
-	global $db;
+	global $db,$langs;
 	
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	
+	$langs->load("other");
 	
 	if($mode=='edit') {
 		ob_start();	
