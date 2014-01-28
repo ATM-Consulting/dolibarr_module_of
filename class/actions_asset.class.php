@@ -52,7 +52,7 @@ class ActionsAsset
     {
     	/*ini_set('dysplay_errors','On');
 		error_reporting(E_ALL);*/ 
-    	global $db;
+    	global $db,$langs;
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 		
