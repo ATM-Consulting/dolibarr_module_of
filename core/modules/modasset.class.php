@@ -74,7 +74,7 @@ class modAsset extends DolibarrModules
 		// Defined if the directory /mymodule/includes/triggers/ contains triggers or not
 		
 		
-		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard'),'triggers' => 1);
+		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard'),'triggers' => 1);
 		
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
@@ -287,6 +287,12 @@ class modAsset extends DolibarrModules
 	 */
 	function init($options='')
 	{
+		global $db;
+		
+		$sql = "ALTER TABLE ".MAIN_DB_PREFIX."product_fournisseur_price";
+		$sql.= " ADD (compose_fourni int)";
+		$db->query($sql);		
+		
 		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php')) {
 			copy(DOL_DOCUMENT_ROOT.'/product/fiche.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php');
 			copy(DOL_DOCUMENT_ROOT.'/product/class/product.class.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php');
@@ -300,7 +306,7 @@ class modAsset extends DolibarrModules
 		
 		require_once(DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php');
         $extrafields=new ExtraFields($this->db);
-		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'varchar', 0, 255, 'product');		
+		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'select', 0, 255, 'product');
 
 		$url ='http://'.$_SERVER['SERVER_NAME']. DOL_URL_ROOT_ALT."/asset/script/create-maj-base.php";
 		file_get_contents($url);

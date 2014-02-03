@@ -15,7 +15,7 @@ class ActionsAsset
 		/*echo '<pre>';
 		print_r($object);
 		echo '</pre>';exit;*/
-		
+
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
         	define('INC_FROM_DOLIBARR',true);
@@ -185,4 +185,30 @@ class ActionsAsset
 
 		return 0;
 	}
+	
+	function formCreateThirdpartyOptions($parameters, &$object, &$action, $hookmanager){
+
+		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+			
+			echo '<tr id="newField">';
+			echo "<td>";
+			echo "Composé fourni";
+			echo "</td>";
+			echo "<td>";
+			echo '<select name="selectOuiNon">';
+			echo '<option value="Oui">Oui</option>';
+			echo '<option value="Non">Non</option>';
+			echo "</select>";
+			echo "</td>";
+			echo "</tr>";
+			
+			?>
+				<script>
+					//$("#newField").appendTo("#remise_percent");
+				</script>
+			<?
+        }
+		
+	}
+	
 }
