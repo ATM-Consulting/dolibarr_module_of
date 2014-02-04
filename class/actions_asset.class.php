@@ -191,7 +191,7 @@ class ActionsAsset
 		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
 			
 			echo '<tr id="newField">';
-			echo "<td>";
+			echo '<td class="fieldrequired">';
 			echo "Composé fourni";
 			echo "</td>";
 			echo "<td>";
