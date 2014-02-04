@@ -7,7 +7,7 @@ class ActionsAsset
       *  @param      action             current action (if set). Generally create or edit or null 
       *  @return       void 
       */
-      
+            
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  
       	global $langs,$db;
@@ -201,12 +201,7 @@ class ActionsAsset
 			echo "</select>";
 			echo "</td>";
 			echo "</tr>";
-			
-			?>
-				<script>
-					//$("#newField").appendTo("#remise_percent");
-				</script>
-			<?
+
         }
 		
 	}

@@ -160,6 +160,24 @@ class InterfaceAssetWorkflow
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
+        elseif ($action == 'UPDATE_BUYPRICE')
+        {
+			global $db;
+			
+			if ($_REQUEST['action'] == 'updateprice') {
+	
+				/*echo "<pre>";
+				print_r($_REQUEST);
+				echo "</pre>";*/
+				$sql = "UPDATE ".MAIN_DB_PREFIX."product_fournisseur_price";
+				$sql.= " SET compose_fourni = ";
+				$_REQUEST['selectOuiNon'] == 'Oui'?$sql.=1:$sql.=0;
+				$sql.= " WHERE fk_soc = ".$_REQUEST['id_fourn'];
+				$sql.= " AND ref_fourn = '".$_REQUEST['ref_fourn']."'";
+				$resql = $db->query($sql);
+	
+			}        	
+        }
 
 		return 0;
     }
