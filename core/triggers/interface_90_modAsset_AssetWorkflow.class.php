@@ -174,6 +174,7 @@ class InterfaceAssetWorkflow
 				$_REQUEST['selectOuiNon'] == 'Oui'?$sql.=1:$sql.=0;
 				$sql.= " WHERE fk_soc = ".$_REQUEST['id_fourn'];
 				$sql.= " AND ref_fourn = '".$_REQUEST['ref_fourn']."'";
+				$sql.= " AND quantity = ".$_REQUEST['qty'];
 				$resql = $db->query($sql);
 	
 			}        	
