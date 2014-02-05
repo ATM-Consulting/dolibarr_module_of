@@ -243,6 +243,11 @@ function _fiche(&$assetOf, $mode='edit') {
 	print_r($TToMake);
 	echo '</pre>'; exit;*/
 	
+	/*$Tid = array();
+	$Tid[] = $assetOf->rowid;
+	
+	$assetOf->getListeOFEnfants($PDOdb, $Tid, 0);*/
+	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded

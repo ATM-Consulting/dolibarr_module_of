@@ -302,6 +302,52 @@ class TAssetOF extends TObjetStd{
 		
 		return $TStatus[$status];
 	}
+	
+	function getListeOFEnfants($ATMdb, $Tid, $i) {
+		
+		global $db;
+		
+		while($i<count($Tid)) {
+			$sql = "SELECT rowid";
+			$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
+			$sql.= " WHERE fk_assetOf_parent = ".$Tid[$i];
+
+			$resql = $db->query($sql);
+			
+			$i++;
+			
+			if($resql->num_rows>0) {
+				
+				while($res = $db->fetch_object($resql)) {
+
+					$Tid[] = $res->rowid;
+					
+				}
+				
+				$this->getListeOFEnfants($ATMdb, $Tid, $i);
+			}
+						
+		}
+		
+		unset($Tid[0]);
+		
+		/*echo "<pre>";
+		print_r($Tid);
+		echo "</pre>";
+		exit;*/
+
+		$TEnfants = array();
+		
+		foreach($Tid as $id) {
+			
+			$assetOf = new TAssetOF;
+			$assetOf->load($ATMdb, $id);
+			$TabEnfants[] = $assetOf;
+
+		}
+		
+		return $TabEnfants;
+	}
 }
 
 class TAssetOFLine extends TObjetStd{
