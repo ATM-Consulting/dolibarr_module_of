@@ -7,6 +7,14 @@ class ActionsAsset
       *  @param      action             current action (if set). Generally create or edit or null 
       *  @return       void 
       */
+      
+    function doActions($parameters, &$object, &$action, $hookmanager) {
+    	/*echo '<pre>';
+    	print_r($object);
+		echo '</pre>';
+		echo $object->fourn_ref;
+		$object->fourn_ref.="coucou";*/
+	}
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  

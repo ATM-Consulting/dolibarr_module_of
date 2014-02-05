@@ -115,7 +115,7 @@ class TAssetOF extends TObjetStd{
 			if(!empty($row['childs'])) {
 				
 				if($createOF) {
-					$this->createOFifneeded($ATMdb,$fk_product, $needed);
+					$this->createOFifneeded($ATMdb, $prod->fk_product, $needed);
 				}
 				else {
 					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);	
@@ -137,7 +137,7 @@ class TAssetOF extends TObjetStd{
 		}
 		else {
 			
-			$k=$this->addChild('TAssetOF');
+			$k=$this->addChild($ATMdb,'TAssetOF');
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($reste));
 			
 		}
@@ -275,7 +275,7 @@ class TAssetOF extends TObjetStd{
 		return $TRes;
 	}
 
-	function getOrdre($ordre){
+	function getOrdre($ordre='ASAP'){
 		
 		$TOrdre=array(
 			'ASAP'=>'Au plut tôt'
@@ -289,7 +289,7 @@ class TAssetOF extends TObjetStd{
 		return $TOrdre[$ordre];
 	}
 	
-	function getStatus($status){
+	function getStatus($status='DRAFT'){
 		$TStatus=array(
 			'DRAFT'=>'Brouillon'
 			,'VALID'=>'Validé'
