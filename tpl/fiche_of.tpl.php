@@ -35,7 +35,7 @@
 		<div class="border" style="margin-top: 25px;">
 			<table width="100%" class="border">
 				<tr height="40px;">
-					<td style="border-right: none;">Produits nécessaire à la fabrication</td>
+					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
 					<td style="border-left: none; text-align: right;">[onshow;block=begin;when [view.status]=='DRAFT']
 						<a href="#null" class="butAction btnaddproduct" id="NEEDED">Ajouter produit</a>
 						[onshow;block=end]
@@ -57,10 +57,10 @@
 								<td>Quantité nécessaire</td>
 								<td>Quantité</td>
 								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td>Quantité non pourvu</td>
+									<td>Quantité non pourvue</td>
 								[onshow;block=end]
 								[onshow;block=begin;when [view.status]!='DRAFT']
-									<td>Quantité utilisé</td>
+									<td>Quantité utilisée</td>
 								[onshow;block=end]
 								[onshow;block=begin;when [view.status]=='DRAFT']
 								<td style="width:20px;">Action</td>

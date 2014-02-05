@@ -71,7 +71,10 @@ class TAssetOF extends TObjetStd{
 	//Ajout d'un produit TO_MAKE à l'OF
 	function addProductComposition(&$ATMdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0){
 		
-		$Tab = $this->getProductComposition($ATMdb,$fk_product);
+		$Tab = $this->getProductComposition($ATMdb,$fk_product, $quantite_to_make);
+		echo "<pre>";
+		print_r($Tab);
+		echo "</pre>";
 		
 		foreach($Tab as $prod) {
 			
@@ -83,7 +86,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Retourne les produits NEEDED de l'OF concernant le produit $id_produit
-	function getProductComposition(&$ATMdb,$id_product){
+	function getProductComposition(&$ATMdb,$id_product, $quantite_to_make){
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		global $db;	
 		
@@ -92,7 +95,7 @@ class TAssetOF extends TObjetStd{
 		$product->fetch($id_product);
 		$TRes = $product->getChildsArbo($product->id);
 		
-		$this->getProductComposition_arrayMerge($ATMdb,$Tab, $TRes);
+		$this->getProductComposition_arrayMerge($ATMdb,$Tab, $TRes, $quantite_to_make);
 		
 		return $Tab;
 	}
@@ -115,7 +118,7 @@ class TAssetOF extends TObjetStd{
 			if(!empty($row['childs'])) {
 				
 				if($createOF) {
-					$this->createOFifneeded($ATMdb, $prod->fk_product, $needed);
+					$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
 				}
 				else {
 					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);	
@@ -138,7 +141,7 @@ class TAssetOF extends TObjetStd{
 		else {
 			
 			$k=$this->addChild($ATMdb,'TAssetOF');
-			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($reste));
+			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
 			
 		}
 		
