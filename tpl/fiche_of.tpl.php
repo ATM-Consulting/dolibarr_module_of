@@ -1,9 +1,6 @@
 [onshow;block=begin;when [view.mode]=='view']
 
 	
-		<div class="fiche"> <!-- begin div class="fiche" -->
-		
-			<div class="tabBar">
 				
 [onshow;block=end]				
 				
@@ -14,16 +11,13 @@
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no]</td></tr>
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no]</td></tr>
-				<tr><td>Statuts</td><td>[assetOf.status;strconv=no]</td></tr>
+				<tr><td>Statut</td><td>[assetOf.status;strconv=no]</td></tr>
 				<tr><td>Poste de travail</td><td>[assetOf.fk_asset_workstation;strconv=no]</td></tr>
 			</table>
 			
 [onshow;block=begin;when [view.mode]=='view']
 	
-		</div>
-
-		</div>
-		
+	
 		<div class="tabsAction">
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
 			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>

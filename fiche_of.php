@@ -145,27 +145,7 @@ function _fiche(&$assetOf, $mode='edit') {
 	llxHeader('',$langs->trans('OFAsset'),'','');
 	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('AssetOF'));
 	
-	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
-	$form->Set_typeaff($mode);
-	$doliform = new Form($db);
-	
-	//Ajout des champs hidden
-	echo $form->hidden('id', $assetOf->rowid);
-	if ($mode=='new'){
-		echo $form->hidden('action', 'save');
-	}
-	else {echo $form->hidden('action', 'save');}
-	echo $form->hidden('entity', $conf->entity);
-	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
-	
-	$TBS=new TTemplateTBS();
-	$liste=new TListviewTBS('asset');
 
-	$TBS->TBS->protect=false;
-	$TBS->TBS->noerr=true;
-	
-	$PDOdb = new TPDOdb;
-	
 	?>
 	<script type="text/javascript">
 		$(function() {
@@ -225,7 +205,33 @@ function _fiche(&$assetOf, $mode='edit') {
 			});
 		}
 	</script>
+	
+	
+	<div class="OFContent">
 	<?php
+	$TPrixFournisseurs = array();
+	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
+	$form->Set_typeaff($mode);
+	$doliform = new Form($db);
+	
+	//Ajout des champs hidden
+	echo $form->hidden('id', $assetOf->rowid);
+	if ($mode=='new'){
+		echo $form->hidden('action', 'save');
+	}
+	else {echo $form->hidden('action', 'save');}
+	echo $form->hidden('entity', $conf->entity);
+	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
+	
+	$TBS=new TTemplateTBS();
+	$liste=new TListviewTBS('asset');
+
+	$TBS->TBS->protect=false;
+	$TBS->TBS->noerr=true;
+	
+	$PDOdb = new TPDOdb;
+	
+	
 	
 	$form2 = new TFormCore();
 	if($assetOf->status != "DRAFT")
@@ -238,15 +244,6 @@ function _fiche(&$assetOf, $mode='edit') {
 	
 	$TNeeded = $assetOf->TAssetOFLineAsArray("NEEDED",$form2);
 	$TToMake = $assetOf->TAssetOFLineAsArray("TO_MAKE",$form2);
-	
-	/*echo '<pre>';
-	print_r($TToMake);
-	echo '</pre>'; exit;*/
-	
-	/*$Tid = array();
-	$Tid[] = $assetOf->rowid;
-	
-	$assetOf->getListeOFEnfants($PDOdb, $Tid, 0);*/
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -273,23 +270,73 @@ function _fiche(&$assetOf, $mode='edit') {
 		)
 	);
 	
+	$sql = "SELECT rowid, fk_soc, price, quantity, compose_fourni";
+	$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
+	$sql.= " WHERE fk_product = ".$TToMake[0]['idProd'];
+	$resql = $db->query($sql);
+	
+	if($resql) {
+		while($res = $db->fetch_object($resql)) {
+			$TPrixFournisseurs[] = $res;
+		}
+	}
+	
 	echo $form->end_form();
+	?>
+	
+	<select name="selectPrice" style="float:right">
+		<?foreach($TPrixFournisseurs as $objPrice) {
+			$fourn = new Societe($db);
+			$fourn->fetch($objPrice->fk_soc);
+		?>
+			<option value="<?=$objPrice->rowid?>"><?=floatval($objPrice->price)?> € (Fournisseur "<?=$fourn->name?>", <?=$objPrice->quantity?> pièces min, <?$objPrice->compose_fourni?print "composé fourni":print "composé non fourni"?>)</option>
+		<?}?>
+	</select>
+	
+	</div>
+	
+	<h2>Asset Child</h2>
+	<div id="assetChildContener">
+	</div>
+	<?
 	// End of page
+
+
+	$Tid = array();
+	//$Tid[] = $assetOf->rowid;
+	
+	$assetOf->getListeOFEnfants($PDOdb, $Tid, $assetOf->rowid);
+	
+?>	
+	<?
+		foreach($Tid as $id) {
+	?>
+		<script type="text/javascript">
+			$.get("fiche_of.php?id=<?=$id?>", function(data) {
+				var html = $(data).find('div.OFContent');
+				
+				$('#assetChildContener').append(html );
+			});
+		</script>
+	<?
+		}
+	?>
+
+	<div id="dialog" title="Ajout de Produit">
+		<table>
+			<tr>
+				<td>Produit : </td>
+				<td>
+					<?php
+						$html=new Form($db);
+						$html->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+					?>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<?
+	
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
-
-?>
-<div id="dialog" title="Ajout de Produit">
-	<table>
-		<tr>
-			<td>Produit : </td>
-			<td>
-				<?php
-					$html=new Form($db);
-					$html->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
-				?>
-			</td>
-		</tr>
-	</table>
-</div>

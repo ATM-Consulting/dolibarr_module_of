@@ -267,6 +267,7 @@ class TAssetOF extends TObjetStd{
 			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
+					,'idProd'=>$product->id
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
@@ -303,7 +304,7 @@ class TAssetOF extends TObjetStd{
 		return $TStatus[$status];
 	}
 	
-	function getListeOFEnfants($ATMdb, $Tid, $i) {
+	/*function getListeOFEnfants($ATMdb, $Tid, $i) {
 		
 		global $db;
 		
@@ -331,10 +332,12 @@ class TAssetOF extends TObjetStd{
 		
 		unset($Tid[0]);
 		
+		print_r($Tid);
+		exit;
 		/*echo "<pre>";
 		print_r($Tid);
 		echo "</pre>";
-		exit;*/
+		exit;
 
 		$TEnfants = array();
 		
@@ -347,6 +350,37 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		return $TabEnfants;
+	}*/
+	
+	function getListeOFEnfants($ATMdb, &$Tid, $id_parent) {
+		global $db;
+		
+		$sql = "SELECT rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
+		$sql.= " WHERE fk_assetOf_parent = ".$id_parent;
+		
+		$resql = $db->query($sql);
+		if($resql->num_rows>0) {
+		
+			while($res = $db->fetch_object($resql)) {
+			
+				$Tid[] = $res->rowid;
+				$this->getListeOFEnfants($ATMdb, $Tid, $res->rowid);
+			
+			}
+	
+		}
+		
+		/*$TabEnfants = array();
+		
+		foreach($Tid as $id) {
+			$assetOf = new TAssetOF;
+			$assetOf->load($ATMdb, $id);
+			$TabEnfants[] = $assetOf;
+		}
+		
+		return $TabEnfants;*/
+		
 	}
 }
 
