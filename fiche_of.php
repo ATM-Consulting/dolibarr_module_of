@@ -283,17 +283,20 @@ function _fiche(&$assetOf, $mode='edit') {
 	
 	echo $form->end_form();
 	?>
-	
-	<select name="selectPrice" style="float:right">
+	<div style="text-align: right">
+	<select name="selectPrice" >
 		<?foreach($TPrixFournisseurs as $objPrice) {
 			$fourn = new Societe($db);
 			$fourn->fetch($objPrice->fk_soc);
 		?>
-			<option value="<?=$objPrice->rowid?>"><?=floatval($objPrice->price)?> € (Fournisseur "<?=$fourn->name?>", <?=$objPrice->quantity?> pièces min, <?$objPrice->compose_fourni?print "composé fourni":print "composé non fourni"?>)</option>
+			<option value="<?=$objPrice->rowid?>"><?=floatval($objPrice->price)?> € (Fournisseur "<?=$fourn->name?>", <?=$objPrice->quantity?> pièce(s) min, <?$objPrice->compose_fourni?print "composé fourni":print "composé non fourni"?>)</option>
 		<?}?>
 	</select>
+	</div>
 	
 	</div>
+	
+	<div style="clear:both;"></div>
 	
 	<h2>Asset Child</h2>
 	<div id="assetChildContener">
@@ -307,20 +310,22 @@ function _fiche(&$assetOf, $mode='edit') {
 	
 	$assetOf->getListeOFEnfants($PDOdb, $Tid, $assetOf->rowid);
 	
-?>	
-	<?
-		foreach($Tid as $id) {
 	?>
 		<script type="text/javascript">
-			$.get("fiche_of.php?id=<?=$id?>", function(data) {
-				var html = $(data).find('div.OFContent');
+		
+			var Tid = new Array(<?=implode(',',$Tid) ?>);
+		
+			for(x in Tid ){
 				
-				$('#assetChildContener').append(html );
-			});
+				$.get("fiche_of.php?id="+Tid[x], function(data) {
+					var html = $(data).find('div.OFContent');
+					
+					$('#assetChildContener').append(html );
+				});
+				
+			}
+		
 		</script>
-	<?
-		}
-	?>
 
 	<div id="dialog" title="Ajout de Produit">
 		<table>
