@@ -1,0 +1,32 @@
+From d1c5ed0548dfe8c33a02cf38f512239e926708dc Mon Sep 17 00:00:00 2001
+From: Alexis Algoud <alexis@atm-consulting.fr>
+Date: Mon, 10 Feb 2014 10:27:57 +0100
+Subject: [PATCH] add trigger after add buy price
+
+---
+ htdocs/fourn/class/fournisseur.product.class.php | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/htdocs/fourn/class/fournisseur.product.class.php b/htdocs/fourn/class/fournisseur.product.class.php
+index 10bbd8b..dd364eb 100644
+--- a/htdocs/fourn/class/fournisseur.product.class.php
++++ b/htdocs/fourn/class/fournisseur.product.class.php
+@@ -201,6 +201,15 @@ class ProductFournisseur extends Product
+ 			if ($resql)
+ 			{
+ 				$this->db->commit();
++				
++				// Appel des triggers
++				include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
++				$interface=new Interfaces($this->db);
++				$result=$interface->run_triggers('UPDATE_BUYPRICE',$this,$user,$langs,$conf);
++				if ($result < 0) { $error++; $this->errors=$interface->errors; }
++				// Fin appel triggers
++				
++				
+ 				return 0;
+ 			}
+ 			else
+-- 
+1.8.1.2
+

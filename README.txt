@@ -1,3 +1,5 @@
+3.5 et inférieur
+===
 Création d'un trigger nécessaire à la modification du nouveau champs 'compose_fourni' lors de l'ajout d'un prix fournisseur.
 Bout de code à rajouter sur le fichier /htdocs/fourn/class/fournisseur.product.class.php :
 
