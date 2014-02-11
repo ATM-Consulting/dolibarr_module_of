@@ -72,9 +72,9 @@ class TAssetOF extends TObjetStd{
 	function addProductComposition(&$ATMdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0){
 		
 		$Tab = $this->getProductComposition($ATMdb,$fk_product, $quantite_to_make);
-		echo "<pre>";
+		/*echo "<pre>";
 		print_r($Tab);
-		echo "</pre>";
+		echo "</pre>";*/
 		
 		foreach($Tab as $prod) {
 			
@@ -141,6 +141,8 @@ class TAssetOF extends TObjetStd{
 		else {
 			
 			$k=$this->addChild($ATMdb,'TAssetOF');
+			$this->TAssetOF[$k]->status = "DRAFT";
+			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
 			
 		}
