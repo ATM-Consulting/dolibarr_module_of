@@ -8,9 +8,9 @@ class TAssetOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
     	$this->TChamps = array(); 	  
-		$this->add_champs('numero,entity,fk_user','type=entier;');
+		$this->add_champs('entity,fk_user','type=entier;');
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
-		$this->add_champs('ordre,status','type=chaine;');
+		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
 		
 		//clé étrangère : atelier
@@ -49,6 +49,15 @@ class TAssetOF extends TObjetStd{
 		$this->loadWorkstation($db);
 		
 		return $res;
+	}
+	
+	function save(&$db) {
+		
+		parent::save($db);
+		
+		if($this->numero=='')$this->numero='OF'.str_pad( $this->getId() , 5, '0', STR_PAD_LEFT);
+		
+		parent::save($db);
 	}
 	
 	//Associe les équipements à l'OF
@@ -247,40 +256,6 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
-	function TAssetOFLineAsArray($type,&$form){
-		global $db;
-		
-		$TRes = array();
-		
-		foreach($this->TAssetOFLine as $TAssetOFLine){
-			$product = new Product($db);
-			$product->fetch($TAssetOFLine->fk_product);
-			
-			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
-				$TRes[]= array(
-					'id'=>$TAssetOFLine->getId()
-					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'qty_needed'=>$TAssetOFLine->qty
-					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty_used, 5,5,'','','à saisir')
-					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
-				);
-			}
-			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
-				$TRes[]= array(
-					'id'=>$TAssetOFLine->getId()
-					,'idProd'=>$product->id
-					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
-					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
-				);
-			}
-		}
-		
-		return $TRes;
-	}
-
 	function getOrdre($ordre='ASAP'){
 		
 		$TOrdre=array(
@@ -394,7 +369,7 @@ class TAssetOFLine extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset','type=entier;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset,fk_product_fournisseur_price','type=entier;index;');
 		$this->add_champs('qty,qty_used','type=float;');
 		$this->add_champs('type','type=chaine;');
 		
@@ -402,6 +377,8 @@ class TAssetOFLine extends TObjetStd{
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
 		
 		$this->TType=array('NEEDED','TO_MAKE');
+		
+		$this->TFournisseurPrice=array();
 		
 	    $this->start();
 		
@@ -456,6 +433,44 @@ class TAssetOFLine extends TObjetStd{
 		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication',$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 	}
+	
+	function load(&$ATMdb, $id) {
+		
+		parent::load($ATMdb, $id);
+		
+		$this->loadFournisseurPrice($ATMdb);
+		
+	}
+	
+	function loadFournisseurPrice(&$ATMdb) {
+		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity, pfp.compose_fourni,s.nom as 'name'
+		FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
+		WHERE fk_product = ".(int)$this->fk_product;
+		
+		$ATMdb->Execute($sql);
+		
+		$interne=new stdClass;
+		$interne->rowid=-1;
+		$interne->fk_soc=-1;
+		$interne->price=0;
+		$interne->compose_fourni=0;
+		$interne->name='Interne';
+		
+		$interne2=new stdClass;
+		$interne2->rowid=-2;
+		$interne2->fk_soc=-1;
+		$interne2->price=0;
+		$interne2->compose_fourni=1;
+		$interne2->name='Interne';
+		
+		$this->TFournisseurPrice = array_merge(
+			array($interne, $interne2)
+			,$ATMdb->Get_All()
+		);
+		
+		
+	}
+	
 }
 
 class TAssetWorkstation extends TObjetStd{

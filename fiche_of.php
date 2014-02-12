@@ -61,11 +61,8 @@ function _action() {
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->set_values($_REQUEST);
 				$assetOf->save($PDOdb);
-				?>
-				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
-				</script>
-				<?
+				_fiche($assetOf, 'view');
+
 				break;
 			
 			case 'valider':
@@ -75,11 +72,8 @@ function _action() {
 				$assetOf->status = "VALID";
 				$assetOf->updateLines($PDOdb,$_REQUEST['qty']);
 				$assetOf->save($PDOdb);
-				?>
-				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
-				</script>
-				<?php
+				_fiche($assetOf, 'view');
+
 				break;
 				
 			case 'lancer':
@@ -88,11 +82,8 @@ function _action() {
 				$assetOf->status = "OPEN";
 				$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
-				?>
-				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
-				</script>
-				<?
+				_fiche($assetOf, 'view');
+
 				break;
 				
 			case 'terminer':
@@ -101,11 +92,7 @@ function _action() {
 				$assetOf->status = "CLOSE";
 				$assetOf->closeOF($PDOdb);
 				$assetOf->save($PDOdb);
-				?>
-				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";					
-				</script>
-				<?
+				_fiche($assetOf, 'view');
 				break;
 				
 			case 'delete':
@@ -134,6 +121,51 @@ function _action() {
 	
 }
 
+function TAssetOFLineAsArray(&$form, &$of, $type){
+		global $db;
+		
+		$TRes = array();
+		
+		foreach($of->TAssetOFLine as $TAssetOFLine){
+			$product = new Product($db);
+			$product->fetch($TAssetOFLine->fk_product);
+			
+			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
+				$TRes[]= array(
+					'id'=>$TAssetOFLine->getId()
+					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
+					,'qty_needed'=>$TAssetOFLine->qty
+					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty_used, 5,5,'','','à saisir')
+					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
+					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+				);
+			}
+			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
+			
+				$Tab=array();
+				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
+						
+					$Tab[ $objPrice->rowid ] = ($objPrice->price>0 ? floatval($objPrice->price).' €' : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')';
+					
+				}	
+				
+				$TRes[]= array(
+					'id'=>$TAssetOFLine->getId()
+					,'idProd'=>$product->id
+					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
+					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
+					,'fk_product_fournisseur_price'=>$form->combo('', 'fk_product_fournisseur_price', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
+					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+				);
+			}
+		}
+		
+		return $TRes;
+}
+
+
+
 function _fiche(&$assetOf, $mode='edit') {
 	global $langs,$db,$conf;
 	/***************************************************
@@ -146,69 +178,8 @@ function _fiche(&$assetOf, $mode='edit') {
 	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('AssetOF'));
 	
 
-	?>
-	<script type="text/javascript">
-		$(function() {
-			var type = "";
-			
-			$( "#dialog" ).dialog({
-				autoOpen: false,
-				show: {
-					effect: "blind",
-					duration: 1000
-				},
-				buttons: {
-					"Annuler": function() {
-						$( this ).dialog( "close" );
-					},				
-					"Ajouter": function(){
-						var idassetOf = <?php echo $assetOf->getId(); ?>;
-						var fk_product = $('#fk_product').val();
-						
-						$.ajax(
-							{url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type}
-						).done(function(){
-							document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";
-						});
-					}
-				}
-			});
-			
-			$( ".btnaddproduct" ).click(function() {
-				type = $(this).attr('id');
-				$( "#dialog" ).dialog( "open" );
-			});
-			
-			$("input[name=valider]").click(function(){
-				$('#action').val('valider');
-			})
-			$("input[name=lancer]").click(function(){
-				$('#action').val('lancer');
-			})
-		});
-		
-		function deleteLine(idLine,type){
-			$.ajax(
-				{url : "script/interface.php?get=deletelineof&idLine="+idLine+"&type="+type}
-			).done(function(){
-				$("#"+idLine).remove();
-			});
-		}
-		
-		function addAllLines(idLine,btnadd){
-			//var qty = $('#qty['+idLine+']').val();
-			var qty = $(btnadd).parent().next().next().find('input[type=text]').val();
-			$.ajax(
-				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
-			).done(function(){
-				//document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_of.php?id=<?=$assetOf->getId();?>";
-			});
-		}
-	</script>
+	?>	<div class="OFContent" rel="<?=$assetOf->getId() ?>">	<?php
 	
-	
-	<div class="OFContent">
-	<?php
 	$TPrixFournisseurs = array();
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
 	$form->Set_typeaff($mode);
@@ -242,8 +213,8 @@ function _fiche(&$assetOf, $mode='edit') {
 	$TNeeded = array();
 	$TToMake = array();
 	
-	$TNeeded = $assetOf->TAssetOFLineAsArray("NEEDED",$form2);
-	$TToMake = $assetOf->TAssetOFLineAsArray("TO_MAKE",$form2);
+	$TNeeded = TAssetOFLineAsArray($form2, $assetOf, "NEEDED");
+	$TToMake = TAssetOFLineAsArray($form2, $assetOf, "TO_MAKE");
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -252,8 +223,8 @@ function _fiche(&$assetOf, $mode='edit') {
 		)
 		,array(
 			'assetOf'=>array(
-				'id'=>$assetOf->getId()
-				,'numero'=>$form->texte('', 'numero', $assetOf->numero, 100,255,'','','à saisir')
+				'id'=> $assetOf->getId()
+				,'numero'=> ($mode=='edit') ? $form->texte('', 'numero', $assetOf->numero, 20,255,'','','à saisir') : '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->numero.'</a>'
 				,'ordre'=>$form->combo('','ordre',$assetOf->TOrdre,$assetOf->ordre)
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
@@ -270,29 +241,9 @@ function _fiche(&$assetOf, $mode='edit') {
 		)
 	);
 	
-	$sql = "SELECT rowid, fk_soc, price, quantity, compose_fourni";
-	$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
-	$sql.= " WHERE fk_product = ".$TToMake[0]['idProd'];
-	$resql = $db->query($sql);
-	
-	if($resql) {
-		while($res = $db->fetch_object($resql)) {
-			$TPrixFournisseurs[] = $res;
-		}
-	}
 	
 	echo $form->end_form();
 	?>
-	<div style="text-align: right">
-	<select name="selectPrice" >
-		<?foreach($TPrixFournisseurs as $objPrice) {
-			$fourn = new Societe($db);
-			$fourn->fetch($objPrice->fk_soc);
-		?>
-			<option value="<?=$objPrice->rowid?>"><?=floatval($objPrice->price)?> € (Fournisseur "<?=$fourn->name?>", <?=$objPrice->quantity?> pièce(s) min, <?$objPrice->compose_fourni?print "composé fourni":print "composé non fourni"?>)</option>
-		<?}?>
-	</select>
-	</div>
 	
 	</div>
 	

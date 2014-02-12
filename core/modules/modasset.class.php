@@ -49,7 +49,7 @@ class modAsset extends DolibarrModules
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->numero = 10000;
+		$this->numero = 104121;
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'asset';
 
@@ -69,12 +69,15 @@ class modAsset extends DolibarrModules
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='generic';
+		$this->picto='of@asset';
 
 		// Defined if the directory /mymodule/includes/triggers/ contains triggers or not
 		
 		
-		$this->module_parts = array('hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard'),'triggers' => 1);
+		$this->module_parts = array(
+			'hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard')
+			,'triggers' => 1
+		);
 		
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
@@ -88,10 +91,10 @@ class modAsset extends DolibarrModules
 		$this->config_page_url = array("typeAsset.php@asset");
 
 		// Dependencies
-		$this->depends = array();		// List of modules id that must be enabled if this module is enabled
+		$this->depends = array(1,25,50);		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
-		$this->phpmin = array(5,0);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(3,0);	// Minimum version of Dolibarr required by module
+		$this->phpmin = array(5,3);					// Minimum version of PHP required by module
+		$this->need_dolibarr_version = array(3,5);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("asset@asset");
 		$langs->load('asset@asset');
 		// Constants
@@ -165,21 +168,29 @@ class modAsset extends DolibarrModules
 		$r=0;
 		
 		$r++;
-		$this->rights[$r][0] = 10000;
+		$this->rights[$r][0] = 104121;
 		$this->rights[$r][1] = 'Lire les '.$langs->trans('Asset');
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'all';
 		$this->rights[$r][5] = 'lire';
 		
+		
 		$r++;
-		$this->rights[$r][0] = 10001;
+		$this->rights[$r][0] = 104124;
+		$this->rights[$r][1] = 'Créer les '.$langs->trans('Asset');
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'all';
+		$this->rights[$r][5] = 'write';
+		
+		$r++;
+		$this->rights[$r][0] = 104122;
 		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
 		
 		$r++;
-		$this->rights[$r][0] = 10002;
+		$this->rights[$r][0] = 104123;
 		$this->rights[$r][1] = 'Créer des Ordres de fabrication';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
@@ -202,11 +213,11 @@ class modAsset extends DolibarrModules
 					'type'=>'top',			// This is a Top menu entry
 					'titre'=>$langs->trans('Asset'),
 					'mainmenu'=>'asset',
-					'leftmenu'=>'1',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/liste.php',
-					'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>100,
-					'enabled'=>'$conf->asset->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'enabled'=>'$user->rights->asset->all->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->all->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
@@ -215,18 +226,19 @@ class modAsset extends DolibarrModules
 					'type'=>'top',			// This is a Top menu entry
 					'titre'=>'Ordre de Fabrication',
 					'mainmenu'=>'assetOF',
-					'leftmenu'=>'1',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/liste_of.php',
-					'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>100,
-					'enabled'=>'$conf->asset->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		/*$this->menu[$r]=array(	'fk_menu'=>'r=0',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+	
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'Flacons',
+			'titre'=>'Equipement',
 			'mainmenu'=>'asset',
 			'url'=>'/asset/liste.php',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
@@ -236,31 +248,21 @@ class modAsset extends DolibarrModules
 			'target'=>'',
 			'user'=>2);		
 		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>'r=1',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A completer',
 			'mainmenu'=>'asset',
+			'leftmenu'=>'asset',
 			'url'=>'/asset/liste.php?no_serial=1',
-			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'position'=>100,
-			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-			'perms'=>'1',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-			'target'=>'',
-			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
-		
-		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>'r=1',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
-			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'A relancer',
-			'mainmenu'=>'asset',
-			'url'=>'/asset/liste.php?relance=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>101,
 			'enabled'=>'1',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 			'perms'=>'1',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
-		*/
+		
+		$r++;
+		
 				
 		// Exports
 		$r=1;
@@ -293,22 +295,15 @@ class modAsset extends DolibarrModules
 		$sql.= " ADD (compose_fourni int)";
 		$db->query($sql);		
 		
-		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php')) {
-			copy(DOL_DOCUMENT_ROOT.'/product/fiche.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php');
-			copy(DOL_DOCUMENT_ROOT.'/product/class/product.class.php',DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php');
-		}
-		copy(DOL_DOCUMENT_ROOT_ALT.'/asset/deploy/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
-		copy(DOL_DOCUMENT_ROOT_ALT.'/asset/deploy/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.phpp');
-
 		$sql = array();
 
 		$result=$this->load_tables();
 		
-		require_once(DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php');
+		dol_include_once('/core/class/extrafields.class.php');
         $extrafields=new ExtraFields($this->db);
 		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'select', 0, 255, 'product');
 
-		$url ='http://'.$_SERVER['SERVER_NAME']. DOL_URL_ROOT_ALT."/asset/script/create-maj-base.php";
+		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
 		file_get_contents($url);
 
 		return $this->_init($sql, $options);
@@ -323,12 +318,7 @@ class modAsset extends DolibarrModules
 	function remove()
 	{
 			
-		if(!is_file(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php')) {
-			copy(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/fiche.php', DOL_DOCUMENT_ROOT.'/product/fiche.php');
-			copy(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php', DOL_DOCUMENT_ROOT.'/product/class/product.class.php');
-		}
-		unlink(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/clients.php');	
-		unlink(DOL_DOCUMENT_ROOT_ALT.'/asset/backup/product.class.php');	
+		
 			
 		$sql = array();
 
