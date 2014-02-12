@@ -1,3 +1,13 @@
+<style type="text/css">
+	.draft, .draftedit,.nodraft {
+		
+		display:none;
+		
+	}
+	
+</style>
+
+
 [onshow;block=begin;when [view.mode]=='view']
 
 	
@@ -17,21 +27,20 @@
 			
 
 
-[onshow;block=begin;when [view.mode]=='view']
-		<div class="border" style="margin-top: 25px;">
+		<div class="" style="margin-top: 25px;">
 			<table width="100%" class="border">
 				<tr height="40px;">
 					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
 					<td style="border-left: none; text-align: right;">
-						[onshow;block=begin;when [view.status]=='DRAFT']
-						<a href="#null" class="butAction btnaddproduct" id="NEEDED">Ajouter produit</a>
-						[onshow;block=end]
+						
+						<a href="#null" class="butAction btnaddproduct draftedit" id="NEEDED">Ajouter produit</a>
+						
 					</td>
 					<td style="border-right: none; ">Produits à créer</td>
 					<td style="border-left: none; text-align: right;">
-						[onshow;block=begin;when [view.status]=='DRAFT']
-						<a href="#null" class="butAction btnaddproduct" id="TO_MAKE">Ajouter produit</a>
-						[onshow;block=end]
+						
+						<a href="#null" class="butAction btnaddproduct draftedit" id="TO_MAKE">Ajouter produit</a>
+						
 					</td>
 				</tr>
 				<tr style="background-color:#fff;">
@@ -44,15 +53,10 @@
 								<td>Produit</td>
 								<td>Quantité nécessaire</td>
 								<td>Quantité</td>
-								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td>Quantité non pourvue</td>
-								[onshow;block=end]
-								[onshow;block=begin;when [view.status]!='DRAFT']
-									<td>Quantité utilisée</td>
-								[onshow;block=end]
-								[onshow;block=begin;when [view.status]=='DRAFT']
-								<td style="width:20px;">Action</td>
-								[onshow;block=end]
+								<td class="draft">Quantité restante</td>
+								<td class="nodraft">Quantité utilisée</td>
+								<td class="draftedit" style="width:20px;">Action</td>
+								
 							</tr>
 							<tr id="[TNeeded.id]">
 								<!--<td>Lot</td>
@@ -60,15 +64,13 @@
 								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
 								<td>[TNeeded.qty;strconv=no]</td>
-								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td>[TNeeded.qty_toadd]</td>
-								[onshow;block=end]
-								[onshow;block=begin;when [view.status]!='DRAFT']
-									<td>[TNeeded.qty]</td>
-								[onshow;block=end]
-								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td>[TNeeded.delete;strconv=no]</td>
-								[onshow;block=end]
+								
+									<td class="draft">[TNeeded.qty_toadd]</td>
+								
+								
+									<td class="nodraft">[TNeeded.qty]</td>
+									<td class="draftedit">[TNeeded.delete;strconv=no]</td>
+								
 							</tr>
 						</table>
 					</td>
@@ -76,33 +78,30 @@
 						<!-- TO_MAKE -->
 						<table width="100%" class="border tomake">
 							<tr style="background-color:#dedede;">
-								[onshow;block=begin;when [view.status]=='DRAFT']
-								<td style="width:20px;">Action</td>
-								[onshow;block=end]
+								<td class="draftedit" style="width:20px;">Action</td>
 								<td>Produit</td>
 								<td>Quantité à produire</td>
 								<td>Fournisseur</td>
-								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td style="width:20px;">Action</td>
-								[onshow;block=end]
+									<td class="draftedit" style="width:20px;">Action</td>
+								
 							</tr>
 							<tr id="[TTomake.id]">
-								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td>[TTomake.addneeded;strconv=no]</td>
-								[onshow;block=end]
+								
+									<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
+								
 								<td>[TTomake.libelle;block=tr;strconv=no]</td>
 								<td>[TTomake.qty;strconv=no]</td>
 								<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
-								[onshow;block=begin;when [view.status]=='DRAFT']
-									<td>[TTomake.delete;strconv=no]</td>
-								[onshow;block=end]
+								
+									<td class="draftedit">[TTomake.delete;strconv=no]</td>
+								
 							</tr>
 						</table>
 					</td>
 				</tr>
 			</table>
 		</div>
-[onshow;block=end]
+
 
 [onshow;block=begin;when [view.mode]=='view']
 	<div class="tabsAction">
@@ -132,8 +131,44 @@
 		</p>
 [onshow;block=end]	
 
+	<div id="dialog" title="Ajout de Produit">
+		<table>
+			<tr>
+				<td>Produit : </td>
+				<td>
+					[view.select_product;strconv=no]
+				</td>
+			</tr>
+		</table>
+		</div>
+</div>
+	
+	<div style="clear:both;"></div>
+	<div id="assetChildContener">
+		
+		<h2>Asset Child</h2>
+	
+	</div>
+	
+	<script type="text/javascript">
+		
+			var Tid = new Array([assetOf.idChild]);
+		
+			for(x in Tid ){
+				
+				$.get("fiche_of.php?id="+Tid[x], function(data) {
+					var html = $(data).find('div.OFContent');
+					
+					$('#assetChildContener').append(html );
+				});
+				
+			}
+			
+			if(Tid.length==0) {
+				$('#assetChildContener').hide();
+			}
+		
 
-<script type="text/javascript">
 		$(document).ready(function() {
 			var type = "";
 			
@@ -175,14 +210,42 @@
 			$("input[name=lancer]").click(function(){
 				$('#action').val('lancer');
 			})
+			
+			
+			refreshDisplay();
+			
 		});
+		
+		function refreshDisplay() {
+			
+			[onshow;block=begin;when [view.status]=='DRAFT']
+			
+				$('td.draft').css('display','table-cell');
+				
+						
+				if('[view.mode]'!='view'){
+					$('a.draftedit').css('display','inline');
+					$('td.draftedit').css('display','table-cell');
+				} 
+			
+			[onshow;block=end]
+			
+			[onshow;block=begin;when [view.status]!='DRAFT']
+			
+				$('td.nodraft').css('display','table-cell');
+			
+			[onshow;block=end]
+			
+		}
 		
 		function refreshTab() {
 			var id = [assetOf.id];
 			
-			$.get("fiche_of.php?id="+id , function(data) {
+			$.get("fiche_of.php?action=edit&id="+id , function(data) {
 		     	$('div.OFContent[rel='+id+'] table.needed').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.needed') );
 		     	$('div.OFContent[rel='+id+'] table.tomake').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.tomake') );
+		     	
+		     	refreshDisplay();
 			});
 			
 		}

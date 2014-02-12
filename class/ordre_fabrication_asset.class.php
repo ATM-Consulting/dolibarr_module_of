@@ -472,6 +472,21 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 }
+/*
+ * Link to product
+ */
+class TAssetWorkstationProduct extends TObjetStd{
+	
+	function __construct() {
+		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
+    	$this->TChamps = array(); 	  
+		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
+		$this->add_champs('nb','type=float;'); // nombre d'heure associé au poste de charge et au produit
+		
+	    $this->start();
+	}
+	
+}
 
 class TAssetWorkstation extends TObjetStd{
 /*

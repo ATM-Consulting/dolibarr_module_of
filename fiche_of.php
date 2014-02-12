@@ -60,6 +60,13 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->set_values($_REQUEST);
+				
+				if(!empty($_REQUEST['TAssetOFLine'])) {
+					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+						$assetOf->TAssetOFLine[$k]->set_values($row);
+					}
+				}
+				
 				$assetOf->save($PDOdb);
 				_fiche($assetOf, 'view');
 
@@ -70,7 +77,15 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "VALID";
-				$assetOf->updateLines($PDOdb,$_REQUEST['qty']);
+				
+				
+				if(!empty($_REQUEST['TAssetOFLine'])) {
+					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+						$assetOf->TAssetOFLine[$k]->set_values($row);
+					}
+				}
+				
+				
 				$assetOf->save($PDOdb);
 				_fiche($assetOf, 'view');
 
@@ -126,7 +141,7 @@ function TAssetOFLineAsArray(&$form, &$of, $type){
 		
 		$TRes = array();
 		
-		foreach($of->TAssetOFLine as $TAssetOFLine){
+		foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
 			$product = new Product($db);
 			$product->fetch($TAssetOFLine->fk_product);
 			
@@ -135,7 +150,7 @@ function TAssetOFLineAsArray(&$form, &$of, $type){
 					'id'=>$TAssetOFLine->getId()
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'qty_needed'=>$TAssetOFLine->qty
-					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty_used, 5,5,'','','à saisir')
+					,'qty'=>$form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5)
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
@@ -154,8 +169,8 @@ function TAssetOFLineAsArray(&$form, &$of, $type){
 					,'idProd'=>$product->id
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
-					,'qty'=>$form->texte('', 'qty['.$TAssetOFLine->getId().']', $TAssetOFLine->qty, 5,5,'','','à saisir')
-					,'fk_product_fournisseur_price'=>$form->combo('', 'fk_product_fournisseur_price', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
+					,'qty'=>$form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','')
+					,'fk_product_fournisseur_price'=>$form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
@@ -208,13 +223,23 @@ function _fiche(&$assetOf, $mode='edit') {
 	if($assetOf->status != "DRAFT")
 		$form2->Set_typeaff('view');
 	else
-		$form2->Set_typeaff('edit');
+		$form2->Set_typeaff($mode);
 	
 	$TNeeded = array();
 	$TToMake = array();
 	
 	$TNeeded = TAssetOFLineAsArray($form2, $assetOf, "NEEDED");
 	$TToMake = TAssetOFLineAsArray($form2, $assetOf, "TO_MAKE");
+	
+	ob_start();
+	$html=new Form($db);
+	$html->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+	$select_product = ob_get_clean();
+	
+	$Tid = array();
+	//$Tid[] = $assetOf->rowid;
+	$assetOf->getListeOFEnfants($PDOdb, $Tid, $assetOf->rowid);
+	
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -233,65 +258,24 @@ function _fiche(&$assetOf, $mode='edit') {
 				,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',TAssetWorkstation::getWorstations($PDOdb),$assetOf->fk_asset_workstation)
 				//,'fk_user'=>$doliform->select_users('','fk_user')
 				,'status'=>$form->combo('','status',$assetOf->TStatus,$assetOf->status)
+				,'idChild' =>implode(',',$Tid)
 			)
 			,'view'=>array(
 				'mode'=>$mode
 				,'status'=>$assetOf->status
+				,'select_product'=>$select_product
+				
 			)
 		)
 	);
 	
 	
+	
+	
 	echo $form->end_form();
-	?>
 	
-	</div>
 	
-	<div style="clear:both;"></div>
 	
-	<h2>Asset Child</h2>
-	<div id="assetChildContener">
-	</div>
-	<?
-	// End of page
-
-
-	$Tid = array();
-	//$Tid[] = $assetOf->rowid;
-	
-	$assetOf->getListeOFEnfants($PDOdb, $Tid, $assetOf->rowid);
-	
-	?>
-		<script type="text/javascript">
-		
-			var Tid = new Array(<?=implode(',',$Tid) ?>);
-		
-			for(x in Tid ){
-				
-				$.get("fiche_of.php?id="+Tid[x], function(data) {
-					var html = $(data).find('div.OFContent');
-					
-					$('#assetChildContener').append(html );
-				});
-				
-			}
-		
-		</script>
-
-	<div id="dialog" title="Ajout de Produit">
-		<table>
-			<tr>
-				<td>Produit : </td>
-				<td>
-					<?php
-						$html=new Form($db);
-						$html->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
-					?>
-				</td>
-			</tr>
-		</table>
-	</div>
-	<?
 	
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
