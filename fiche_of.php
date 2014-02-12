@@ -255,7 +255,8 @@ function _fiche(&$assetOf, $mode='edit') {
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$form->texte('','temps_estime_fabrication',$assetOf->temps_estime_fabrication, 12,10,'','','0')
 				,'temps_reel_fabrication'=>$form->texte('','temps_reel_fabrication', $assetOf->temps_reel_fabrication, 12,10,'','','0')
-				,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',TAssetWorkstation::getWorstations($PDOdb),$assetOf->fk_asset_workstation)
+				//,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',TAssetWorkstation::getWorstations($PDOdb),$assetOf->fk_asset_workstation)
+				
 				//,'fk_user'=>$doliform->select_users('','fk_user')
 				,'status'=>$form->combo('','status',$assetOf->TStatus,$assetOf->status)
 				,'idChild' =>implode(',',$Tid)

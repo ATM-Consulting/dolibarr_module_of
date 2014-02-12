@@ -14,7 +14,7 @@ class TAssetOF extends TObjetStd{
 		$this->add_champs('date_besoin,date_lancement','type=date;');
 		
 		//clé étrangère : atelier
-		parent::add_champs('fk_asset_workstation','type=entier;index;');
+		//parent::add_champs('fk_asset_workstation','type=entier;index;'); // déporté dans une table à part
 		
 		parent::add_champs('fk_assetOf_parent','type=entier;index;');
 		
@@ -38,6 +38,7 @@ class TAssetOF extends TObjetStd{
 		$this->workstation=null;
 		
 		$this->setChild('TAssetOFLine','fk_assetOf');
+		$this->setChild('TAssetWorkstationOF','TAssetWorkstationOF');
 		$this->setChild('TAssetOF','fk_assetOf_parent');
 		
 	}
@@ -481,12 +482,30 @@ class TAssetWorkstationProduct extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
-		$this->add_champs('nb','type=float;'); // nombre d'heure associé au poste de charge et au produit
+		$this->add_champs('nb_hour','type=float;'); // nombre d'heure associé au poste de charge et au produit
 		
 	    $this->start();
 	}
 	
 }
+
+/*
+ * Link to OF
+ */
+class TAssetWorkstationOF extends TObjetStd{
+	
+	function __construct() {
+		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
+    	$this->TChamps = array(); 	  
+		$this->add_champs('fk_assetOF, fk_asset_workstation','type=entier;index;');
+		$this->add_champs('nb_hour,nb_hour_real','type=float;'); // nombre d'heure associé au poste de charge sur un OF
+		
+	    $this->start();
+	}
+	
+}
+
+
 
 class TAssetWorkstation extends TObjetStd{
 /*

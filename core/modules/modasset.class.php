@@ -69,7 +69,7 @@ class modAsset extends DolibarrModules
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='of@asset';
+		$this->picto='pictoof@asset';
 
 		// Defined if the directory /mymodule/includes/triggers/ contains triggers or not
 		
@@ -240,6 +240,7 @@ class modAsset extends DolibarrModules
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'Equipement',
 			'mainmenu'=>'asset',
+			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste.php',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>100,
@@ -248,11 +249,11 @@ class modAsset extends DolibarrModules
 			'target'=>'',
 			'user'=>2);		
 		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A completer',
-			'mainmenu'=>'asset',
-			'leftmenu'=>'asset',
+			'mainmenu'=>'assetToComplete',
+			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste.php?no_serial=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>101,
@@ -263,6 +264,34 @@ class modAsset extends DolibarrModules
 		
 		$r++;
 		
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>'Ordre de Fabrication',
+					'mainmenu'=>'assetOF',
+					'leftmenu'=>'assetOFlist',
+					'url'=>'/asset/liste_of.php',
+					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+					'position'=>100,
+					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+	
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>'Poste de travail',
+					'mainmenu'=>'workstation',
+					'leftmenu'=>'assetOFlist',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/asset/workstation.php',
+					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+					'position'=>101,
+					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);
+		$r++;
 				
 		// Exports
 		$r=1;

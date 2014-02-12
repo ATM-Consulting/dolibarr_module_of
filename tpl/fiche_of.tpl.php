@@ -21,8 +21,17 @@
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication (h)</td><td>[assetOf.temps_estime_fabrication;strconv=no]</td></tr>
 				<tr><td>Temps réel de fabrication (h)</td><td>[assetOf.temps_reel_fabrication;strconv=no]</td></tr>
-				<tr><td>Statut</td><td>[assetOf.status;strconv=no]</td></tr>
-				<tr><td>Poste de travail</td><td>[assetOf.fk_asset_workstation;strconv=no]</td></tr>
+				<tr><td>Statut</td><td>[assetOf.status;strconv=no], passer à l'état : 
+					[onshow;block=begin;when [view.status]=='DRAFT']
+						<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
+					[onshow;block=end]
+					[onshow;block=begin;when [view.status]=='VALID']
+						&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer">
+					[onshow;block=end]
+					[onshow;block=begin;when [view.status]=='OPEN']
+						&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
+					[onshow;block=end]
+				</td></tr>
 			</table>
 			
 
@@ -73,7 +82,7 @@
 								
 							</tr>
 						</table>
-					</td>
+					</td> suivante
 					<td colspan="2" width="40%" valign="top">
 						<!-- TO_MAKE -->
 						<table width="100%" class="border tomake">
@@ -109,15 +118,7 @@
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
 		&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
 
-		[onshow;block=begin;when [view.status]=='DRAFT']
-			<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
-		[onshow;block=end]
-		[onshow;block=begin;when [view.status]=='VALID']
-			&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer">
-		[onshow;block=end]
-		[onshow;block=begin;when [view.status]=='OPEN']
-			&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
-		[onshow;block=end]
+		
 	</div>
 [onshow;block=end]
 	
