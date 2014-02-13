@@ -4,6 +4,23 @@ class TAssetOF extends TObjetStd{
 /*
  * Ordre de fabrication d'équipement
  * */
+ 	static $TOrdre=array(
+			'ASAP'=>'Au plut tôt'
+			,'TODAY'=>'Dans la journée'
+			,'TOMORROW'=> 'Demain'
+			,'WEEK'=>'Dans la semaine'
+			,'MONTH'=>'Dans le mois'
+			
+		);
+ 
+	static $TStatus=array(
+			'DRAFT'=>'Brouillon'
+			,'VALID'=>'Valide pour production'
+			,'OPEN'=>'Lancé la production'
+			,'CLOSE'=>'Terminé'
+		);
+		
+	
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
@@ -19,21 +36,6 @@ class TAssetOF extends TObjetStd{
 		parent::add_champs('fk_assetOf_parent','type=entier;index;');
 		
 	    $this->start();
-		
-		$this->TOrdre=array(
-			'ASAP'=>'Au plut tôt'
-			,'TODAY'=>'Dans la journée'
-			,'TOMORROW'=> 'Demain'
-			,'WEEK'=>'Dans la semaine'
-			,'MONTH'=>'Dans le mois'
-			
-		);
-		$this->TStatus=array(
-			'DRAFT'=>'Brouillon'
-			,'VALID'=>'Validé'
-			,'OPEN'=>'Lancé'
-			,'CLOSE'=>'Terminé'
-		);
 		
 		$this->workstation=null;
 		
@@ -213,6 +215,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->fk_product = $fk_product;
 		$TAssetOFLine->fk_asset = 0;
 		$TAssetOFLine->type = $type;
+		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
 		
@@ -257,80 +260,14 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
-	function getOrdre($ordre='ASAP'){
+	static function ordre($ordre='ASAP'){
 		
-		$TOrdre=array(
-			'ASAP'=>'Au plut tôt'
-			,'TODAY'=>'Dans la journée'
-			,'TOMORROW'=> 'Demain'
-			,'WEEK'=>'Dans la semaine'
-			,'MONTH'=>'Dans le mois'
-			
-		);
 		
-		return $TOrdre[$ordre];
+		return TAssetOF::$TOrdre[$ordre];
 	}
 	
-	function getStatus($status='DRAFT'){
-		$TStatus=array(
-			'DRAFT'=>'Brouillon'
-			,'VALID'=>'Validé'
-			,'OPEN'=>'Lancé'
-			,'CLOSE'=>'Terminé'
-		);
-		
-		return $TStatus[$status];
-	}
 	
-	/*function getListeOFEnfants($ATMdb, $Tid, $i) {
-		
-		global $db;
-		
-		while($i<count($Tid)) {
-			$sql = "SELECT rowid";
-			$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
-			$sql.= " WHERE fk_assetOf_parent = ".$Tid[$i];
-
-			$resql = $db->query($sql);
-			
-			$i++;
-			
-			if($resql->num_rows>0) {
-				
-				while($res = $db->fetch_object($resql)) {
-
-					$Tid[] = $res->rowid;
-					
-				}
-				
-				$this->getListeOFEnfants($ATMdb, $Tid, $i);
-			}
-						
-		}
-		
-		unset($Tid[0]);
-		
-		print_r($Tid);
-		exit;
-		/*echo "<pre>";
-		print_r($Tid);
-		echo "</pre>";
-		exit;
-
-		$TEnfants = array();
-		
-		foreach($Tid as $id) {
-			
-			$assetOf = new TAssetOF;
-			$assetOf->load($ATMdb, $id);
-			$TabEnfants[] = $assetOf;
-
-		}
-		
-		return $TabEnfants;
-	}*/
-	
-	function getListeOFEnfants($ATMdb, &$Tid, $id_parent) {
+	function getListeOFEnfants(&$ATMdb, &$Tid, $id_parent) {
 		global $db;
 		
 		$sql = "SELECT rowid";
@@ -349,17 +286,15 @@ class TAssetOF extends TObjetStd{
 	
 		}
 		
-		/*$TabEnfants = array();
-		
-		foreach($Tid as $id) {
-			$assetOf = new TAssetOF;
-			$assetOf->load($ATMdb, $id);
-			$TabEnfants[] = $assetOf;
-		}
-		
-		return $TabEnfants;*/
 		
 	}
+
+	static function status($status='DRAFT'){
+		
+			
+		return  TAssetOF::$TStatus[$status];
+	}
+
 }
 
 class TAssetOFLine extends TObjetStd{
@@ -371,7 +306,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset,fk_product_fournisseur_price','type=entier;index;');
-		$this->add_champs('qty,qty_used','type=float;');
+		$this->add_champs('qty_needed,qty,qty_used','type=float;');
 		$this->add_champs('type','type=chaine;');
 		
 		//clé étrangère

@@ -1,5 +1,5 @@
 <style type="text/css">
-	.draft, .draftedit,.nodraft {
+	.draft, .draftedit,.nodraft,.viewmode {
 		
 		display:none;
 		
@@ -21,19 +21,35 @@
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication (h)</td><td>[assetOf.temps_estime_fabrication;strconv=no]</td></tr>
 				<tr><td>Temps réel de fabrication (h)</td><td>[assetOf.temps_reel_fabrication;strconv=no]</td></tr>
-				<tr><td>Statut</td><td>[assetOf.status;strconv=no], passer à l'état : 
+				<tr><td>Statut</td><td>[assetOf.status;strconv=no]
+					[onshow;block=begin;when [view.status]!='CLOSE']
+					<span class="viewmode">, passer à l'état : 
 					[onshow;block=begin;when [view.status]=='DRAFT']
 						<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='VALID']
-						&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer">
+						&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer la production">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='OPEN']
 						&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
 					[onshow;block=end]
+					[onshow;block=end]
+					</span>
 				</td></tr>
 			</table>
 			
+		<div class="" style="margin-top: 25px;">
+			<table width="100%" class="border">
+				<tr>
+					<th>Poste de travail</th>
+					<th>Nb. heures</th>
+				</tr>
+				<tr>
+					<td>[workstation.libelle;block=tr]</td>
+					<td>[workstation.nb_hour;strconv=no]</td>
+				</tr>
+			</table>
+		</div>
 
 
 		<div class="" style="margin-top: 25px;">
@@ -61,9 +77,9 @@
 								<td>Equipement</td>-->
 								<td>Produit</td>
 								<td>Quantité nécessaire</td>
-								<td>Quantité</td>
-								<td class="draft">Quantité restante</td>
+								<td>Quantité réelle</td>
 								<td class="nodraft">Quantité utilisée</td>
+								<td class="draft">Delta</td>
 								<td class="draftedit" style="width:20px;">Action</td>
 								
 							</tr>
@@ -73,16 +89,14 @@
 								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
 								<td>[TNeeded.qty;strconv=no]</td>
+								<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
 								
-									<td class="draft">[TNeeded.qty_toadd]</td>
-								
-								
-									<td class="nodraft">[TNeeded.qty]</td>
-									<td class="draftedit">[TNeeded.delete;strconv=no]</td>
+								<td class="draft">[TNeeded.qty_toadd]</td>
+								<td class="draftedit">[TNeeded.delete;strconv=no]</td>
 								
 							</tr>
 						</table>
-					</td> suivante
+					</td> 
 					<td colspan="2" width="40%" valign="top">
 						<!-- TO_MAKE -->
 						<table width="100%" class="border tomake">
@@ -91,18 +105,18 @@
 								<td>Produit</td>
 								<td>Quantité à produire</td>
 								<td>Fournisseur</td>
-									<td class="draftedit" style="width:20px;">Action</td>
+								<td class="draftedit" style="width:20px;">Action</td>
 								
 							</tr>
 							<tr id="[TTomake.id]">
 								
-									<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
+								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
 								
 								<td>[TTomake.libelle;block=tr;strconv=no]</td>
 								<td>[TTomake.qty;strconv=no]</td>
 								<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 								
-									<td class="draftedit">[TTomake.delete;strconv=no]</td>
+								<td class="draftedit">[TTomake.delete;strconv=no]</td>
 								
 							</tr>
 						</table>
@@ -218,6 +232,10 @@
 		});
 		
 		function refreshDisplay() {
+			
+			if('[view.mode]'=='view'){ 
+				$('span.viewmode').css('display','inline');
+			}
 			
 			[onshow;block=begin;when [view.status]=='DRAFT']
 			

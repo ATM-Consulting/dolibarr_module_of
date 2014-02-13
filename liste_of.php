@@ -102,8 +102,8 @@ function _liste($id_entity) {
 			,'login'=>'Utilisateur en charge'
 		)
 		,'eval'=>array(
-			'ordre'=>'TAssetOF::getOrdre(@val@)'
-			,'status'=>'TAssetOF::getStatus(@val@)'
+			'ordre'=>'TAssetOF::ordre(@val@)'
+			,'status'=>'TAssetOF::status(@val@)'
 		)
 	));
 		
@@ -116,4 +116,3 @@ function _liste($id_entity) {
 	llxFooter('');
 	
 }
-?>

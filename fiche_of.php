@@ -136,11 +136,10 @@ function _action() {
 	
 }
 
-function TAssetOFLineAsArray(&$form, &$of, $type){
-		global $db;
+function _fiche_ligne(&$form, &$of, $type){
+		global $db, $conf;
 		
 		$TRes = array();
-		
 		foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
 			$product = new Product($db);
 			$product->fetch($TAssetOFLine->fk_product);
@@ -149,8 +148,9 @@ function TAssetOFLineAsArray(&$form, &$of, $type){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'qty_needed'=>$TAssetOFLine->qty
-					,'qty'=>$form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5)
+					,'qty_needed'=>$TAssetOFLine->qty_needed
+					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
+					,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
@@ -160,7 +160,7 @@ function TAssetOFLineAsArray(&$form, &$of, $type){
 				$Tab=array();
 				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 						
-					$Tab[ $objPrice->rowid ] = ($objPrice->price>0 ? floatval($objPrice->price).' €' : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')';
+					$Tab[ $objPrice->rowid ] = ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')';
 					
 				}	
 				
@@ -169,8 +169,8 @@ function TAssetOFLineAsArray(&$form, &$of, $type){
 					,'idProd'=>$product->id
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
-					,'qty'=>$form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','')
-					,'fk_product_fournisseur_price'=>$form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
+					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
+					,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price ) : $Tab[$TAssetOFLine->fk_product_fournisseur_price]
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
@@ -217,19 +217,11 @@ function _fiche(&$assetOf, $mode='edit') {
 	
 	$PDOdb = new TPDOdb;
 	
-	
-	
-	$form2 = new TFormCore();
-	if($assetOf->status != "DRAFT")
-		$form2->Set_typeaff('view');
-	else
-		$form2->Set_typeaff($mode);
-	
 	$TNeeded = array();
 	$TToMake = array();
 	
-	$TNeeded = TAssetOFLineAsArray($form2, $assetOf, "NEEDED");
-	$TToMake = TAssetOFLineAsArray($form2, $assetOf, "TO_MAKE");
+	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
+	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
 	ob_start();
 	$html=new Form($db);
@@ -250,7 +242,7 @@ function _fiche(&$assetOf, $mode='edit') {
 			'assetOf'=>array(
 				'id'=> $assetOf->getId()
 				,'numero'=> ($mode=='edit') ? $form->texte('', 'numero', $assetOf->numero, 20,255,'','','à saisir') : '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->numero.'</a>'
-				,'ordre'=>$form->combo('','ordre',$assetOf->TOrdre,$assetOf->ordre)
+				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$form->texte('','temps_estime_fabrication',$assetOf->temps_estime_fabrication, 12,10,'','','0')
@@ -258,7 +250,7 @@ function _fiche(&$assetOf, $mode='edit') {
 				//,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',TAssetWorkstation::getWorstations($PDOdb),$assetOf->fk_asset_workstation)
 				
 				//,'fk_user'=>$doliform->select_users('','fk_user')
-				,'status'=>$form->combo('','status',$assetOf->TStatus,$assetOf->status)
+				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'idChild' =>implode(',',$Tid)
 			)
 			,'view'=>array(
