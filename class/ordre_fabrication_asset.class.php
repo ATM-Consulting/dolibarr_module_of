@@ -430,7 +430,7 @@ class TAssetWorkstationProduct extends TObjetStd{
 class TAssetWorkstationOF extends TObjetStd{
 	
 	function __construct() {
-		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
+		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_assetOF, fk_asset_workstation','type=entier;index;');
 		$this->add_champs('nb_hour,nb_hour_real','type=float;'); // nombre d'heure associé au poste de charge sur un OF
@@ -450,8 +450,9 @@ class TAssetWorkstation extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity','type=entier;');
+		$this->add_champs('entity,fk_usergroup','type=entier;index;');
 		$this->add_champs('libelle','type=chaine;');
+		$this->add_champs('nb_hour_max','type=float;'); // charge maximale du poste de travail
 		
 	    $this->start();
 	}
