@@ -45,7 +45,7 @@ function _action() {
 			case 'add':
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
-				_fiche($assetOf,'new');
+				_fiche($PDOdb, $assetOf,'new');
 
 				break;
 
@@ -53,22 +53,36 @@ function _action() {
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $_REQUEST['id']);
 
-				_fiche($assetOf,'edit');
+				_fiche($PDOdb,$assetOf,'edit');
 				break;
 
 			case 'save':
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				
 				$assetOf->set_values($_REQUEST);
 				
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
+			
+					foreach($assetOf->TAssetOFLine as &$line) {
+						$line->TAssetOFLine=array();
+					}
 				}
 				
+				
+				if(!empty($_REQUEST['TAssetWorkstationOF'])) {
+					foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
+						$assetOf->TAssetWorkstationOF[$k]->set_values($row);
+					}
+				}
+				
+				
 				$assetOf->save($PDOdb);
-				_fiche($assetOf, 'view');
+				
+				_fiche($PDOdb,$assetOf, 'view');
 
 				break;
 			
@@ -87,7 +101,7 @@ function _action() {
 				
 				
 				$assetOf->save($PDOdb);
-				_fiche($assetOf, 'view');
+				_fiche($PDOdb,$assetOf, 'view');
 
 				break;
 				
@@ -107,7 +121,7 @@ function _action() {
 				$assetOf->status = "CLOSE";
 				$assetOf->closeOF($PDOdb);
 				$assetOf->save($PDOdb);
-				_fiche($assetOf, 'view');
+				_fiche($PDOdb,$assetOf, 'view');
 				break;
 				
 			case 'delete':
@@ -131,7 +145,7 @@ function _action() {
 		$assetOf=new TAssetOF;
 		$assetOf->load($PDOdb, $_REQUEST['id'], false);
 		
-		_fiche($assetOf, 'view');
+		_fiche($PDOdb, $assetOf, 'view');
 	}
 	
 }
@@ -152,7 +166,7 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
 					,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+					,'delete'=> '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
 			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
@@ -181,7 +195,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 
 
-function _fiche(&$assetOf, $mode='edit') {
+function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 	global $langs,$db,$conf;
 	/***************************************************
 	* PAGE
@@ -232,11 +246,27 @@ function _fiche(&$assetOf, $mode='edit') {
 	//$Tid[] = $assetOf->rowid;
 	$assetOf->getListeOFEnfants($PDOdb, $Tid, $assetOf->rowid);
 	
+	$TWorkstation=array();
+	foreach($assetOf->TAssetWorkstationOF as $k=>$TAssetWorkstationOF) {
+		
+		$ws = & $TAssetWorkstationOF->ws;
+		
+		$TWorkstation[]=array(
+			'libelle'=>$ws->libelle
+			,'nb_hour'=> ($assetOf->status=='DRAFT') ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
+			,'nb_hour_real'=>($assetOf->status=='OPEN') ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
+			,'delete'=> '<a href="javascript:deleteWS('.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>'
+			,'id'=>$ws->getId()
+		);
+		
+	}
+	
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
 			,'TTomake'=>$TToMake
+			,'workstation'=>$TWorkstation
 		)
 		,array(
 			'assetOf'=>array(
@@ -257,7 +287,7 @@ function _fiche(&$assetOf, $mode='edit') {
 				'mode'=>$mode
 				,'status'=>$assetOf->status
 				,'select_product'=>$select_product
-				
+				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 			)
 		)
 	);

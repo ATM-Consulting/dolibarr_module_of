@@ -10,11 +10,11 @@ require('../class/ordre_fabrication_asset.class.php');
 //Interface qui renvoie les emprunts de ressources d'un utilisateur
 $ATMdb=new TPDOdb;
 
-$get = isset($_REQUEST['get'])?$_REQUEST['get']:'emprunt';
+$get = __get('get','emprunt');
 
-_get($ATMdb, $get);
+traite_get($ATMdb, $get);
 
-function _get(&$ATMdb, $case) {
+function traite_get(&$ATMdb, $case) {
 	switch (strtolower($case)) {
 		case 'autocomplete':
 			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term']));
@@ -28,8 +28,41 @@ function _get(&$ATMdb, $case) {
 		case 'addlines':
 			__out(_addlines($ATMdb,$_REQUEST['idLine'],$_REQUEST['qty']));
 			break;
+		case 'addofworkstation':
+			__out(_addofworkstation($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_asset_workstation']));
+			break;	
+		case 'deleteofworkstation':	
+			
+			__out(_deleteofworkstation($ATMdb,$_REQUEST['id_assetOf'], $_REQUEST['fk_asset_workstation_of'] ));
+			
+			break;
+			
 	}
 }
+
+function _addofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation) {
+	
+	$of=new TAssetOF;
+	$of->load($ATMdb, $id_assetOf);
+	
+	$k = $of->addChild($ATMdb, 'TAssetWorkstationOF');
+	
+	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
+	$of->save($ATMdb);
+	
+	
+}
+function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) {
+	
+	$of=new TAssetOF;
+	$of->load($ATMdb, $id_assetOf);
+	
+	$of->removeChild('TAssetWorkstationOF', $fk_asset_workstation_of);
+	
+	$of->save($ATMdb);
+	
+}
+
 
 //Autocomplete sur les différents champs d'une ressource
 function _autocomplete(&$ATMdb,$fieldcode,$value){

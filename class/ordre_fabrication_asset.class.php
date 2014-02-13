@@ -40,7 +40,7 @@ class TAssetOF extends TObjetStd{
 		$this->workstation=null;
 		
 		$this->setChild('TAssetOFLine','fk_assetOf');
-		$this->setChild('TAssetWorkstationOF','TAssetWorkstationOF');
+		$this->setChild('TAssetWorkstationOF','fk_assetOf');
 		$this->setChild('TAssetOF','fk_assetOf_parent');
 		
 	}
@@ -58,9 +58,13 @@ class TAssetOF extends TObjetStd{
 		
 		parent::save($db);
 		
-		if($this->numero=='')$this->numero='OF'.str_pad( $this->getId() , 5, '0', STR_PAD_LEFT);
-		
-		parent::save($db);
+		if($this->numero=='') {
+			$this->numero='OF'.str_pad( $this->getId() , 5, '0', STR_PAD_LEFT);
+			$wc = $this->withChild;
+			$this->withChild=false;
+			parent::save($db);
+			$this->withChild=$wc;
+		}
 	}
 	
 	//Associe les équipements à l'OF
@@ -422,6 +426,17 @@ class TAssetWorkstationProduct extends TObjetStd{
 	    $this->start();
 	}
 	
+	
+	static function getWorstations(&$ATMdb) {
+		$TWorkstation=array();
+		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
+		$ATMdb->Execute($sql);
+		while($ATMdb->Get_line()){
+			$TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
+		}
+		return $TWorkstation;
+	}
+	
 }
 
 /*
@@ -432,10 +447,24 @@ class TAssetWorkstationOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_assetOF, fk_asset_workstation','type=entier;index;');
+		$this->add_champs('fk_assetOf, fk_asset_workstation','type=entier;index;');
 		$this->add_champs('nb_hour,nb_hour_real','type=float;'); // nombre d'heure associé au poste de charge sur un OF
 		
 	    $this->start();
+		
+		$this->ws = new TAssetWorkstation;
+		
+	}
+	
+	function load(&$ATMdb, $id) {
+		
+		parent::load($ATMdb,$id);
+		
+		if($this->fk_asset_workstation >0){
+			$this->ws->load($ATMdb, $this->fk_asset_workstation);			
+			
+		}
+		
 	}
 	
 }
@@ -457,13 +486,28 @@ class TAssetWorkstation extends TObjetStd{
 	    $this->start();
 	}
 	
-	static function getWorstations($ATMdb) {
+	function save(&$ATMdb) {
+		global $conf;
+		
+		$this->entity = $conf->entity;
+		
+		parent::save($ATMdb);
+		
+		
+	}
+	
+	static function getWorstations(&$ATMdb) {
+		global $conf;
+		
 		$TWorkstation=array();
-		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation";
+		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
+		
 		$ATMdb->Execute($sql);
 		while($ATMdb->Get_line()){
 			$TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
 		}
+		
+		
 		return $TWorkstation;
 	}
 	

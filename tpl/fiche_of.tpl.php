@@ -39,14 +39,24 @@
 			</table>
 			
 		<div class="" style="margin-top: 25px;">
-			<table width="100%" class="border">
-				<tr>
+			<div style="text-align: right;height:40px;" class="draftedit">
+				<a href="#" class="butAction btnaddworkstation">Ajouter un poste</a>
+			</div>
+			<table width="100%" class="border workstation">
+				<tr style="background-color:#dedede;">
 					<th>Poste de travail</th>
-					<th>Nb. heures</th>
+					<th>Nb. heures prévues</th>
+					<th>Nb. heures réelles</th>
+					<th class="draftedit">Action</th>
 				</tr>
-				<tr>
+				<tr id="WS[workstation.id]" style="background-color:#fff;">
 					<td>[workstation.libelle;block=tr]</td>
 					<td>[workstation.nb_hour;strconv=no]</td>
+					<td>[workstation.nb_hour_real;strconv=no]</td>
+					<td class="draftedit">[workstation.delete;strconv=no]</td>
+				</tr>
+				<tr>
+					<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
 				</tr>
 			</table>
 		</div>
@@ -58,13 +68,13 @@
 					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
 					<td style="border-left: none; text-align: right;">
 						
-						<a href="#null" class="butAction btnaddproduct draftedit" id="NEEDED">Ajouter produit</a>
+						<a href="#" class="butAction btnaddproduct draftedit" id="NEEDED">Ajouter produit</a>
 						
 					</td>
 					<td style="border-right: none; ">Produits à créer</td>
 					<td style="border-left: none; text-align: right;">
 						
-						<a href="#null" class="butAction btnaddproduct draftedit" id="TO_MAKE">Ajouter produit</a>
+						<a href="#" class="butAction btnaddproduct draftedit" id="TO_MAKE">Ajouter produit</a>
 						
 					</td>
 				</tr>
@@ -155,7 +165,17 @@
 				</td>
 			</tr>
 		</table>
-		</div>
+	</div>
+	<div id="dialog-workstation" title="Ajout d'un poste de travail">
+		<table>
+			<tr>
+				<td>Postes de travail : </td>
+				<td>
+					[view.select_workstation;strconv=no]
+				</td>
+			</tr>
+		</table>
+	</div>
 </div>
 	
 	<div style="clear:both;"></div>
@@ -214,9 +234,43 @@
 				}
 			});
 			
+			
+			$( "#dialog-workstation" ).dialog({
+				autoOpen: false,
+				show: {
+					effect: "blind",
+					duration: 200
+				},
+				modal:true,
+				buttons: {
+					"Annuler": function() {
+						$( this ).dialog( "close" );
+					},				
+					"Ajouter": function(){
+						var idassetOf = [assetOf.id];
+						var fk_asset_workstation = $('#fk_asset_workstation').val();
+						
+						$.ajax({
+							url : "script/interface.php?get=addofworkstation&id_assetOf="+idassetOf+"&fk_asset_workstation="+fk_asset_workstation
+						})
+						.done(function(){
+							//document.location.href="?id=[assetOf.id]";
+							$( "#dialog-workstation" ).dialog("close");
+							refreshTab();
+						});
+					}
+				}
+			});
+			
+			
+			
 			$(".btnaddproduct" ).click(function() {
 				type = $(this).attr('id');
 				$( "#dialog" ).dialog( "open" );
+			});
+			
+			$(".btnaddworkstation" ).click(function() {
+				$( "#dialog-workstation" ).dialog( "open" );
 			});
 			
 			$("input[name=valider]").click(function(){
@@ -243,8 +297,9 @@
 				
 						
 				if('[view.mode]'!='view'){
+					$('div.draftedit').css('display','block');
 					$('a.draftedit').css('display','inline');
-					$('td.draftedit').css('display','table-cell');
+					$('td.draftedit,th.draftedit').css('display','table-cell');
 				} 
 			
 			[onshow;block=end]
@@ -263,6 +318,7 @@
 			$.get("fiche_of.php?action=edit&id="+id , function(data) {
 		     	$('div.OFContent[rel='+id+'] table.needed').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.needed') );
 		     	$('div.OFContent[rel='+id+'] table.tomake').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.tomake') );
+		     	$('div.OFContent[rel='+id+'] table.workstation').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.workstation') );
 		     	
 		     	refreshDisplay();
 			});
@@ -276,6 +332,15 @@
 				$("#"+idLine).remove();
 			});
 		}
+		function deleteWS(idWS) {
+			$.ajax(
+				{url : "script/interface.php?get=deleteofworkstation&id_assetOf=[assetOf.id]&fk_asset_workstation_of="+idWS }
+			).done(function(){
+				refreshTab() ;
+			});
+			
+		}
+		
 		
 		function addAllLines(idLine,btnadd){
 			//var qty = $('#qty['+idLine+']').val();

@@ -23,6 +23,13 @@
 			_fiche($ATMdb, $ws);
 			
 			break;
+		case 'view':
+			$ws=new TAssetWorkstation;
+			$ws->load($ATMdb, __get('id',0,'integer'));
+			
+			_fiche($ATMdb, $ws);
+			
+			break;
 		
 		case 'edit':
 			$ws=new TAssetWorkstation;
@@ -81,7 +88,7 @@ function _fiche(&$ATMdb, &$ws, $mode='view') {
 	$TForm=array(
 		'libelle'=>$form->texte('', 'libelle', $ws->libelle,80,255)
 		,'nb_hour_max'=>$form->texte('', 'nb_hour_max', $ws->nb_hour_max,3,3)
-		,'fk_usergroup'=>$formDoli->select_dolgroups($ws->fk_usergroup, 'fk_usergroup')
+		,'fk_usergroup'=>$formDoli->select_dolgroups($ws->fk_usergroup, 'fk_usergroup',0,'', ($mode=='view') ? 1 : 0 )
 		,'id'=>$ws->getId()
 	);
 	
@@ -108,9 +115,9 @@ global $conf;
 	
 	$l=new TListviewTBS('listWS');
 
-	$sql= "SELECT ws.libelle,ws.fk_usergroup,ws.nb_hour_max 
+	$sql= "SELECT ws.rowid as id, ws.libelle,ws.fk_usergroup,ws.nb_hour_max 
 	
-	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."llx_asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
+	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
 	 LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_of wsof ON (wsof.fk_asset_workstation=ws.rowid)
 	 
 	WHERE entity=".$conf->entity;
@@ -124,6 +131,9 @@ global $conf;
 
 	print $l->render($ATMdb, $sql,array(
 	
+		'link'=>array(
+			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
+		)
 	
 	));
 	
