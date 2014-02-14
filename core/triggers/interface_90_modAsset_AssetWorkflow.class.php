@@ -106,15 +106,12 @@ class InterfaceAssetWorkflow
      */
 	function run_trigger($action,$object,$user,$langs,$conf)
     {
-    	
+   
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
     	dol_include_once('/asset/config.php');
 		dol_include_once('/commande/class/commande.class.php');
 		dol_include_once('/compta/facture/class/facture.class.php');
-		
-			/*ini_set('dysplay_errors','On');
-			error_reporting(E_ALL);*/
-       
+	   
         /*
 		 *  COMMANDES
 		 */
@@ -164,7 +161,7 @@ class InterfaceAssetWorkflow
         {
 			global $db;
 			
-			if ($_REQUEST['action'] == 'updateprice') {
+			if ($_REQUEST['action'] == 'updateprice' && isset($_REQUEST['selectOuiNon'])) {
 	
 				/*echo "<pre>";
 				print_r($_REQUEST);
@@ -177,6 +174,7 @@ class InterfaceAssetWorkflow
 				$sql.= " AND quantity = ".$_REQUEST['qty'];
 				$resql = $db->query($sql);
 	
+			
 			}        	
         }
 
