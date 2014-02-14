@@ -25,17 +25,13 @@ class TAssetOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_user','type=entier;');
+		$this->add_champs('entity,fk_user,fk_assetOf_parent','type=entier;index;');
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
+		$this->add_champs('note','type=text;');
 		
-		//clé étrangère : atelier
-		//parent::add_champs('fk_asset_workstation','type=entier;index;'); // déporté dans une table à part
-		
-		parent::add_champs('fk_assetOf_parent','type=entier;index;');
-		
-	    $this->start();
+		$this->start();
 		
 		$this->workstation=null;
 		
@@ -54,7 +50,24 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 	
+	function set_temps_fabrication() {
+		$this->temps_estime_fabrication=0;
+		$this->temps_reel_fabrication=0;	
+			
+		foreach($this->TAssetWorkstationOF as $row) {
+			
+			$this->temps_estime_fabrication+=$row->nb_hour;
+			$this->temps_reel_fabrication+=$row->nb_hour_real;
+			
+			
+		}
+		
+	}
+	
 	function save(&$db) {
+		
+		$this->set_temps_fabrication();
+		
 		
 		parent::save($db);
 		
@@ -271,32 +284,40 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	
-	function getListeOFEnfants(&$ATMdb, &$Tid, $id_parent) {
-		global $db;
+	function getListeOFEnfants(&$ATMdb, &$Tid, $id_parent=null) {
+			
+		if(is_null($id_parent))$id_parent = $this->getId();
 		
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
 		$sql.= " WHERE fk_assetOf_parent = ".$id_parent;
 		
-		$resql = $db->query($sql);
-		if($resql->num_rows>0) {
-		
-			while($res = $db->fetch_object($resql)) {
-			
-				$Tid[] = $res->rowid;
-				$this->getListeOFEnfants($ATMdb, $Tid, $res->rowid);
-			
-			}
-	
+		$Tab = $ATMdb->ExecuteAsArray($sql);
+		foreach($Tab as $row) {
+			$Tid[] = $row->rowid;
+			$this->getListeOFEnfants($ATMdb, $Tid, $row->rowid);
 		}
-		
-		
+				
 	}
 
 	static function status($status='DRAFT'){
 		
 			
 		return  TAssetOF::$TStatus[$status];
+	}
+	
+	function getCanBeParent(&$PDOdb) {
+		
+		$sql="SELECT rowid, numero FROM ".MAIN_DB_PREFIX."assetOf 
+		WHERE rowid NOT IN (".$this->getId().") AND status='DRAFT'";
+		$Tab = $PDOdb->ExecuteAsArray($sql);
+		$TCombo=array();
+		foreach($Tab as $row) {
+			$TCombo[$row->rowid] = $row->numero;
+		}
+		
+		return $TCombo;
+		
 	}
 
 }

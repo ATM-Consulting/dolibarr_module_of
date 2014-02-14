@@ -39,8 +39,10 @@ function _action() {
 	* Put here all code to do according to value of "action" parameter
 	********************************************************************/
 
-	if(isset($_REQUEST['action'])) {
-		switch($_REQUEST['action']) {
+	$action=__get('action','view');
+	
+	
+		switch($action) {
 			case 'new':
 			case 'add':
 				$assetOf=new TAssetOF;
@@ -61,7 +63,7 @@ function _action() {
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				
 				$assetOf->set_values($_REQUEST);
-				
+			
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						$assetOf->TAssetOFLine[$k]->set_values($row);
@@ -138,15 +140,18 @@ function _action() {
 				<?
 				
 				break;
+				
+			case 'view':
+				$assetOf=new TAssetOF;
+				$assetOf->load($PDOdb, $_REQUEST['id'], false);
+		
+				_fiche($PDOdb, $assetOf, 'view');
+				
+				break;
 		}
 		
-	}
-	elseif(isset($_REQUEST['id'])) {
-		$assetOf=new TAssetOF;
-		$assetOf->load($PDOdb, $_REQUEST['id'], false);
-		
-		_fiche($PDOdb, $assetOf, 'view');
-	}
+	
+	
 	
 }
 
@@ -182,7 +187,7 @@ function _fiche_ligne(&$form, &$of, $type){
 					'id'=>$TAssetOFLine->getId()
 					,'idProd'=>$product->id
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
 					,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price ) : $Tab[$TAssetOFLine->fk_product_fournisseur_price]
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
@@ -210,17 +215,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 	?>	<div class="OFContent" rel="<?=$assetOf->getId() ?>">	<?php
 	
 	$TPrixFournisseurs = array();
-	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
+	
+	//$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
+	
+	$form=new TFormCore();
 	$form->Set_typeaff($mode);
 	$doliform = new Form($db);
 	
-	//Ajout des champs hidden
-	echo $form->hidden('id', $assetOf->rowid);
-	if ($mode=='new'){
-		echo $form->hidden('action', 'save');
-	}
-	else {echo $form->hidden('action', 'save');}
-	echo $form->hidden('entity', $conf->entity);
 	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
 	
 	$TBS=new TTemplateTBS();
@@ -244,7 +245,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 	
 	$Tid = array();
 	//$Tid[] = $assetOf->rowid;
-	$assetOf->getListeOFEnfants($PDOdb, $Tid, $assetOf->rowid);
+	$assetOf->getListeOFEnfants($PDOdb, $Tid);
+	
 	
 	$TWorkstation=array();
 	foreach($assetOf->TAssetWorkstationOF as $k=>$TAssetWorkstationOF) {
@@ -255,12 +257,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 			'libelle'=>$ws->libelle
 			,'nb_hour'=> ($assetOf->status=='DRAFT') ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
 			,'nb_hour_real'=>($assetOf->status=='OPEN') ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
-			,'delete'=> '<a href="javascript:deleteWS('.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>'
+			,'delete'=> '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>'
 			,'id'=>$ws->getId()
 		);
 		
 	}
 	
+	
+	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -273,21 +277,23 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 				'id'=> $assetOf->getId()
 				,'numero'=> ($mode=='edit') ? $form->texte('', 'numero', $assetOf->numero, 20,255,'','','à saisir') : '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->numero.'</a>'
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
+				,'fk_assetOf_parent'=>($mode=='edit') ? $form->combo('','fk_assetOf_parent',$TOFParent,$assetOf->fk_assetOf_parent) : '<a href="fiche_of.php?id='.$assetOf->fk_assetOf_parent.'">'.$TOFParent[$assetOf->fk_assetOf_parent].'</a>'
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
-				,'temps_estime_fabrication'=>$form->texte('','temps_estime_fabrication',$assetOf->temps_estime_fabrication, 12,10,'','','0')
-				,'temps_reel_fabrication'=>$form->texte('','temps_reel_fabrication', $assetOf->temps_reel_fabrication, 12,10,'','','0')
-				//,'fk_asset_workstation'=>$form->combo('','fk_asset_workstation',TAssetWorkstation::getWorstations($PDOdb),$assetOf->fk_asset_workstation)
+				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
+				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
 				
-				//,'fk_user'=>$doliform->select_users('','fk_user')
+				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
+				
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
-				,'idChild' =>implode(',',$Tid)
+				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 			)
 			,'view'=>array(
 				'mode'=>$mode
 				,'status'=>$assetOf->status
 				,'select_product'=>$select_product
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
+				,'actionChild'=>__get('actionChild','view')
 			)
 		)
 	);

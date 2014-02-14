@@ -13,14 +13,21 @@
 	
 				
 [onshow;block=end]				
+	<div class="OFMaster">		
+		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
+				<input type="HIDDEN" value="save" name="action">		
+				<input type="HIDDEN" value="[assetOf.id]" name="id">
+				
 				
 			<table width="100%" class="border">
+				
 				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
 				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
+				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
-				<tr><td>Temps estimé de fabrication (h)</td><td>[assetOf.temps_estime_fabrication;strconv=no]</td></tr>
-				<tr><td>Temps réel de fabrication (h)</td><td>[assetOf.temps_reel_fabrication;strconv=no]</td></tr>
+				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
+				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
 				<tr><td>Statut</td><td>[assetOf.status;strconv=no]
 					[onshow;block=begin;when [view.status]!='CLOSE']
 					<span class="viewmode">, passer à l'état : 
@@ -36,11 +43,14 @@
 					[onshow;block=end]
 					</span>
 				</td></tr>
+				
+				<tr><td>Note</td><td>[assetOf.note;strconv=no]</td></tr>
+				
 			</table>
 			
 		<div class="" style="margin-top: 25px;">
 			<div style="text-align: right;height:40px;" class="draftedit">
-				<a href="#" class="butAction btnaddworkstation">Ajouter un poste</a>
+				<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
 			</div>
 			<table width="100%" class="border workstation">
 				<tr style="background-color:#dedede;">
@@ -68,13 +78,13 @@
 					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
 					<td style="border-left: none; text-align: right;">
 						
-						<a href="#" class="butAction btnaddproduct draftedit" id="NEEDED">Ajouter produit</a>
+						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>
 						
 					</td>
 					<td style="border-right: none; ">Produits à créer</td>
 					<td style="border-left: none; text-align: right;">
 						
-						<a href="#" class="butAction btnaddproduct draftedit" id="TO_MAKE">Ajouter produit</a>
+						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
 						
 					</td>
 				</tr>
@@ -89,7 +99,7 @@
 								<td>Quantité nécessaire</td>
 								<td>Quantité réelle</td>
 								<td class="nodraft">Quantité utilisée</td>
-								<td class="draft">Delta</td>
+								<!-- <td class="draft">Delta</td> -->
 								<td class="draftedit" style="width:20px;">Action</td>
 								
 							</tr>
@@ -101,7 +111,7 @@
 								<td>[TNeeded.qty;strconv=no]</td>
 								<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
 								
-								<td class="draft">[TNeeded.qty_toadd]</td>
+								<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
 								<td class="draftedit">[TNeeded.delete;strconv=no]</td>
 								
 							</tr>
@@ -137,7 +147,7 @@
 
 
 [onshow;block=begin;when [view.mode]=='view']
-	<div class="tabsAction">
+	<div class="tabsAction notinparentview">
 		
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
 		&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
@@ -156,7 +166,10 @@
 		</p>
 [onshow;block=end]	
 
-	<div id="dialog" title="Ajout de Produit">
+		</form>
+
+</div><!-- fin de OFMaster -->
+	<div id="dialog" title="Ajout de Produit" style="display:none;">
 		<table>
 			<tr>
 				<td>Produit : </td>
@@ -166,7 +179,7 @@
 			</tr>
 		</table>
 	</div>
-	<div id="dialog-workstation" title="Ajout d'un poste de travail">
+	<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">
 		<table>
 			<tr>
 				<td>Postes de travail : </td>
@@ -178,99 +191,114 @@
 	</div>
 </div>
 	
+	
+	
 	<div style="clear:both;"></div>
 	<div id="assetChildContener">
 		
-		<h2>Asset Child</h2>
+		<h2>OF Enfants</h2>
 	
 	</div>
 	
 	<script type="text/javascript">
 		
-			var Tid = new Array([assetOf.idChild]);
-		
-			for(x in Tid ){
-				
-				$.get("fiche_of.php?id="+Tid[x], function(data) {
-					var html = $(data).find('div.OFContent');
-					
-					$('#assetChildContener').append(html );
-				});
-				
-			}
-			
-			if(Tid.length==0) {
-				$('#assetChildContener').hide();
-			}
-		
-
 		$(document).ready(function() {
 			var type = "";
 			
-			$( "#dialog" ).dialog({
-				autoOpen: false,
-				show: {
-					effect: "blind",
-					duration: 200
-				},
-				modal:true,
-				buttons: {
-					"Annuler": function() {
-						$( this ).dialog( "close" );
-					},				
-					"Ajouter": function(){
-						var idassetOf = [assetOf.id];
-						var fk_product = $('#fk_product').val();
+			getChild();
+			refreshDisplay();
+		});
+		
+		function getChild() {
+			
+			var Tid = new Array([assetOf.idChild;strconv=no;]);
+		
+			if(Tid.length==0) {
+				$('#assetChildContener').hide();
+			}
+			else {
+				for(x in Tid ){
+				
+					$.get("fiche_of.php?action=[view.actionChild]&id="+Tid[x], function(data) {
+						var html = $(data).find('div.OFMaster');
 						
-						$.ajax({
-							url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type
-						})
-						.done(function(){
-							//document.location.href="?id=[assetOf.id]";
-							$( "#dialog" ).dialog("close");
-							refreshTab();
-						});
-					}
-				}
-			});
-			
-			
-			$( "#dialog-workstation" ).dialog({
-				autoOpen: false,
-				show: {
-					effect: "blind",
-					duration: 200
-				},
-				modal:true,
-				buttons: {
-					"Annuler": function() {
-						$( this ).dialog( "close" );
-					},				
-					"Ajouter": function(){
-						var idassetOf = [assetOf.id];
-						var fk_asset_workstation = $('#fk_asset_workstation').val();
 						
-						$.ajax({
-							url : "script/interface.php?get=addofworkstation&id_assetOf="+idassetOf+"&fk_asset_workstation="+fk_asset_workstation
-						})
-						.done(function(){
-							//document.location.href="?id=[assetOf.id]";
-							$( "#dialog-workstation" ).dialog("close");
-							refreshTab();
-						});
-					}
+						$('#assetChildContener').append(html);
+						
+						$('#assetChildContener .notinparentview').remove();
+						refreshDisplay();
+								
+					});
+					
 				}
-			});
+				
+			}
+		
 			
-			
+		}
+		
+		function refreshDisplay() {
 			
 			$(".btnaddproduct" ).click(function() {
-				type = $(this).attr('id');
-				$( "#dialog" ).dialog( "open" );
+				var type = $(this).attr('rel');
+				var idassetOf = $(this).attr('id_assetOf');
+				
+				$( "#dialog" ).dialog({
+					show: {
+						effect: "blind",
+						duration: 200
+					},
+					modal:true,
+					buttons: {
+						"Annuler": function() {
+							$( this ).dialog( "close" );
+						},				
+						"Ajouter": function(){
+							var fk_product = $('#fk_product').val();
+							
+							$.ajax({
+								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type
+							})
+							.done(function(){
+								//document.location.href="?id=[assetOf.id]";
+								$( "#dialog" ).dialog("close");
+								refreshTab(idassetOf);
+							});
+						}
+					}
+				});
+				
 			});
 			
 			$(".btnaddworkstation" ).click(function() {
-				$( "#dialog-workstation" ).dialog( "open" );
+				
+				var idassetOf = $(this).attr('id_assetOf');
+				
+				$( "#dialog-workstation" ).dialog({
+					show: {
+						effect: "blind",
+						duration: 200
+					},
+					modal:true,
+					buttons: {
+						"Annuler": function() {
+							$( this ).dialog( "close" );
+						},				
+						"Ajouter": function(){
+							var idassetOf = [assetOf.id];
+							var fk_asset_workstation = $('#fk_asset_workstation').val();
+							
+							$.ajax({
+								url : "script/interface.php?get=addofworkstation&id_assetOf="+idassetOf+"&fk_asset_workstation="+fk_asset_workstation
+							})
+							.done(function(){
+								//document.location.href="?id=[assetOf.id]";
+								$( "#dialog-workstation" ).dialog("close");
+								refreshTab(idassetOf);
+							});
+						}
+					}
+				});
 			});
 			
 			$("input[name=valider]").click(function(){
@@ -281,39 +309,36 @@
 			})
 			
 			
-			refreshDisplay();
-			
-		});
-		
-		function refreshDisplay() {
 			
 			if('[view.mode]'=='view'){ 
 				$('span.viewmode').css('display','inline');
 			}
 			
-			[onshow;block=begin;when [view.status]=='DRAFT']
+			if("[view.actionChild]"=="edit") {
+					$('#assetChildContener div.draftedit').css('display','block');
+					$('#assetChildContener a.draftedit').css('display','inline');
+					$('#assetChildContener td.draftedit,th.draftedit').css('display','table-cell');
+			}
 			
-				$('td.draft').css('display','table-cell');
+			if("[view.status]"=='DRAFT') {
+			
+				$('div.OFMaster td.draft').css('display','table-cell');
 				
 						
 				if('[view.mode]'!='view'){
-					$('div.draftedit').css('display','block');
-					$('a.draftedit').css('display','inline');
-					$('td.draftedit,th.draftedit').css('display','table-cell');
+					$('div.OFMaster div.draftedit').css('display','block');
+					$('div.OFMaster a.draftedit').css('display','inline');
+					$('div.OFMaster td.draftedit,div.OFMaster th.draftedit').css('display','table-cell');
 				} 
 			
-			[onshow;block=end]
-			
-			[onshow;block=begin;when [view.status]!='DRAFT']
-			
+			}
+			else {
 				$('td.nodraft').css('display','table-cell');
-			
-			[onshow;block=end]
+			}
 			
 		}
 		
-		function refreshTab() {
-			var id = [assetOf.id];
+		function refreshTab(id) {
 			
 			$.get("fiche_of.php?action=edit&id="+id , function(data) {
 		     	$('div.OFContent[rel='+id+'] table.needed').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.needed') );
@@ -332,23 +357,23 @@
 				$("#"+idLine).remove();
 			});
 		}
-		function deleteWS(idWS) {
+		function deleteWS(id_assetOf,idWS) {
 			$.ajax(
 				{url : "script/interface.php?get=deleteofworkstation&id_assetOf=[assetOf.id]&fk_asset_workstation_of="+idWS }
 			).done(function(){
-				refreshTab() ;
+				refreshTab(id_assetOf) ;
 			});
 			
 		}
 		
 		
-		function addAllLines(idLine,btnadd){
+		function addAllLines(id_assetOf,idLine,btnadd){
 			//var qty = $('#qty['+idLine+']').val();
 			var qty = $(btnadd).parent().next().next().find('input[type=text]').val();
 			$.ajax(
 				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
 			).done(function(){
-				refreshTab() 
+				refreshTab(id_assetOf) 
 			});
 		}
 </script>
