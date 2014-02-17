@@ -34,6 +34,7 @@ class TAssetOF extends TObjetStd{
 		$this->start();
 		
 		$this->workstation=null;
+		$this->status='DRAFT';
 		
 		$this->setChild('TAssetOFLine','fk_assetOf');
 		$this->setChild('TAssetWorkstationOF','fk_assetOf');

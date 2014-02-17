@@ -47,6 +47,7 @@ function _action() {
 			case 'add':
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
+				
 				_fiche($PDOdb, $assetOf,'new');
 
 				break;
@@ -60,7 +61,13 @@ function _action() {
 
 			case 'save':
 				$assetOf=new TAssetOF;
-				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				if(!empty($_REQUEST['id'])) {
+					$assetOf->load($PDOdb, $_REQUEST['id'], false);
+					$mode = 'view';
+				}
+				else {
+					$mode = 'edit';
+				}
 				
 				$assetOf->set_values($_REQUEST);
 			
@@ -84,7 +91,7 @@ function _action() {
 				
 				$assetOf->save($PDOdb);
 				
-				_fiche($PDOdb,$assetOf, 'view');
+				_fiche($PDOdb,$assetOf, $mode);
 
 				break;
 			
@@ -245,7 +252,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 	
 	$Tid = array();
 	//$Tid[] = $assetOf->rowid;
-	$assetOf->getListeOFEnfants($PDOdb, $Tid);
+	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
 	
 	
 	$TWorkstation=array();

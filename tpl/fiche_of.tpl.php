@@ -1,5 +1,5 @@
 <style type="text/css">
-	.draft, .draftedit,.nodraft,.viewmode {
+	.draft, .draftedit,.nodraft,.viewmode,.of-details {
 		
 		display:none;
 		
@@ -48,7 +48,7 @@
 				
 			</table>
 			
-		<div class="" style="margin-top: 25px;">
+		<div class="of-details" style="margin-top: 25px;">
 			<div style="text-align: right;height:40px;" class="draftedit">
 				<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
 			</div>
@@ -72,7 +72,7 @@
 		</div>
 
 
-		<div class="" style="margin-top: 25px;">
+		<div class="of-details" style="margin-top: 25px;">
 			<table width="100%" class="border">
 				<tr height="40px;">
 					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
@@ -308,7 +308,9 @@
 				$('#action').val('lancer');
 			})
 			
-			
+			if([assetOf.id]>0) {
+				$('div.of-details').show();
+			}
 			
 			if('[view.mode]'=='view'){ 
 				$('span.viewmode').css('display','inline');
