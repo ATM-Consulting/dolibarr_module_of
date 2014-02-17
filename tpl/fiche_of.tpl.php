@@ -233,7 +233,7 @@
 								$("#"+id_form).submit(function() {
 									$.post($(this).attr('action'), $( this ).serialize() );
 						
-									$.jnotify('Modifications enregistr&eacute;s', "ok");   
+									$.jnotify('Modifications enregistr&eacute;es', "ok");   
 						
 									return false;
 								});	
