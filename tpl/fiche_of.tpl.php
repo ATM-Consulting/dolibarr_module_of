@@ -30,12 +30,12 @@
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
 				<tr><td>Statut</td><td>[assetOf.status;strconv=no]
 					[onshow;block=begin;when [view.status]!='CLOSE']
-					<span class="viewmode">, passer à l'état : 
+					<span class="viewmode notinparentview">, passer à l'état : 
 					[onshow;block=begin;when [view.status]=='DRAFT']
-						<input type="submit" onclick="return confirm('Valider cet Ordre de Fabrication?');" class="butAction" name="valider" value="Valider">
+						<input type="button" class="butAction" name="valider" value="Valider">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='VALID']
-						&nbsp; &nbsp; <input type="submit" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer la production">
+						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer la production">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='OPEN']
 						&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
@@ -207,6 +207,7 @@
 			
 			getChild();
 			refreshDisplay();
+
 		});
 		
 		function getChild() {
@@ -222,11 +223,23 @@
 					$.get("fiche_of.php?action=[view.actionChild]&id="+Tid[x], function(data) {
 						var html = $(data).find('div.OFMaster');
 						
+						var id_form = html.find('form').attr('id');
 						
 						$('#assetChildContener').append(html);
 						
 						$('#assetChildContener .notinparentview').remove();
 						refreshDisplay();
+						
+								$("#"+id_form).submit(function() {
+									$.post($(this).attr('action'), $( this ).serialize() );
+						
+									$.jnotify('Modifications enregistr&eacute;s', "ok");   
+						
+									return false;
+								});	
+
+						
+						
 								
 					});
 					
@@ -236,6 +249,7 @@
 		
 			
 		}
+	
 		
 		function refreshDisplay() {
 			
@@ -302,8 +316,13 @@
 			});
 			
 			$("input[name=valider]").click(function(){
-				$('#action').val('valider');
-			})
+				if(confirm('Valider cet Ordre de Fabrication?')) {
+					$('#action').val('valider');
+					$('#formOF[assetOf.id]').submit();	
+				}
+				
+			});
+			
 			$("input[name=lancer]").click(function(){
 				$('#action').val('lancer');
 			})
@@ -317,6 +336,12 @@
 			}
 			
 			if("[view.actionChild]"=="edit") {
+					$('#assetChildContener div.draftedit').css('display','block');
+					$('#assetChildContener a.draftedit').css('display','inline');
+					$('#assetChildContener td.draftedit,th.draftedit').css('display','table-cell');
+			}
+			
+			if("[view.mode]"=="edit") {
 					$('#assetChildContener div.draftedit').css('display','block');
 					$('#assetChildContener a.draftedit').css('display','inline');
 					$('#assetChildContener td.draftedit,th.draftedit').css('display','table-cell');
