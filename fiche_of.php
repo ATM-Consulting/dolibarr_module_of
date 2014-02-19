@@ -17,7 +17,6 @@ if(!$user->rights->asset->of->write) accessforbidden();
 
 // Load traductions files requiredby by page
 $langs->load("other");
-$langs->load("asset@asset");
 
 // Get parameters
 _action();
@@ -155,12 +154,123 @@ function _action() {
 				_fiche($PDOdb, $assetOf, 'view');
 				
 				break;
+			case 'createDocOF':
+				
+				generateODTOF($PDOdb);
+								
+				break;				
 		}
 		
 	
 	
 	
 }
+
+
+
+function generateODTOF(&$PDOdb) {
+	
+	global $db;
+
+	$assetOf=new TAssetOF;
+	
+	/*foreach($assetOf as $k => $v) {
+		print $k."<br />";
+	}
+	
+	echo "<pre>";
+	print_r($assetOf->TAssetWorkstationOF);
+	echo "</pre>";
+	
+	exit;*/
+	$assetOf->load($PDOdb, $_REQUEST['id'], false);
+	$TBS=new TTemplateTBS();
+	dol_include_once("/product/class/product.class.php");
+
+	$TToMake = array();
+	$TNeeded = array();
+
+	foreach($assetOf->TAssetOFLine as $k=>$v) {
+		
+		if($v->type == "TO_MAKE") {
+			
+			$prod = new Product($db);
+			$prod->fetch($v->fk_product);
+			
+			$TToMake[] = array('type' => $v->type
+							, 'qte' => $v->qty
+							, 'nomProd' => $prod->ref
+							, 'designation' => $prod->label
+							, 'dateBesoin' => $assetOf->date_besoin);
+			
+		}
+		if($v->type == "NEEDED") {
+	
+			$unitLabel = "";
+			
+			$prod = new Product($db);
+			$prod->fetch($v->fk_product);						
+			
+			if($prod->weight_units == 0) {
+				$unitLabel = "Kg";
+			} else if ($prod->weight_units == -3) {
+				$unitLabel = "g";
+			} else if ($prod->weight_units == -6) {
+				$unitLabel = "mg";
+			} else if ($prod->weight_units == 99) {
+				$unitLabel = "livre(s)";
+			}
+									
+			$TNeeded[] = array('type' => $v->type
+							, 'qte' => $v->qty
+							, 'nomProd' => $prod->ref
+							, 'designation' => $prod->label
+							, 'dateBesoin' => $assetOf->date_besoin
+							, 'poids' => $prod->weight
+							, 'unitPoids' => $unitLabel
+							, 'finished' => $prod->finished?"PM":"MP");
+	
+			
+		}
+
+	}
+	
+	$dirName = 'OF'.$_REQUEST['id'].'('.date("d_m_Y").')';
+	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
+	
+	@mkdir($dir, 0777, true);
+	
+	$TBS->render(dol_buildpath('/asset/exempleTemplate/templateOF.odt')
+		,array(
+			'lignesToMake'=>$TToMake
+			,'lignesNeeded'=>$TNeeded
+		)
+		,array(
+			'date'=>date("d/m/Y")
+			,'numeroOF'=>$assetOf->numero
+			,'statutOF'=>$assetOf->status
+			,'date'=>date("d/m/Y")
+		)
+		,array()
+		,array(
+			'outFile'=>$dir.'templateOF.odt'
+		)
+		
+	);	
+	
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/templateOF.odt");
+
+}
+
+print '<a name="createFileOF" class="butAction" href="'.DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$_REQUEST['id'].'&action=createDocOF">'.$langs->trans("createOFFile").'</a>';
+
+
+?>
+	<script>
+		$("[name=createFileOF]").appendTo("div.OFContent div.tabsAction");
+	</script>
+<?
+
 
 function _fiche_ligne(&$form, &$of, $type){
 		global $db, $conf;

@@ -46,7 +46,7 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 		
 		$res = parent::load($db,$id);
-		$this->loadWorkstation($db);
+		
 		
 		return $res;
 	}
@@ -214,12 +214,7 @@ class TAssetOF extends TObjetStd{
 		return 1;
 	}*/
 	
-	function loadWorkstation(&$ATMdb){
-		if(empty($this->workstation)) {
-			$this->workstation=new TAssetWorkstation;
-			$this->workstation->load($ATMdb, $this->fk_asset_workstation);
-		}
-	}
+	
 	
 	//Ajoute une ligne de produit à l'OF
 	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
