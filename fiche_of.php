@@ -173,23 +173,25 @@ function generateODTOF(&$PDOdb) {
 	global $db;
 
 	$assetOf=new TAssetOF;
-	
-	/*foreach($assetOf as $k => $v) {
+	$assetOf->load($PDOdb, $_REQUEST['id'], false);
+	foreach($assetOf as $k => $v) {
 		print $k."<br />";
 	}
+	//exit;
 	
-	echo "<pre>";
+	/*echo "<pre>";
 	print_r($assetOf->TAssetWorkstationOF);
 	echo "</pre>";
 	
 	exit;*/
-	$assetOf->load($PDOdb, $_REQUEST['id'], false);
 	$TBS=new TTemplateTBS();
 	dol_include_once("/product/class/product.class.php");
 
-	$TToMake = array();
-	$TNeeded = array();
+	$TToMake = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit à fabriquer
+	$TNeeded = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit nécessaires
+	$TWorkstations = array(); // Tableau envoyé à la fonction render contenant les informations concernant les stations de travail
 
+	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>$v) {
 		
 		if($v->type == "TO_MAKE") {
@@ -197,11 +199,13 @@ function generateODTOF(&$PDOdb) {
 			$prod = new Product($db);
 			$prod->fetch($v->fk_product);
 			
-			$TToMake[] = array('type' => $v->type
+			$TToMake[] = array(
+							'type' => $v->type
 							, 'qte' => $v->qty
 							, 'nomProd' => $prod->ref
 							, 'designation' => $prod->label
-							, 'dateBesoin' => $assetOf->date_besoin);
+							, 'dateBesoin' => $assetOf->date_besoin
+						);
 			
 		}
 		if($v->type == "NEEDED") {
@@ -221,18 +225,31 @@ function generateODTOF(&$PDOdb) {
 				$unitLabel = "livre(s)";
 			}
 									
-			$TNeeded[] = array('type' => $v->type
+			$TNeeded[] = array(
+							'type' => $v->type
 							, 'qte' => $v->qty
 							, 'nomProd' => $prod->ref
 							, 'designation' => $prod->label
 							, 'dateBesoin' => $assetOf->date_besoin
 							, 'poids' => $prod->weight
 							, 'unitPoids' => $unitLabel
-							, 'finished' => $prod->finished?"PM":"MP");
+							, 'finished' => $prod->finished?"PM":"MP"
+						);
 	
 			
 		}
 
+	}
+
+	// On charge le tableau d'infos sur les statons de travail de l'OF courant
+	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
+		
+		$TWorkstations[] = array(
+							'libelle' => $v->ws->libelle
+							,'nb_hour_max' => $v->ws->nb_hour_max
+							,'nb_heures_prevues' => $v->nb_hour
+						);
+		
 	}
 	
 	$dirName = 'OF'.$_REQUEST['id'].'('.date("d_m_Y").')';
@@ -244,11 +261,13 @@ function generateODTOF(&$PDOdb) {
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
+			,'lignesWorkstation'=>$TWorkstations
 		)
 		,array(
 			'date'=>date("d/m/Y")
 			,'numeroOF'=>$assetOf->numero
-			,'statutOF'=>$assetOf->status
+			,'statutOF'=>TAssetOF::$TStatus[$assetOf->status]
+			,'prioriteOF'=>TAssetOF::$TOrdre[$assetOf->ordre]
 			,'date'=>date("d/m/Y")
 		)
 		,array()
