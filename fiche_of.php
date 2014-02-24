@@ -119,7 +119,7 @@ function _action() {
 				$assetOf->status = "OPEN";
 				$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
-				_fiche($assetOf, 'view');
+				_fiche($PDOdb, $assetOf, 'view');
 
 				break;
 				
@@ -204,7 +204,7 @@ function generateODTOF(&$PDOdb) {
 							, 'qte' => $v->qty
 							, 'nomProd' => $prod->ref
 							, 'designation' => $prod->label
-							, 'dateBesoin' => $assetOf->date_besoin
+							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
 						);
 			
 		}
@@ -230,7 +230,7 @@ function generateODTOF(&$PDOdb) {
 							, 'qte' => $v->qty
 							, 'nomProd' => $prod->ref
 							, 'designation' => $prod->label
-							, 'dateBesoin' => $assetOf->date_besoin
+							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
 							, 'poids' => $prod->weight
 							, 'unitPoids' => $unitLabel
 							, 'finished' => $prod->finished?"PM":"MP"
@@ -240,6 +240,11 @@ function generateODTOF(&$PDOdb) {
 		}
 
 	}
+
+	/*echo "<pre>";
+	print_r($TNeeded);
+	echo "</pre>";
+	exit;*/
 
 	// On charge le tableau d'infos sur les statons de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
@@ -282,7 +287,6 @@ function generateODTOF(&$PDOdb) {
 }
 
 print '<a name="createFileOF" class="butAction" href="'.DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$_REQUEST['id'].'&action=createDocOF">'.$langs->trans("createOFFile").'</a>';
-
 
 ?>
 	<script>

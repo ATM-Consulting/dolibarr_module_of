@@ -317,14 +317,15 @@
 			
 			$("input[name=valider]").click(function(){
 				if(confirm('Valider cet Ordre de Fabrication?')) {
-					$('#action').val('valider');
+					$('input[name=action]').val('valider');
 					$('#formOF[assetOf.id]').submit();	
 				}
 				
 			});
 			
 			$("input[name=lancer]").click(function(){
-				$('#action').val('lancer');
+				$('input[name=action]').val('lancer');
+				$('#formOF[assetOf.id]').submit();	
 			})
 			
 			if([assetOf.id]>0) {
