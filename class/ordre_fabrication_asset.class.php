@@ -261,16 +261,122 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function openOF(&$ATMdb){
+		global $db, $user;
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		dol_include_once("fourn/class/fournisseur.product.class.php");
+		dol_include_once("fourn/class/fournisseur.commande.class.php");
 		
 		foreach($this->TAssetOFLine as $AssetOFLine){
 			$asset = new TAsset;
-			
+
 			if($AssetOFLine->type == "NEEDED"){
 				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
 				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication');
-			}
+			}/* else {
+				
+				if($AssetOFLine->fk_product_fournisseur_price <= 0) {
+					
+				} else {
+					
+					$sql = "SELECT fk_soc, price";
+					$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
+					$sql.= " WHERE rowid = ".$AssetOFLine->fk_product_fournisseur_price;
+					$resql = $db->query($sql);
+					
+					$res = $db->fetch_object($resql);
+					
+					if(!$commandeDejaCreee) {
+					
+						$com = new CommandeFournisseur($db);
+						$com->socid = $res->fk_soc;
+						
+						$com->create($user);
+						$commandeDejaCreee = true;
+					}
+					
+				}
+								
+			}*/
 		}
+	}
+	
+	function createOfAndCommandesFourn(&$ATMdb) {
+		global $db, $user;
+		
+		dol_include_once("fourn/class/fournisseur.commande.class.php");		
+		
+		$TabOF = array();
+		$TabOF[] = $this->rowid;
+		$this->getListeOFEnfants($ATMdb, $TabOF);
+		
+		foreach($TabOF as $idOf){
+			$assetOF = new TAssetOF;
+			$assetOF->load($ATMdb, $idOf);
+			
+			foreach($assetOF->TAssetOFLine as $ofLigne) {
+				
+				/*foreach($ofLigne as $k=>$v) {
+					echo $k." => ".$v."<br />";
+				}
+				exit;*/
+
+				if($ofLigne->type == "TO_MAKE") {
+					
+					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
+						$sql = "SELECT fk_soc, price, compose_fourni, quantity";
+						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
+						$sql.= " WHERE rowid = ".$ofLigne->fk_product_fournisseur_price;
+						$resql = $db->query($sql);						
+						
+						
+						$res = $db->fetch_object($resql);	
+						
+						// On cherche s'il existe une commande pour ce fournisseur
+						$sql2 = "SELECT rowid";
+						$sql2.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
+						$sql2.= " WHERE fk_soc = ".$res->fk_soc;
+						$sql2.= " ORDER BY rowid DESC";
+						$sql2.= " LIMIT 1";
+						$resql2 = $db->query($sql2);
+						
+						$res2 = $db->fetch_object($resql2);
+						if($res2) { // Il existe une commande
+							$com = new CommandeFournisseur($db);
+							$com->fetch($res2->rowid);
+						} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
+							$com = new CommandeFournisseur($db);
+							$com->socid = $res->fk_soc;
+							$com->create($user);
+						}
+						
+						// On ajoute une ligne pour cette commande et pour ce produit
+						
+						$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva);
+						
+						
+						/*if($res->compose_fourni) {
+							
+						} else {
+
+						}*/
+						
+						echo "<pre>";
+						print_r($res);
+						echo "<pre>";
+						exit;
+
+					}
+					
+				}
+
+			}
+			
+		}
+		
+		/*echo "<pre>";
+		print_r($Tab);
+		echo "</pre>";
+		exit;*/
 	}
 	
 	static function ordre($ordre='ASAP'){

@@ -100,6 +100,7 @@ function _action() {
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "VALID";
 				
+				//$assetOf->createOfAndCommandesFourn($PDOdb);
 				
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
@@ -246,7 +247,7 @@ function generateODTOF(&$PDOdb) {
 	echo "</pre>";
 	exit;*/
 
-	// On charge le tableau d'infos sur les statons de travail de l'OF courant
+	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
 		
 		$TWorkstations[] = array(
