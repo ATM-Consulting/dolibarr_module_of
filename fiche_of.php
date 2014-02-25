@@ -98,17 +98,16 @@ function _action() {
 				
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				$assetOf->status = "VALID";
+				$assetOf->status = "VALID";				
 				
-				//$assetOf->createOfAndCommandesFourn($PDOdb);
 				
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
 				}
-				
-				
+				$assetOf->createOfAndCommandesFourn($PDOdb);
+				//$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
 				_fiche($PDOdb,$assetOf, 'view');
 
@@ -118,7 +117,7 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "OPEN";
-				$assetOf->openOF($PDOdb);
+				//$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
 				_fiche($PDOdb, $assetOf, 'view');
 

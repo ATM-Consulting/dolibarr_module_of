@@ -272,31 +272,8 @@ class TAssetOF extends TObjetStd{
 			if($AssetOFLine->type == "NEEDED"){
 				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
 				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication');
-			}/* else {
-				
-				if($AssetOFLine->fk_product_fournisseur_price <= 0) {
-					
-				} else {
-					
-					$sql = "SELECT fk_soc, price";
-					$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
-					$sql.= " WHERE rowid = ".$AssetOFLine->fk_product_fournisseur_price;
-					$resql = $db->query($sql);
-					
-					$res = $db->fetch_object($resql);
-					
-					if(!$commandeDejaCreee) {
-					
-						$com = new CommandeFournisseur($db);
-						$com->socid = $res->fk_soc;
-						
-						$com->create($user);
-						$commandeDejaCreee = true;
-					}
-					
-				}
-								
-			}*/
+			}
+
 		}
 	}
 	
@@ -309,62 +286,119 @@ class TAssetOF extends TObjetStd{
 		$TabOF[] = $this->rowid;
 		$this->getListeOFEnfants($ATMdb, $TabOF);
 		
+		// Boucle pour chaque OF de l'arbre
 		foreach($TabOF as $idOf){
+			
+			// On charge l'OF
 			$assetOF = new TAssetOF;
 			$assetOF->load($ATMdb, $idOf);
 			
+			// Boucle pour chaque produit de l'OF
 			foreach($assetOF->TAssetOFLine as $ofLigne) {
 				
-				/*foreach($ofLigne as $k=>$v) {
-					echo $k." => ".$v."<br />";
-				}
-				exit;*/
-
+				// On cherche le produit "TO_MAKE"
 				if($ofLigne->type == "TO_MAKE") {
 					
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
-						$sql = "SELECT fk_soc, price, compose_fourni, quantity";
+
+						// On récupère la ligne prix fournisseur correspondante
+						$sql = "SELECT fk_soc, fk_product, price, compose_fourni, quantity";
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
 						$sql.= " WHERE rowid = ".$ofLigne->fk_product_fournisseur_price;
-						$resql = $db->query($sql);						
+						$resql = $db->query($sql);
+
+						$res = $db->fetch_object($resql);
 						
+						// Si composé fourni
+						if($res->compose_fourni) {
 						
-						$res = $db->fetch_object($resql);	
-						
-						// On cherche s'il existe une commande pour ce fournisseur
-						$sql2 = "SELECT rowid";
-						$sql2.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
-						$sql2.= " WHERE fk_soc = ".$res->fk_soc;
-						$sql2.= " ORDER BY rowid DESC";
-						$sql2.= " LIMIT 1";
-						$resql2 = $db->query($sql2);
-						
-						$res2 = $db->fetch_object($resql2);
-						if($res2) { // Il existe une commande
-							$com = new CommandeFournisseur($db);
-							$com->fetch($res2->rowid);
-						} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
-							$com = new CommandeFournisseur($db);
-							$com->socid = $res->fk_soc;
-							$com->create($user);
+							// On charge le produit "TO_MAKE"
+							$prod = new Product($db);
+							$prod->fetch($ofLigne->fk_product);
+							$prod->load_stock();
+							
+							$stockProd = 0;
+							
+							// On récupère son stock
+							foreach($prod->stock_warehouse as $stock) {
+								$stockProd += $stock->real;
+							}
+							
+							// S'il y a suffisemment de stock, on destocke
+							// Sinon, commande fournisseur, et kill OF enfants :
+							if($stockProd < $ofLigne->qty_needed) {
+								// On cherche s'il existe une commande pour ce fournisseur
+								$sql2 = "SELECT rowid";
+								$sql2.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
+								$sql2.= " WHERE fk_soc = ".$res->fk_soc;
+								$sql2.= " ORDER BY rowid DESC";
+								$sql2.= " LIMIT 1";
+								$resql2 = $db->query($sql2);
+								
+								$res2 = $db->fetch_object($resql2);
+		
+								if($res2) { // Il existe une commande
+									$com = new CommandeFournisseur($db);
+									$com->fetch($res2->rowid);
+								} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
+									$com = new CommandeFournisseur($db);
+									$com->socid = $res->fk_soc;
+									$com->create($user);
+								}
+								
+								// On ajoute une ligne pour cette commande et pour ce produit
+								// TODO addline fonctionne pas : "qte insuffisante pour ce fournisseur"
+								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product);
+								
+								// On récupère les OF enfants pour les supprimer
+								$tabOFToDelete = array();
+								$this->getListeOFEnfants($ATMdb, $tabOFToDelete, $assetOF->getId());
+
+								foreach($tabOFToDelete as $idOF) {
+								
+									$this->removeChild("TAssetOF", $idOF);
+									$this->save($ATMdb);
+									
+								}
+
+							} else { // Suffisemment de stock, donc destockage :
+								$assetOF->openOF($ATMdb);
+							}
+						}
+
+					} else { // Fournisseur interne (Bourguignon)
+					
+						if($ofLigne->fk_product_fournisseur_price == -1) { // Composé non fourni, kill OF enfants
+							
+							$tabOFToDelete = array();
+							$this->getListeOFEnfants($ATMdb, $tabOFToDelete, $assetOF->getId());
+							
+							foreach($tabOFToDelete as $idOF) {
+							
+								$this->removeChild("TAssetOF", $idOF);
+								$this->save($ATMdb);
+								
+							}
+							
+						} elseif($ofLigne->fk_product_fournisseur_price == -2){ // Composé fourni
+							$prod = new Product($db);
+							$prod->fetch($ofLigne->fk_product);
+							$prod->load_stock();
+							
+							$stockProd = 0;
+							
+							// On récupère son stock
+							foreach($prod->stock_warehouse as $stock) {
+								$stockProd += $stock->real;
+							}	
+							
+							// S'il y a sufisemment de stock, on destocke
+							if($stockProd >= $ofLigne->qty_needed) {
+								$assetOF->openOF($ATMdb);
+							}
+													
 						}
 						
-						// On ajoute une ligne pour cette commande et pour ce produit
-						
-						$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva);
-						
-						
-						/*if($res->compose_fourni) {
-							
-						} else {
-
-						}*/
-						
-						echo "<pre>";
-						print_r($res);
-						echo "<pre>";
-						exit;
-
 					}
 					
 				}
@@ -372,11 +406,7 @@ class TAssetOF extends TObjetStd{
 			}
 			
 		}
-		
-		/*echo "<pre>";
-		print_r($Tab);
-		echo "</pre>";
-		exit;*/
+
 	}
 	
 	static function ordre($ordre='ASAP'){
