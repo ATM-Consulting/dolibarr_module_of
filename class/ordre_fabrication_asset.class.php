@@ -302,7 +302,7 @@ class TAssetOF extends TObjetStd{
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
 
 						// On récupère la ligne prix fournisseur correspondante
-						$sql = "SELECT fk_soc, fk_product, price, compose_fourni, quantity";
+						$sql = "SELECT rowid, fk_soc, fk_product, price, compose_fourni, quantity, ref_fourn";
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
 						$sql.= " WHERE rowid = ".$ofLigne->fk_product_fournisseur_price;
 						$resql = $db->query($sql);
@@ -347,8 +347,7 @@ class TAssetOF extends TObjetStd{
 								}
 								
 								// On ajoute une ligne pour cette commande et pour ce produit
-								// TODO addline fonctionne pas : "qte insuffisante pour ce fournisseur"
-								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product);
+								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product, $res->rowid);
 								
 								// On récupère les OF enfants pour les supprimer
 								$tabOFToDelete = array();
@@ -364,6 +363,40 @@ class TAssetOF extends TObjetStd{
 							} else { // Suffisemment de stock, donc destockage :
 								$assetOF->openOF($ATMdb);
 							}
+						} else { //Composé non fourni
+						
+							// On cherche s'il existe une commande pour ce fournisseur
+							$sql3 = "SELECT rowid";
+							$sql3.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
+							$sql3.= " WHERE fk_soc = ".$res->fk_soc;
+							$sql3.= " ORDER BY rowid DESC";
+							$sql3.= " LIMIT 1";
+							$resql3 = $db->query($sql3);
+							
+							$res3 = $db->fetch_object($resql3);
+	
+							if($res3) { // Il existe une commande
+								$com = new CommandeFournisseur($db);
+								$com->fetch($res3->rowid);
+							} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
+								$com = new CommandeFournisseur($db);
+								$com->socid = $res->fk_soc;
+								$com->create($user);
+							}
+							
+							// On ajoute une ligne pour cette commande et pour ce produit
+							$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product, $res->rowid);
+							
+							// On récupère les OF enfants pour les supprimer
+							$tabOFToDelete = array();
+							$this->getListeOFEnfants($ATMdb, $tabOFToDelete, $assetOF->getId());
+
+							foreach($tabOFToDelete as $idOF) {
+							
+								$this->removeChild("TAssetOF", $idOF);
+								$this->save($ATMdb);
+								
+							}							
 						}
 
 					} else { // Fournisseur interne (Bourguignon)
