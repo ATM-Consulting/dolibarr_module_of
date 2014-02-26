@@ -366,8 +366,21 @@ class TAssetOF extends TObjetStd{
 									$com->create($user);
 								}
 								
-								// On ajoute une ligne pour cette commande et pour ce produit
-								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product, $res->rowid);
+								// On cherche si ce produit existe déjà dans la commande, si oui, : "updateline"
+								foreach($com->lines as $line) {
+									if($line->fk_product == $res->fk_product) {
+										$com->updateline($line->id, $line->desc, $line->subprice, $line->qty+$ofLigne->qty, $line->remise_percent, $line->tva_tx);
+										$done = true;
+										break;
+									}
+								}
+								
+								if(!$done) {
+									
+									// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
+									$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty, $txtva, 0, 0, $res->fk_product, $res->rowid);
+									
+								}
 								
 							} else { // Suffisemment de stock, donc destockage :
 								$assetOF->openOF($ATMdb);
@@ -393,8 +406,21 @@ class TAssetOF extends TObjetStd{
 								$com->create($user);
 							}
 							
-							// On ajoute une ligne pour cette commande et pour ce produit
-							$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product, $res->rowid);
+							// On cherche si ce produit existe déjà dans la commande, si oui, : "updateline"
+							foreach($com->lines as $line) {
+								if($line->fk_product == $res->fk_product) {
+									$com->updateline($line->id, $line->desc, $line->subprice, $line->qty+$ofLigne->qty, $line->remise_percent, $line->tva_tx);
+									$done = true;
+									break;
+								}
+							}
+							
+							if(!$done) {
+								
+								// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
+								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty, $txtva, 0, 0, $res->fk_product, $res->rowid);
+								
+							}
 							
 							// On récupère les OF enfants pour les supprimer
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
@@ -425,7 +451,7 @@ class TAssetOF extends TObjetStd{
 							$assetOF->save($ATMdb);
 							
 							// On casse la boucle
-							break;							
+							break;
 							
 						} elseif($ofLigne->fk_product_fournisseur_price == -2){ // Composé fourni
 							$prod = new Product($db);
