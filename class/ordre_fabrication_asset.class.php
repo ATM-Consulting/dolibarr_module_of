@@ -277,6 +277,26 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
+	private function getEnfantsDirects() {
+		
+		global $db;
+		
+		$TabIdEnfants = array();
+		
+		$sql = "SELECT rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
+		$sql.= " WHERE fk_assetOf_parent = ".$this->rowid;
+		
+		$resql = $db->query($sql);
+		
+		while($res = $db->fetch_object($resql)) {
+			$TabIdEnfants[] = $res->rowid;
+		}
+		
+		return $TabIdEnfants;
+		
+	}
+	
 	function createOfAndCommandesFourn(&$ATMdb) {
 		global $db, $user;
 		
@@ -325,7 +345,7 @@ class TAssetOF extends TObjetStd{
 							}
 							
 							// S'il y a suffisemment de stock, on destocke
-							// Sinon, commande fournisseur, et kill OF enfants :
+							// Sinon, commande fournisseur :
 							if($stockProd < $ofLigne->qty_needed) {
 								// On cherche s'il existe une commande pour ce fournisseur
 								$sql2 = "SELECT rowid";
@@ -337,7 +357,7 @@ class TAssetOF extends TObjetStd{
 								
 								$res2 = $db->fetch_object($resql2);
 		
-								if($res2) { // Il existe une commande
+								if($res2) { // Il existe une commande, on la charge
 									$com = new CommandeFournisseur($db);
 									$com->fetch($res2->rowid);
 								} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
@@ -349,17 +369,6 @@ class TAssetOF extends TObjetStd{
 								// On ajoute une ligne pour cette commande et pour ce produit
 								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product, $res->rowid);
 								
-								// On récupère les OF enfants pour les supprimer
-								$tabOFToDelete = array();
-								$this->getListeOFEnfants($ATMdb, $tabOFToDelete, $assetOF->getId());
-
-								foreach($tabOFToDelete as $idOF) {
-								
-									$this->removeChild("TAssetOF", $idOF);
-									$this->save($ATMdb);
-									
-								}
-
 							} else { // Suffisemment de stock, donc destockage :
 								$assetOF->openOF($ATMdb);
 							}
@@ -375,7 +384,7 @@ class TAssetOF extends TObjetStd{
 							
 							$res3 = $db->fetch_object($resql3);
 	
-							if($res3) { // Il existe une commande
+							if($res3) { // Il existe une commande, on la charge
 								$com = new CommandeFournisseur($db);
 								$com->fetch($res3->rowid);
 							} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
@@ -388,30 +397,35 @@ class TAssetOF extends TObjetStd{
 							$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty_needed, $txtva, 0, 0, $res->fk_product, $res->rowid);
 							
 							// On récupère les OF enfants pour les supprimer
-							$tabOFToDelete = array();
-							$this->getListeOFEnfants($ATMdb, $tabOFToDelete, $assetOF->getId());
-
-							foreach($tabOFToDelete as $idOF) {
+							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
 							
-								$this->removeChild("TAssetOF", $idOF);
-								$this->save($ATMdb);
-								
-							}							
+							foreach($TabIdEnfantsDirects as $idOF) {
+							
+								$assetOF->removeChild("TAssetOF", $idOF);
+							}
+
+							$assetOF->save($ATMdb);
+							
+							// On casse la boucle
+							break;
+							
 						}
 
 					} else { // Fournisseur interne (Bourguignon)
 					
 						if($ofLigne->fk_product_fournisseur_price == -1) { // Composé non fourni, kill OF enfants
 							
-							$tabOFToDelete = array();
-							$this->getListeOFEnfants($ATMdb, $tabOFToDelete, $assetOF->getId());
+							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
 							
-							foreach($tabOFToDelete as $idOF) {
+							foreach($TabIdEnfantsDirects as $idOF) {
 							
-								$this->removeChild("TAssetOF", $idOF);
-								$this->save($ATMdb);
-								
+								$assetOF->removeChild("TAssetOF", $idOF);
 							}
+
+							$assetOF->save($ATMdb);
+							
+							// On casse la boucle
+							break;							
 							
 						} elseif($ofLigne->fk_product_fournisseur_price == -2){ // Composé fourni
 							$prod = new Product($db);
