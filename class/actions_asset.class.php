@@ -92,7 +92,10 @@ class ActionsAsset
 						type: "POST"
 						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
 						,dataType: "json"
-						,data: {fk_product: $('#product_id').val()}
+						,data: {
+							fk_product: $('#product_id').val(),
+							fk_soc : <?=$object->socid; ?>
+							}
 						},"json").then(function(select){
 							if(select.length > 0){
 								$.each(select, function(i,option){
@@ -141,7 +144,10 @@ class ActionsAsset
 						type: "POST"
 						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
 						,dataType: "json"
-						,data: {fk_product: $('#idprod').val()}
+						,data: {
+							fk_product: $('#idprod').val(),
+							fk_soc : <?= $object->socid; ?>
+							}
 						},"json").then(function(select){
 							if(select.length > 0){
 								$('#lotAff').empty().show();

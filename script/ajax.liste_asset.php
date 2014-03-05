@@ -8,6 +8,15 @@ $langs->load('other');
 if(isset($_REQUEST['fk_product'])){
 	$id = $_REQUEST['fk_product'];
 }
+else {
+	return false;
+}
+if(isset($_REQUEST['fk_soc'])){
+	$socid = $_REQUEST['fk_soc'];
+}
+else {
+	return false;
+}
 
 $ATMdb = new Tdb;
 $Tres = array();
@@ -16,6 +25,7 @@ $sql = "SELECT rowid, serial_number, lot_number, contenancereel_value, contenanc
 		FROM ".MAIN_DB_PREFIX."asset
 		WHERE fk_product = ".$id."
 		AND contenancereel_value > 0
+		AND fk_soc = ".$socid."
 		ORDER BY contenancereel_value DESC";
 		
 $ATMdb->Execute($sql);
