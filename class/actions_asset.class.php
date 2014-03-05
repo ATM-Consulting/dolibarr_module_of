@@ -24,22 +24,28 @@ class ActionsAsset
 		print_r($object);
 		echo '</pre>';exit;*/
 
-		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
+		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context']))) 
         {
         	define('INC_FROM_DOLIBARR',true);
-        	dol_include_once("/asset/config.php");
-			dol_include_once('/asset/class/asset.class.php');
+        	dol_include_once("/custom/asset/config.php");
+			dol_include_once("/custom/asset/class/asset.class.php");
 			
         	foreach($object->lines as $line){
         		/*echo '<pre>';
 				print_r($object);
-				echo '</pre>';*/
-	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->rowid);
+				echo '</pre>';exit;*/
+				
+	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->id);
 				$res = $db->fetch_object($resql);
 				
-				$ATMdb = new Tdb;
-				$asset = new TAsset();
+				$ATMdb = new TPDOdb;
+				$asset = new TAsset;
 				$asset->load($ATMdb, $res->asset_lot);
+				
+				/*echo '<pre>';
+				print_r($asset);
+				echo '</pre>';exit;*/
+				
 				$link = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),1).'">'.$asset->serial_number.'</a>';
 				
 				if(!is_null($res->asset_lot))
@@ -47,7 +53,7 @@ class ActionsAsset
 		        	?> 
 					<script type="text/javascript">
 						$(document).ready(function(){
-							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - <?= $langs->trans('Asset'); ?> : <?php echo $link; ?>');
+							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - <?= $langs->trans('Asset'); ?> : <?= $link; ?>');
 						});
 					</script>
 					<?php
@@ -69,14 +75,14 @@ class ActionsAsset
 		echo '</pre>';exit;*/
 		
 		//Commandes et Factures
-    	if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
+    	if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context'])))
         {
         	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$parameters["line"]->rowid);
 			$res = $db->fetch_object($resql);
         	?> 
 			<script type="text/javascript">
 			$(document).ready(function(){
-				$('input[name=token]').prev().append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
+				$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
 				$('#product_desc').before('<div><span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
 				$('#lotAff').change(function(){
 					$('#lot').val( $('#lotAff option:selected').val() );
@@ -84,7 +90,7 @@ class ActionsAsset
 				$('#product_id').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 1) ?>"
+						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
 						,dataType: "json"
 						,data: {fk_product: $('#product_id').val()}
 						},"json").then(function(select){
@@ -95,7 +101,7 @@ class ActionsAsset
 									else
 										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
 								})
-								$('#lotAff').prepend('<option value="0">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+								$('#lotAff').prepend('<option value="0">S&eacute;le ctionnez un <?= $langs->trans('Asset'); ?></option>');
 							}
 						});
 				});
@@ -128,7 +134,7 @@ class ActionsAsset
         {
         	?> 
 			<script type="text/javascript">
-				$('#addpredefinedproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
+				$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
 				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
 				$('#idprod').change( function(){
 					$.ajax({
@@ -174,7 +180,7 @@ class ActionsAsset
 		print_r($object);
 		echo '</pre>';exit;*/
 		
-		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
+		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context']))) 
         {
         	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$object->id);
 			$res = $db->fetch_object($resql);

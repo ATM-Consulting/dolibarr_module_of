@@ -45,5 +45,8 @@
 	$o=new TAssetWorkstationProduct;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetPropaldet;
+	$o->init_db_by_vars($ATMdb);
+	
 	$ATMdb->Execute("REPLACE INTO `llx_extrafields` (`rowid`, `name`, `entity`, `elementtype`, `tms`, `label`, `type`, `size`, `fieldunique`, `fieldrequired`, `pos`, `param`) VALUES
 (40, 'type_asset', 1, 'product', '2013-12-04 13:27:49', 'Type Equipement', 'sellist', '', 0, 0, 1, 'a:1:{s:7:\"options\";a:1:{s:24:\"asset_type:libelle:rowid\";N;}}');");

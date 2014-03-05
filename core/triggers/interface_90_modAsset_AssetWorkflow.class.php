@@ -133,6 +133,28 @@ class InterfaceAssetWorkflow
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
+        
+         /*
+		 *  PROPAL
+		 */
+        if ($action == 'LINEPROPAL_INSERT')
+        {    
+			if(isset($_REQUEST['lot']) && !empty($_REQUEST['lot'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."propaldet SET asset_lot = \"".$_REQUEST['lot']."\" WHERE rowid = ".$object->rowid);
+			}
+			
+			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
+
+        }
+        elseif ($action == 'LINEPROPAL_UPDATE')
+        {
+        	if(isset($_REQUEST['lot']) && !empty($_REQUEST['lot'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."propaldet SET asset_lot = \"".$_REQUEST['lot']."\" WHERE rowid = ".$object->rowid);
+			}
+        	
+            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
+			
+        }
 		
 		/*
 		 *  FACTURES
