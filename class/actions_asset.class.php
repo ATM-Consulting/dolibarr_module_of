@@ -124,7 +124,7 @@ class ActionsAsset
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 		
-		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
+		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
         	?> 
 			<script type="text/javascript">
@@ -133,7 +133,7 @@ class ActionsAsset
 				$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_flacon.php', 1) ?>"
+						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
 						,dataType: "json"
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){

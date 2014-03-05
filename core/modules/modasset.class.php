@@ -75,7 +75,7 @@ class modAsset extends DolibarrModules
 		
 		
 		$this->module_parts = array(
-			'hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard')
+			'hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard','propalcard')
 			,'triggers' => 1
 		);
 		
