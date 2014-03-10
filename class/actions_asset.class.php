@@ -77,7 +77,7 @@ class ActionsAsset
 		//Commandes et Factures
     	if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context'])))
         {
-        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$parameters["line"]->rowid);
+        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$_REQUEST['lineid']);
 			$res = $db->fetch_object($resql);
         	?> 
 			<script type="text/javascript">
@@ -99,8 +99,10 @@ class ActionsAsset
 						},"json").then(function(select){
 							if(select.length > 0){
 								$.each(select, function(i,option){
-									if(option.flacon == "<?php echo $res->asset_lot; ?>")
+									if(option.flacon == "<?php echo $res->asset_lot; ?>"){
 										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
+										$('#lot').val(<?php echo $res->asset_lot; ?>);
+									}
 									else
 										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
 								})
