@@ -283,6 +283,20 @@ class TAssetCommandedet extends TObjetStdDolibarr{
 	}
 }
 
+class TAssetPropaldet extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'propaldet');	  
+		parent::add_champs('asset_lot','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
 class TAssetFacturedet extends TObjetStdDolibarr{
 /*
  * Liaison entre les lignes de facture et les lots 
