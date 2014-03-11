@@ -321,6 +321,17 @@ function _fiche_ligne(&$form, &$of, $type){
 						
 					$Tab[ $objPrice->rowid ] = ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')';
 					
+					/* ob_start()
+					 *  ?> <option value="51" composefourni="0" ofchild="5,3,7"> $( #select :selected).each(function() {  if($(this).attr('composefourni')==1  $(this).attr('ofchild').split(',')  }) <?  
+					 * $html = ob_get_clean() */
+					 
+				}
+				
+	 			foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
+	 				
+	 				/*<option value="<?=$objPrice->rowid?>" compose_fourni="<?=$objPrice->compose_fourni?1:0?>"><?($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'?></option>*/
+	 				$option.='<option value="'.$objPrice->rowid.'" compose_fourni="'.$objPrice->compose_fourni.'">'.($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'.'</option>';	
+	 				
 				}	
 				
 				$TRes[]= array(
@@ -330,6 +341,9 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
 					,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price ) : $Tab[$TAssetOFLine->fk_product_fournisseur_price]
+					
+					//,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? '<select class="flat" id="TAssetOFLine['.$k.'][fk_product_fournisseur_price]" name="TAssetOFLine['.$k.'][fk_product_fournisseur_price]">'.$option.'</select>' : $Tab[$TAssetOFLine->fk_product_fournisseur_price]
+					
 					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 				);
 			}
