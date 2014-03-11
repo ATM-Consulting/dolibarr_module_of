@@ -297,10 +297,51 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
+	private function addCommandeFourn($ofLigne, $resultatSQL) {
+
+		global $db, $user;
+		dol_include_once("fourn/class/fournisseur.commande.class.php");		
+		
+		// On cherche s'il existe une commande pour ce fournisseur
+		$sql = "SELECT rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
+		$sql.= " WHERE fk_soc = ".$resultatSQL->fk_soc;
+		$sql.= " ORDER BY rowid DESC";
+		$sql.= " LIMIT 1";
+		$resql = $db->query($sql);
+		
+		$res = $db->fetch_object($resql);
+
+		if($res) { // Il existe une commande, on la charge
+			$com = new CommandeFournisseur($db);
+			$com->fetch($res->rowid);
+		} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
+			$com = new CommandeFournisseur($db);
+			$com->socid = $resultatSQL->fk_soc;
+			$com->create($user);
+		}
+		
+		// On cherche si ce produit existe déjà dans la commande, si oui, : "updateline"
+		foreach($com->lines as $line) {
+			if($line->fk_product == $resultatSQL->fk_product) {
+				$com->updateline($line->id, $line->desc, $line->subprice, $line->qty+$ofLigne->qty, $line->remise_percent, $line->tva_tx);
+				$done = true;
+				break;
+			}
+		}
+		
+		if(!$done) {
+			
+			// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
+			$com->addline($desc, $resultatSQL->price/$resultatSQL->quantity, $ofLigne->qty, $txtva, 0, 0, $resultatSQL->fk_product, $resultatSQL->rowid);
+			
+		}		
+	}
+	
 	function createOfAndCommandesFourn(&$ATMdb) {
 		global $db, $user;
 		
-		dol_include_once("fourn/class/fournisseur.commande.class.php");		
+		dol_include_once("fourn/class/fournisseur.commande.class.php");
 		
 		$TabOF = array();
 		$TabOF[] = $this->rowid;
@@ -320,7 +361,7 @@ class TAssetOF extends TObjetStd{
 				if($ofLigne->type == "TO_MAKE") {
 					
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
-
+					
 						// On récupère la ligne prix fournisseur correspondante
 						$sql = "SELECT rowid, fk_soc, fk_product, price, compose_fourni, quantity, ref_fourn";
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
@@ -347,81 +388,16 @@ class TAssetOF extends TObjetStd{
 							// S'il y a suffisemment de stock, on destocke
 							// Sinon, commande fournisseur :
 							if($stockProd < $ofLigne->qty_needed) {
-								// On cherche s'il existe une commande pour ce fournisseur
-								$sql2 = "SELECT rowid";
-								$sql2.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
-								$sql2.= " WHERE fk_soc = ".$res->fk_soc;
-								$sql2.= " ORDER BY rowid DESC";
-								$sql2.= " LIMIT 1";
-								$resql2 = $db->query($sql2);
 								
-								$res2 = $db->fetch_object($resql2);
-		
-								if($res2) { // Il existe une commande, on la charge
-									$com = new CommandeFournisseur($db);
-									$com->fetch($res2->rowid);
-								} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
-									$com = new CommandeFournisseur($db);
-									$com->socid = $res->fk_soc;
-									$com->create($user);
-								}
-								
-								// On cherche si ce produit existe déjà dans la commande, si oui, : "updateline"
-								foreach($com->lines as $line) {
-									if($line->fk_product == $res->fk_product) {
-										$com->updateline($line->id, $line->desc, $line->subprice, $line->qty+$ofLigne->qty, $line->remise_percent, $line->tva_tx);
-										$done = true;
-										break;
-									}
-								}
-								
-								if(!$done) {
-									
-									// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
-									$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty, $txtva, 0, 0, $res->fk_product, $res->rowid);
-									
-								}
-								
+								$this->addCommandeFourn($ofLigne, $res);
+
 							} else { // Suffisemment de stock, donc destockage :
 								$assetOF->openOF($ATMdb);
 							}
 						} else { //Composé non fourni
 						
-							// On cherche s'il existe une commande pour ce fournisseur
-							$sql3 = "SELECT rowid";
-							$sql3.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
-							$sql3.= " WHERE fk_soc = ".$res->fk_soc;
-							$sql3.= " ORDER BY rowid DESC";
-							$sql3.= " LIMIT 1";
-							$resql3 = $db->query($sql3);
-							
-							$res3 = $db->fetch_object($resql3);
-	
-							if($res3) { // Il existe une commande, on la charge
-								$com = new CommandeFournisseur($db);
-								$com->fetch($res3->rowid);
-							} else { // Il n'existe aucune commande pour ce fournisseur donc on en crée une nouvelle
-								$com = new CommandeFournisseur($db);
-								$com->socid = $res->fk_soc;
-								$com->create($user);
-							}
-							
-							// On cherche si ce produit existe déjà dans la commande, si oui, : "updateline"
-							foreach($com->lines as $line) {
-								if($line->fk_product == $res->fk_product) {
-									$com->updateline($line->id, $line->desc, $line->subprice, $line->qty+$ofLigne->qty, $line->remise_percent, $line->tva_tx);
-									$done = true;
-									break;
-								}
-							}
-							
-							if(!$done) {
-								
-								// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
-								$com->addline($desc, $res->price/$res->quantity, $ofLigne->qty, $txtva, 0, 0, $res->fk_product, $res->rowid);
-								
-							}
-							
+							$this->addCommandeFourn($ofLigne, $res);
+
 							// On récupère les OF enfants pour les supprimer
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
 							
