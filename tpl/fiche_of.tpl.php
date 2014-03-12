@@ -38,7 +38,7 @@
 						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer la production">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='OPEN']
-						&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
+						&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
 					[onshow;block=end]
 					[onshow;block=end]
 					</span>
@@ -150,8 +150,8 @@
 	<div class="tabsAction notinparentview">
 		
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
-		&nbsp; &nbsp; <a href="?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
-
+		&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
+		&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
 		
 	</div>
 [onshow;block=end]
@@ -214,13 +214,21 @@
 			
 			var Tid = new Array([assetOf.idChild;strconv=no;]);
 		
-			if(Tid.length==0) {
+			if(Tid.length==0 || 1) {
 				$('#assetChildContener').hide();
 			}
 			else {
 				for(x in Tid ){
 				
-					$.get("fiche_of.php?action=[view.actionChild]&id="+Tid[x], function(data) {
+					$.ajax({
+						url : "[assetOf.url]"
+						,data:{
+							action:"[view.actionChild]"
+							,id:Tid[x]
+						}
+						,type: 'POST'
+					}).done(function(data) {
+					
 						var html = $(data).find('div.OFMaster');
 						
 						var id_form = html.find('form').attr('id');
@@ -228,6 +236,7 @@
 						$('#assetChildContener').append(html);
 						
 						$('#assetChildContener .notinparentview').remove();
+
 						refreshDisplay();
 						
 								$("#"+id_form).submit(function() {

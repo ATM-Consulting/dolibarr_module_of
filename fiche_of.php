@@ -141,7 +141,7 @@ function _action() {
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste_of.php?delete_ok=1";					
+					document.location.href="<?=dol_buildpath('/asset/liste_of.php',1); ?>?delete_ok=1";					
 				</script>
 				<?
 				
