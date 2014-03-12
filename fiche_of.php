@@ -1,7 +1,6 @@
 <?php
 
 require('config.php');
-
 require('./class/asset.class.php');
 require('./class/ordre_fabrication_asset.class.php');
 require('./lib/asset.lib.php');
@@ -286,14 +285,6 @@ function generateODTOF(&$PDOdb) {
 
 }
 
-print '<a name="createFileOF" class="butAction" href="'.DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$_REQUEST['id'].'&action=createDocOF">'.$langs->trans("createOFFile").'</a>';
-
-?>
-	<script>
-		$("[name=createFileOF]").appendTo("div.OFContent div.tabsAction");
-	</script>
-<?
-
 
 function _fiche_ligne(&$form, &$of, $type){
 		global $db, $conf;
@@ -441,6 +432,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 				
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
+				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
 			)
 			,'view'=>array(
 				'mode'=>$mode
