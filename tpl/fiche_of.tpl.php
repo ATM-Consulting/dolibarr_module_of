@@ -214,7 +214,7 @@
 			
 			var Tid = new Array([assetOf.idChild;strconv=no;]);
 		
-			if(Tid.length==0 || 1) {
+			if(Tid.length==0) {
 				$('#assetChildContener').hide();
 			}
 			else {
