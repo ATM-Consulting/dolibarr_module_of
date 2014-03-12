@@ -223,20 +223,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
-					'type'=>'top',			// This is a Top menu entry
-					'titre'=>'Ordre de Fabrication',
-					'mainmenu'=>'assetOF',
-					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/asset/liste_of.php',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-					'position'=>100,
-					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-	
+		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'Equipement',
@@ -266,7 +253,7 @@ class modAsset extends DolibarrModules
 		$r++;
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Ordre de Fabrication',
 					'mainmenu'=>'assetOF',
@@ -280,7 +267,7 @@ class modAsset extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Nouvel ordre de Fabrication',
 					'mainmenu'=>'newassetOF',
@@ -296,7 +283,7 @@ class modAsset extends DolibarrModules
 
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Poste de travail',
 					'mainmenu'=>'assetOF',
@@ -311,7 +298,7 @@ class modAsset extends DolibarrModules
 		$r++;
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF,fk_leftmenu=workstation',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstation',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Nouveau poste de travail',
 					'mainmenu'=>'newworkstation',
