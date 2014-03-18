@@ -32,10 +32,10 @@ class ActionsAsset
 			
         	foreach($object->lines as $line){
         		/*echo '<pre>';
-				print_r($object);
+				print_r($object);rowid
 				echo '</pre>';exit;*/
 				
-	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->id);
+	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->rowid);
 				$res = $db->fetch_object($resql);
 				
 				$ATMdb = new TPDOdb;
