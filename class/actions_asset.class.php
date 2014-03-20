@@ -9,11 +9,13 @@ class ActionsAsset
       */
       
     function doActions($parameters, &$object, &$action, $hookmanager) {
+    	//exit('1');
     	/*echo '<pre>';
     	print_r($object);
 		echo '</pre>';
 		echo $object->fourn_ref;
 		$object->fourn_ref.="coucou";*/
+		return 0;
 	}
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
