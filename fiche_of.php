@@ -46,7 +46,14 @@ function _action() {
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
 				
-				_fiche($PDOdb, $assetOf,'new');
+				$fk_product = __get('fk_product',0,'int');
+				if($fk_product>0) {
+					
+					$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE');
+				}
+				
+				
+				_fiche($PDOdb, $assetOf,'edit');
 
 				break;
 
@@ -71,6 +78,7 @@ function _action() {
 			
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
 			
@@ -408,6 +416,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 		
 	}
 	
+	$client=new Societe($db);
+	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
 	
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 	
@@ -427,6 +437,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
+				
+				,'fk_soc'=> ($mode=='edit') ? $html->select_company($assetOf->fk_soc,'socid','client=1',1) : $client->nom
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				

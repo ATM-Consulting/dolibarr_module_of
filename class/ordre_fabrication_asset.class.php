@@ -25,7 +25,7 @@ class TAssetOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_user,fk_assetOf_parent','type=entier;index;');
+		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc','type=entier;index;');
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
@@ -40,6 +40,8 @@ class TAssetOF extends TObjetStd{
 		$this->setChild('TAssetWorkstationOF','fk_assetOf');
 		$this->setChild('TAssetOF','fk_assetOf_parent');
 		
+		$this->date_besoin = time();
+		$this->date_lancement = time();
 	}
 	
 	function load(&$db, $id) {

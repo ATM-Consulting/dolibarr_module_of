@@ -9,10 +9,10 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	
-	_liste($user->entity);
+	_liste();
 
-function _liste($id_entity) {
-	global $langs,$db,$user;
+function _liste() {
+	global $langs,$db,$user,$conf;
 	
 	$langs->load('asset@asset');
 	
@@ -25,7 +25,11 @@ function _liste($id_entity) {
 		<?
 	}
 	
-	if(isset($_REQUEST['fk_product'])){
+	$fk_soc=__get('fk_soc',0,'integer');
+	$fk_product=__get('fk_product',0,'integer');;
+	
+	
+	if($fk_product>0){
 		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
 		else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		
@@ -37,27 +41,27 @@ function _liste($id_entity) {
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
 		$picto=($product->type==1?'service':'product');
-		dol_fiche_head($head, 'tabEquipement2', $titre, 0, $picto);
+		dol_fiche_head($head, 'tabOF2', $titre, 0, $picto);
 	}
 	
 	$form=new TFormCore;
 
-	$fields ="ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user"; 
-	
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 	
-	$sql="SELECT ".$fields."
-		  FROM ".MAIN_DB_PREFIX."assetOf as ofe
-		  WHERE 1 ";
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
+		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid) 
+		  
+	WHERE ofe.entity=".$conf->entity." 
+	";
 	
-	$fk_soc=0;$fk_product=0;
-	if(isset($_REQUEST['fk_soc'])) {$sql.=" AND e.fk_soc=".$_REQUEST['fk_soc']; $fk_soc=$_REQUEST['fk_soc'];}
+	
+	if($fk_soc>0) {$sql.=" AND ofe.fk_soc=".$fk_soc; }
+	if($fk_product>0) {$sql.=" AND ofel.fk_product=".$fk_product;}
 	//if(isset($_REQUEST['fk_product'])){$sql.=" AND e.fk_product=".$_REQUEST['fk_product']; $fk_product=$_REQUEST['fk_product'];}
 	
-	if($id_entity!=0) {
-		$sql.= ' AND ofe.entity='.$id_entity;		
-	}
+	$sql.=" GROUP BY ofe.rowid ";
+	
 	/*if(isset($_REQUEST['fk_product'])) {
 		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		
 	}*/

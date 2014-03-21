@@ -9,11 +9,13 @@ class ActionsAsset
       */
       
     function doActions($parameters, &$object, &$action, $hookmanager) {
+    	//exit('1');
     	/*echo '<pre>';
     	print_r($object);
 		echo '</pre>';
 		echo $object->fourn_ref;
 		$object->fourn_ref.="coucou";*/
+		return 0;
 	}
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
@@ -32,10 +34,10 @@ class ActionsAsset
 			
         	foreach($object->lines as $line){
         		/*echo '<pre>';
-				print_r($object);
+				print_r($object);rowid
 				echo '</pre>';exit;*/
 				
-	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->id);
+	        	$resql = $db->query('SELECT asset_lot FROM '.MAIN_DB_PREFIX.$object->table_element_line.' WHERE rowid = '.$line->rowid);
 				$res = $db->fetch_object($resql);
 				
 				$ATMdb = new TPDOdb;
