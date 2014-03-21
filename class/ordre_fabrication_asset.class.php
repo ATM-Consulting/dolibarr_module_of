@@ -40,6 +40,8 @@ class TAssetOF extends TObjetStd{
 		$this->setChild('TAssetWorkstationOF','fk_assetOf');
 		$this->setChild('TAssetOF','fk_assetOf_parent');
 		
+		$this->date_besoin = time();
+		$this->date_lancement = time();
 	}
 	
 	function load(&$db, $id) {

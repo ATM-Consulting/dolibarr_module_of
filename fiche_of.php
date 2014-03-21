@@ -46,7 +46,15 @@ function _action() {
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
 				
-				_fiche($PDOdb, $assetOf,'new');
+				$fk_product = __get('fk_product',0,'int');
+				if($fk_product>0) {
+					
+					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
+					
+				}
+				
+				
+				_fiche($PDOdb, $assetOf,'edit');
 
 				break;
 
