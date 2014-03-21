@@ -15,8 +15,9 @@
 [onshow;block=end]				
 	<div class="OFMaster">		
 		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
-				<input type="HIDDEN" value="save" name="action">		
-				<input type="HIDDEN" value="[assetOf.id]" name="id">
+				<input type="hidden" value="save" name="action">		
+				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">		
+				<input type="hidden" value="[assetOf.id]" name="id">
 				
 				
 			<table width="100%" class="border">
@@ -242,6 +243,8 @@
 						
 								$("#"+id_form).submit(function() {
 									$.post($(this).attr('action'), $( this ).serialize() );
+						
+									$(this).css('border' , '5px solid green');
 						
 									$.jnotify('Modifications enregistr&eacute;es', "ok");   
 						
