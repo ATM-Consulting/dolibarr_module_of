@@ -2,7 +2,7 @@
 	[view.liste;strconv=no]
 
 	<div class="tabsAction">
-			<input type="submit" value="Enregistrer" name="bt_save" />
+			<input class="butAction" type="submit" value="Enregistrer" name="bt_save" />
 			<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
 	</div>
 	<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">

@@ -233,7 +233,7 @@ global $conf;
 	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
 	 LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_of wsof ON (wsof.fk_asset_workstation=ws.rowid)
 	 
-	WHERE entity=".$conf->entity;
+	WHERE entity=".$conf->entity.' GROUP BY ws.rowid';
 
 	$fk_product = __get('id_product',0,'integer');
 	if($fk_product>0)$sql.=" AND wsp.fk_product=".$fk_product;
