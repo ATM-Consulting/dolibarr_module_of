@@ -408,6 +408,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 		
 	}
 	
+	$client=new Societe($db);
+	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
 	
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 	
@@ -427,6 +429,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
+				
+				,'fk_soc'=> ($mode=='edit') ? $html->select_company($assetOf->fk_soc,'socid','client=1',1) : $client->nom
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				

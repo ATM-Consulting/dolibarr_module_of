@@ -131,6 +131,7 @@ class modAsset extends DolibarrModules
 		$this->tabs = array(
 			'product:+tabEquipement1:'.$langs->trans('Asset').':@asset:/asset/liste.php?fk_product=__ID__'
 			,'product:+tabOF1:'.$langs->trans('WorkStation').':@asset:/asset/workstation.php?fk_product=__ID__'
+			,'product:+tabOF2:'.$langs->trans('OF').':@asset:/asset/liste_of.php?fk_product=__ID__'
 			//,'product:+tabEquipement2:Ordre de Fabrication:@asset:/asset/liste_of.php?fk_product=__ID__'
 			//,'product:+tabEquipement2:Attribut équipement:@asset:/asset/attribut.php?fk_product=__ID__&action=edit'
 		);
