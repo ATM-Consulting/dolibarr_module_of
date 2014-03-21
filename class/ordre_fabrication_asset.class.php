@@ -627,18 +627,9 @@ class TAssetWorkstationProduct extends TObjetStd{
 		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
 		$this->add_champs('nb_hour','type=float;'); // nombre d'heure associé au poste de charge et au produit
 		
-	    $this->start();
-	}
-	
-	
-	static function getWorstations(&$ATMdb) {
-		$TWorkstation=array();
-		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
-		$ATMdb->Execute($sql);
-		while($ATMdb->Get_line()){
-			$TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
-		}
-		return $TWorkstation;
+		$this->start();
+		
+		$this->nb_hour=0;
 	}
 	
 }

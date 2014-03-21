@@ -8,67 +8,180 @@
 	
 	
 	$action=__get('action','list');
+	$fk_product=__get('fk_product',0,'integer');;
+	
 	$ATMdb=new TPDOdb;
 	
 	llxHeader('',$langs->trans('workstation'),'','');
 	
-	switch($action) {
+	if($fk_product>0) {
 		
-		case 'save':
-			$ws=new TAssetWorkstation;
-			$ws->load($ATMdb, __get('id',0,'integer'));
-			$ws->set_values($_REQUEST);
-			$ws->save($ATMdb);
+		switch($action) {
 			
-			_fiche($ATMdb, $ws);
+			case 'add':
+				
+				$fk_asset_workstation = __get('fk_asset_workstation',0,'int');
+				
+				$wsp = new TAssetWorkstationProduct;
+				$wsp->fk_product = $fk_product;
+				$wsp->fk_asset_workstation = $fk_asset_workstation;
+				$wsp->save($ATMdb);
+				
+				_liste_link($ATMdb, $fk_product);
+				
+				break;
 			
-			break;
-		case 'view':
-			$ws=new TAssetWorkstation;
-			$ws->load($ATMdb, __get('id',0,'integer'));
+			case 'list':
+				
+				_liste_link($ATMdb, $fk_product);
+				
+				break;
 			
-			_fiche($ATMdb, $ws);
+			case 'save':
+				//var_dump($_REQUEST['TAssetWorkstationProduct']);
+				foreach($_REQUEST['TAssetWorkstationProduct'] as $id=>$row) {
+				
+					$wsp = new TAssetWorkstationProduct;
+					//$ATMdb->debug=true;
+					$wsp->load($ATMdb, $id);
+					$wsp->nb_hour = (double)$row[ 'nb_hour' ];
+					$wsp->save($ATMdb);
+					
+				}
+				
+				
+				_liste_link($ATMdb, $fk_product);
+				break;
 			
-			break;
+		}
 		
-		case 'edit':
-			$ws=new TAssetWorkstation;
-			$ws->load($ATMdb, __get('id',0,'integer'));
-			
-			_fiche($ATMdb, $ws,'edit');
-			
-			break;
+	}
+	else {
 		
-		case 'delete':
-		
-			$ws=new TAssetWorkstation;
-			$ws->load($ATMdb, __get('id',0,'integer'));
+		switch($action) {
 			
-			$ws->delete($ATMdb);
+			case 'save':
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+				$ws->set_values($_REQUEST);
+				$ws->save($ATMdb);
+				
+				_fiche($ATMdb, $ws);
+				
+				break;
+			case 'view':
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+				
+				_fiche($ATMdb, $ws);
+				
+				break;
 			
-			_liste($ATMdb);
+			case 'edit':
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+				
+				_fiche($ATMdb, $ws,'edit');
+				
+				break;
 			
-			break;
-		
-		case 'new':
+			case 'delete':
 			
-			$ws=new TAssetWorkstation;
-			$ws->set_values($_REQUEST);
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+				
+				$ws->delete($ATMdb);
+				
+				_liste($ATMdb);
+				
+				break;
 			
-			_fiche($ATMdb, $ws,'edit');
+			case 'new':
+				
+				$ws=new TAssetWorkstation;
+				$ws->set_values($_REQUEST);
+				
+				_fiche($ATMdb, $ws,'edit');
+				
+				break;
 			
-			break;
-		
-		case 'list':
+			case 'list':
+				
+				_liste($ATMdb);
+				
+				break;
 			
-			_liste($ATMdb);
 			
-			break;
-		
+		}
 		
 	}
 	
+	
 	llxFooter();
+
+function _liste_link(&$ATMdb, $fk_product) {
+global $db,$langs,$conf;	
+	
+	if($fk_product>0){
+		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
+		else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
+		
+		require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
+			
+		$product = new Product($db);
+		$result=$product->fetch($_REQUEST['fk_product']);	
+			
+		$head=product_prepare_head($product, $user);
+		$titre=$langs->trans("CardProduct".$product->type);
+		$picto=($product->type==1?'service':'product');
+		dol_fiche_head($head, 'tabOF1', $titre, 0, $picto);
+	}
+	
+	$form=new TFormCore('auto','formLWS');
+	echo $form->hidden('action', 'save');
+	echo $form->hidden('fk_product', $fk_product);
+	
+	
+	$l=new TListviewTBS('listWS');
+
+	$sql= "SELECT wsp.rowid as id, ws.libelle,wsp.nb_hour 
+	
+	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
+	 
+	WHERE entity=".$conf->entity."
+	 AND wsp.fk_product=".$fk_product;
+
+	$liste =  $l->render($ATMdb, $sql,array(
+	
+		'link'=>array(
+			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
+			,'nb_hour'=>'<input type="text" name="TAssetWorkstationProduct[@id@][nb_hour]" value="@val@" size="5" />'
+		)
+		
+		,'title'=>array(
+			'nb_hour'=>"Nombre d'heure"
+		)
+	
+	));
+	
+	
+	$TBS=new TTemplateTBS;
+	
+	print $TBS->render('./tpl/workstation_link.tpl.php',
+		array()
+		,array(
+			'view'=>array(
+				'mode'=>$mode
+				,'liste'=>$liste
+				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($ATMdb), -1)
+				,'fk_product'=>$fk_product
+			)
+		)
+		
+	);
+	
+	$form->end();
+}
 
 
 function _fiche(&$ATMdb, &$ws, $mode='view') {
