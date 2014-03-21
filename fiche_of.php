@@ -49,8 +49,7 @@ function _action() {
 				$fk_product = __get('fk_product',0,'int');
 				if($fk_product>0) {
 					
-					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
-					
+					$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE');
 				}
 				
 				
@@ -79,6 +78,7 @@ function _action() {
 			
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
 			
