@@ -14,6 +14,8 @@ AssetCreateType=Création type d'équipement
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
+CreateOFAsset=Créer un Ordre
 ListOFAsset=Liste des ordres de fabrication
 OFAssetDeleted=Ordre de fabrication supprimé
 createOFFile = Générer document papier
+WorkStation=Poste de travail

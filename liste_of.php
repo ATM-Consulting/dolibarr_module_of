@@ -89,7 +89,7 @@ function _liste() {
 			,'date_besoin'=>'date'
 		)
 		,'liste'=>array(
-			'titre'=>'Liste des '.$langs->trans('OFAsset')
+			'titre'=>$langs->trans('ListOFAsset')
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
@@ -112,7 +112,7 @@ function _liste() {
 	));
 		
 	echo '<div class="tabsAction">';
-	echo '<a class="butAction" href="fiche_of.php?action=new'.((isset($_REQUEST['fk_product'])) ? '&fk_product='.$_REQUEST['fk_product'] : '' ).'">Créer un '.$langs->trans('OFAsset').'</a>';
+	echo '<a class="butAction" href="fiche_of.php?action=new'.((isset($_REQUEST['fk_product'])) ? '&fk_product='.$_REQUEST['fk_product'] : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
 	echo '</div>';
 
 	$ATMdb->close();

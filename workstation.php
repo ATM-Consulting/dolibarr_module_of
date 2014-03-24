@@ -26,6 +26,9 @@
 				$wsp->fk_product = $fk_product;
 				$wsp->fk_asset_workstation = $fk_asset_workstation;
 				$wsp->save($ATMdb);
+			
+				setEventMessage('Poste de travail ajouté');
+			
 				
 				_liste_link($ATMdb, $fk_product);
 				
@@ -49,6 +52,7 @@
 					
 				}
 				
+				setEventMessage('Modifications enregistrées');
 				
 				_liste_link($ATMdb, $fk_product);
 				break;

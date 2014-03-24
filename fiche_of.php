@@ -317,6 +317,11 @@ function _fiche_ligne(&$form, &$of, $type){
 			}
 			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 			
+				if(empty($TAssetOFLine->TFournisseurPrice)) {
+					$ATMdb=new TPDOdb;
+					$TAssetOFLine->loadFournisseurPrice($ATMdb);
+				}
+			
 				$Tab=array();
 				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 						

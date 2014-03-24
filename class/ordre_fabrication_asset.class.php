@@ -68,9 +68,11 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function save(&$db) {
+		global $conf;
 		
 		$this->set_temps_fabrication();
 		
+		$this->entity = $conf->entity;
 		
 		parent::save($db);
 		
