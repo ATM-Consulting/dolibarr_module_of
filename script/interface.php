@@ -40,7 +40,7 @@ function traite_get(&$ATMdb, $case) {
 	}
 }
 
-function _addofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation) {
+function _addofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) {
 	
 	$of=new TAssetOF;
 	$of->load($ATMdb, $id_assetOf);
@@ -48,6 +48,7 @@ function _addofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation) {
 	$k = $of->addChild($ATMdb, 'TAssetWorkstationOF');
 	
 	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
+	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour;
 	$of->save($ATMdb);
 	
 	
@@ -81,10 +82,33 @@ function _autocomplete(&$ATMdb,$fieldcode,$value){
 }
 
 function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1){
+	
+	global $db;
+	
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($ATMdb, $id_assetOf);
 	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty);
 	$TassetOF->save($ATMdb);
+	
+	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
+	if($type == "TO_MAKE") {
+		$sql = "SELECT fk_asset_workstation, nb_hour";
+		$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+		$sql.= " WHERE fk_product = ".$fk_product;
+		$resql = $db->query($sql);
+		
+		if($resql) {
+			
+			while($res = $db->fetch_object($resql)) {
+				
+				_addofworkstation($ATMdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
+				
+			}
+			
+		}
+		
+	}
+
 }
 
 function _deletelineof(&$ATMdb,$idLine,$type){
