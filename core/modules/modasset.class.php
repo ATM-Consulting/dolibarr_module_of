@@ -131,6 +131,7 @@ class modAsset extends DolibarrModules
 		$this->tabs = array(
 			'product:+tabEquipement1:'.$langs->trans('Asset').':@asset:/asset/liste.php?fk_product=__ID__'
 			,'product:+tabOF1:'.$langs->trans('WorkStation').':@asset:/asset/workstation.php?fk_product=__ID__'
+			,'product:+tabOF2:'.$langs->trans('OF').':@asset:/asset/liste_of.php?fk_product=__ID__'
 			//,'product:+tabEquipement2:Ordre de Fabrication:@asset:/asset/liste_of.php?fk_product=__ID__'
 			//,'product:+tabEquipement2:Attribut équipement:@asset:/asset/attribut.php?fk_product=__ID__&action=edit'
 		);
@@ -223,20 +224,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
-					'type'=>'top',			// This is a Top menu entry
-					'titre'=>'Ordre de Fabrication',
-					'mainmenu'=>'assetOF',
-					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/asset/liste_of.php',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-					'position'=>100,
-					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-	
+		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'Equipement',
@@ -262,28 +250,28 @@ class modAsset extends DolibarrModules
 		$r++;
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Ordre de Fabrication',
-					'mainmenu'=>'assetOF',
+					'mainmenu'=>'asset',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/liste_of.php',
 					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-					'position'=>100,
+					'position'=>200,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Nouvel ordre de Fabrication',
-					'mainmenu'=>'newassetOF',
+					'mainmenu'=>'newAssetOF',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/fiche_of.php?action=new',
 					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-					'position'=>101,
+					'position'=>201,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
@@ -292,14 +280,14 @@ class modAsset extends DolibarrModules
 
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Poste de travail',
-					'mainmenu'=>'assetOF',
-					'leftmenu'=>'workstation',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'mainmenu'=>'asset',
+					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php',
 					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-					'position'=>102,
+					'position'=>300,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
@@ -307,15 +295,15 @@ class modAsset extends DolibarrModules
 		$r++;
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=assetOF,fk_leftmenu=workstation',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Nouveau poste de travail',
 					'mainmenu'=>'newworkstation',
-					'leftmenu'=>'workstation',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php?action=new',
 					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-					'position'=>103,
-					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'position'=>301,
+					'enabled'=>'$user->rights->asset->of->lire',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);

@@ -15,8 +15,9 @@
 [onshow;block=end]				
 	<div class="OFMaster">		
 		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
-				<input type="HIDDEN" value="save" name="action">		
-				<input type="HIDDEN" value="[assetOf.id]" name="id">
+				<input type="hidden" value="save" name="action">		
+				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">		
+				<input type="hidden" value="[assetOf.id]" name="id">
 				
 				
 			<table width="100%" class="border">
@@ -24,6 +25,7 @@
 				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
 				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
 				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no]</td></tr>
+				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
@@ -241,6 +243,8 @@
 						
 								$("#"+id_form).submit(function() {
 									$.post($(this).attr('action'), $( this ).serialize() );
+						
+									$(this).css('border' , '5px solid green');
 						
 									$.jnotify('Modifications enregistr&eacute;es', "ok");   
 						

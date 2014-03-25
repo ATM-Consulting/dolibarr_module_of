@@ -46,7 +46,9 @@ function _action() {
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
 				
-				_fiche($PDOdb, $assetOf,'new');
+				$fk_product = __get('fk_product',0,'int');
+				
+				_fiche($PDOdb, $assetOf,'edit', $fk_product);
 
 				break;
 
@@ -68,9 +70,15 @@ function _action() {
 				}
 				
 				$assetOf->set_values($_REQUEST);
+
+				if(__get('fk_product_to_add',0)>0) {
+					$assetOf->addLine($PDOdb, __get('fk_product_to_add',0), 'TO_MAKE');		
+				//	print "Add ".__get('fk_product_to_add',0);			
+				}
 			
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
 			
@@ -80,12 +88,14 @@ function _action() {
 				}
 				
 				
+				
 				if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 					foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
 						$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 					}
 				}
 				
+				$assetOf->entity = $conf->entity;
 				
 				$assetOf->save($PDOdb);
 				
@@ -307,6 +317,11 @@ function _fiche_ligne(&$form, &$of, $type){
 			}
 			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 			
+				if(empty($TAssetOFLine->TFournisseurPrice)) {
+					$ATMdb=new TPDOdb;
+					$TAssetOFLine->loadFournisseurPrice($ATMdb);
+				}
+			
 				$Tab=array();
 				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 						
@@ -345,7 +360,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 
 
-function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
+function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	global $langs,$db,$conf;
 	/***************************************************
 	* PAGE
@@ -365,6 +380,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 	
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
+	
 	$doliform = new Form($db);
 	
 	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
@@ -384,8 +400,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
 	ob_start();
-	$html=new Form($db);
-	$html->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
 	$select_product = ob_get_clean();
 	
 	$Tid = array();
@@ -408,9 +423,10 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 		
 	}
 	
+	$client=new Societe($db);
+	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
 	
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
-	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -428,11 +444,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit') {
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
 				
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : $client->getNomUrl(1)
+				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
+				,'fk_product_to_add'=>$fk_product_to_add
 			)
 			,'view'=>array(
 				'mode'=>$mode

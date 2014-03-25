@@ -1,11 +1,5 @@
-[onshow;block=begin;when [view.mode]=='view']
-    [view.head;strconv=no]
-[onshow;block=end]  
 
-[onshow;block=begin;when [view.mode]!='view']
-    [view.onglet;strconv=no]
-    <div>
-[onshow;block=end]  
+<div>
 		
 
 <table width="100%" class="border">
