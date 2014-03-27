@@ -210,9 +210,7 @@ function _fiche(&$ATMdb, &$ws, $mode='view') {
 	);
 	
 	
-	print $TBS->render('./tpl/workstation.tpl.php',
-		array()
-		,array(
+	print $TBS->render('./tpl/workstation.tpl.php',array(),array(
 			'ws'=>$TForm
 			,'view'=>array(
 				'mode'=>$mode
@@ -225,7 +223,7 @@ function _fiche(&$ATMdb, &$ws, $mode='view') {
 }
 
 function _liste(&$ATMdb) {
-global $conf;
+	global $conf, $langs;
 	/*
 	 * Liste des poste de travail de l'entité
 	 */
@@ -250,6 +248,21 @@ global $conf;
 	
 		'link'=>array(
 			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
+		)
+		,'title'=>array(
+			'nb_hour_max'=>"Nombre d'heure maximum",
+			'id'=>"Id",
+			'libelle'=>"Intitulé poste de travail",
+			'fk_usergroup'=>"Groupe"
+		)
+		,'liste'=>array(
+			'titre'=>'Liste des '.$langs->trans('Workstation')
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
+			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Workstation')." à afficher"
+			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
 	
 	));
