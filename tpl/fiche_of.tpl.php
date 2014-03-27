@@ -170,8 +170,8 @@
 
 		</form>
 
-</div><!-- fin de OFMaster -->
-	<div id="dialog" title="Ajout de Produit" style="display:none;">
+	</div><!-- fin de OFMaster -->
+	<div id="dialog" title="Ajout de Produit" style="display:none;width: 100%;">
 		<table>
 			<tr>
 				<td>Produit : </td>
@@ -288,6 +288,7 @@
 						effect: "blind",
 						duration: 200
 					},
+					width: 500,
 					modal:true,
 					buttons: {
 						"Annuler": function() {
