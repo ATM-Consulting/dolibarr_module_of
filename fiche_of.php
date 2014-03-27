@@ -326,7 +326,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 						
 					$Tab[ $objPrice->rowid ] = array(
-												'label' => ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')',
+												'label' => ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'"'.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composants a fabriquer' : '' ).')',
 												'compose_fourni' => $objPrice->compose_fourni
 											);
 					
