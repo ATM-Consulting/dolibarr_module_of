@@ -13,7 +13,7 @@
 	
 				
 [onshow;block=end]				
-	<div class="OFMaster">		
+	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
 		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
 				<input type="hidden" value="save" name="action">		
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">		
@@ -230,7 +230,7 @@
 						}
 						,type: 'POST'
 					}).done(function(data) {
-					
+						
 						var html = $(data).find('div.OFMaster');
 						
 						var id_form = html.find('form').attr('id');
@@ -238,22 +238,35 @@
 						$('#assetChildContener').append(html);
 						
 						$('#assetChildContener .notinparentview').remove();
-
+						
 						refreshDisplay();
 						
-								$("#"+id_form).submit(function() {
-									$.post($(this).attr('action'), $( this ).serialize() );
+						$('select[name^=TAssetOFLine]').change(function(){
+							compose_fourni = $(this).find('option:selected').attr('compose_fourni');
+							//alert(compose_fourni);
+							assetOf_id = $(this).closest('.OFMaster').attr('assetof_id');
+							//alert(assetOf_id);
+							if(compose_fourni == 0){
+								//alert($('.OFMaster[fk_assetOf_parent='+assetOf_id+']').length);
+								$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '5px solid red');
+							}
+							else{
+								$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '0px none');
+							}
+						});
 						
-									$(this).css('border' , '5px solid green');
-						
-									$.jnotify('Modifications enregistr&eacute;es', "ok");   
-						
-									return false;
-								});	
-
-						
-						
+							$("#"+id_form).submit(function() {
+								$.post($(this).attr('action'), $( this ).serialize() );
+					
+								$(this).css('border' , '5px solid green');
 								
+								$(this).animate({ "border": "5px solid green" }, 'slow');
+								$(this).animate({ "border": "0px" }, 'slow');
+								
+								$.jnotify('Modifications enregistr&eacute;es', "ok");   
+					
+								return false;
+							});
 					});
 					
 				}
@@ -417,4 +430,5 @@
 				refreshTab(id_assetOf) 
 			});
 		}
+		
 </script>

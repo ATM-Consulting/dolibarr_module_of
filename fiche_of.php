@@ -325,7 +325,10 @@ function _fiche_ligne(&$form, &$of, $type){
 				$Tab=array();
 				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 						
-					$Tab[ $objPrice->rowid ] = ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')';
+					$Tab[ $objPrice->rowid ] = array(
+												'label' => ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')',
+												'compose_fourni' => $objPrice->compose_fourni
+											);
 					
 					/* ob_start()
 					 *  ?> <option value="51" composefourni="0" ofchild="5,3,7"> $( #select :selected).each(function() {  if($(this).attr('composefourni')==1  $(this).attr('ofchild').split(',')  }) <?  
@@ -333,12 +336,14 @@ function _fiche_ligne(&$form, &$of, $type){
 					 
 				}
 				
-	 			foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
+	 			/*foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 	 				
-	 				/*<option value="<?=$objPrice->rowid?>" compose_fourni="<?=$objPrice->compose_fourni?1:0?>"><?($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'?></option>*/
+	 				//<option value="<?=$objPrice->rowid?>" compose_fourni="<?=$objPrice->compose_fourni?1:0?>"><?($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'?></option>
 	 				$option.='<option value="'.$objPrice->rowid.'" compose_fourni="'.$objPrice->compose_fourni.'">'.($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'.'</option>';	
 	 				
-				}	
+				}*/
+				
+				//pre($Tab,true);
 				
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
@@ -399,6 +404,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
 	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
+	//pre($TToMake,true); exit;
+	
 	ob_start();
 	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
 	$select_product = ob_get_clean();
@@ -453,6 +460,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
 				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
+				,'fk_assetOf_parent'=>$assetOf->fk_assetOf_parent
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -465,10 +473,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	);
 	
 	echo $form->end_form();
-	
-	
-	
-	
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }

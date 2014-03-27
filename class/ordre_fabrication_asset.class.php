@@ -5,7 +5,7 @@ class TAssetOF extends TObjetStd{
  * Ordre de fabrication d'équipement
  * */
  	static $TOrdre=array(
-			'ASAP'=>'Au plut tôt'
+			'ASAP'=>'Au plus tôt'
 			,'TODAY'=>'Dans la journée'
 			,'TOMORROW'=> 'Demain'
 			,'WEEK'=>'Dans la semaine'
