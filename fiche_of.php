@@ -451,6 +451,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
+				,'url_liste' => dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
 			)
 			,'view'=>array(

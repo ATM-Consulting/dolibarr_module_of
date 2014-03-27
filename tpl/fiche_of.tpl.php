@@ -163,7 +163,7 @@
 		<p align="center">
 			[onshow;block=begin;when [view.mode]!='add']
 				<input type="submit" value="Enregistrer" name="save" class="button">
-				&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[assetOf.id]'">
+				&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='[assetOf.url_liste]'">
 			[onshow;block=end]
 		</p>
 [onshow;block=end]	
