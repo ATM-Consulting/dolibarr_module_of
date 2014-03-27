@@ -504,6 +504,13 @@ class TAssetOF extends TObjetStd{
 		return $TCombo;
 		
 	}
+	
+	function getLastId(&$PDOdb){
+		$PDOdb->Execute('SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf ORDER BY rowid DESC LIMIT 1');
+		$PDOdb->Get_line();
+		
+		return $PDOdb->Get_field('rowid');
+	}
 
 }
 
