@@ -48,5 +48,18 @@
 	$o=new TAssetPropaldet;
 	$o->init_db_by_vars($ATMdb);
 	
-	$ATMdb->Execute("REPLACE INTO `llx_extrafields` (`rowid`, `name`, `entity`, `elementtype`, `tms`, `label`, `type`, `size`, `fieldunique`, `fieldrequired`, `pos`, `param`) VALUES
-(40, 'type_asset', 1, 'product', '2013-12-04 13:27:49', 'Type Equipement', 'sellist', '', 0, 0, 1, 'a:1:{s:7:\"options\";a:1:{s:24:\"asset_type:libelle:rowid\";N;}}');");
+	$asset_type = new TAsset_type;
+	$asset_type->libelle = "Produit";
+	$asset_type->reutilisable = "oui";
+	$asset_type->code = "pr";
+	$asset_type->gestion_stock = "UNIT";
+	$asset_type->entity = $conf->entity;
+	$asset_type->contenance_value = 0;
+	$asset_type->contenancereel_value = 0;
+	$asset_type->point_chute = 1;
+	$asset_type->contenance_units = 0;
+	$asset_type->contenancereel_units = 0;
+	$asset_type->supprimable = 0;
+	
+	$asset_type->save($ATMdb);
+	
