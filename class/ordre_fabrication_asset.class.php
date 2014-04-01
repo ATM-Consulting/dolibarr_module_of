@@ -176,6 +176,7 @@ class TAssetOF extends TObjetStd{
 			
 			$k=$this->addChild($ATMdb,'TAssetOF');
 			$this->TAssetOF[$k]->status = "DRAFT";
+			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
 			
