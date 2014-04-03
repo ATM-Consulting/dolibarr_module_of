@@ -24,7 +24,6 @@ $Tres = array();
 $sql = "SELECT rowid, serial_number, lot_number, contenancereel_value, contenancereel_units
 		FROM ".MAIN_DB_PREFIX."asset
 		WHERE fk_soc = ".$socid."
-		AND contenancereel_value > 0
 		ORDER BY contenancereel_value DESC";
 		
 $ATMdb->Execute($sql);
