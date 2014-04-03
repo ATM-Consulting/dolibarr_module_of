@@ -334,7 +334,14 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	print_r($TFields);
 	echo '</pre>';exit;*/
 	
-	print $TBS->render('tpl/fiche.tpl.php'
+	if(defined('ASSET_FICHE_TPL')){
+		$tpl_fiche = ASSET_FICHE_TPL;
+	}
+	else{
+		$tpl_fiche = "fiche.tpl.php";
+	}
+	
+	print $TBS->render('tpl/'.$tpl_fiche
 		,array(
 			'assetField'=>$TFields
 		)
