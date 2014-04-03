@@ -492,10 +492,12 @@ class TAsset_type extends TObjetStd {
 		$r=""; $s = strtolower($s);
 		$nb=strlen($s);
 		for($i = 0; $i < $nb; $i++){
-			if(ctype_alnum($s[$i])){
+			if(ctype_alnum($s[$i]) || $s[$i] == "_"){
 				$r.=$s[$i];			
 			}
 		} // for
+		
+		//echo $r; exit;
 		return $r;
 	}
 		
