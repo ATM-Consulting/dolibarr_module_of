@@ -5,12 +5,12 @@ dol_include_once('/core/lib/product.lib.php');
 
 $langs->load('other');
 
-if(isset($_REQUEST['fk_product'])){
+/*if(isset($_REQUEST['fk_product'])){
 	$id = $_REQUEST['fk_product'];
 }
 else {
 	return false;
-}
+}*/
 if(isset($_REQUEST['fk_soc'])){
 	$socid = $_REQUEST['fk_soc'];
 }
