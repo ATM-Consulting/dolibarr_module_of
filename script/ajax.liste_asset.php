@@ -30,8 +30,8 @@ $ATMdb->Execute($sql);
 
 while($ATMdb->Get_line()){
 	$label = $ATMdb->Get_field('serial_number');
-	$label.= " / Lot ".$ATMdb->Get_field('lot_number');
-	$label.= " / ".number_format($ATMdb->Get_field('contenancereel_value'),2,",","")." ".measuring_units_string($ATMdb->Get_field('contenancereel_units'),"weight");
+	/*$label.= " / Lot ".$ATMdb->Get_field('lot_number');
+	$label.= " / ".number_format($ATMdb->Get_field('contenancereel_value'),2,",","")." ".measuring_units_string($ATMdb->Get_field('contenancereel_units'),"weight");*/
 	
 	$Tres[] = array(
 		"flacon" => $ATMdb->Get_field('rowid')
