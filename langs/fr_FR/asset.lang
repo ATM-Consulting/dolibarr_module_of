@@ -19,3 +19,4 @@ ListOFAsset=Liste des ordres de fabrication
 OFAssetDeleted=Ordre de fabrication supprimé
 createOFFile = Générer document papier
 WorkStation=Poste de travail
+ListOrderProducts=Liste des produits de la commande
