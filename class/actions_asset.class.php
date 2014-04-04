@@ -20,23 +20,23 @@ class ActionsAsset
         	//print_r($object);exit;
 			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
 				
-				if($conf->climmcneil->enabled){
+				if($conf->climcneil->enabled){
 					define('INC_FROM_DOLIBARR',true);
 			    	dol_include_once("/custom/asset/config.php");
 					dol_include_once("/custom/asset/class/asset.class.php");
 					
 					$ATMdb = new TPDOdb;
-					$asset = new Asset;
+					$asset = new TAsset;
 					
-					$asset->load_liste_type_asset($PDOdb);
-					$asset->load_asset_type($PDOdb);
+					$asset->load_liste_type_asset($ATMdb);
+					$asset->load_asset_type($ATMdb);
 					$asset->load($ATMdb,$_REQUEST['asset']);
 					
 					$object->fetch_optionals($object->id);
 					
 					foreach($asset->TChamps as $champs => $type){
-						if(array_key_exists('options_'.$champs.'_machine', $parent->array_options)){
-							$parent->array_options['options_'.$champs.'_machine'] = $asset->$champs;
+						if(array_key_exists('options_'.$champs.'_machine', $object->array_options)){
+							$object->array_options['options_'.$champs.'_machine'] = $asset->$champs;
 						}
 					}
 					
