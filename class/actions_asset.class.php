@@ -88,7 +88,7 @@ class ActionsAsset
 				print '<tr><td>Equipement</td>';
 				print '<td colspan="2">';
 				print '<select name="asset" class="flat" id="asset">';
-				print '<option value="">&nbsp;</option>';
+				print '<option value="0">&nbsp;</option>';
 
 				while ($res = $db->fetch_object($resql)) {
 					if($res->rowid == $fk_asset){
@@ -122,7 +122,7 @@ class ActionsAsset
 				print '<form action="'.$_SERVER["PHP_SELF"].'?'.$id_field.'='.$object->id.'" method="post">';
 				print '<input type="hidden" name="action" value="validmodasset" />';
 				print '<select name="asset" class="flat" id="asset">';
-				print '<option value="">&nbsp;</option>';
+				print '<option value="0">&nbsp;</option>';
 
 				while ($res = $db->fetch_object($resql)) {
 					if($res->rowid == $fk_asset)
