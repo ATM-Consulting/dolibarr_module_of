@@ -32,14 +32,17 @@ class ActionsAsset
 					$asset->load_asset_type($ATMdb);
 					$asset->load($ATMdb,$_REQUEST['asset']);
 					
+
 					$object->fetch_optionals($object->id);
 					
 					foreach($asset->TChamps as $champs => $type){
-						if(array_key_exists('options_'.$champs.'_machine', $object->array_options)){
-							$object->array_options['options_'.$champs.'_machine'] = $asset->$champs;
+						//echo $champs." ".$asset->$champs.'<br>';
+						if(array_key_exists('options_'.$champs, $object->array_options)){
+							$object->array_options['options_'.$champs] = $asset->$champs;
 						}
 					}
-					
+					//pre($object->array_options,true);exit;
+
 					$object->update_extrafields($user);
 				}
 					
