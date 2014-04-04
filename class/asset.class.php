@@ -596,7 +596,7 @@ class TAsset_field extends TObjetStd {
 		parent::load($ATMdb, $id);
 		$this->TListe = array();
 		foreach (explode(";",$this->options) as $key => $value) {
-			$this->TListe[$value] = $value;
+			$this->TListe[] = $value;
 		}
 	}
 	
