@@ -82,7 +82,7 @@ class ActionsAsset
 				else 
 					$fk_asset = "";
 				
-				$sql = "SELECT rowid, serial_number FROM ".MAIN_DB_PREFIX."asset ORDER BY serial_number ASC";
+				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) ORDER BY a.serial_number ASC";
 				$resql = $db->query($sql);
 
 				print '<tr><td>Equipement</td>';
@@ -92,10 +92,10 @@ class ActionsAsset
 
 				while ($res = $db->fetch_object($resql)) {
 					if($res->rowid == $fk_asset){
-						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
 					}	
 					else{
-						print '<option value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+						print '<option value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
 					}
 				}
 				
@@ -114,7 +114,7 @@ class ActionsAsset
 				else 
 					$fk_asset = "";
 
-				$sql = "SELECT rowid, serial_number FROM ".MAIN_DB_PREFIX."asset WHERE fk_soc = ".$object->socid." ORDER BY serial_number ASC";
+				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.fk_soc = ".$object->socid." ORDER BY a.serial_number ASC";
 				$resql = $db->query($sql);
 				$id_field = "id";
 				print '<tr><td>Equipement</td>';
@@ -126,9 +126,9 @@ class ActionsAsset
 
 				while ($res = $db->fetch_object($resql)) {
 					if($res->rowid == $fk_asset)
-						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
 					else
-						print '<option value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+						print '<option value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
 				}
 				
 				print '</select>';
@@ -142,7 +142,7 @@ class ActionsAsset
 				if($resql){
 					$res = $db->fetch_object($resql);
 
-					$sql = "SELECT serial_number FROM ".MAIN_DB_PREFIX."asset WHERE rowid = ".$res->fk_asset;
+					$sql = "SELECT a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.rowid = ".$res->fk_asset;
 					$resql = $db->query($sql);
 				}
 				$id_field = "id";
@@ -156,7 +156,7 @@ class ActionsAsset
 				
 				if($resql){
 					$res = $db->fetch_object($resql);
-					print $res->serial_number;
+					print $res->serial_number.' - '.$res->label;
 				}
 				
 				print '</select></td></tr>';
