@@ -18,7 +18,7 @@ class ActionsAsset
 		
         if($action == "validmodasset"){
         	//print_r($object);exit;
-			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
+			if(isset($_REQUEST['asset'])){
 				
 				if($conf->climcneil->enabled){
 					define('INC_FROM_DOLIBARR',true);
