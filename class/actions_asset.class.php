@@ -8,15 +8,47 @@ class ActionsAsset
       *  @return       void 
       */
       
-    function doActions($parameters, &$object, &$action, $hookmanager) {
-    	//exit('1');
-    	/*echo '<pre>';
-    	print_r($object);
-		echo '</pre>';
-		echo $object->fourn_ref;
-		$object->fourn_ref.="coucou";*/
-		return 0;
-	}
+    function doActions($parameters, &$object, &$action, $hookmanager) 
+    {
+    	global $langs, $db, $conf, $user;
+		
+		/*echo '<pre>';
+		print_r($object);
+		echo '</pre>';*/
+		
+        if($action == "validmodasset"){
+        	//print_r($object);exit;
+			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
+				
+				if($conf->climmcneil->enabled){
+					define('INC_FROM_DOLIBARR',true);
+			    	dol_include_once("/custom/asset/config.php");
+					dol_include_once("/custom/asset/class/asset.class.php");
+					
+					$ATMdb = new TPDOdb;
+					$asset = new Asset;
+					
+					$asset->load_liste_type_asset($PDOdb);
+					$asset->load_asset_type($PDOdb);
+					$asset->load($ATMdb,$_REQUEST['asset']);
+					
+					$object->fetch_optionals($object->id);
+					
+					foreach($asset->TChamps as $champs => $type){
+						if(array_key_exists('options_'.$champs.'_machine', $parent->array_options)){
+							$parent->array_options['options_'.$champs.'_machine'] = $asset->$champs;
+						}
+					}
+					
+					$object->update_extrafields($user);
+				}
+					
+				$db->query('UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET fk_asset = '.$_REQUEST['asset'].' WHERE rowid = '.$object->id);
+			}
+		}
+ 
+        return 0;
+    }
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  
@@ -32,6 +64,109 @@ class ActionsAsset
         	dol_include_once("/custom/asset/config.php");
 			dol_include_once("/custom/asset/class/asset.class.php");
 			
+			
+			if($action == "create"){
+					
+				//pre($_REQUEST,true);
+				
+				if(isset($_REQUEST['origin']) && isset($_REQUEST['originid'])){
+					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$_REQUEST['origin']." WHERE rowid = ".$_REQUEST['originid'];
+				}
+				
+				$resql = $db->query($sql);
+									
+				if($resql){
+					$res = $db->fetch_object($resql);
+					$fk_asset = $res->fk_asset;
+				}
+				else 
+					$fk_asset = "";
+				
+				$sql = "SELECT rowid, serial_number FROM ".MAIN_DB_PREFIX."asset ORDER BY serial_number ASC";
+				$resql = $db->query($sql);
+
+				print '<tr><td>Equipement</td>';
+				print '<td colspan="2">';
+				print '<select name="asset" class="flat" id="asset">';
+				print '<option value="">&nbsp;</option>';
+
+				while ($res = $db->fetch_object($resql)) {
+					if($res->rowid == $fk_asset){
+						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+					}	
+					else{
+						print '<option value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+					}
+				}
+				
+				print '</select>';
+				print '</td></tr>';
+			}
+			elseif($action == "modasset"){
+				
+				$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
+				$resql = $db->query($sql);
+
+				if($resql){
+					$res = $db->fetch_object($resql);
+					$fk_asset = $res->fk_asset;
+				}
+				else 
+					$fk_asset = "";
+
+				$sql = "SELECT rowid, serial_number FROM ".MAIN_DB_PREFIX."asset WHERE fk_soc = ".$object->socid." ORDER BY serial_number ASC";
+				$resql = $db->query($sql);
+				$id_field = "id";
+				print '<tr><td>Equipement</td>';
+				print '<td colspan="2">';
+				print '<form action="'.$_SERVER["PHP_SELF"].'?'.$id_field.'='.$object->id.'" method="post">';
+				print '<input type="hidden" name="action" value="validmodasset" />';
+				print '<select name="asset" class="flat" id="asset">';
+				print '<option value="">&nbsp;</option>';
+
+				while ($res = $db->fetch_object($resql)) {
+					if($res->rowid == $fk_asset)
+						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+					else
+						print '<option value="'.$res->rowid.'">'.$res->serial_number.'</option>';
+				}
+				
+				print '</select>';
+				print '<input class="button" type="submit" value="Modifier"></form></td></tr>';
+			}
+			elseif($action != "edit"){
+				//pre($object, true);exit;
+				$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
+
+				$resql = $db->query($sql);
+				if($resql){
+					$res = $db->fetch_object($resql);
+
+					$sql = "SELECT serial_number FROM ".MAIN_DB_PREFIX."asset WHERE rowid = ".$res->fk_asset;
+					$resql = $db->query($sql);
+				}
+				$id_field = "id";
+				print '<tr><td height="10"><table width="100%" class="nobordernopadding"><tbody><tr>';
+				print '<td>Equipement</td>';
+				print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=modasset&'.$id_field.'='.$object->id.'">'
+						.img_picto('Définir Equipement', 'edit')
+						.'</a></td>';
+				PRINT '</tr></tbody></table></td>';
+				print '<td colspan="3">';
+				
+				if($resql){
+					$res = $db->fetch_object($resql);
+					print $res->serial_number;
+				}
+				
+				print '</select></td></tr>';
+
+			}
+			
+			/*
+			 * LIGNES
+			 * 
+			 */
         	foreach($object->lines as $line){
         		/*echo '<pre>';
 				print_r($object);rowid

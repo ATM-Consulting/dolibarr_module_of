@@ -48,6 +48,15 @@
 	$o=new TAssetPropaldet;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetPropal;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetCommande;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetFacture;
+	$o->init_db_by_vars($ATMdb);
+	
 	$asset_type = new TAsset_type;
 	$asset_type->libelle = "Produit";
 	$asset_type->reutilisable = "oui";

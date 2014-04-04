@@ -311,6 +311,48 @@ class TAssetFacturedet extends TObjetStdDolibarr{
 	}
 }
 
+class TAssetPropal extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'propal');	  
+		parent::add_champs('fk_asset','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
+class TAssetCommande extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'commande');	  
+		parent::add_champs('fk_asset','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
+class TAssetFacture extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'facture');	  
+		parent::add_champs('fk_asset','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
 class TAssetStock extends TObjetStd{
 /*
  * Gestion des mouvements de stock pour les équipements
