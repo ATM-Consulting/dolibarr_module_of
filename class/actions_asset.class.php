@@ -82,7 +82,7 @@ class ActionsAsset
 				else 
 					$fk_asset = 0;
 				
-				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) ORDER BY a.serial_number ASC";
+				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.fk_soc = ".$_REQUEST['socid']." ORDER BY a.serial_number ASC";
 				$resql = $db->query($sql);
 
 				print '<tr><td>Equipement</td>';
