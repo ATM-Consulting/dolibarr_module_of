@@ -20,7 +20,6 @@
 				<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
 				<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
-				<tr><td>Status</td><td>[asset.status;strconv=no]</td></tr>
 				<tr><td>Réutilisabilité</td><td>[asset.reutilisable;strconv=no]</td></tr>
 				<tr><td>Gestion du stock</td><td>[asset.gestion_stock;strconv=no]</td></tr>
 				<tr>
