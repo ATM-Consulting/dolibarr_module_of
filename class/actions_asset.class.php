@@ -18,7 +18,7 @@ class ActionsAsset
 		
         if($action == "validmodasset"){
         	//print_r($object);exit;
-			if(isset($_REQUEST['asset'])){
+			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
 				
 				if($conf->climcneil->enabled){
 					define('INC_FROM_DOLIBARR',true);
@@ -80,7 +80,7 @@ class ActionsAsset
 					$fk_asset = $res->fk_asset;
 				}
 				else 
-					$fk_asset = "";
+					$fk_asset = 0;
 				
 				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) ORDER BY a.serial_number ASC";
 				$resql = $db->query($sql);
@@ -112,7 +112,7 @@ class ActionsAsset
 					$fk_asset = $res->fk_asset;
 				}
 				else 
-					$fk_asset = "";
+					$fk_asset = 0;
 
 				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.fk_soc = ".$object->socid." ORDER BY a.serial_number ASC";
 				$resql = $db->query($sql);
