@@ -181,22 +181,32 @@ class InterfaceAssetWorkflow
         }
         elseif ($action == 'UPDATE_BUYPRICE')
         {
-			global $db;
+			global $db, $user;
 			
 			if ($_REQUEST['action'] == 'updateprice' && isset($_REQUEST['selectOuiNon'])) {
-	
+				
 				/*echo "<pre>";
 				print_r($_REQUEST);
 				echo "</pre>";exit;*/
+				
+				/*$fournisseur = new Fournisseur($db);
+				$fournisseur->fetch($_REQUEST['id_fourn']);
+				
+				$product = new ProductFournisseur($db);
+				$product->fetch($_REQUEST['id']);
+				$product->fetch_product_fournisseur_price($_REQUEST['ref_fourn_price_id']);
+				$product->update_buyprice($_REQUEST['qty'], $_REQUEST['price'], $user, $_REQUEST['price_base_type'], $fournisseur, 0, $_REQUEST['ref_fourn'], $_REQUEST['tva_tx']);*/
+				
+				//Obligé de faire une requête dégueulasse sinon boucle infini car pas de no trigger
+				
 				$sql = "UPDATE ".MAIN_DB_PREFIX."product_fournisseur_price";
 				$sql.= " SET compose_fourni = ".$_REQUEST['selectOuiNon'];
 				$sql.= " WHERE fk_soc = ".$_REQUEST['id_fourn'];
 				$sql.= " AND ref_fourn = '".$_REQUEST['ref_fourn']."'";
 				$sql.= " AND quantity = ".$_REQUEST['qty'];
-				
+
 				$resql = $db->query($sql);
-	
-			
+
 			}        	
         }
 
