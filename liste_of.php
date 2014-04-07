@@ -28,50 +28,47 @@ function _liste() {
 	$fk_soc=__get('fk_soc',0,'integer');
 	$fk_product=__get('fk_product',0,'integer');
 	$fk_commande=__get('fk_commande',0,'integer');
-	
-	
-	if($fk_product>0){
+
+
+	if($fk_product > 0){
 		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
 		else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		
 		//require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 		dol_include_once("/product/class/product.class.php");
-			
+
 		$product = new Product($db);
-		$result=$product->fetch($_REQUEST['fk_product']);	
-			
+		$result=$product->fetch($fk_product);	
+
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
 		$picto=($product->type==1?'service':'product');
 		dol_fiche_head($head, 'tabOF2', $titre, 0, $picto);
-		
+
 	} elseif($fk_commande > 0) {
 		if(is_file(dol_buildpath("/lib/order.lib.php", 1))) dol_include_once("/lib/order.lib.php");
 		else dol_include_once("/core/lib/order.lib.php");		
-		
+
 		dol_include_once("/commande/class/commande.class.php");
-		
+
 		$commande = new Commande($db);
-		$result=$commande->fetch($_REQUEST['fk_commande']);	
-			
+		$result=$commande->fetch($fk_commande);	
+
 		$head=commande_prepare_head($commande, $user);
 		$titre=$langs->trans("CustomerOrder".$product->type);
 		dol_fiche_head($head, 'tabOF3', $titre, 0, "order");
-		
+
 	}
 	
 	$form=new TFormCore;
 
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
-	
+
 	$sql="SELECT ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid) 
-		  
-	WHERE ofe.entity=".$conf->entity." 
-	";
-	
-	
+		  WHERE ofe.entity=".$conf->entity;
+
 	if($fk_soc>0) {$sql.=" AND ofe.fk_soc=".$fk_soc; }
 	if($fk_product>0) {$sql.=" AND ofel.fk_product=".$fk_product;}
 	if($fk_commande>0) {$sql.=" AND ofe.fk_commande=".$fk_commande;}
@@ -85,11 +82,11 @@ function _liste() {
 	
 	
 	$THide = array('rowid','fk_user');
-	
+
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
-	
+
 	$ATMdb=new TPDOdb;
-	
+
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'nbLine'=>'30'
@@ -133,7 +130,7 @@ function _liste() {
 	if($fk_commande) {
 				
 		$r2 = new TSSRenderControler($assetOf);
-		
+
 		$sql = "SELECT DISTINCT p.ref as refProd, p.label as nomProd";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c INNER JOIN ".MAIN_DB_PREFIX."product p";
 		$sql.= " ON c.fk_product = p.rowid";
@@ -176,18 +173,17 @@ function _liste() {
 				'ordre'=>'TAssetOF::ordre(@val@)'
 				,'status'=>'TAssetOF::status(@val@)'
 			)
-		));		
-		
+		));
+
 	} else {
 		
 		echo '<div class="tabsAction">';
 		echo '<a class="butAction" href="fiche_of.php?action=new'.((isset($_REQUEST['fk_product'])) ? '&fk_product='.$_REQUEST['fk_product'] : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
 		echo '</div>';
-		
+
 	}
 
 	$ATMdb->close();
 
 	llxFooter('');
-	
 }
