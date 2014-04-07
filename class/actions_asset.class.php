@@ -200,6 +200,16 @@ class ActionsAsset
 				}
 			}
         }
+		elseif (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+				
+			?>
+			<script type="text/javascript">
+				$(document).ready(function(){
+					$('tr .liste_titre:last-child').before('<td class="liste_titre" align="right">Composé fourni</td>');
+				});
+			</script>
+			<?php
+		}
 	}
      
     function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
@@ -344,6 +354,19 @@ class ActionsAsset
 				<?php
 			}
         }
+        
+		elseif(in_array('pricesuppliercard',explode(':',$parameters['context']))){
+				
+			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$parameters['lineid']);
+			$res = $db->fetch_object($resql);
+			
+			if($res){
+				?>
+				<td align="right"><?php echo ($res->compose_fourni) ? "Oui" : "Non" ; ?></td>
+				<?php
+			}
+		}
+		
 
 		return 0;
 	}
