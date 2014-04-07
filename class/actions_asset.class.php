@@ -349,23 +349,42 @@ class ActionsAsset
 	}
 	
 	function formCreateThirdpartyOptions($parameters, &$object, &$action, $hookmanager){
-
-		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
 			
-			echo '<tr id="newField">';
-			echo '<td class="fieldrequired">';
-			echo "Composé fourni";
-			echo "</td>";
-			echo "<td>";
-			echo '<select name="selectOuiNon">';
-			echo '<option value="Oui">Oui</option>';
-			echo '<option value="Non">Non</option>';
-			echo "</select>";
-			echo "</td>";
-			echo "</tr>";
+		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+			dol_include_once("/core/class/html.form.class.php");
 
+			$form = new Form($this->db);
+			?>
+			<tr id="newField">
+				<td class="fieldrequired">Composé fourni</td>
+				<td><?php print $form->selectarray('selectOuiNon', array(1=>"Oui",0=>"Non")); ?></td>
+			</tr>
+			<?php
         }
 		
+	}
+	
+	function formEditThirdpartyOptions ($parameters, &$object, &$action, $hookmanager){
+		global $db;
+		
+		/*echo '<pre>';
+		print_r($_REQUEST);
+		echo '</pre>';exit;*/
+		
+		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+			dol_include_once("/core/class/html.form.class.php");
+
+			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$_REQUEST['rowid']);
+			$res = $db->fetch_object($resql);
+			
+			$form = new Form($db);
+			?>
+			<tr id="newField">
+				<td class="fieldrequired">Composé fourni</td>
+				<td><?php print $form->selectarray('selectOuiNon', array(1=>"Oui",0=>"Non"),$res->compose_fourni); ?></td>
+			</tr>
+			<?php
+        }
 	}
 	
 }

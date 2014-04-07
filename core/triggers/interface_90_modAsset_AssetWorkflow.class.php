@@ -187,13 +187,13 @@ class InterfaceAssetWorkflow
 	
 				/*echo "<pre>";
 				print_r($_REQUEST);
-				echo "</pre>";*/
+				echo "</pre>";exit;*/
 				$sql = "UPDATE ".MAIN_DB_PREFIX."product_fournisseur_price";
-				$sql.= " SET compose_fourni = ";
-				$_REQUEST['selectOuiNon'] == 'Oui'?$sql.=1:$sql.=0;
+				$sql.= " SET compose_fourni = ".$_REQUEST['selectOuiNon'];
 				$sql.= " WHERE fk_soc = ".$_REQUEST['id_fourn'];
 				$sql.= " AND ref_fourn = '".$_REQUEST['ref_fourn']."'";
 				$sql.= " AND quantity = ".$_REQUEST['qty'];
+				
 				$resql = $db->query($sql);
 	
 			
