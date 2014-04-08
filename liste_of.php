@@ -9,7 +9,39 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	
-	_liste();
+	$action = $_REQUEST['actionATM'];
+	
+	switch ($action) {
+		case 'createOFCommande':
+
+			$ATMdb = new TPDOdb;
+
+			foreach($_REQUEST['TProducts'] as $k=>$v) {
+				foreach($v as $fk_product=>$onSenFout) {
+
+					_createOFCommande($ATMdb, $fk_product, $_REQUEST['fk_commande']);
+					
+				}
+			}
+
+			_liste();
+			break;
+		
+		default:
+			_liste();		
+			break;
+	}	
+	
+
+function _createOFCommande($ATMdb, $fk_product, $id_commande) {
+	
+	$assetOf = new TAssetOF;
+	$assetOf->fk_commande = $id_commande;
+	//function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
+	$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
+	$assetOf->save($ATMdb);
+	
+}
 
 function _liste() {
 	global $langs,$db,$user,$conf;
@@ -131,49 +163,69 @@ function _liste() {
 				
 		$r2 = new TSSRenderControler($assetOf);
 
-		$sql = "SELECT DISTINCT p.ref as refProd, p.label as nomProd";
+		$sql = "SELECT p.rowid as rowid, p.ref as refProd, p.label as nomProd";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c INNER JOIN ".MAIN_DB_PREFIX."product p";
 		$sql.= " ON c.fk_product = p.rowid";
-		//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line a";
-		//$sql.= " ON a.fk_product = p.rowid";
 		$sql.= " WHERE c.fk_commande = ".$fk_commande;
-		//$sql.= " AND a.type = 'TO_MAKE'";
-		//$sql.= " AND numLigneOf NOT NULL";
 		
-		$r2->liste($ATMdb, $sql, array(
-			'limit'=>array(
-				'nbLine'=>'30'
-			)
-			,'subQuery'=>array()
-			,'link'=>array(
-				'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
-				,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
-			)
-			,'translate'=>array()
-			,'hide'=>$THide
-			,'type'=>array(
-				'date_lancement'=>'date'
-				,'date_besoin'=>'date'
-			)
-			,'liste'=>array(
-				'titre'=>$langs->trans('ListOrderProducts')
-				,'image'=>img_picto('','title.png', '', 0)
-				,'picto_precedent'=>img_picto('','back.png', '', 0)
-				,'picto_suivant'=>img_picto('','next.png', '', 0)
-				,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-				,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Product')." à afficher"
-				,'picto_search'=>img_picto('','search.png', '', 0)
-			)
-			,'title'=>array(
-				'refProd'=>$langs->trans('Ref')
-				,'nomProd'=>$langs->trans('Label')
-				,'numLigneOf'=>'Num ligne OF'
-			)
-			,'eval'=>array(
-				'ordre'=>'TAssetOF::ordre(@val@)'
-				,'status'=>'TAssetOF::status(@val@)'
-			)
-		));
+		$resql = $db->query($sql);
+
+		$num = $db->num_rows($resql);
+		$limit = $conf->liste_limit;
+	
+		print_barre_liste($langs->trans('ListOrderProducts'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
+	
+	
+		$i = 0;
+		
+		print '<form name="formAddProductsToOF" method="POST" action="'.dol_buildpath('/asset/liste_of.php', 2).'">';
+		
+		print '<input type="hidden" name=fk_commande value="'.$_REQUEST['fk_commande'].'" />';
+		
+		print '<input type="hidden" name=actionATM value="createOFCommande" />';
+		
+		print '<table class="noborder" width="100%">';
+	
+		print '<tr class="liste_titre">';
+		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("Produits à ajouter à un OF"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+		print "</tr>\n";
+		$var=True;
+		
+		while ($i < min($num,$limit))
+		{
+			$prod = $db->fetch_object($resql);
+			//$var=!$var;
+			//print "<tr ".$bc[$var].">";
+			print "<tr>";
+			print "<td>";
+			print $prod->refProd;
+			print "</td>\n";
+			print '<td>';
+			print $prod->nomProd;
+			print '</td>';
+			print "<td>";
+			?>
+				<input type="checkbox" name="TProducts[<?=$i?>][<?=$prod->rowid?>]" />
+			<?
+			
+			print "</td>";
+			print "</tr>\n";
+	
+			$i++;
+		}
+	
+		print "</table>";
+		
+		echo '</div>';
+		
+		print '<input type="SUBMIT" name="subForm" value="Créer OFs" />';
+		
+		print "</form>";
+		
+		$db->free($resql);
+
 
 	} else {
 		
