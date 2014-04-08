@@ -15,15 +15,21 @@
 		case 'createOFCommande':
 
 			$ATMdb = new TPDOdb;
-
-			foreach($_REQUEST['TProducts'] as $k=>$v) {
-				foreach($v as $fk_product=>$onSenFout) {
-
-					_createOFCommande($ATMdb, $fk_product, $_REQUEST['fk_commande']);
-					
+			
+			if(count($_REQUEST['TProducts']) != 0) {
+				
+				foreach($_REQUEST['TProducts'] as $k=>$v) {
+					foreach($v as $fk_product=>$onSenFout) {
+	
+						_createOFCommande($ATMdb, $fk_product, $_REQUEST['fk_commande']);
+						
+					}
 				}
+				
+				//setEventMessage($langs->trans('AssetOF')." créés avec succès", 'mesgs');
+				
 			}
-
+			
 			_liste();
 			break;
 		
@@ -220,7 +226,7 @@ function _liste() {
 		
 		echo '</div>';
 		
-		print '<input type="SUBMIT" name="subForm" value="Créer OFs" />';
+		print '<input class="butAction" type="SUBMIT" name="subForm" value="Créer OFs" style="float:right" />';
 		
 		print "</form>";
 		
