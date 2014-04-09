@@ -15,6 +15,9 @@
 	$o=new TAsset_type;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetLink;
+	$o->init_db_by_vars($ATMdb);
+	
 	$o=new TAsset_field;
 	$o->init_db_by_vars($ATMdb);
 	
