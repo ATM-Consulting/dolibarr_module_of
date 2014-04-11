@@ -524,7 +524,7 @@ class TAssetOFLine extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset,fk_product_fournisseur_price','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used','type=float;');
-		$this->add_champs('type','type=chaine;');
+		$this->add_champs('type,lot_number','type=chaine;');
 		
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');

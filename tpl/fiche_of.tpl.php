@@ -95,8 +95,8 @@
 						<!-- NEEDED -->
 						<table width="100%" class="border needed">
 							<tr style="background-color:#dedede;">
-								<!--<td>Lot</td>
-								<td>Equipement</td>-->
+								<td>Lot</td>
+								<!--<td>Equipement</td>-->
 								<td>Produit</td>
 								<td>Quantité nécessaire</td>
 								<td>Quantité réelle</td>
@@ -106,8 +106,8 @@
 								
 							</tr>
 							<tr id="[TNeeded.id]">
-								<!--<td>Lot</td>
-								<td>Equipement</td>-->
+								<td>Lot</td>
+								<!--<td>Equipement</td>-->
 								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
 								<td>[TNeeded.qty;strconv=no]</td>
