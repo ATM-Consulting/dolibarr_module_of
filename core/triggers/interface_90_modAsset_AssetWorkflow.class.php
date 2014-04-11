@@ -137,6 +137,34 @@ class InterfaceAssetWorkflow
         	
         	if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){ //si poids renseigné alors conditionnement
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commande SET fk_asset = \"".$_REQUEST['asset']."\" WHERE rowid = ".$object->rowid);
+				
+				if($conf->climcneil->enabled){
+					define('INC_FROM_DOLIBARR',true);
+			    	dol_include_once("/custom/asset/config.php");
+					dol_include_once("/custom/asset/class/asset.class.php");
+					dol_include_once('/core/class/extrafields.class.php');
+					
+					$ATMdb = new TPDOdb;
+					$asset = new TAsset;
+					
+					$asset->load_liste_type_asset($ATMdb);
+					$asset->load_asset_type($ATMdb);
+					$asset->load($ATMdb,$_REQUEST['asset']);
+
+					$object->fetch_optionals($object->id,$optionsArray);
+					
+					foreach($asset->TChamps as $champs => $type){
+						//echo $champs." ".$asset->$champs.'<br>';
+						if(array_key_exists('options_'.$champs, $object->array_options)){
+							$object->array_options['options_'.$champs] = $asset->$champs;
+						}
+					}
+					//pre($object->array_options,true);exit;
+
+					$object->update_extrafields($user);
+				}
+					
+				$db->query('UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET fk_asset = '.$_REQUEST['asset'].' WHERE rowid = '.$object->id);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
@@ -167,6 +195,32 @@ class InterfaceAssetWorkflow
 			
         	if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){ //si poids renseigné alors conditionnement
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."propal SET fk_asset = \"".$_REQUEST['asset']."\" WHERE rowid = ".$object->id);
+			
+				if($conf->climcneil->enabled){
+					define('INC_FROM_DOLIBARR',true);
+			    	dol_include_once("/custom/asset/config.php");
+					dol_include_once("/custom/asset/class/asset.class.php");
+					dol_include_once('/core/class/extrafields.class.php');
+					
+					$ATMdb = new TPDOdb;
+					$asset = new TAsset;
+					
+					$asset->load_liste_type_asset($ATMdb);
+					$asset->load_asset_type($ATMdb);
+					$asset->load($ATMdb,$_REQUEST['asset']);
+
+					$object->fetch_optionals($object->id,$optionsArray);
+					
+					foreach($asset->TChamps as $champs => $type){
+						//echo $champs." ".$asset->$champs.'<br>';
+						if(array_key_exists('options_'.$champs, $object->array_options)){
+							$object->array_options['options_'.$champs] = $asset->$champs;
+						}
+					}
+					//pre($object->array_options,true);exit;
+
+					$object->update_extrafields($user);
+				}
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
@@ -229,6 +283,32 @@ class InterfaceAssetWorkflow
 			
         	if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){ //si poids renseigné alors conditionnement
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facture SET fk_asset = \"".$_REQUEST['asset']."\" WHERE rowid = ".$object->rowid);
+			
+				if($conf->climcneil->enabled){
+					define('INC_FROM_DOLIBARR',true);
+			    	dol_include_once("/custom/asset/config.php");
+					dol_include_once("/custom/asset/class/asset.class.php");
+					dol_include_once('/core/class/extrafields.class.php');
+					
+					$ATMdb = new TPDOdb;
+					$asset = new TAsset;
+					
+					$asset->load_liste_type_asset($ATMdb);
+					$asset->load_asset_type($ATMdb);
+					$asset->load($ATMdb,$_REQUEST['asset']);
+
+					$object->fetch_optionals($object->id,$optionsArray);
+					
+					foreach($asset->TChamps as $champs => $type){
+						//echo $champs." ".$asset->$champs.'<br>';
+						if(array_key_exists('options_'.$champs, $object->array_options)){
+							$object->array_options['options_'.$champs] = $asset->$champs;
+						}
+					}
+					//pre($object->array_options,true);exit;
+
+					$object->update_extrafields($user);
+				}
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);

@@ -16,7 +16,7 @@ class ActionsAsset
 		print_r($object);
 		echo '</pre>';*/
 		
-        if($action == "validmodasset" || $action == "add"){
+        if($action == "validmodasset"){
         	//print_r($object);exit;
 			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
 				
@@ -24,6 +24,7 @@ class ActionsAsset
 					define('INC_FROM_DOLIBARR',true);
 			    	dol_include_once("/custom/asset/config.php");
 					dol_include_once("/custom/asset/class/asset.class.php");
+					dol_include_once('/core/class/extrafields.class.php');
 					
 					$ATMdb = new TPDOdb;
 					$asset = new TAsset;
@@ -31,9 +32,8 @@ class ActionsAsset
 					$asset->load_liste_type_asset($ATMdb);
 					$asset->load_asset_type($ATMdb);
 					$asset->load($ATMdb,$_REQUEST['asset']);
-					
 
-					$object->fetch_optionals($object->id);
+					$object->fetch_optionals($object->id,$optionsArray);
 					
 					foreach($asset->TChamps as $champs => $type){
 						//echo $champs." ".$asset->$champs.'<br>';
