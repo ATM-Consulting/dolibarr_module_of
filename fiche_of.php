@@ -433,6 +433,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$client=new Societe($db);
 	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
 	
+	$commande=new Commande($db);
+	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
+	
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -446,6 +449,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'numero'=> ($mode=='edit') ? $form->texte('', 'numero', ($assetOf->numero) ? $assetOf->numero : 'OF'.str_pad( $assetOf->getLastId($PDOdb) +1 , 5, '0', STR_PAD_LEFT), 20,255,'','','à saisir') : '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->numero.'</a>'
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
 				,'fk_assetOf_parent'=>($mode=='edit') ? $form->combo('','fk_assetOf_parent',$TOFParent,$assetOf->fk_assetOf_parent) : '<a href="fiche_of.php?id='.$assetOf->fk_assetOf_parent.'">'.$TOFParent[$assetOf->fk_assetOf_parent].'</a>'
+				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication

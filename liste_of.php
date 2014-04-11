@@ -9,7 +9,7 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	
-	$action = $_REQUEST['actionATM'];
+	$action = $_REQUEST['action'];
 	
 	switch ($action) {
 		case 'createOFCommande':
@@ -163,9 +163,14 @@ function _liste() {
 		)
 	));
 	
+	$form->end();
+	
 	// 
 	// On n'affiche pas le bouton de création d'OF si on est sur la liste OF depuis l'onglet "OF" de la fiche commande
 	if($fk_commande) {
+				
+		$commande=new Commande($db);
+		$commande->fetch($fk_commande);	
 				
 		$r2 = new TSSRenderControler($assetOf);
 
@@ -184,11 +189,10 @@ function _liste() {
 	
 		$i = 0;
 		
-		print '<form name="formAddProductsToOF" method="POST" action="'.dol_buildpath('/asset/liste_of.php', 2).'">';
-		
-		print '<input type="hidden" name=fk_commande value="'.$_REQUEST['fk_commande'].'" />';
-		
-		print '<input type="hidden" name=actionATM value="createOFCommande" />';
+		$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
+		echo $form->hidden('fk_commande', __get('fk_commande',0,'int'));
+		echo $form->hidden('action', 'createOFCommande');
+		echo $form->hidden('fk_soc', $commande->socid);
 		
 		print '<table class="noborder" width="100%">';
 	
@@ -211,11 +215,7 @@ function _liste() {
 			print '<td>';
 			print $prod->nomProd;
 			print '</td>';
-			print "<td>";
-			?>
-				<input type="checkbox" name="TProducts[<?=$i?>][<?=$prod->rowid?>]" />
-			<?
-			
+			print "<td>".$form->checkbox1('', 'TProducts['.$i.']['.$prod->rowid.']', false);
 			print "</td>";
 			print "</tr>\n";
 	
@@ -226,9 +226,8 @@ function _liste() {
 		
 		echo '</div>';
 		
-		print '<input class="butAction" type="SUBMIT" name="subForm" value="Créer OFs" style="float:right" />';
-		
-		print "</form>";
+		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm').'</p>';
+		$form->end();
 		
 		$db->free($resql);
 
