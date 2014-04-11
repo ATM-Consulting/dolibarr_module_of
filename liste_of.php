@@ -16,20 +16,7 @@
 
 			$ATMdb = new TPDOdb;
 			
-			if(!empty($_REQUEST['TProducts'])) {
-				
-				foreach($_REQUEST['TProducts'] as $k=>$v) {
-					foreach($v as $fk_product=>$onSenFout) {
-	
-						_createOFCommande($ATMdb, $fk_product, $_REQUEST['fk_commande'], $_REQUEST['fk_soc']);
-						
-					}
-				}
-				
-				//setEventMessage($langs->trans('AssetOF')." créés avec succès", 'mesgs');
-				
-			}
-			
+			_createOFCommande($ATMdb, $_REQUEST['TProducts'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc']);
 			_liste();
 			break;
 		
@@ -39,17 +26,29 @@
 	}	
 	
 
-function _createOFCommande($ATMdb, $fk_product, $fk_commande, $fk_soc) {
+function _createOFCommande($ATMdb, $TProduct, $fk_commande, $fk_soc) {
 /*
  * Créé des Of depuis un tableau de product
  */	
-	$assetOf = new TAssetOF;
-	$assetOf->fk_commande = $fk_commande;
-	$assetOf->fk_soc = $fk_soc;
-	$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
-	$assetOf->save($ATMdb);
+ 
+ 		if(!empty($TProduct)) {
+				
+				foreach($_REQUEST['TProducts'] as $k=>$v) {
+					foreach($v as $fk_product=>$onSenFout) {
 	
-	
+						$assetOf = new TAssetOF;
+						$assetOf->fk_commande = $fk_commande;
+						$assetOf->fk_soc = $fk_soc;
+						$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
+						$assetOf->save($ATMdb);
+						
+					}
+				}
+				
+				setEventMessage($langs->trans('AssetOF')." créés avec succès", 'mesgs');
+				
+		}
+			
 }
 
 function _liste() {
@@ -62,7 +61,7 @@ function _liste() {
 	
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
-		<br><div class="error"><?= $langs->trans('OFAssetDeleted'); ?></div><br>
+		<br><div class="error"><?php echo $langs->trans('OFAssetDeleted'); ?></div><br>
 		<?
 	}
 	
