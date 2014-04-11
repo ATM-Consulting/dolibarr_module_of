@@ -8,6 +8,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();

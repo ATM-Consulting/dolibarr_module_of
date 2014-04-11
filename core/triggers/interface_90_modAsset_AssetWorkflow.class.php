@@ -133,6 +133,14 @@ class InterfaceAssetWorkflow
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
+        elseif($action == 'ORDER_CREATE'){
+        	
+        	if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."commande SET fk_asset = \"".$_REQUEST['asset']."\" WHERE rowid = ".$object->rowid);
+			}
+			
+			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
+        }
         
          /*
 		 *  PROPAL
@@ -154,6 +162,14 @@ class InterfaceAssetWorkflow
         	
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
+        }
+		elseif($action == 'PROPAL_CREATE'){
+			
+        	if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."propal SET fk_asset = \"".$_REQUEST['asset']."\" WHERE rowid = ".$object->rowid);
+			}
+			
+			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
         }
 		
 		/*
@@ -208,6 +224,14 @@ class InterfaceAssetWorkflow
 				$resql = $db->query($sql);
 
 			}        	
+        }
+		elseif($action == 'BILL_CREATE'){
+			
+        	if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){ //si poids renseigné alors conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."facture SET fk_asset = \"".$_REQUEST['asset']."\" WHERE rowid = ".$object->rowid);
+			}
+			
+			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
         }
 
 		return 0;
