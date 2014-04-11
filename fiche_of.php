@@ -199,7 +199,12 @@ function generateODTOF(&$PDOdb) {
 	$TToMake = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit à fabriquer
 	$TNeeded = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit nécessaires
 	$TWorkstations = array(); // Tableau envoyé à la fonction render contenant les informations concernant les stations de travail
-
+	
+	$societe = new Societe($db);
+	$societe->fetch($assetOf->fk_soc);
+	
+	//pre($societe,true); exit;
+	
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>$v) {
 		
@@ -271,7 +276,16 @@ function generateODTOF(&$PDOdb) {
 	
 	@mkdir($dir, 0777, true);
 	
-	$TBS->render(dol_buildpath('/asset/exempleTemplate/templateOF.odt')
+	if(defined('TEMPLATE_OF')){
+		$template = TEMPLATE_OF;
+	}
+	else{
+		$template = "templateOF.odt";
+	}
+	
+	//echo $societe->name; exit;
+	
+	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
@@ -283,15 +297,16 @@ function generateODTOF(&$PDOdb) {
 			,'statutOF'=>TAssetOF::$TStatus[$assetOf->status]
 			,'prioriteOF'=>TAssetOF::$TOrdre[$assetOf->ordre]
 			,'date'=>date("d/m/Y")
+			,'societe'=>$societe->name
 		)
 		,array()
 		,array(
-			'outFile'=>$dir.'templateOF.odt'
+			'outFile'=>$dir.$template
 		)
 		
 	);	
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/templateOF.odt");
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$template);
 
 }
 
