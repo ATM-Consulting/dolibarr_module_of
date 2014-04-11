@@ -310,6 +310,8 @@ class InterfaceAssetWorkflow
 
 					$object->update_extrafields($user);
 				}
+				
+				$db->query('UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET fk_asset = '.$_REQUEST['asset'].' WHERE rowid = '.$object->id);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
