@@ -106,7 +106,8 @@ class InterfaceAssetWorkflow
      */
 	function run_trigger($action,$object,$user,$langs,$conf)
     {
-   
+   		global $db;
+		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
     	dol_include_once('/asset/config.php');
 		dol_include_once('/commande/class/commande.class.php');
