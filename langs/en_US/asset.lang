@@ -1,0 +1,22 @@
+# Dolibarr language file - fr_FR
+CHARSET=UTF-8
+
+# EQUIPEMENT
+Asset=Equipement
+ListAsset=Liste des équipements installés
+AssetDeleted=Equipement supprimé
+AssetType=Type d'Equipement
+AssetListType=Liste des types d'équipements
+AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher
+AssetListFields=Champs des équipements
+AssetAddType=Ajouter un type d'équipement
+AssetCreateType=Création type d'équipement
+
+# ORDRE DE FABRICATION
+OFAsset=Ordre de fabrication
+CreateOFAsset=Créer un Ordre
+ListOFAsset=Liste des ordres de fabrication
+OFAssetDeleted=Ordre de fabrication supprimé
+createOFFile = Générer document papier
+WorkStation=Poste de travail
+ListOrderProducts=Liste des produits de la commande

@@ -9,19 +9,19 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	
-	$action = $_REQUEST['action'];
+	$action = __get('action');
 	
 	switch ($action) {
 		case 'createOFCommande':
 
 			$ATMdb = new TPDOdb;
 			
-			if(count($_REQUEST['TProducts']) != 0) {
+			if(!empty($_REQUEST['TProducts'])) {
 				
 				foreach($_REQUEST['TProducts'] as $k=>$v) {
 					foreach($v as $fk_product=>$onSenFout) {
 	
-						_createOFCommande($ATMdb, $fk_product, $_REQUEST['fk_commande']);
+						_createOFCommande($ATMdb, $fk_product, $_REQUEST['fk_commande'], $_REQUEST['fk_soc']);
 						
 					}
 				}
@@ -39,13 +39,16 @@
 	}	
 	
 
-function _createOFCommande($ATMdb, $fk_product, $id_commande) {
-	
+function _createOFCommande($ATMdb, $fk_product, $fk_commande, $fk_soc) {
+/*
+ * Créé des Of depuis un tableau de product
+ */	
 	$assetOf = new TAssetOF;
-	$assetOf->fk_commande = $id_commande;
-	//function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
+	$assetOf->fk_commande = $fk_commande;
+	$assetOf->fk_soc = $fk_soc;
 	$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
 	$assetOf->save($ATMdb);
+	
 	
 }
 
