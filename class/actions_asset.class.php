@@ -16,7 +16,7 @@ class ActionsAsset
 		print_r($object);
 		echo '</pre>';*/
 		
-        if($action == "validmodasset"){
+        if($action == "validmodasset" || $action == "create"){
         	//print_r($object);exit;
 			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
 				
