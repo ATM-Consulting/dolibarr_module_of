@@ -124,7 +124,7 @@
 	llxFooter();
 
 function _liste_link(&$ATMdb, $fk_product) {
-global $db,$langs,$conf;	
+global $db,$langs,$conf, $user;	
 	
 	if($fk_product>0){
 		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
@@ -133,7 +133,7 @@ global $db,$langs,$conf;
 		require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 			
 		$product = new Product($db);
-		$result=$product->fetch($_REQUEST['fk_product']);	
+		$result=$product->fetch($fk_product);	
 			
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
