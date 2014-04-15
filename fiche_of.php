@@ -302,12 +302,12 @@ function generateODTOF(&$PDOdb) {
 		)
 		,array()
 		,array(
-			'outFile'=>$dir.$template
+			'outFile'=>$dir.$assetOf->numero.".odt"
 		)
 		
 	);	
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$template);
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
 
 }
 
