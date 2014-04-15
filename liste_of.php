@@ -31,23 +31,25 @@ function _createOFCommande($ATMdb, $TProduct, $fk_commande, $fk_soc) {
  * Créé des Of depuis un tableau de product
  */	
  
- 		if(!empty($TProduct)) {
-				
-				foreach($_REQUEST['TProducts'] as $k=>$v) {
-					foreach($v as $fk_product=>$onSenFout) {
+	global $langs;
 	
-						$assetOf = new TAssetOF;
-						$assetOf->fk_commande = $fk_commande;
-						$assetOf->fk_soc = $fk_soc;
-						$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
-						$assetOf->save($ATMdb);
-						
-					}
+	if(!empty($TProduct)) {
+			
+			foreach($_REQUEST['TProducts'] as $k=>$v) {
+				foreach($v as $fk_product=>$onSenFout) {
+
+					$assetOf = new TAssetOF;
+					$assetOf->fk_commande = $fk_commande;
+					$assetOf->fk_soc = $fk_soc;
+					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
+					$assetOf->save($ATMdb);
+					
 				}
-				
-				setEventMessage($langs->trans('AssetOF')." créés avec succès", 'mesgs');
-				
-		}
+			}
+			
+			setEventMessage($langs->trans('AssetOF')." créés avec succès", 'mesgs');
+			
+	}
 			
 }
 
