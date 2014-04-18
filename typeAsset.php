@@ -181,6 +181,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				'id'=>$asset->getId()
 				,'code'=>$form->texte('', 'code', $asset->code, 20,255,'','','à saisir')
 				,'libelle'=>$form->texte('', 'libelle', $asset->libelle, 20,255,'','','à saisir') 
+				,'masque'=>$form->texte('', 'masque', $asset->masque, 12,10,'','','à saisir')
 				,'point_chute'=>$form->texte('', 'point_chute', $asset->point_chute, 12,10,'','','à saisir')
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
 				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)
