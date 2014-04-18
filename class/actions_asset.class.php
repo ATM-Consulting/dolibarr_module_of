@@ -18,9 +18,9 @@ class ActionsAsset
 		
         if($action == "validmodasset"){
         	//print_r($object);exit;
-			if(isset($_REQUEST['asset']) && !empty($_REQUEST['asset'])){
+			if(isset($_REQUEST['asset'])){
 				
-				if($conf->climcneil->enabled){
+				if($conf->climcneil->enabled && !empty($_REQUEST['asset'])){
 					define('INC_FROM_DOLIBARR',true);
 			    	dol_include_once("/custom/asset/config.php");
 					dol_include_once("/custom/asset/class/asset.class.php");
