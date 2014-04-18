@@ -577,9 +577,20 @@ class TAsset_field extends TObjetStd {
 			return true;
 		}
 		else {return false;}
-		
-		
 	}
 
 }
 
+class TAssetLot extends TObjetStd{
+/*
+ * Gestion des lot d'équipements 
+ * */
+	
+	function __construct() {
+		$this->set_table(MAIN_DB_PREFIX.'assetlot');
+		$this->add_champs('entity','type=entier;');
+		$this->add_champs('lot_number', 'type=chaine;');
+		
+	    $this->start();
+	}
+}

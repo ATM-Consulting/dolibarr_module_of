@@ -35,7 +35,7 @@
 			
 [onshow;block=begin;when [view.mode]=='view']
 	
-		</div>
+			</div>
 
 		</div>
 		

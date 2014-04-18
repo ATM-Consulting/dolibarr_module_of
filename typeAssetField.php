@@ -1,7 +1,7 @@
 <?php
-	require('../config.php');
-	require('../class/asset.class.php');
-	require('../lib/asset.lib.php');
+	require('config.php');
+	require('class/asset.class.php');
+	require('lib/asset.lib.php');
 	
 	$langs->load('asset@asset');
 	

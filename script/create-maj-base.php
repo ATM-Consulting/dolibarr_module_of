@@ -21,6 +21,9 @@
 	$o=new TAsset;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetLot;
+	$o->init_db_by_vars($ATMdb);
+	
 	$o=new TAssetCommandedet;
 	$o->init_db_by_vars($ATMdb);
 	
@@ -47,19 +50,6 @@
 	
 	$o=new TAssetPropaldet;
 	$o->init_db_by_vars($ATMdb);
-	
-	$asset_type = new TAsset_type;
-	$asset_type->libelle = "Produit";
-	$asset_type->reutilisable = "oui";
-	$asset_type->code = "pr";
-	$asset_type->gestion_stock = "UNIT";
-	$asset_type->entity = $conf->entity;
-	$asset_type->contenance_value = 0;
-	$asset_type->contenancereel_value = 0;
-	$asset_type->point_chute = 1;
-	$asset_type->contenance_units = 0;
-	$asset_type->contenancereel_units = 0;
-	$asset_type->supprimable = 0;
 	
 	$asset_type->save($ATMdb);
 	

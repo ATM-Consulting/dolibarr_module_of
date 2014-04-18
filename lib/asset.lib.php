@@ -19,6 +19,10 @@ function assetPrepareHead(&$asset,$type='type-asset') {
 			return array(
 					array(DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$asset->getId(), 'Fiche','fiche')
 				);
+		case 'assetlot':
+			return array(
+					array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?id='.$asset->getId(), 'Fiche','fiche')
+				);
 			break;
 	}
 }

@@ -19,3 +19,7 @@ ListOFAsset=Liste des ordres de fabrication
 OFAssetDeleted=Ordre de fabrication supprimé
 createOFFile = Générer document papier
 WorkStation=Poste de travail
+
+#LOT
+ListAssetLot=Liste des lots d'équipement
+AssetLotDeleted=Lot supprimé
