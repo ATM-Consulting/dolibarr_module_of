@@ -174,7 +174,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	
 	$TBS=new TTemplateTBS();
 	
-	print $TBS->render('../tpl/asset.type.tpl.php'
+	print $TBS->render('tpl/asset.type.tpl.php'
 		,array()
 		,array(
 			'assetType'=>array(
