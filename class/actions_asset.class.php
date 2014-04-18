@@ -158,8 +158,11 @@ class ActionsAsset
 				print '<td colspan="3">';
 				
 				if($resql){
-					$res = $db->fetch_object($resql);
-					print $res->serial_number.' - '.$res->label;
+					$num = $db->num_rows($resql);
+					if($num > 0) {
+						$res = $db->fetch_object($resql);
+						print $res->serial_number.' - '.$res->label;
+					}
 				}
 				
 				print '</select></td></tr>';
