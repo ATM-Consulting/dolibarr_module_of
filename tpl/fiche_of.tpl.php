@@ -38,7 +38,7 @@
 						<input type="button" class="butAction" name="valider" value="Valider">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='VALID']
-						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer la production">
+						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Production en cours">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='OPEN']
 						&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
