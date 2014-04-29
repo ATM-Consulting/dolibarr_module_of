@@ -513,6 +513,42 @@ class TAsset_type extends TObjetStd {
 		//echo $r; exit;
 		return $r;
 	}
+	
+	//Function standard dolibarr pour afficher la structuration des masques
+	function info()
+    {
+    	global $conf,$langs,$db;
+
+		$langs->load("bills");
+
+		$form = new Form($db);
+
+		$texte = $langs->trans('GenericNumRefModelDesc')."<br>\n";
+		$texte.= '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+		$texte.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+		$texte.= '<input type="hidden" name="action" value="updateMask">';
+		$texte.= '<input type="hidden" name="maskconstpropal" value="PROPALE_SAPHIR_MASK">';
+		$texte.= '<table class="nobordernopadding" width="100%">';
+
+		$tooltip=$langs->trans("GenericMaskCodes",$langs->transnoentities("Proposal"),$langs->transnoentities("Proposal"));
+		$tooltip.=$langs->trans("GenericMaskCodes2");
+		$tooltip.=$langs->trans("GenericMaskCodes3");
+		$tooltip.=$langs->trans("GenericMaskCodes5");
+	
+		//echo $tooltip; exit;
+		// Parametrage du prefix
+		$texte.= '<tr><td>'.$langs->trans("Mask").':</td>';
+		$texte.= '<td align="right">'.$form->textwithpicto('<input type="text" class="flat" size="24" name="maskpropal" value="'.$conf->global->PROPALE_SAPHIR_MASK.'">',$tooltip,1,1).'</td>';
+
+		$texte.= '<td align="left" rowspan="2">&nbsp; <input type="submit" class="button" value="'.$langs->trans("Modify").'" name="Button"></td>';
+
+		$texte.= '</tr>';
+
+		$texte.= '</table>';
+		$texte.= '</form>';
+
+		return $texte;
+    }
 		
 }
 
