@@ -15,8 +15,8 @@
 		case 'createOFCommande':
 
 			$ATMdb = new TPDOdb;
-			
-			_createOFCommande($ATMdb, $_REQUEST['TProducts'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc']);
+
+			_createOFCommande($ATMdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc']);
 			_liste();
 			break;
 		
@@ -26,13 +26,13 @@
 	}	
 	
 
-function _createOFCommande($ATMdb, $TProduct, $fk_commande, $fk_soc) {
+function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc) {
 /*
  * Créé des Of depuis un tableau de product
  */	
  
 	global $langs;
-	
+
 	if(!empty($TProduct)) {
 			
 			foreach($_REQUEST['TProducts'] as $k=>$v) {
@@ -41,7 +41,7 @@ function _createOFCommande($ATMdb, $TProduct, $fk_commande, $fk_soc) {
 					$assetOf = new TAssetOF;
 					$assetOf->fk_commande = $fk_commande;
 					$assetOf->fk_soc = $fk_soc;
-					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE');
+					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_product]);
 					$assetOf->save($ATMdb);
 					
 				}
@@ -178,7 +178,7 @@ function _liste() {
 				
 		$r2 = new TSSRenderControler($assetOf);
 
-		$sql = "SELECT p.rowid as rowid, p.ref as refProd, p.label as nomProd";
+		$sql = "SELECT p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c INNER JOIN ".MAIN_DB_PREFIX."product p";
 		$sql.= " ON c.fk_product = p.rowid";
 		$sql.= " WHERE c.fk_commande = ".$fk_commande;
@@ -221,6 +221,7 @@ function _liste() {
 			print '</td>';
 			print "<td>".$form->checkbox1('', 'TProducts['.$i.']['.$prod->rowid.']', false);
 			print "</td>";
+			print $form->hidden('TQuantites['.$prod->rowid.']', $prod->qteCommandee);
 			print "</tr>\n";
 	
 			$i++;
