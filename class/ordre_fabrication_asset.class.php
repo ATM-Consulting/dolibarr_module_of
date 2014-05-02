@@ -260,7 +260,7 @@ class TAssetOF extends TObjetStd{
 			$asset = new TAsset;
 			
 			if($AssetOFLine->type == "TO_MAKE"){
-				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used);
+				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used, $this->rowid);
 			}
 		}
 	}
@@ -276,7 +276,7 @@ class TAssetOF extends TObjetStd{
 
 			if($AssetOFLine->type == "NEEDED"){
 				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
-				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication');
+				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication (OF n°'.$this->rowid.')');
 			}
 
 		}
@@ -566,7 +566,7 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$ATMdb,$fk_product,$qty){
+	function makeAsset(&$ATMdb,$fk_product,$qty, $idAsset = 0){
 		global $user,$conf;
 		include_once 'asset.class.php';
 		
@@ -584,7 +584,7 @@ class TAssetOFLine extends TObjetStd{
 		 */
 		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
 		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
-		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication',$qty);
+		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication (OF n°'.$idAsset.')',$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 	}
 	
