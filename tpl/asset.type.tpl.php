@@ -11,7 +11,7 @@
 <table width="100%" class="border">
 	<tr><td width="20%">Libellé</td><td>[assetType.libelle; strconv=no]</td></tr>
 	<tr><td width="20%">Code (facultatif)</td><td>[assetType.code; strconv=no]</td></tr>[assetType.supprimable; strconv=no]
-	<tr><td width="20%">Masque</td><td>[assetType.masque; strconv=no][assetType.info_masque; strconv=html]</td></tr>
+	<tr><td width="20%">Masque de numérotation</td><td>[assetType.masque; strconv=no][assetType.info_masque; strconv=no]</td></tr>
 	<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
 	<tr><td width="20%">Gestion du stock</td><td>[assetType.gestion_stock; strconv=no]</td></tr>
 	<tr><td width="20%">Réutilisable</td><td>[assetType.reutilisable; strconv=no]</td></tr>
