@@ -635,11 +635,12 @@ class TAssetWorkstationProduct extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
-		$this->add_champs('nb_hour','type=float;'); // nombre d'heure associé au poste de charge et au produit
+		$this->add_champs('nb_hour,rang','type=float;'); // nombre d'heure associé au poste de charge et au produit
 		
 		$this->start();
 		
 		$this->nb_hour=0;
+		$this->rang=0;
 	}
 	
 }
