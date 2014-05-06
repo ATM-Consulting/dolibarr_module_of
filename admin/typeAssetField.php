@@ -165,7 +165,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				,'indice'=>$k
 				,'ordre'=>$form->hidden('TField['.$k.'][ordre]', $k, 'class="ordre'.$k.'"')
 				,'type'=>$form->combo('','TField['.$k.'][type]',$asset->TType,$field->type)
-				,'options'=>$form->texte('', 'TField['.$k.'][options]', $field->options, 20,255,'','','-')
+				,'options'=>$form->zonetexte('','TField['.$k.'][options]',$field->options,50,5)
 				,'obligatoire'=>$form->combo('','TField['.$k.'][obligatoire]',array('Oui','Non'),$field->obligatoire)
 				,'inliste'=>$form->combo('','TField['.$k.'][inliste]',array("non"=>"Non","oui"=>"Oui"),$field->inliste)
 				,'inlibelle'=>$form->combo('','TField['.$k.'][inlibelle]',array("non"=>"Non","oui"=>"Oui"),$field->inlibelle)
@@ -201,7 +201,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				,'indice'=>$k+1
 				,'libelle'=>$form->texte('', 'TNField[libelle]', '', 20,255,'','','-')
 				,'type'=>$form->combo('', 'TNField[type]',$asset->TType, 'texte')
-				,'options'=>$form->texte('', 'TNField[options]', '', 20,255,'','','-')
+				,'options'=>$form->zonetexte('','TNField[options]','',50,5)
 				,'obligatoire'=>$form->combo('','TNField[obligatoire]',array('Oui','Non'),'0')
 				,'inliste'=>$form->combo('','TNField[inliste]',array("non"=>"Non","oui"=>"Oui"),'0')
 				,'inlibelle'=>$form->combo('','TNField[inlibelle]',array("non"=>"Non","oui"=>"Oui"),'0')
