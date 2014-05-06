@@ -16,6 +16,15 @@
 					</tr>
 				[onshow;block=end]
 				[onshow;block=begin;when [view.mode]!='new']
+				
+				<script type="text/javascript">
+					$(document).ready(function(){
+						$("#lot_number").autocomplete({
+							source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
+							minLength : 1
+						});
+					});
+				</script>
 				<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td>[asset.typehidden;strconv=no;protect=no]</tr>
 				<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>

@@ -64,13 +64,13 @@ function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) {
 	
 }
 
-
 //Autocomplete sur les différents champs d'une ressource
 function _autocomplete(&$ATMdb,$fieldcode,$value){
 	$sql = "SELECT DISTINCT(".$fieldcode.")
-			FROM ".MAIN_DB_PREFIX."rh_ressource
+			FROM ".MAIN_DB_PREFIX."assetlot
 			WHERE ".$fieldcode." LIKE '".$value."%'
 			ORDER BY ".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
+	
 	$ATMdb->Execute($sql);
 	
 	while ($ATMdb->Get_line()) {
