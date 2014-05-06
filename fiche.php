@@ -334,6 +334,10 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	print_r($TFields);
 	echo '</pre>';exit;*/
 	
+	if($mode == "edit" && empty($asset->serial_number)){
+		$asset->serial_number = $asset->getNextValue($ATMdb);
+	}
+	
 	print $TBS->render('tpl/fiche.tpl.php'
 		,array(
 			'assetField'=>$TFields
