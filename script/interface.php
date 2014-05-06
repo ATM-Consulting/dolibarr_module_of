@@ -36,7 +36,15 @@ function traite_get(&$ATMdb, $case) {
 			__out(_deleteofworkstation($ATMdb,$_REQUEST['id_assetOf'], $_REQUEST['fk_asset_workstation_of'] ));
 			
 			break;
+		case 'getofchildid':
+			$Tid = array();
+			$assetOf=new TAssetOF;
+			$assetOf->load($ATMdb, __get('id',0,'integer'));
 			
+			$assetOf->getListeOFEnfants($ATMdb, $Tid);
+			
+			__out($Tid);
+			break;
 	}
 }
 
