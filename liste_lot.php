@@ -29,8 +29,10 @@ function _liste() {
 	$assetlot=new TAssetLot;
 	$r = new TSSRenderControler($assetlot);
 
-	$sql="SELECT rowid, lot_number, '' as Action
-		  FROM ".MAIN_DB_PREFIX."assetlot
+	$sql="SELECT rowid, lot_number, 
+				(SELECT COUNT(rowid) FROM ".MAIN_DB_PREFIX."asset WHERE lot_number = al.lot_number) as assetinlot,
+				(SELECT COUNT(DISTINCT(p.rowid)) FROM ".MAIN_DB_PREFIX."product as p LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.fk_product = p.rowid) WHERE a.lot_number = al.lot_number) as productinlot
+		  FROM ".MAIN_DB_PREFIX."assetlot as al
 		  WHERE entity=".$conf->entity;
 
 	$THide = array('rowid','fk_user');
@@ -55,6 +57,11 @@ function _liste() {
 		,'title'=>array(
 			'rowid'=>'ID'
 			,'lot_number'=>'Numéro de lot'
+			,'assetinlot'=>'Nb Equipement dans ce lot'
+			,'productinlot'=>'Nb Produit dans ce lot'
+		)
+		,'link'=>array(
+			'lot_number'=>'<a href="'.dol_buildpath('/asset/fiche_lot.php?id=@rowid@',1).'">@val@</a>'
 		)
 	));
 		
