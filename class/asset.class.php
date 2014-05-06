@@ -105,6 +105,8 @@ class TAsset extends TObjetStd{
 		parent::save($ATMdb);
 		$this->save_link($ATMdb);
 		
+		$this->addLotNumber($ATMdb);
+		
 		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
 		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
 			$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
@@ -254,6 +256,24 @@ class TAsset extends TObjetStd{
 		$ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
 		
 		return $ref;
+	}
+	
+	function addLotNumber(&$ATMdb){
+		
+		global $conf;
+		
+		$sql = 'SELECT rowid FROM ".MAIN_DB_PREFIX."assetlot WHERE lot_number = "'.$this->lot_number.'"';
+		$ATMdb->Execute($sql);
+
+		if($ATMdb->Get_line()){
+			return true;
+		}
+		else{
+			$lot = new TAssetLot;
+			$lot->lot_number = $this->lot_number;
+			$lot->entity = $conf->entity;
+			$lot->save($ATMdb);
+		}
 	}
 }
 
