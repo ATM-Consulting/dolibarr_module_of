@@ -101,9 +101,6 @@ global $langs,$db,$conf;
 
 	echo $form->hidden('id', $assetlot->rowid);
 	if ($mode=='new'){
-		echo $form->hidden('action', 'edit');
-	}
-	else {
 		echo $form->hidden('action', 'save');
 	}
 	echo $form->hidden('entity', $conf->entity);
@@ -113,13 +110,16 @@ global $langs,$db,$conf;
 
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
-
+	
 	print $TBS->render('tpl/fiche_lot.tpl.php'
 		,array()
 		,array(
 			'assetlot'=>array(
 				'id'=>$assetlot->getId()
 				,'lot_number'=>$form->texte('', 'lot_number', $assetlot->lot_number, 100,255,'','','à saisir')
+			)
+			,'view'=>array(
+				'mode' => $mode
 			)
 		)
 	);

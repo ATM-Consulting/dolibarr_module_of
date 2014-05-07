@@ -46,7 +46,7 @@ function _liste() {
 			'nbLine'=>'30'
 		)
 		,'liste'=>array(
-			'titre'=>$langs->trans('ListAsstLot')
+			'titre'=>$langs->trans('ListAssetLot')
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
