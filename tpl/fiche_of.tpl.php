@@ -91,11 +91,11 @@
 					</td>
 				</tr>
 				<tr style="background-color:#fff;">
-					<td colspan="2" width="60%" valign="top">
+					<td colspan="2" width="50%" valign="top">
 						<!-- NEEDED -->
 						<table width="100%" class="border needed">
 							<tr style="background-color:#dedede;">
-								<td>Lot</td>
+								<td width="20%">Lot</td>
 								<!--<td>Equipement</td>-->
 								<td>Produit</td>
 								<td>Quantité nécessaire</td>
@@ -106,7 +106,7 @@
 								
 							</tr>
 							<tr id="[TNeeded.id]">
-								<td>Lot</td>
+								<td>[TNeeded.lot_number;strconv=no]</td>
 								<!--<td>Equipement</td>-->
 								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
@@ -119,11 +119,12 @@
 							</tr>
 						</table>
 					</td> 
-					<td colspan="2" width="40%" valign="top">
+					<td colspan="2" width="50%" valign="top">
 						<!-- TO_MAKE -->
 						<table width="100%" class="border tomake">
 							<tr style="background-color:#dedede;">
 								<td class="draftedit" style="width:20px;">Action</td>
+								<td>Lot</td>
 								<td>Produit</td>
 								<td>Quantité à produire</td>
 								<td>Fournisseur</td>
@@ -133,7 +134,7 @@
 							<tr id="[TTomake.id]">
 								
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
-								
+								<td>[TTomake.lot_number;strconv=no]</td>
 								<td>[TTomake.libelle;block=tr;strconv=no]</td>
 								<td>[TTomake.qty;strconv=no]</td>
 								<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>

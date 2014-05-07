@@ -307,6 +307,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
+					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'qty_needed'=>$TAssetOFLine->qty_needed
 					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
@@ -348,6 +349,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
 					,'idProd'=>$product->id
+					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
@@ -404,7 +406,16 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
 	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
-	//pre($TToMake,true); exit;
+	?>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$(".TAssetOFLineLot").autocomplete({
+				source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
+				minLength : 1
+			});
+		});
+	</script>
+	<?php
 	
 	ob_start();
 	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
