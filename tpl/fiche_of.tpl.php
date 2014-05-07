@@ -1,3 +1,4 @@
+
 <style type="text/css">
 	.draft, .draftedit,.nodraft,.viewmode,.of-details {
 		
@@ -95,7 +96,9 @@
 						<!-- NEEDED -->
 						<table width="100%" class="border needed">
 							<tr style="background-color:#dedede;">
-								<td width="20%">Lot</td>
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td width="20%">Lot</td>
+								[onshow;block=end]
 								<!--<td>Equipement</td>-->
 								<td>Produit</td>
 								<td>Quantité nécessaire</td>
@@ -106,7 +109,9 @@
 								
 							</tr>
 							<tr id="[TNeeded.id]">
-								<td>[TNeeded.lot_number;strconv=no]</td>
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td>[TNeeded.lot_number;strconv=no]</td>
+								[onshow;block=end]
 								<!--<td>Equipement</td>-->
 								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
@@ -124,7 +129,9 @@
 						<table width="100%" class="border tomake">
 							<tr style="background-color:#dedede;">
 								<td class="draftedit" style="width:20px;">Action</td>
-								<td>Lot</td>
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td>Lot</td>
+								[onshow;block=end]
 								<td>Produit</td>
 								<td>Quantité à produire</td>
 								<td>Fournisseur</td>
@@ -134,7 +141,9 @@
 							<tr id="[TTomake.id]">
 								
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
-								<td>[TTomake.lot_number;strconv=no]</td>
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td>[TTomake.lot_number;strconv=no]</td>
+								[onshow;block=end]
 								<td>[TTomake.libelle;block=tr;strconv=no]</td>
 								<td>[TTomake.qty;strconv=no]</td>
 								<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>

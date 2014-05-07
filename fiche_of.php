@@ -406,16 +406,18 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
 	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
-	?>
-	<script type="text/javascript">
-		$(document).ready(function(){
-			$(".TAssetOFLineLot").autocomplete({
-				source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
-				minLength : 1
+	if($conf->global->USE_LOT_IN_OF){
+		?>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".TAssetOFLineLot").autocomplete({
+					source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
+					minLength : 1
+				});
 			});
-		});
-	</script>
-	<?php
+		</script>
+		<?php
+	}
 	
 	ob_start();
 	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
@@ -479,6 +481,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_product'=>$select_product
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
+				,'use_lot_in_of'=>(int)$conf->global->USE_LOT_IN_OF
 			)
 		)
 	);

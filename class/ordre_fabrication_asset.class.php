@@ -540,12 +540,18 @@ class TAssetOFLine extends TObjetStd{
 	
 	//Affecte l'équipement à la ligne de l'OF
 	function setAsset(&$ATMdb){
-		global $db, $user;	
+		global $db, $user, $conf;	
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenance_reel >= ".$this->qty." ORDER BY contenance_reel ASC LIMIT 1";
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenance_reel >= ".$this->qty;
+		
+		if($conf->global->USE_LOT_IN_OF){
+			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+		}
+		
+		$sql .= "ORDER BY contenance_reel ASC LIMIT 1";
 		$ATMdb->Execute($sql);
 		if($ATMdb->Get_line()){
 			$idAsset = $ATMdb->Get_field('rowid');
