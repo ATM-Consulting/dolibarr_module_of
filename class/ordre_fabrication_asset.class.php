@@ -589,6 +589,11 @@ class TAssetOFLine extends TObjetStd{
 		 */
 		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
 		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
+		
+		if($conf->global->USE_LOT_IN_OF){
+			$TAsset->lot_number = $this->lot_number;
+		}
+		
 		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication',$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 	}
