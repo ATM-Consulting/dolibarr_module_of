@@ -48,6 +48,7 @@
 					//$ATMdb->debug=true;
 					$wsp->load($ATMdb, $id);
 					$wsp->nb_hour = (double)$row[ 'nb_hour' ];
+					$wsp->rang = (double)$row[ 'rang' ];
 					$wsp->save($ATMdb);
 					
 				}
@@ -124,7 +125,7 @@
 	llxFooter();
 
 function _liste_link(&$ATMdb, $fk_product) {
-global $db,$langs,$conf;	
+global $db,$langs,$conf, $user;	
 	
 	if($fk_product>0){
 		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
@@ -133,7 +134,7 @@ global $db,$langs,$conf;
 		require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 			
 		$product = new Product($db);
-		$result=$product->fetch($_REQUEST['fk_product']);	
+		$result=$product->fetch($fk_product);	
 			
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
@@ -148,7 +149,7 @@ global $db,$langs,$conf;
 	
 	$l=new TListviewTBS('listWS');
 
-	$sql= "SELECT wsp.rowid as id, ws.libelle,wsp.nb_hour 
+	$sql= "SELECT wsp.rowid as id, ws.libelle, wsp.rang, wsp.nb_hour 
 	
 	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
 	 
@@ -159,11 +160,13 @@ global $db,$langs,$conf;
 	
 		'link'=>array(
 			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
+			,'rang'=>'<input type="text" name="TAssetWorkstationProduct[@id@][rang]" value="@val@" size="5" />'
 			,'nb_hour'=>'<input type="text" name="TAssetWorkstationProduct[@id@][nb_hour]" value="@val@" size="5" />'
 		)
 		
 		,'title'=>array(
-			'nb_hour'=>"Nombre d'heure"
+			'nb_hour'=>"Nombre d'heures"
+			,'rang'=>"Rang"
 		)
 	
 	));

@@ -26,6 +26,7 @@
 				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
 				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
 				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no]</td></tr>
+				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
 				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
@@ -38,7 +39,7 @@
 						<input type="button" class="butAction" name="valider" value="Valider">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='VALID']
-						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Lancer la production">
+						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Production en cours">
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]=='OPEN']
 						&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
@@ -224,64 +225,75 @@
 		
 		function getChild() {
 			
-			var Tid = new Array([assetOf.idChild;strconv=no;]);
-		
-			if(Tid.length==0) {
-				$('#assetChildContener').hide();
-			}
-			else {
-				for(x in Tid ){
+			$('#assetChildContener').empty();
+			
+			$.ajax({
 				
-					$.ajax({
-						url : "[assetOf.url]"
-						,data:{
-							action:"[view.actionChild]"
-							,id:Tid[x]
-						}
-						,type: 'POST'
-					}).done(function(data) {
+				url:'script/interface.php?get=getofchildid&id=[assetOf.id]&json=1'
+				,dataType:'json'
+				
+				,success: function(Tid) {
+							
+					if(Tid.length==0) {
+						$('#assetChildContener').hide();
+					}
+					else {
 						
-						var html = $(data).find('div.OFMaster');
+						for(x in Tid ){
 						
-						var id_form = html.find('form').attr('id');
-						
-						$('#assetChildContener').append(html);
-						
-						$('#assetChildContener .notinparentview').remove();
-						
-						refreshDisplay();
-						
-						$('select[name^=TAssetOFLine]').change(function(){
-							compose_fourni = $(this).find('option:selected').attr('compose_fourni');
-							//alert(compose_fourni);
-							assetOf_id = $(this).closest('.OFMaster').attr('assetof_id');
-							//alert(assetOf_id);
-							if(compose_fourni == 0){
-								//alert($('.OFMaster[fk_assetOf_parent='+assetOf_id+']').length);
-								$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '5px solid red');
-							}
-							else{
-								$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '0px none');
-							}
-						});
-						
-							$("#"+id_form).submit(function() {
-								$.post($(this).attr('action'), $( this ).serialize() );
-					
-								$(this).css('border' , '5px solid green');
+							$.ajax({
+								url : "[assetOf.url]"
+								,data:{
+									action:"[view.actionChild]"
+									,id:Tid[x]
+								}
+								,type: 'POST'
+							}).done(function(data) {
 								
-								$(this).animate({ "border": "5px solid green" }, 'slow');
-								$(this).animate({ "border": "0px" }, 'slow');
+								var html = $(data).find('div.OFMaster');
 								
-								$.jnotify('Modifications enregistr&eacute;es', "ok");   
-					
-								return false;
+								var id_form = html.find('form').attr('id');
+								
+								$('#assetChildContener').append(html);
+								
+								$('#assetChildContener .notinparentview').remove();
+								
+								refreshDisplay();
+								
+								$('select[name^=TAssetOFLine]').change(function(){
+									compose_fourni = $(this).find('option:selected').attr('compose_fourni');
+									//alert(compose_fourni);
+									assetOf_id = $(this).closest('.OFMaster').attr('assetof_id');
+									//alert(assetOf_id);
+									if(compose_fourni == 0){
+										//alert($('.OFMaster[fk_assetOf_parent='+assetOf_id+']').length);
+										$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '5px solid red');
+									}
+									else{
+										$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '0px none');
+									}
+								});
+								
+									$("#"+id_form).submit(function() {
+										$.post($(this).attr('action'), $( this ).serialize() );
+							
+										$(this).css('border' , '5px solid green');
+										
+										$(this).animate({ "border": "5px solid green" }, 'slow');
+										$(this).animate({ "border": "0px" }, 'slow');
+										
+										$.jnotify('Modifications enregistr&eacute;es', "ok");   
+							
+										return false;
+									});
 							});
-					});
-					
-				}
-				
+							
+						}
+						
+					}
+			
 			}
+		});
 		
 			
 		}
@@ -314,6 +326,7 @@
 								//document.location.href="?id=[assetOf.id]";
 								$( "#dialog" ).dialog("close");
 								refreshTab(idassetOf);
+								getChild();
 							});
 						}
 					}

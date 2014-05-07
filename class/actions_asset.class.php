@@ -8,15 +8,50 @@ class ActionsAsset
       *  @return       void 
       */
       
-    function doActions($parameters, &$object, &$action, $hookmanager) {
-    	//exit('1');
-    	/*echo '<pre>';
-    	print_r($object);
-		echo '</pre>';
-		echo $object->fourn_ref;
-		$object->fourn_ref.="coucou";*/
-		return 0;
-	}
+    function doActions($parameters, &$object, &$action, $hookmanager) 
+    {
+    	global $langs, $db, $conf, $user;
+		
+		/*echo '<pre>';
+		print_r($object);
+		echo '</pre>';*/
+		
+        if($action == "validmodasset"){
+        	//print_r($object);exit;
+			if(isset($_REQUEST['asset'])){
+				
+				if($conf->climcneil->enabled && !empty($_REQUEST['asset'])){
+					define('INC_FROM_DOLIBARR',true);
+			    	dol_include_once("/custom/asset/config.php");
+					dol_include_once("/custom/asset/class/asset.class.php");
+					dol_include_once('/core/class/extrafields.class.php');
+					
+					$ATMdb = new TPDOdb;
+					$asset = new TAsset;
+					
+					$asset->load_liste_type_asset($ATMdb);
+					$asset->load_asset_type($ATMdb);
+					$asset->load($ATMdb,$_REQUEST['asset']);
+
+					$object->fetch_optionals($object->id,$optionsArray);
+					
+					foreach($asset->TChamps as $champs => $type){
+						//echo $champs." ".$asset->$champs.'<br>';
+						if(array_key_exists('options_'.$champs, $object->array_options)){
+							$object->array_options['options_'.$champs] = $asset->$champs;
+						}
+					}
+					//pre($object->array_options,true);exit;
+
+					$object->update_extrafields($user);
+				}
+					
+				$db->query('UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET fk_asset = '.$_REQUEST['asset'].' WHERE rowid = '.$object->id);
+			}
+		}
+ 
+        return 0;
+    }
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  
@@ -32,6 +67,112 @@ class ActionsAsset
         	dol_include_once("/custom/asset/config.php");
 			dol_include_once("/custom/asset/class/asset.class.php");
 			
+			
+			if($action == "create"){
+					
+				//pre($_REQUEST,true);
+				
+				if(isset($_REQUEST['origin']) && isset($_REQUEST['originid'])){
+					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$_REQUEST['origin']." WHERE rowid = ".$_REQUEST['originid'];
+				}
+				
+				$resql = $db->query($sql);
+									
+				if($resql){
+					$res = $db->fetch_object($resql);
+					$fk_asset = $res->fk_asset;
+				}
+				else 
+					$fk_asset = 0;
+				
+				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.fk_soc = ".$_REQUEST['socid']." ORDER BY a.serial_number ASC";
+				$resql = $db->query($sql);
+
+				print '<tr><td>Equipement</td>';
+				print '<td colspan="2">';
+				print '<select name="asset" class="flat" id="asset">';
+				print '<option value="0">&nbsp;</option>';
+
+				while ($res = $db->fetch_object($resql)) {
+					if($res->rowid == $fk_asset){
+						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+					}	
+					else{
+						print '<option value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+					}
+				}
+				
+				print '</select>';
+				print '</td></tr>';
+			}
+			elseif($action == "modasset"){
+				
+				$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
+				$resql = $db->query($sql);
+
+				if($resql){
+					$res = $db->fetch_object($resql);
+					$fk_asset = $res->fk_asset;
+				}
+				else 
+					$fk_asset = 0;
+
+				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.fk_soc = ".$object->socid." ORDER BY a.serial_number ASC";
+				$resql = $db->query($sql);
+				$id_field = "id";
+				print '<tr><td>Equipement</td>';
+				print '<td colspan="2">';
+				print '<form action="'.$_SERVER["PHP_SELF"].'?'.$id_field.'='.$object->id.'" method="post">';
+				print '<input type="hidden" name="action" value="validmodasset" />';
+				print '<select name="asset" class="flat" id="asset">';
+				print '<option value="0">&nbsp;</option>';
+
+				while ($res = $db->fetch_object($resql)) {
+					if($res->rowid == $fk_asset)
+						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+					else
+						print '<option value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+				}
+				
+				print '</select>';
+				print '<input class="button" type="submit" value="Modifier"></form></td></tr>';
+			}
+			elseif($action != "edit"){
+				//pre($object, true);exit;
+				$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
+
+				$resql = $db->query($sql);
+				if($resql){
+					$res = $db->fetch_object($resql);
+
+					$sql = "SELECT a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.rowid = ".$res->fk_asset;
+					$resql = $db->query($sql);
+				}
+				$id_field = "id";
+				print '<tr><td height="10"><table width="100%" class="nobordernopadding"><tbody><tr>';
+				print '<td>Equipement</td>';
+				print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=modasset&'.$id_field.'='.$object->id.'">'
+						.img_picto('Définir Equipement', 'edit')
+						.'</a></td>';
+				PRINT '</tr></tbody></table></td>';
+				print '<td colspan="3">';
+				
+				if($resql){
+					$num = $db->num_rows($resql);
+					if($num > 0) {
+						$res = $db->fetch_object($resql);
+						print $res->serial_number.' - '.$res->label;
+					}
+				}
+				
+				print '</select></td></tr>';
+
+			}
+			
+			/*
+			 * LIGNES
+			 * 
+			 */
         	foreach($object->lines as $line){
         		/*echo '<pre>';
 				print_r($object);rowid
@@ -62,6 +203,16 @@ class ActionsAsset
 				}
 			}
         }
+		elseif (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+				
+			?>
+			<script type="text/javascript">
+				$(document).ready(function(){
+					$('tr .liste_titre:last-child').before('<td class="liste_titre" align="right">Composé fourni</td>');
+				});
+			</script>
+			<?php
+		}
 	}
      
     function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
@@ -206,28 +357,60 @@ class ActionsAsset
 				<?php
 			}
         }
+        
+		elseif(in_array('pricesuppliercard',explode(':',$parameters['context']))){
+				
+			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$parameters['lineid']);
+			$res = $db->fetch_object($resql);
+			
+			if($res){
+				?>
+				<td align="right"><?php echo ($res->compose_fourni) ? "Oui" : "Non" ; ?></td>
+				<?php
+			}
+		}
+		
 
 		return 0;
 	}
 	
 	function formCreateThirdpartyOptions($parameters, &$object, &$action, $hookmanager){
-
-		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
 			
-			echo '<tr id="newField">';
-			echo '<td class="fieldrequired">';
-			echo "Composé fourni";
-			echo "</td>";
-			echo "<td>";
-			echo '<select name="selectOuiNon">';
-			echo '<option value="Oui">Oui</option>';
-			echo '<option value="Non">Non</option>';
-			echo "</select>";
-			echo "</td>";
-			echo "</tr>";
+		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+			dol_include_once("/core/class/html.form.class.php");
 
+			$form = new Form($this->db);
+			?>
+			<tr id="newField">
+				<td class="fieldrequired">Composé fourni</td>
+				<td><?php print $form->selectarray('selectOuiNon', array(1=>"Oui",0=>"Non")); ?></td>
+			</tr>
+			<?php
         }
 		
+	}
+	
+	function formEditThirdpartyOptions ($parameters, &$object, &$action, $hookmanager){
+		global $db;
+		
+		/*echo '<pre>';
+		print_r($_REQUEST);
+		echo '</pre>';exit;*/
+		
+		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
+			dol_include_once("/core/class/html.form.class.php");
+
+			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$_REQUEST['rowid']);
+			$res = $db->fetch_object($resql);
+			
+			$form = new Form($db);
+			?>
+			<tr id="newField">
+				<td class="fieldrequired">Composé fourni</td>
+				<td><?php print $form->selectarray('selectOuiNon', array(1=>"Oui",0=>"Non"),$res->compose_fourni); ?></td>
+			</tr>
+			<?php
+        }
 	}
 	
 }

@@ -344,6 +344,48 @@ class TAssetFacturedet extends TObjetStdDolibarr{
 	}
 }
 
+class TAssetPropal extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'propal');	  
+		parent::add_champs('fk_asset','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
+class TAssetCommande extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'commande');	  
+		parent::add_champs('fk_asset','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
+class TAssetFacture extends TObjetStdDolibarr{
+/*
+ * Liaison entre les lignes de commande et les lots 
+ */	
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'facture');	  
+		parent::add_champs('fk_asset','type=chaine;');
+				
+		parent::_init_vars();
+		
+	    parent::start();
+	}
+}
+
 class TAssetStock extends TObjetStd{
 /*
  * Gestion des mouvements de stock pour les équipements
@@ -558,7 +600,7 @@ class TAsset_field extends TObjetStd {
 		parent::add_champs('type','type=chaine;');
 		parent::add_champs('obligatoire','type=entier;');
 		parent::add_champs('ordre','type=entier;');
-		parent::add_champs('options','type=chaine;');
+		parent::add_champs('options','type=text;');
 		parent::add_champs('supprimable','type=entier;');
 		parent::add_champs('inliste,inlibelle','type=chaine;'); //varchar booléen : oui/non si le champs sera dans la liste de Ressource.
 		parent::add_champs('fk_asset_type,entity','type=entier;index;');
@@ -602,7 +644,7 @@ class TAsset_field extends TObjetStd {
 		parent::load($ATMdb, $id);
 		$this->TListe = array();
 		foreach (explode(";",$this->options) as $key => $value) {
-			$this->TListe[$value] = $value;
+			$this->TListe[] = $value;
 		}
 	}
 	

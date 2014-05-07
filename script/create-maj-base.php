@@ -15,13 +15,16 @@
 	$o=new TAsset_type;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetLink;
+	$o->init_db_by_vars($ATMdb);
+	
 	$o=new TAsset_field;
 	$o->init_db_by_vars($ATMdb);
 	
-	$o=new TAsset;
-	$o->init_db_by_vars($ATMdb);
-	
 	$o=new TAssetLot;
+	$o->init_db_by_vars($ATMdb);
+
+	$o=new TAsset;
 	$o->init_db_by_vars($ATMdb);
 	
 	$o=new TAssetCommandedet;
@@ -51,5 +54,12 @@
 	$o=new TAssetPropaldet;
 	$o->init_db_by_vars($ATMdb);
 	
-	$asset_type->save($ATMdb);
+	$o=new TAssetPropal;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetCommande;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetFacture;
+	$o->init_db_by_vars($ATMdb);
 	

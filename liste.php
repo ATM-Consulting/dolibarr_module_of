@@ -65,8 +65,13 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 
 
 	$form=new TFormCore;
-
-	$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.contenancereel_value as 'contenance', e.contenancereel_units as 'unite', e.date_cre as 'Création'"; 
+	
+	if(defined('ASSET_LIST_FIELDS')){
+		$fields = ASSET_LIST_FIELDS;
+	}	
+	else{
+		$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.contenancereel_value as 'contenance', e.contenancereel_units as 'unite', e.date_cre as 'Création'";
+	} 
 	
 	$asset=new TAsset;
 	$r = new TSSRenderControler($asset);

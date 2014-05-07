@@ -25,7 +25,7 @@ class TAssetOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc','type=entier;index;');
+		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande','type=entier;index;');
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
@@ -176,6 +176,7 @@ class TAssetOF extends TObjetStd{
 			
 			$k=$this->addChild($ATMdb,'TAssetOF');
 			$this->TAssetOF[$k]->status = "DRAFT";
+			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
 			
@@ -259,7 +260,7 @@ class TAssetOF extends TObjetStd{
 			$asset = new TAsset;
 			
 			if($AssetOFLine->type == "TO_MAKE"){
-				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used);
+				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used, $this->rowid);
 			}
 		}
 	}
@@ -275,7 +276,7 @@ class TAssetOF extends TObjetStd{
 
 			if($AssetOFLine->type == "NEEDED"){
 				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
-				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication');
+				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication (OF n°'.$this->rowid.')');
 			}
 
 		}
@@ -571,7 +572,7 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$ATMdb,$fk_product,$qty){
+	function makeAsset(&$ATMdb,$fk_product,$qty, $idAsset = 0){
 		global $user,$conf;
 		include_once 'asset.class.php';
 		
@@ -594,7 +595,7 @@ class TAssetOFLine extends TObjetStd{
 			$TAsset->lot_number = $this->lot_number;
 		}
 		
-		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication',$qty);
+		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication (OF n°'.$idAsset.')',$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 	}
 	
@@ -645,11 +646,12 @@ class TAssetWorkstationProduct extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
-		$this->add_champs('nb_hour','type=float;'); // nombre d'heure associé au poste de charge et au produit
+		$this->add_champs('nb_hour,rang','type=float;'); // nombre d'heure associé au poste de charge et au produit
 		
 		$this->start();
 		
 		$this->nb_hour=0;
+		$this->rang=0;
 	}
 	
 }
