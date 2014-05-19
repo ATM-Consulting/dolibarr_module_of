@@ -360,12 +360,16 @@ class ActionsAsset
         
 		elseif(in_array('pricesuppliercard',explode(':',$parameters['context']))){
 				
-			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$parameters['lineid']);
+			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$object->product_fourn_price_id);
 			$res = $db->fetch_object($resql);
 			
 			if($res){
 				?>
-				<td align="right"><?php echo ($res->compose_fourni) ? "Oui" : "Non" ; ?></td>
+				<script type="text/javascript">
+					$(document).ready(function(){
+						$('#row-<?php echo $object->product_fourn_price_id; ?>').find('>td:last').before('<td align="right"><?php echo ($res->compose_fourni) ? "Oui" : "Non" ; ?></td>');
+					});
+				</script>
 				<?php
 			}
 		}
