@@ -198,6 +198,21 @@ class modAsset extends DolibarrModules
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'write';
+		
+		$r++;
+		$this->rights[$r][0] = 104126;
+		$this->rights[$r][1] = 'Lire les Types d\'équipement';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'type';
+		$this->rights[$r][5] = 'lire';
+		
+		$r++;
+		$this->rights[$r][0] = 104125;
+		$this->rights[$r][1] = 'Créer des Types d\'équipement';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'type';
+		$this->rights[$r][5] = 'write';
+		
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
@@ -237,6 +252,7 @@ class modAsset extends DolibarrModules
 			'target'=>'',
 			'user'=>2);		
 		$r++;
+		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A completer',
@@ -245,6 +261,19 @@ class modAsset extends DolibarrModules
 			'url'=>'/asset/liste.php?no_serial=1',
 			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>101,
+			'target'=>'',
+			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
+		
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+			'type'=>'left',			// This is a Left menu entry
+			'titre'=>'Liste des Lots',
+			'mainmenu'=>'assetlot',
+			'leftmenu'=>'assetlist',
+			'url'=>'/asset/liste_lot.php',
+			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>102,
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
 		
@@ -309,6 +338,35 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);
 		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>'Types d\'équipement',
+					'mainmenu'=>'asset',
+					'leftmenu'=>'typeequipement',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/asset/typeAsset.php',
+					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+					'position'=>256,
+					'enabled'=>'$user->rights->asset->type->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->type->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);
+		$r++;
+		
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=typeequipement',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>'Nouveau type d\'équipement',
+					'mainmenu'=>'newtypeequipement',
+					'leftmenu'=>'typeequipement',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/asset/typeAsset.php?action=new',
+					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+					'position'=>257,
+					'enabled'=>'$user->rights->asset->type->write',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->type->write',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);
+		$r++;
 				
 		// Exports
 		$r=1;
@@ -351,6 +409,9 @@ class modAsset extends DolibarrModules
 
 		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
 		file_get_contents($url);
+
+		dolibarr_set_const($db, 'USE_LOT_IN_OF', 1,'chaine',1);
+
 
 		return $this->_init($sql, $options);
 	}

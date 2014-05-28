@@ -139,7 +139,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 			'unite'=>'measuring_units_string(@val@,"weight")'
 		)
 	));
-	
+
 	if(isset($_REQUEST['fk_product'])){
 		echo '<div class="tabsAction">';
 		echo '<a class="butAction" href="fiche.php?action=edit&fk_soc='.$fk_soc.'&fk_product='.$product->id.'&fk_asset_type='.$fk_asset_type.'">Créer un '.$langs->trans('Asset').'</a>';
@@ -149,6 +149,6 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	$ATMdb->close();
 
 	llxFooter('$Date: 2011/07/31 23:19:25 $ - $Revision: 1.152 $');
-	
+
 }
 ?>

@@ -525,7 +525,7 @@ class TAssetOFLine extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset,fk_product_fournisseur_price','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used','type=float;');
-		$this->add_champs('type','type=chaine;');
+		$this->add_champs('type,lot_number','type=chaine;');
 		
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
@@ -541,12 +541,18 @@ class TAssetOFLine extends TObjetStd{
 	
 	//Affecte l'équipement à la ligne de l'OF
 	function setAsset(&$ATMdb){
-		global $db, $user;	
+		global $db, $user, $conf;	
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenance_reel >= ".$this->qty." ORDER BY contenance_reel ASC LIMIT 1";
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenance_reel >= ".$this->qty;
+		
+		if($conf->global->USE_LOT_IN_OF){
+			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+		}
+		
+		$sql .= "ORDER BY contenance_reel ASC LIMIT 1";
 		$ATMdb->Execute($sql);
 		if($ATMdb->Get_line()){
 			$idAsset = $ATMdb->Get_field('rowid');
@@ -584,6 +590,11 @@ class TAssetOFLine extends TObjetStd{
 		 */
 		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
 		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
+		
+		if($conf->global->USE_LOT_IN_OF){
+			$TAsset->lot_number = $this->lot_number;
+		}
+		
 		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication (OF n°'.$idAsset.')',$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 	}

@@ -11,7 +11,7 @@ class TAsset extends TObjetStd{
 		$this->add_champs('fk_soc,fk_product,entity','type=entier;');
 		$this->add_champs('contenancereel_value, contenance_value,point_chute', 'type=float;');
 		$this->add_champs('contenance_units, contenancereel_units', 'type=entier;');
-		$this->add_champs('commentaire,lot_number,gestion_stock,masque,reutilisable,status', 'type=chaine;');
+		$this->add_champs('commentaire,lot_number,gestion_stock,reutilisable,status', 'type=chaine;');
 		
 		//clé étrangère : type de la ressource
 		parent::add_champs('fk_asset_type','type=entier;index;');
@@ -104,6 +104,8 @@ class TAsset extends TObjetStd{
 	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0) {
 		parent::save($ATMdb);
 		$this->save_link($ATMdb);
+		
+		$this->addLotNumber($ATMdb);
 		
 		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
 		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
@@ -241,6 +243,37 @@ class TAsset extends TObjetStd{
 		}
 		
 		return $Tab;
+	}
+	
+	function getNextValue($ATMdb){
+		
+		dol_include_once('core/lib/functions2.lib.php');
+		
+		global $db;
+		
+		$mask = $this->assetType->masque;
+		
+		$ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
+		
+		return $ref;
+	}
+	
+	function addLotNumber(&$ATMdb){
+		
+		global $conf;
+		
+		$sql = 'SELECT rowid FROM ".MAIN_DB_PREFIX."assetlot WHERE lot_number = "'.$this->lot_number.'"';
+		$ATMdb->Execute($sql);
+
+		if($ATMdb->Get_line()){
+			return true;
+		}
+		else{
+			$lot = new TAssetLot;
+			$lot->lot_number = $this->lot_number;
+			$lot->entity = $conf->entity;
+			$lot->save($ATMdb);
+		}
 	}
 }
 
@@ -542,6 +575,21 @@ class TAsset_type extends TObjetStd {
 		//echo $r; exit;
 		return $r;
 	}
+	
+	//Function standard dolibarr pour afficher la structuration des masques
+	function info()
+    {
+    	global $conf,$langs,$db;
+	
+		$langs->load("admin");
+		
+		$tooltip=$langs->trans("GenericMaskCodes",$langs->transnoentities("Proposal"),$langs->transnoentities("Proposal"));
+		$tooltip.=$langs->trans("GenericMaskCodes2");
+		$tooltip.=$langs->trans("GenericMaskCodes3");
+		$tooltip.=$langs->trans("GenericMaskCodes5");
+		
+		return $tooltip;
+    }
 		
 }
 
@@ -619,9 +667,20 @@ class TAsset_field extends TObjetStd {
 			return true;
 		}
 		else {return false;}
-		
-		
 	}
 
 }
 
+class TAssetLot extends TObjetStd{
+/*
+ * Gestion des lot d'équipements 
+ * */
+	
+	function __construct() {
+		$this->set_table(MAIN_DB_PREFIX.'assetlot');
+		$this->add_champs('entity','type=entier;');
+		$this->add_champs('lot_number', 'type=chaine;');
+		
+	    $this->start();
+	}
+}
