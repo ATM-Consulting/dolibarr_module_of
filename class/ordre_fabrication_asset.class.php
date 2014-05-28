@@ -90,7 +90,7 @@ class TAssetOF extends TObjetStd{
 		
 		foreach($this->TAssetOFLine as $TAssetOFLine){
 			
-			$TAssetOFLine->setAsset($ATMdb);	
+			$TAssetOFLine->setAsset($ATMdb,$this);	
 		}
 		
 		return true;
@@ -540,50 +540,54 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 	//Affecte l'équipement à la ligne de l'OF
-	function setAsset(&$ATMdb){
+	function setAsset(&$ATMdb,&$AssetOf){
 		global $db, $user, $conf;	
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenance_reel >= ".$this->qty;
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenancereel_value >= ".$this->qty;
 		
 		if($conf->global->USE_LOT_IN_OF){
 			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
 		}
 		
-		$sql .= "ORDER BY contenance_reel ASC LIMIT 1";
+		$sql .= " ORDER BY contenancereel_value ASC LIMIT 1";
+		
+		//echo $sql.'<br>';
+		//echo $this->lot_number.'<br>';
+		
 		$ATMdb->Execute($sql);
-		if($ATMdb->Get_line()){
+
+		if($ATMdb->Get_line() && $this->type == "NEEDED"){
 			$idAsset = $ATMdb->Get_field('rowid');
 			$asset->load($ATMdb, $idAsset);
 			$asset->status = 'indisponible';
+			$asset->save($ATMdb);
 		}
-		else{
-			$asset = $this->makeAsset($ATMdb, $this->fk_product, $this->qty);
+		elseif($this->type == "TO_MAKE"){
+			$this->makeAsset($ATMdb,$AssetOf, $this->fk_product, $this->qty,0,$this->lot_number);
 		}
-				
-		$asset->save($ATMdb);
 		
 		$this->fk_asset = $idAsset;
 		$this->save($ATMdb);
-		
+
 		return true;
 	}
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$ATMdb,$fk_product,$qty, $idAsset = 0){
+	function makeAsset(&$ATMdb,&$AssetOf,$fk_product,$qty, $idAsset = 0,$lot_number = ''){
 		global $user,$conf;
 		include_once 'asset.class.php';
-		
+
 		$TAsset = new TAsset;
 		$TAsset->fk_soc = '';
 		$TAsset->fk_product = $fk_product;
 		$TAsset->entity = $user->entity;
-		
-		/*echo '<pre>';
-		print_r($TAsset);
-		echo '</pre>';*/
+		$TAsset->lot_number = $lot_number;
+		$TAsset->fk_asset_type = $TAsset->get_asset_type($ATMdb,$fk_product);
+		$TAsset->load_liste_type_asset($ATMdb);
+		$TAsset->load_asset_type($ATMdb);
 		
 		/*
 		 * Empêche l'ajout en stock des sous-produit d'un produit composé
@@ -595,8 +599,10 @@ class TAssetOFLine extends TObjetStd{
 			$TAsset->lot_number = $this->lot_number;
 		}
 		
-		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication (OF n°'.$idAsset.')',$qty);
+		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication n°'.$AssetOf->numero,$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
+		
+		return $TAsset;
 	}
 	
 	function load(&$ATMdb, $id) {

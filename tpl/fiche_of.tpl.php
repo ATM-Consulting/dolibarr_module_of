@@ -110,6 +110,7 @@
 								
 							</tr>
 							<tr id="[TNeeded.id]">
+								<input type="hidden" name="idprod" id="idprod" value="[TNeeded.idProd]">
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TNeeded.lot_number;strconv=no]</td>
 								[onshow;block=end]
@@ -140,7 +141,7 @@
 								
 							</tr>
 							<tr id="[TTomake.id]">
-								
+								<input type="hidden" name="idprod" id="idprod" value="[TNeeded.idProd]">
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TTomake.lot_number;strconv=no]</td>
@@ -162,7 +163,7 @@
 [onshow;block=begin;when [view.mode]=='view']
 	<div class="tabsAction notinparentview">
 		
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
+		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Ordre de Fabrication?'))document.location.href='?action=delete&id=[assetOf.id]'">
 		&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
 		&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
 		

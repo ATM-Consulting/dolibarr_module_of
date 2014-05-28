@@ -81,6 +81,16 @@ class TAsset extends TObjetStd{
 		
 	}
 	
+	function get_asset_type(&$ATMdb,$fk_product){
+		
+		$sql = "SELECT type_asset FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$fk_product;
+		
+		$ATMdb->Execute($sql);
+		$ATMdb->Get_line();
+		
+		return $ATMdb->Get_field('type_asset');
+	}
+	
 	function load_asset_type(&$ATMdb) {
 		//on prend le type de ressource associé
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
@@ -102,9 +112,15 @@ class TAsset extends TObjetStd{
 	}
 	
 	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0) {
-		parent::save($ATMdb);
-		$this->save_link($ATMdb);
 		
+		if(empty($this->serial_number)){
+			$this->serial_number = $this->getNextValue($ATMdb);
+		}
+		
+		parent::save($ATMdb);
+		
+		$this->save_link($ATMdb);
+
 		$this->addLotNumber($ATMdb);
 		
 		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
@@ -248,13 +264,13 @@ class TAsset extends TObjetStd{
 	function getNextValue($ATMdb){
 		
 		dol_include_once('core/lib/functions2.lib.php');
-		
+
 		global $db;
-		
+
 		$mask = $this->assetType->masque;
-		
+
 		$ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
-		
+
 		return $ref;
 	}
 	
@@ -262,13 +278,13 @@ class TAsset extends TObjetStd{
 		
 		global $conf;
 		
-		$sql = 'SELECT rowid FROM ".MAIN_DB_PREFIX."assetlot WHERE lot_number = "'.$this->lot_number.'"';
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'assetlot WHERE lot_number = "'.$this->lot_number.'"';
 		$ATMdb->Execute($sql);
 
 		if($ATMdb->Get_line()){
 			return true;
 		}
-		else{
+		elseif(!empty($this->lot_number)){
 			$lot = new TAssetLot;
 			$lot->lot_number = $this->lot_number;
 			$lot->entity = $conf->entity;
@@ -285,16 +301,16 @@ class TAssetLink extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_link');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_asset,fk_document','type=entier;');
-				
+
 		$this->_init_vars('type_document');
-		
+
 	    $this->start();
-	    
+
 		$this->asset = new TAsset;
 	}
 	function load(&$db, $id, $annexe=false) {
 		parent::load($db, $id);
-		
+
 		if($annexe){
 			$this->asset->load($db, $this->fk_asset, false);
 		}
@@ -309,9 +325,9 @@ class TAssetCommandedet extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'commandedet');	  
 		parent::add_champs('asset_lot','type=chaine;');
-				
+
 		parent::_init_vars();
-		
+
 	    parent::start();
 	}
 }
@@ -323,7 +339,7 @@ class TAssetPropaldet extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'propaldet');	  
 		parent::add_champs('asset_lot','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -337,7 +353,7 @@ class TAssetFacturedet extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'facturedet');	  
 		parent::add_champs('asset_lot','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -351,7 +367,7 @@ class TAssetPropal extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'propal');	  
 		parent::add_champs('fk_asset','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -365,7 +381,7 @@ class TAssetCommande extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'commande');	  
 		parent::add_champs('fk_asset','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -379,7 +395,7 @@ class TAssetFacture extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'facture');	  
 		parent::add_champs('fk_asset','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -397,9 +413,9 @@ class TAssetStock extends TObjetStd{
 		parent::add_champs('date_mvt','type=date;');
 		parent::add_champs('type,lot','type=chaine;');
 		parent::add_champs('source,user,weight_units','type=entier;');
-				
+
 		parent::_init_vars();
-		
+
 	    parent::start();
 	}
 	
@@ -408,7 +424,7 @@ class TAssetStock extends TObjetStd{
 		
 		$asset = new TAsset;
 		$asset->load($ATMdb, $fk_asset);
-		
+
 		$this->fk_asset = $fk_asset;
 		$this->qty = $qty;
 		$this->date_mvt = date('Y-m-d H:i:s');
@@ -417,7 +433,7 @@ class TAssetStock extends TObjetStd{
 		$this->lot = $asset->lot_number;
 		$this->user = $user->id;
 		$this->weight_units = $asset->contenancereel_units;
-		
+
 		$this->save($ATMdb);
 	}
 	
@@ -440,7 +456,7 @@ class TAsset_type extends TObjetStd {
 		parent::add_champs('contenance_value, contenancereel_value, point_chute', 'type=float;');
 		parent::add_champs('contenance_units, contenancereel_units', 'type=entier;');
 		parent::add_champs('supprimable','type=entier;');
-				
+
 		parent::_init_vars();
 		parent::start();
 		$this->TField=array();
@@ -455,7 +471,7 @@ class TAsset_type extends TObjetStd {
 	function load_by_code(&$ATMdb, $code){
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_type WHERE code='".$code."'";
 		$ATMdb->Execute($sqlReq);
-		
+
 		if ($ATMdb->Get_line()) {
 			$this->load($ATMdb, $ATMdb->Get_field('rowid'));
 			return true;
@@ -493,7 +509,7 @@ class TAsset_type extends TObjetStd {
 		global $conf;
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE fk_asset_type=".$this->getId()." ORDER BY ordre ASC;";
 		$ATMdb->Execute($sqlReq);
-		
+
 		$Tab = array();
 		while($ATMdb->Get_line()) {
 			$Tab[]= $ATMdb->Get_field('rowid');
@@ -510,11 +526,11 @@ class TAsset_type extends TObjetStd {
 		$k=count($this->TField);
 		$this->TField[$k]=new TAsset_field;
 		$this->TField[$k]->set_values($TNField);
-		
+
 		$p=new TAsset;				
 		$p->add_champs($TNField['code'] ,'type=chaine' );
 		$p->init_db_by_vars($ATMdb);
-					
+
 		return $k;
 	}
 	

@@ -127,8 +127,15 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "OPEN";
+
+				$assetOf->setEquipement($PDOdb);
+
+				/*echo '<pre>';
+				print_r($assetOf);
+				echo '</pre>'; exit;*/
+				
 				//$assetOf->openOF($PDOdb);
-				$assetOf->save($PDOdb);
+				//$assetOf->save($PDOdb);
 				_fiche($PDOdb, $assetOf, 'view');
 
 				break;
@@ -323,6 +330,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 				$TRes[]= array(
 					'id'=>$TAssetOFLine->getId()
+					,'idProd'=>$product->id
 					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
 					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
 					,'qty_needed'=>$TAssetOFLine->qty_needed

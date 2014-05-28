@@ -17,7 +17,7 @@ traite_get($ATMdb, $get);
 function traite_get(&$ATMdb, $case) {
 	switch (strtolower($case)) {
 		case 'autocomplete':
-			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term']));
+			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term']),($_REQUEST['fk_product']) ? $_REQUEST['fk_product'] : 0);
 			break;
 		case 'addofproduct':
 			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));
@@ -73,11 +73,24 @@ function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) {
 }
 
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$ATMdb,$fieldcode,$value){
-	$sql = "SELECT DISTINCT(".$fieldcode.")
+function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0){
+	
+	if($fk_product){
+		$sql = "SELECT DISTINCT(al.".$fieldcode.")
+				FROM ".MAIN_DB_PREFIX."assetlot as al
+				LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.".$fieldcode." = al.".$fieldcode.")
+				LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product)
+				WHERE al.".$fieldcode." LIKE '".$value."%'
+				AND p.rowid = ".$fk_product."
+				ORDER BY al.".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
+	}
+	else{
+		$sql = "SELECT DISTINCT(".$fieldcode.")
 			FROM ".MAIN_DB_PREFIX."assetlot
 			WHERE ".$fieldcode." LIKE '".$value."%'
 			ORDER BY ".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
+	}
+	
 	
 	$ATMdb->Execute($sql);
 	

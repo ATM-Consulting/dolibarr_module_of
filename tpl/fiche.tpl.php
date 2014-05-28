@@ -49,7 +49,7 @@
 		</div>
 		
 		<div class="tabsAction">
-			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
+			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Equipement?')) document.location.href='?action=delete&id=[asset.id]'">
 			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
 			&nbsp; &nbsp; <input id="action-mvt-stock" class="butAction" type="button" onclick="document.location.href='?action=stock&id=[asset.id]'" name="mvt_stock" value="Nouveau Mouvement Stock">
