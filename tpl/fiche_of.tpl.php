@@ -141,7 +141,7 @@
 								
 							</tr>
 							<tr id="[TTomake.id]">
-								<input type="hidden" name="idprod" id="idprod" value="[TNeeded.idProd]">
+								<input type="hidden" name="idprod" id="idprod" value="[TTomake.idProd]">
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TTomake.lot_number;strconv=no]</td>

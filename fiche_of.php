@@ -70,6 +70,8 @@ function _action() {
 					$mode = 'edit';
 				}
 				
+				//pre($_REQUEST,true);
+								
 				$assetOf->set_values($_REQUEST);
 
 				if(__get('fk_product_to_add',0)>0) {
@@ -77,18 +79,21 @@ function _action() {
 				//	print "Add ".__get('fk_product_to_add',0);			
 				}
 			
+				
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
-			
+					
+					//pre($assetOf->TAssetOFLine,true);
+					
 					foreach($assetOf->TAssetOFLine as &$line) {
 						$line->TAssetOFLine=array();
 					}
+					
+					//pre($assetOf->TAssetOFLine,true);
 				}
-				
-				
 				
 				if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 					foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
@@ -97,6 +102,8 @@ function _action() {
 				}
 				
 				$assetOf->entity = $conf->entity;
+
+				//pre($assetOf->TAssetOFLine,true);exit;
 				
 				$assetOf->save($PDOdb);
 				
