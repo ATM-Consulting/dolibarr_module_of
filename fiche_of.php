@@ -313,12 +313,12 @@ function generateODTOF(&$PDOdb) {
 
 function _fiche_ligne(&$form, &$of, $type){
 		global $db, $conf;
-		
+
 		$TRes = array();
 		foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
 			$product = new Product($db);
 			$product->fetch($TAssetOFLine->fk_product);
-			
+
 			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 				$TRes[]= array(
 					'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
@@ -341,26 +341,41 @@ function _fiche_ligne(&$form, &$of, $type){
 			
 				$Tab=array();
 				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
-						
+					
+					$label = "";
+
+					//Si on a un prix fournisseur pour le produit
+					if($objPrice->price > 0){
+						$label .= floatval($objPrice->price).' '.$conf->currency;
+					}
+					
+					//Affiche le nom du fournisseur
+					$label .= ' (Fournisseur "'.utf8_encode ($objPrice->name).'"';
+
+					//Prix unitaire minimum si renseigné dans le PF
+					if($objPrice->quantity > 0){
+						' '.$objPrice->quantity.' pièce(s) min,';
+					} 
+					
+					//Affiche le type du PF :
+					if($objPrice->compose_fourni){//			soit on fabrique les composants
+						$label .= ' => Composants à fabriquer';
+					}
+					elseif($objPrice->quantity > 0){//			soit on commande a un fournisseur
+						$label .= ' => Commande fournisseur';
+					}
+					else{//										soit on a le produit finis déjà en stock
+						$label .= ' => Sortie de stock';
+					}
+					
+					$label .= ")";
+					
 					$Tab[ $objPrice->rowid ] = array(
-												'label' => ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.utf8_encode ($objPrice->name).'"'.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composants a fabriquer' : '' ).')',
+												'label' => $label,
 												'compose_fourni' => $objPrice->compose_fourni
 											);
-					
-					/* ob_start()
-					 *  ?> <option value="51" composefourni="0" ofchild="5,3,7"> $( #select :selected).each(function() {  if($(this).attr('composefourni')==1  $(this).attr('ofchild').split(',')  }) <?  
-					 * $html = ob_get_clean() */
-					 
+
 				}
-				
-	 			/*foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
-	 				
-	 				//<option value="<?=$objPrice->rowid?>" compose_fourni="<?=$objPrice->compose_fourni?1:0?>"><?($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'?></option>
-	 				$option.='<option value="'.$objPrice->rowid.'" compose_fourni="'.$objPrice->compose_fourni.'">'.($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'.'</option>';	
-	 				
-				}*/
-				
-				//pre($Tab,true);
 				
 				$TRes[]= array(
 					'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
@@ -400,6 +415,20 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$TPrixFournisseurs = array();
 	
 	//$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
+	
+	//Affichage des erreurs
+	if(!empty($assetOf->errors)){
+		?>
+		<br><div class="error">
+		<?php
+		foreach($assetOf->errors as $error){
+			echo $error."<br>";
+		}
+		$assetOf->errors = array();
+		?>
+		</div><br>
+		<?php
+	}	
 	
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);

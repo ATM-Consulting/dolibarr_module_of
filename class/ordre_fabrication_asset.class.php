@@ -42,6 +42,9 @@ class TAssetOF extends TObjetStd{
 		
 		$this->date_besoin = time();
 		$this->date_lancement = time();
+		
+		//Tableau d'erreurs
+		$this->errors = array();
 	}
 	
 	function load(&$db, $id) {
@@ -558,16 +561,26 @@ class TAssetOFLine extends TObjetStd{
 		//echo $this->lot_number.'<br>';
 		
 		$ATMdb->Execute($sql);
-
-		if($ATMdb->Get_line() && $this->type == "NEEDED"){
-			$idAsset = $ATMdb->Get_field('rowid');
-			$asset->load($ATMdb, $idAsset);
-			$asset->status = 'indisponible';
-			$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);
+		
+		echo $sql;
+		
+		if($this->type == "NEEDED"){
+			if($ATMdb->Get_line()){
+				$idAsset = $ATMdb->Get_field('rowid');
+				$asset->load($ATMdb, $idAsset);
+				$asset->status = 'indisponible';
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);
+			}
+			else{
+				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
+			}
 		}
 		elseif($this->type == "TO_MAKE"){
+			//exit('2');
 			$this->makeAsset($ATMdb,$AssetOf, $this->fk_product, $this->qty,0,$this->lot_number);
 		}
+		
+		//exit('3');
 		
 		$this->fk_asset = $idAsset;
 		$this->save($ATMdb);
