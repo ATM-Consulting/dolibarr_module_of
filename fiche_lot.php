@@ -25,7 +25,7 @@ function _action() {
 			case 'add':
 				$assetlot=new TAssetLot;
 				$assetlot->set_values($_REQUEST);
-				_fiche($assetlot,'new');
+				_fiche($PDOdb,$assetlot,'new');
 
 				break;
 
@@ -34,7 +34,7 @@ function _action() {
 				$assetlot=new TAssetLot;
 				$assetlot->load($PDOdb, $_REQUEST['id'], false);
 
-				_fiche($assetlot,'edit');
+				_fiche($PDOdb,$assetlot,'edit');
 				break;
 
 			case 'save':
@@ -70,7 +70,7 @@ function _action() {
 		$assetlot=new TAssetLot;
 		$assetlot->load($PDOdb, $_REQUEST['id'], false);
 
-		_fiche($assetlot, 'view');
+		_fiche($PDOdb,$assetlot, 'view');
 	}
 	else{
 		?>
@@ -85,7 +85,7 @@ function _action() {
 	
 }
 
-function _fiche(&$assetlot, $mode='edit') {
+function _fiche(&$PDOdb,&$assetlot, $mode='edit') {
 global $langs,$db,$conf;
 /***************************************************
 * PAGE
@@ -127,6 +127,74 @@ global $langs,$db,$conf;
 	echo $form->end_form();
 	// End of page
 	
+	_liste_asset($PDOdb,$assetlot);
+	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
+
+//Affiche les équipements du lot
+function _liste_asset(&$PDOdb,&$assetlot){
+	
+	global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
+
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+
+	if(defined('ASSET_LIST_FIELDS')){
+		$fields = ASSET_LIST_FIELDS;
+	}	
+	else{
+		$fields ="e.rowid as 'ID',e.serial_number, e.lot_number,p.rowid as 'fk_product',p.label, e.contenancereel_value as 'contenance', e.contenancereel_units as 'unite', e.date_cre as 'Création'";
+	} 
+
+	$r = new TSSRenderControler($assetlot);
+
+	$sql="SELECT ".$fields.'
+		  FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
+				LEFT OUTER JOIN llx_societe s ON (e.fk_soc=s.rowid))
+		  WHERE e.lot_number = "'.$assetlot->lot_number.'"';
+
+
+	$r->liste($PDOdb, $sql, array(
+		'limit'=>array(
+			'nbLine'=>'30'
+		)
+		,'subQuery'=>array()
+		,'link'=>array(
+			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
+			,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+		)
+		,'translate'=>array()
+		,'hide'=>$THide
+		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
+		,'liste'=>array(
+			'titre'=>'Liste des '.$langs->trans('AssetInLot')
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
+			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Asset')." à afficher"
+			,'picto_search'=>img_picto('','search.png', '', 0)
+		)
+		,'title'=>array(
+			'serial_number'=>'Numéro de série'
+			,'nom'=>'Société'
+			,'label'=>'Produit'
+			,'lot_number'=>'Numéro de Lot'
+			,'contenance'=>'Contenance Actuelle'
+			,'unite'=>'Unité'
+		)
+		,'search'=>array(
+			'serial_number'=>true
+			,'nom'=>array('recherche'=>true, 'table'=>'s')
+			,'label'=>array('recherche'=>true, 'table'=>'')
+		)
+		,'eval'=>array(
+			'unite'=>'measuring_units_string(@val@,"weight")'
+		)
+	));
+
+}
+
 ?>

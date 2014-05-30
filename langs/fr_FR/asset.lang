@@ -24,3 +24,4 @@ ListOrderProducts=Liste des produits de la commande
 #LOT
 ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
+AssetInLot=Equipements du lot

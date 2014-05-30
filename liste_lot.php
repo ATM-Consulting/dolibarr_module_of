@@ -9,6 +9,7 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	
 	_liste();
+	
 
 function _liste() {
 	global $langs,$db,$user,$conf;
@@ -64,7 +65,7 @@ function _liste() {
 			'lot_number'=>'<a href="'.dol_buildpath('/asset/fiche_lot.php?id=@rowid@',1).'">@val@</a>'
 		)
 	));
-		
+
 	echo '<div class="tabsAction">';
 	echo '<a class="butAction" href="fiche_lot.php?action=new">'.$langs->trans('CreateAssetLot').'</a>';
 	echo '</div>';
@@ -72,5 +73,5 @@ function _liste() {
 	$ATMdb->close();
 
 	llxFooter('');
-	
+
 }
