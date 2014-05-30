@@ -144,7 +144,7 @@ class TAssetOF extends TObjetStd{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1];
-			
+
 			if(isset($Tab[$prod->fk_product])) {
 				$Tab[$prod->fk_product]->qty += $prod->qty * $qty_parent;
 			}
@@ -154,12 +154,13 @@ class TAssetOF extends TObjetStd{
 			
 			if(!empty($row['childs'])) {
 				
-				if($createOF) {
-					$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
+				if(!$createOF) {
+					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
 				}
-				else {
-					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);	
-				}
+			}
+			
+			if($createOF) {
+				$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
 			}
 		}
 		
@@ -171,7 +172,7 @@ class TAssetOF extends TObjetStd{
 	function createOFifneeded(&$ATMdb,$fk_product, $qty_needed) {
 		
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
-		
+
 		if($reste>0) {
 			null;
 		}
@@ -182,7 +183,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
-			
+
 		}
 		
 	}
@@ -368,6 +369,8 @@ class TAssetOF extends TObjetStd{
 				// On cherche le produit "TO_MAKE"
 				if($ofLigne->type == "TO_MAKE") {
 					
+					//pre($ofLigne,true); exit;
+
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
 					
 						// On récupère la ligne prix fournisseur correspondante
@@ -378,14 +381,14 @@ class TAssetOF extends TObjetStd{
 
 						$res = $db->fetch_object($resql);
 						
-						// Si composé fourni
+						// Si fabrication interne
 						if($res->compose_fourni) {
 						
 							// On charge le produit "TO_MAKE"
 							$prod = new Product($db);
 							$prod->fetch($ofLigne->fk_product);
 							$prod->load_stock();
-							
+
 							$stockProd = 0;
 							
 							// On récupère son stock
@@ -399,16 +402,18 @@ class TAssetOF extends TObjetStd{
 								
 								$this->addCommandeFourn($ofLigne, $res);
 
-							} else { // Suffisemment de stock, donc destockage :
+							} 
+							else { // Suffisemment de stock, donc destockage :
 								$assetOF->openOF($ATMdb);
 							}
-						} else { //Composé non fourni
+						}
+						elseif(!$res->compose_fourni) { //Commande Fournisseur
 						
 							$this->addCommandeFourn($ofLigne, $res);
 
 							// On récupère les OF enfants pour les supprimer
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
-							
+
 							foreach($TabIdEnfantsDirects as $idOF) {
 							
 								$assetOF->removeChild("TAssetOF", $idOF);
@@ -418,12 +423,13 @@ class TAssetOF extends TObjetStd{
 							
 							// On casse la boucle
 							break;
-							
+
 						}
 
-					} else { // Fournisseur interne (Bourguignon)
+					} 
+					else { // Fournisseur interne (Bourguignon)
 					
-						if($ofLigne->fk_product_fournisseur_price == -1) { // Composé non fourni, kill OF enfants
+						if($ofLigne->fk_product_fournisseur_price == -1) { // Sortie de stock, kill OF enfants
 							
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
 							
@@ -436,8 +442,9 @@ class TAssetOF extends TObjetStd{
 							
 							// On casse la boucle
 							break;
-							
-						} elseif($ofLigne->fk_product_fournisseur_price == -2){ // Composé fourni
+
+						}
+						elseif($ofLigne->fk_product_fournisseur_price == -2){ // Fabrication interne
 							$prod = new Product($db);
 							$prod->fetch($ofLigne->fk_product);
 							$prod->load_stock();
@@ -561,9 +568,7 @@ class TAssetOFLine extends TObjetStd{
 		//echo $this->lot_number.'<br>';
 		
 		$ATMdb->Execute($sql);
-		
-		echo $sql;
-		
+
 		if($this->type == "NEEDED"){
 			if($ATMdb->Get_line()){
 				$idAsset = $ATMdb->Get_field('rowid');

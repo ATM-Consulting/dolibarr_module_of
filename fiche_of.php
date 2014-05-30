@@ -73,7 +73,8 @@ function _action() {
 
 				$assetOf->set_values($_REQUEST);
 
-
+				//pre($_REQUEST,true);
+				
 				if(__get('fk_product_to_add',0)>0) {
 					$assetOf->addLine($PDOdb, __get('fk_product_to_add',0), 'TO_MAKE');		
 				//	print "Add ".__get('fk_product_to_add',0);			
@@ -132,10 +133,6 @@ function _action() {
 				$assetOf->status = "OPEN";
 
 				$assetOf->setEquipement($PDOdb);
-
-				/*echo '<pre>';
-				print_r($assetOf);
-				echo '</pre>'; exit;*/
 				
 				//$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
