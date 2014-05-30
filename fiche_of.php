@@ -138,7 +138,7 @@ function _action() {
 				echo '</pre>'; exit;*/
 				
 				//$assetOf->openOF($PDOdb);
-				//$assetOf->save($PDOdb);
+				$assetOf->save($PDOdb);
 				_fiche($PDOdb, $assetOf, 'view');
 
 				break;

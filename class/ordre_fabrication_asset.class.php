@@ -273,10 +273,10 @@ class TAssetOF extends TObjetStd{
 		
 		foreach($this->TAssetOFLine as $AssetOFLine){
 			$asset = new TAsset;
+			$asset->load($ATMdb, $AssetOFLine->fk_asset);
 
 			if($AssetOFLine->type == "NEEDED"){
-				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
-				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication (OF n°'.$this->rowid.')');
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero,-$AssetOFLine->qty_used);
 			}
 
 		}
@@ -563,7 +563,7 @@ class TAssetOFLine extends TObjetStd{
 			$idAsset = $ATMdb->Get_field('rowid');
 			$asset->load($ATMdb, $idAsset);
 			$asset->status = 'indisponible';
-			$asset->save($ATMdb);
+			$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);
 		}
 		elseif($this->type == "TO_MAKE"){
 			$this->makeAsset($ATMdb,$AssetOf, $this->fk_product, $this->qty,0,$this->lot_number);
