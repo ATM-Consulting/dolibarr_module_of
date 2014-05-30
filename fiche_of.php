@@ -359,13 +359,14 @@ function _fiche_ligne(&$form, &$of, $type){
 					
 					//Affiche le type du PF :
 					if($objPrice->compose_fourni){//			soit on fabrique les composants
-						$label .= ' => Composants à fabriquer';
+						$label .= ' => Fabrication interne';
 					}
-					elseif($objPrice->quantity > 0){//			soit on commande a un fournisseur
-						$label .= ' => Commande fournisseur';
-					}
-					else{//										soit on a le produit finis déjà en stock
+					elseif($objPrice->quantity <= 0){//			soit on a le produit finis déjà en stock
 						$label .= ' => Sortie de stock';
+					}
+
+					if($objPrice->quantity > 0){//				soit on commande a un fournisseur
+						$label .= ' => Commande fournisseur';
 					}
 					
 					$label .= ")";
