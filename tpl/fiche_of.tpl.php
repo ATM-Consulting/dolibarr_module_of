@@ -110,7 +110,8 @@
 								
 							</tr>
 							<tr id="[TNeeded.id]">
-								<input type="hidden" name="idprod" id="idprod" value="[TNeeded.idProd]">
+								<!-- [TNeeded.id;strconv=no]
+								[TNeeded.idprod;strconv=no] -->
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TNeeded.lot_number;strconv=no]</td>
 								[onshow;block=end]
@@ -141,7 +142,8 @@
 								
 							</tr>
 							<tr id="[TTomake.id]">
-								<input type="hidden" name="idprod" id="idprod" value="[TTomake.idProd]">
+								<!-- [TNeeded.id;strconv=no]
+								[TNeeded.idprod;strconv=no] -->
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TTomake.lot_number;strconv=no]</td>
