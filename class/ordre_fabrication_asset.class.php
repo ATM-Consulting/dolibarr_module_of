@@ -306,7 +306,7 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
-	private function addCommandeFourn($ofLigne, $resultatSQL) {
+	private function addCommandeFourn(&$ATMdb,$ofLigne, $resultatSQL) {
 
 		global $db, $user;
 		dol_include_once("fourn/class/fournisseur.commande.class.php");		
@@ -343,8 +343,43 @@ class TAssetOF extends TObjetStd{
 			
 			// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
 			$com->addline($desc, $resultatSQL->price/$resultatSQL->quantity, $ofLigne->qty, $txtva, 0, 0, $resultatSQL->fk_product, $resultatSQL->rowid);
-			
-		}		
+
+		}
+		
+		//Création association element_element entre la commande fournisseur et l'OF
+		$this->addElementElement($ATMdb,$com);
+	}
+
+	function addElementElement(&$ATMdb,&$commandeFourn){
+		
+		$TIdCommandeFourn = $this->getElementElement($ATMdb);
+
+		if(!in_array($commandeFourn->id, $TIdCommandeFourn)){
+				
+			$ATMdb->Execute("INSERT INTO ".MAIN_DB_PREFIX."element_element (fk_source,fk_target,sourcetype,targettype) 
+								VALUES (".$this->getId().",".$commandeFourn->id.",'ordre_fabrication','order_supplier')");
+		}
+		
+	}
+	
+	function getElementElement(&$ATMdb){
+		
+		$TIdCommandeFourn = array();
+		
+		$sql = "SELECT rowid 
+				FROM ".MAIN_DB_PREFIX."element_element 
+				WHERE fk_source = ".$this->getId()." 
+					AND sourcetype = 'ordre_fabrication' 
+					AND targettype = 'order_supplier'";
+
+		$ATMdb->Execute($sql);
+		
+		while($ATMdb->Get_line()){
+			$TIdCommandeFourn[] = $ATMdb->Get_field('rowid');
+		}
+		
+		return $TIdCommandeFourn;
+
 	}
 	
 	function createOfAndCommandesFourn(&$ATMdb) {
@@ -400,7 +435,7 @@ class TAssetOF extends TObjetStd{
 							// Sinon, commande fournisseur :
 							if($stockProd < $ofLigne->qty_needed) {
 								
-								$this->addCommandeFourn($ofLigne, $res);
+								$this->addCommandeFourn($ATMdb,$ofLigne, $res);
 
 							} 
 							else { // Suffisemment de stock, donc destockage :
@@ -409,7 +444,7 @@ class TAssetOF extends TObjetStd{
 						}
 						elseif(!$res->compose_fourni) { //Commande Fournisseur
 						
-							$this->addCommandeFourn($ofLigne, $res);
+							$this->addCommandeFourn($ATMdb,$ofLigne, $res);
 
 							// On récupère les OF enfants pour les supprimer
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();

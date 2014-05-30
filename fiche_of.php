@@ -9,6 +9,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -449,6 +450,24 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
 	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
+	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
+	
+	$HtmlCmdFourn = '';
+	
+	if(!empty($TIdCommandeFourn)){
+		foreach($TIdCommandeFourn as $idcommandeFourn){
+			$cmd = new CommandeFournisseur($db);
+			$cmd->fetch($idcommandeFourn);
+			
+			$commandestatic = new Commande($db);
+			
+			$commandestatic->id=$cmd->id;
+			$commandestatic->ref=$cmd->ref;
+			
+			$HtmlCmdFourn .= $commandestatic->getNomUrl(1)." ";
+		}
+	}
+	
 	if($conf->global->USE_LOT_IN_OF){
 		?>
 		<script type="text/javascript">
@@ -506,6 +525,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
 				,'fk_assetOf_parent'=>($mode=='edit') ? $form->combo('','fk_assetOf_parent',$TOFParent,$assetOf->fk_assetOf_parent) : '<a href="fiche_of.php?id='.$assetOf->fk_assetOf_parent.'">'.$TOFParent[$assetOf->fk_assetOf_parent].'</a>'
 				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
+				,'commande_fournisseur'=>$HtmlCmdFourn
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
