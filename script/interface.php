@@ -17,7 +17,7 @@ traite_get($ATMdb, $get);
 function traite_get(&$ATMdb, $case) {
 	switch (strtolower($case)) {
 		case 'autocomplete':
-			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term']),($_REQUEST['fk_product']) ? $_REQUEST['fk_product'] : 0);
+			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term'],$_REQUEST['fk_product']));
 			break;
 		case 'addofproduct':
 			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));

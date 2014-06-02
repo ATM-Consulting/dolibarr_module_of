@@ -320,7 +320,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			$TRes[]= array(
 				'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a> - '.$langs->trans("Stock")." : ".$product->stock_reel
 				,'qty_needed'=>$TAssetOFLine->qty_needed
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
@@ -468,10 +468,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		?>
 		<script type="text/javascript">
 			$(document).ready(function(){
-				$(".TAssetOFLineLot").autocomplete({
-					source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
-					minLength : 1
-				});
+				$(".TAssetOFLineLot").each(function(){
+					fk_product = $(this).attr('fk_product');
+					$(this).autocomplete({
+						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
+						minLength : 1
+					});
+				})
 			});
 		</script>
 		<?php
@@ -527,7 +530,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
 				
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : ($client->id) ? $client->getNomUrl(1) : ''
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				
