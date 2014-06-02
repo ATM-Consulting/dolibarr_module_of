@@ -64,7 +64,7 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) {
 					$assetOf->load($PDOdb, $_REQUEST['id'], false);
-					
+
 					$mode = 'view';
 				}
 				else {
@@ -122,8 +122,14 @@ function _action() {
 					}
 				}
 				$assetOf->createOfAndCommandesFourn($PDOdb);
-				//$assetOf->openOF($PDOdb);
+				$assetOf->unsetChildDeleted = true;
+				
 				$assetOf->save($PDOdb);
+				
+				//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				
 				_fiche($PDOdb,$assetOf, 'view');
 
 				break;
@@ -318,7 +324,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 		if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 			$TRes[]= array(
-				'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
+				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a> - '.$langs->trans("Stock")." : ".$product->stock_reel
@@ -376,9 +382,9 @@ function _fiche_ligne(&$form, &$of, $type){
 			}
 			
 			$TRes[]= array(
-				'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
+				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a> - '.$langs->trans("Stock")." : ".$product->stock_reel
 				,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
@@ -400,6 +406,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	*
 	* Put here all code to build page
 	****************************************************/
+	
+	//pre($assetOf,true);
 	
 	llxHeader('',$langs->trans('OFAsset'),'','');
 	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('AssetOF'));

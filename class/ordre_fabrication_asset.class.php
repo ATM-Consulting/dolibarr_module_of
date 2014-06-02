@@ -72,13 +72,13 @@ class TAssetOF extends TObjetStd{
 	
 	function save(&$db) {
 		global $conf;
-		
+
 		$this->set_temps_fabrication();
-		
+
 		$this->entity = $conf->entity;
-		
+
 		parent::save($db);
-		
+
 		if($this->numero=='') {
 			$this->numero='OF'.str_pad( $this->getId() , 5, '0', STR_PAD_LEFT);
 			$wc = $this->withChild;
@@ -102,7 +102,7 @@ class TAssetOF extends TObjetStd{
 	function delLine(&$ATMdb,$iline){
 		
 		$this->TAssetOFLine[$iline]->to_delete=true;
-		
+
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
@@ -400,7 +400,7 @@ class TAssetOF extends TObjetStd{
 			
 			// Boucle pour chaque produit de l'OF
 			foreach($assetOF->TAssetOFLine as $ofLigne) {
-				
+				//pre($ofLigne,true);
 				// On cherche le produit "TO_MAKE"
 				if($ofLigne->type == "TO_MAKE") {
 					
@@ -453,7 +453,11 @@ class TAssetOF extends TObjetStd{
 							
 								$assetOF->removeChild("TAssetOF", $idOF);
 							}
-
+							
+							//Suppression des lignes NEEDED puisque inutiles
+							$assetOF->delLineNeeded($ATMdb);
+							$assetOF->unsetChildDeleted = true;
+							
 							$assetOF->save($ATMdb);
 							
 							// On casse la boucle
@@ -506,6 +510,17 @@ class TAssetOF extends TObjetStd{
 			
 		}
 
+	}
+	
+	function delLineNeeded(&$ATMdb){
+		
+		foreach($this->TAssetOFLine as $k=>$ofLigne){
+
+			if($ofLigne->type == "NEEDED"){
+				$this->delLine($ATMdb, $k);
+			}
+		}
+		
 	}
 	
 	static function ordre($ordre='ASAP'){

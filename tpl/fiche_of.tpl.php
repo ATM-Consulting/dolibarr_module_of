@@ -111,8 +111,6 @@
 								
 							</tr>
 							<tr id="[TNeeded.id]">
-								<!-- [TNeeded.id;strconv=no]
-								[TNeeded.idprod;strconv=no] -->
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TNeeded.lot_number;strconv=no]</td>
 								[onshow;block=end]
@@ -143,8 +141,6 @@
 								
 							</tr>
 							<tr id="[TTomake.id]">
-								<!-- [TNeeded.id;strconv=no]
-								[TNeeded.idprod;strconv=no] -->
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
 								[onshow;block=begin;when [view.use_lot_in_of]=='1']
 									<td>[TTomake.lot_number;strconv=no]</td>
@@ -451,12 +447,14 @@
 		
 		function addAllLines(id_assetOf,idLine,btnadd){
 			//var qty = $('#qty['+idLine+']').val();
-			var qty = $(btnadd).parent().next().next().find('input[type=text]').val();
-			$.ajax(
+			var qty = $(btnadd).parent().eq(3).next().next().find('input[type=text]').val();
+			
+			alert(qty);
+			/*$.ajax(
 				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
 			).done(function(){
 				refreshTab(id_assetOf) 
-			});
+			});*/
 		}
 		
 </script>
