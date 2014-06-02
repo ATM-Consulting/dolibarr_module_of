@@ -77,6 +77,10 @@ class TAssetOF extends TObjetStd{
 
 		$this->entity = $conf->entity;
 
+		if($conf->global->USE_LOT_IN_OF){
+			$this->setLotWithParent($db);
+		}
+		
 		parent::save($db);
 
 		if($this->numero=='') {
@@ -85,6 +89,23 @@ class TAssetOF extends TObjetStd{
 			$this->withChild=false;
 			parent::save($db);
 			$this->withChild=$wc;
+		}
+	}
+	
+	function setLotWithParent(&$ATMdb){
+
+		if (count($this->TAssetOFLine) && $this->fk_assetOf_parent){
+			$ofParent = new TAssetOF;
+			$ofParent->load($ATMdb, $this->fk_assetOf_parent);
+			
+			foreach($ofParent->TAssetOFLine as $ofLigneParent){
+				foreach($this->TAssetOFLine as $ofLigne){
+					if($ofLigne->fk_product == $ofLigneParent->fk_product){
+						$ofLigne->lot_number = $ofLigneParent->lot_number;
+						$ofLigne->save($ATMdb);
+					}
+				}
+			}
 		}
 	}
 	
@@ -171,6 +192,8 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$ATMdb,$fk_product, $qty_needed) {
 		
+		global $conf;
+
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
 
 		if($reste>0) {
@@ -227,7 +250,7 @@ class TAssetOF extends TObjetStd{
 	
 	//Ajoute une ligne de produit à l'OF
 	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
-		global $user;
+		global $user, $conf;
 		
 		$k = $this->addChild($ATMdb, 'TAssetOFLine');
 		
@@ -264,7 +287,7 @@ class TAssetOF extends TObjetStd{
 			$asset = new TAsset;
 			
 			if($AssetOFLine->type == "TO_MAKE"){
-				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used, $this->rowid);
+				$AssetOFLine->makeAsset($ATMdb,$this, $AssetOFLine->fk_product, $AssetOFLine->qty,0,$AssetOFLine->lot_number);
 			}
 		}
 	}
@@ -636,7 +659,7 @@ class TAssetOFLine extends TObjetStd{
 		
 		$ATMdb->Execute($sql);
 
-		if($this->type == "NEEDED"){
+		if($this->type == "NEEDED" && $AssetOf->status == "OPEN"){
 			if($ATMdb->Get_line()){
 				$idAsset = $ATMdb->Get_field('rowid');
 				$asset->load($ATMdb, $idAsset);
@@ -646,10 +669,6 @@ class TAssetOFLine extends TObjetStd{
 			else{
 				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
 			}
-		}
-		elseif($this->type == "TO_MAKE"){
-			//exit('2');
-			$this->makeAsset($ATMdb,$AssetOf, $this->fk_product, $this->qty,0,$this->lot_number);
 		}
 		
 		//exit('3');

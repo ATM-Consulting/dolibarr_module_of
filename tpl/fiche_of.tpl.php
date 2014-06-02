@@ -226,7 +226,7 @@
 		function getChild() {
 			
 			$('#assetChildContener').empty();
-			
+			$('#assetChildContener').show();
 			$.ajax({
 				
 				url:'script/interface.php?get=getofchildid&id=[assetOf.id]&json=1'
@@ -297,8 +297,7 @@
 		
 			
 		}
-	
-		
+
 		function refreshDisplay() {
 			
 			$(".btnaddproduct" ).click(function() {
@@ -414,6 +413,14 @@
 				$('td.nodraft').css('display','table-cell');
 			}
 			
+			
+			$(".TAssetOFLineLot").each(function(){
+				fk_product = $(this).attr('fk_product');
+				$(this).autocomplete({
+					source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
+					minLength : 1
+				});
+			})
 		}
 		
 		function refreshTab(id) {
@@ -425,7 +432,7 @@
 		     	
 		     	refreshDisplay();
 			});
-			
+
 		}
 		
 		function deleteLine(idLine,type){
@@ -452,7 +459,7 @@
 			$.ajax(
 				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
 			).done(function(){
-				refreshTab(id_assetOf) 
+				refreshTab(id_assetOf);
 			});
 		}
 		

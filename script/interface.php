@@ -123,7 +123,7 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1){
 			while($res = $db->fetch_object($resql)) {
 				
 				_addofworkstation($ATMdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
-				
+
 			}
 			
 		}

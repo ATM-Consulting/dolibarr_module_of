@@ -151,9 +151,12 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "CLOSE";
+				
 				$assetOf->closeOF($PDOdb);
 				$assetOf->save($PDOdb);
+				
 				_fiche($PDOdb,$assetOf, 'view');
+				
 				break;
 
 			case 'delete':
