@@ -447,14 +447,13 @@
 		
 		function addAllLines(id_assetOf,idLine,btnadd){
 			//var qty = $('#qty['+idLine+']').val();
-			var qty = $(btnadd).parent().eq(3).next().next().find('input[type=text]').val();
+			qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
 			
-			alert(qty);
-			/*$.ajax(
+			$.ajax(
 				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
 			).done(function(){
 				refreshTab(id_assetOf) 
-			});*/
+			});
 		}
 		
 </script>
