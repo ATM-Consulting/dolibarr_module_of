@@ -670,29 +670,28 @@ class TAssetOFLine extends TObjetStd{
 		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity, pfp.compose_fourni,s.nom as 'name'
 		FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
 		WHERE fk_product = ".(int)$this->fk_product;
-		
+
 		$ATMdb->Execute($sql);
-		
+
 		$interne=new stdClass;
 		$interne->rowid=-1;
 		$interne->fk_soc=-1;
 		$interne->price=0;
 		$interne->compose_fourni=0;
 		$interne->name='Interne';
-		
+
 		$interne2=new stdClass;
 		$interne2->rowid=-2;
 		$interne2->fk_soc=-1;
 		$interne2->price=0;
 		$interne2->compose_fourni=1;
 		$interne2->name='Interne';
-		
+
 		$this->TFournisseurPrice = array_merge(
 			array($interne, $interne2)
 			,$ATMdb->Get_All()
 		);
-		
-		
+
 	}
 	
 }

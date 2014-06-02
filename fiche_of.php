@@ -113,7 +113,7 @@ function _action() {
 				
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				$assetOf->status = "VALID";				
+				$assetOf->status = "VALID";
 
 
 				if(!empty($_REQUEST['TAssetOFLine'])) {
@@ -149,7 +149,7 @@ function _action() {
 				$assetOf->save($PDOdb);
 				_fiche($PDOdb,$assetOf, 'view');
 				break;
-	
+
 			case 'delete':
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $_REQUEST['id'], false);
@@ -164,19 +164,19 @@ function _action() {
 				<?
 				
 				break;
-				
+
 			case 'view':
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $_REQUEST['id'], false);
-		
+
 				_fiche($PDOdb, $assetOf, 'view');
-				
+
 				break;
 			case 'createDocOF':
 				
 				generateODTOF($PDOdb);
-								
-				break;				
+
+				break;
 		}
 		
 	
@@ -252,8 +252,6 @@ function generateODTOF(&$PDOdb) {
 							, 'unitPoids' => $unitLabel
 							, 'finished' => $prod->finished?"PM":"MP"
 						);
-	
-			
 		}
 
 	}
@@ -310,89 +308,86 @@ function generateODTOF(&$PDOdb) {
 
 
 function _fiche_ligne(&$form, &$of, $type){
-		global $db, $conf;
+	global $db, $conf;
 
-		$TRes = array();
-		foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
-			$product = new Product($db);
-			$product->fetch($TAssetOFLine->fk_product);
+	$TRes = array();
+	foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
+		$product = new Product($db);
+		$product->fetch($TAssetOFLine->fk_product);
 
-			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
-				$TRes[]= array(
-					'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
-					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
-					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'qty_needed'=>$TAssetOFLine->qty_needed
-					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
-					,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
-					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-					,'delete'=> '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
-				);
+		if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
+			$TRes[]= array(
+				'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
+				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
+				,'qty_needed'=>$TAssetOFLine->qty_needed
+				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
+				,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
+				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
+				,'delete'=> '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+			);
+		}
+		elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
+		
+			if(empty($TAssetOFLine->TFournisseurPrice)) {
+				$ATMdb=new TPDOdb;
+				$TAssetOFLine->loadFournisseurPrice($ATMdb);
 			}
-			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
-			
-				if(empty($TAssetOFLine->TFournisseurPrice)) {
-					$ATMdb=new TPDOdb;
-					$TAssetOFLine->loadFournisseurPrice($ATMdb);
-				}
-			
-				$Tab=array();
-				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
-					
-					$label = "";
+		
+			$Tab=array();
+			foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
+				
+				$label = "";
 
-					//Si on a un prix fournisseur pour le produit
-					if($objPrice->price > 0){
-						$label .= floatval($objPrice->price).' '.$conf->currency;
-					}
-					
-					//Affiche le nom du fournisseur
-					$label .= ' (Fournisseur "'.utf8_encode ($objPrice->name).'"';
-
-					//Prix unitaire minimum si renseigné dans le PF
-					if($objPrice->quantity > 0){
-						' '.$objPrice->quantity.' pièce(s) min,';
-					} 
-					
-					//Affiche le type du PF :
-					if($objPrice->compose_fourni){//			soit on fabrique les composants
-						$label .= ' => Fabrication interne';
-					}
-					elseif($objPrice->quantity <= 0){//			soit on a le produit finis déjà en stock
-						$label .= ' => Sortie de stock';
-					}
-
-					if($objPrice->quantity > 0){//				soit on commande a un fournisseur
-						$label .= ' => Commande fournisseur';
-					}
-					
-					$label .= ")";
-					
-					$Tab[ $objPrice->rowid ] = array(
-												'label' => $label,
-												'compose_fourni' => $objPrice->compose_fourni
-											);
-
+				//Si on a un prix fournisseur pour le produit
+				if($objPrice->price > 0){
+					$label .= floatval($objPrice->price).' '.$conf->currency;
 				}
 				
-				$TRes[]= array(
-					'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
-					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
-					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
-					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
-					,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price ) : $Tab[$TAssetOFLine->fk_product_fournisseur_price]['label']
-					
-					//,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? '<select class="flat" id="TAssetOFLine['.$k.'][fk_product_fournisseur_price]" name="TAssetOFLine['.$k.'][fk_product_fournisseur_price]">'.$option.'</select>' : $Tab[$TAssetOFLine->fk_product_fournisseur_price]
-					
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
-				);
+				//Affiche le nom du fournisseur
+				$label .= ' (Fournisseur "'.utf8_encode ($objPrice->name).'"';
+
+				//Prix unitaire minimum si renseigné dans le PF
+				if($objPrice->quantity > 0){
+					' '.$objPrice->quantity.' pièce(s) min,';
+				} 
+				
+				//Affiche le type du PF :
+				if($objPrice->compose_fourni){//			soit on fabrique les composants
+					$label .= ' => Fabrication interne';
+				}
+				elseif($objPrice->quantity <= 0){//			soit on a le produit finis déjà en stock
+					$label .= ' => Sortie de stock';
+				}
+
+				if($objPrice->quantity > 0){//				soit on commande a un fournisseur
+					$label .= ' => Commande fournisseur';
+				}
+				
+				$label .= ")";
+
+				$Tab[ $objPrice->rowid ] = array(
+												'label' => $label,
+												'compose_fourni' => ($objPrice->compose_fourni) ? $objPrice->compose_fourni : 0
+											);
+
 			}
+			
+			$TRes[]= array(
+				'id'=>$form->hidden('TAssetOFLine['.$k.'][rowid]', $TAssetOFLine->getId())
+				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
+				,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
+				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
+				,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+			);
 		}
-		
-		return $TRes;
+	}
+	
+	return $TRes;
 }
 
 
@@ -458,12 +453,12 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		foreach($TIdCommandeFourn as $idcommandeFourn){
 			$cmd = new CommandeFournisseur($db);
 			$cmd->fetch($idcommandeFourn);
-			
+
 			$commandestatic = new Commande($db);
-			
+
 			$commandestatic->id=$cmd->id;
 			$commandestatic->ref=$cmd->ref;
-			
+
 			$HtmlCmdFourn .= $commandestatic->getNomUrl(1)." ";
 		}
 	}
