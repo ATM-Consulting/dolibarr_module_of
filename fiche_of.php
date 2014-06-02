@@ -458,17 +458,12 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	
 	$HtmlCmdFourn = '';
 	
-	if(!empty($TIdCommandeFourn)){
+	if(count($TIdCommandeFourn)){
 		foreach($TIdCommandeFourn as $idcommandeFourn){
 			$cmd = new CommandeFournisseur($db);
 			$cmd->fetch($idcommandeFourn);
 
-			$commandestatic = new Commande($db);
-
-			$commandestatic->id=$cmd->id;
-			$commandestatic->ref=$cmd->ref;
-
-			$HtmlCmdFourn .= $commandestatic->getNomUrl(1)." ";
+			$HtmlCmdFourn .= $cmd->getNomUrl(1)." ";
 		}
 	}
 	

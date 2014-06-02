@@ -315,6 +315,7 @@ class TAssetOF extends TObjetStd{
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
 		$sql.= " WHERE fk_soc = ".$resultatSQL->fk_soc;
+		$sql.= " AND fk_statut = 0"; //uniquement brouillon
 		$sql.= " ORDER BY rowid DESC";
 		$sql.= " LIMIT 1";
 		$resql = $db->query($sql);
@@ -350,6 +351,14 @@ class TAssetOF extends TObjetStd{
 		$this->addElementElement($ATMdb,$com);
 	}
 
+	function delete(&$PDOdb){
+		
+		parent::delete($PDOdb);
+		
+		$this->delElementElement($PDOdb);
+		
+	}
+
 	function addElementElement(&$ATMdb,&$commandeFourn){
 		
 		$TIdCommandeFourn = $this->getElementElement($ATMdb);
@@ -362,20 +371,28 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
+	function delElementElement(&$ATMdb){
+		
+		$ATMdb->Execute("DELETE FROM ".MAIN_DB_PREFIX."element_element 
+						 WHERE sourcetype = 'ordre_fabrication'
+						 	AND targettype = 'order_supplier'
+						 	AND fk_source = ".$this->getId());
+	}
+	
 	function getElementElement(&$ATMdb){
 		
 		$TIdCommandeFourn = array();
 		
-		$sql = "SELECT rowid 
+		$sql = "SELECT fk_target 
 				FROM ".MAIN_DB_PREFIX."element_element 
 				WHERE fk_source = ".$this->getId()." 
 					AND sourcetype = 'ordre_fabrication' 
 					AND targettype = 'order_supplier'";
-
+		
 		$ATMdb->Execute($sql);
 		
 		while($ATMdb->Get_line()){
-			$TIdCommandeFourn[] = $ATMdb->Get_field('rowid');
+			$TIdCommandeFourn[] = $ATMdb->Get_field('fk_target');
 		}
 		
 		return $TIdCommandeFourn;
