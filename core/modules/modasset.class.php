@@ -129,7 +129,7 @@ class modAsset extends DolibarrModules
         	,'product:Equipements:@asset:$user->rights->asset->read:/asset/equipement.php?pid=__ID__'
         );*/
 		$this->tabs = array(
-			'product:+tabEquipement1:Asset:asset@asset::$user->rights->asset->all->lire:/asset/liste.php?fk_product=__ID__'
+			'product:+tabEquipement1:Asset:asset@asset:$user->rights->asset->all->lire:/asset/liste.php?fk_product=__ID__'
 			,'product:+tabOF1:WorkStation:asset@asset:$user->rights->asset->of->lire:/asset/workstation.php?fk_product=__ID__'
 			,'product:+tabOF2:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_product=__ID__'
 			,'order:+tabOF3:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_commande=__ID__'
