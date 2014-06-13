@@ -130,9 +130,9 @@ class modAsset extends DolibarrModules
         );*/
 		$this->tabs = array(
 			'product:+tabEquipement1:Asset:asset@asset:/asset/liste.php?fk_product=__ID__'
-			,'product:+tabOF1:WorkStation:asset@asset:/asset/workstation.php?fk_product=__ID__'
-			,'product:+tabOF2:OF:asset@asset:/asset/liste_of.php?fk_product=__ID__'
-			,'order:+tabOF3:OF:asset@asset:/asset/liste_of.php?fk_commande=__ID__'
+			,'product:+tabOF1:WorkStation:asset@asset:$user->rights->asset->of->lire:/asset/workstation.php?fk_product=__ID__'
+			,'product:+tabOF2:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_product=__ID__'
+			,'order:+tabOF3:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_commande=__ID__'
 			//,'product:+tabEquipement2:Ordre de Fabrication:@asset:/asset/liste_of.php?fk_product=__ID__'
 			//,'product:+tabEquipement2:Attribut équipement:@asset:/asset/attribut.php?fk_product=__ID__&action=edit'
 		);
