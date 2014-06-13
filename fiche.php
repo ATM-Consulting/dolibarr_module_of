@@ -17,9 +17,9 @@ if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 
 
 // Load traductions files requiredby by page
-$langs->load("companies");
-$langs->load("other");
-$langs->load("asset@asset");
+$langs->Load("companies");
+$langs->Load("other");
+$langs->Load("asset@asset");
 
 // Get parameters
 _action();
@@ -118,9 +118,9 @@ function _action() {
 				
 				$asset->set_values($_REQUEST);
 				
-				/*echo '<pre>';
-				print_r($asset);
-				echo '</pre>';exit;*/
+				//Cas spécifique contenance_units et contenancereel_units lorsqu'égale à 0 soit kg ou m, etc
+				$asset->contenance_units = ($_REQUEST['contenance_units']) ? $_REQUEST['contenance_units'] : 0;
+				$asset->contenancereel_units = ($_REQUEST['contenancereel_units']) ? $_REQUEST['contenance_units'] : 0;
 				
 				if(!isset($_REQUEST['type_mvt']))
 					$asset->save($PDOdb);
@@ -383,7 +383,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
-						  'title'=>array(
+						'title'=>array(
 							'date_cre'=>'Date du mouvement'
 							,'qty'  =>'Quantité'
 							,'weight_units' => 'Unité'
@@ -391,6 +391,9 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 							,'type' => 'Commentaire'
 						)
 						,'link'=>array_merge($ASSET_LINK_ON_FIELD,array())
+						,'liste'=>array(
+							'titre'=> 'Mouvements de stock'
+						)
 					)
 				)
 			)

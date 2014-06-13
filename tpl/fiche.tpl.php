@@ -54,9 +54,9 @@
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
 			&nbsp; &nbsp; <input id="action-mvt-stock" class="butAction" type="button" onclick="document.location.href='?action=stock&id=[asset.id]'" name="mvt_stock" value="Nouveau Mouvement Stock">
 		</div>
-		<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
+		<!--<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
 			<tr><td valign="middle" class="nobordernopadding"><div class="titre">Mouvements de stock</div></td></tr>
-		</table>
+		</table> -->
 		[view.liste;strconv=no]
 [onshow;block=end]
 

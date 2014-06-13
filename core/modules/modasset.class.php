@@ -96,7 +96,7 @@ class modAsset extends DolibarrModules
 		$this->phpmin = array(5,3);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,5);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("asset@asset");
-		$langs->load('asset@asset');
+
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
 		// Example: $this->const=array(0=>array('MYMODULE_MYNEWCONST1','chaine','myvalue','This is a constant to add',1),
@@ -129,10 +129,10 @@ class modAsset extends DolibarrModules
         	,'product:Equipements:@asset:$user->rights->asset->read:/asset/equipement.php?pid=__ID__'
         );*/
 		$this->tabs = array(
-			'product:+tabEquipement1:'.$langs->trans('Asset').':@asset:/asset/liste.php?fk_product=__ID__'
-			,'product:+tabOF1:'.$langs->trans('WorkStation').':@asset:/asset/workstation.php?fk_product=__ID__'
-			,'product:+tabOF2:'.$langs->trans('OF').':@asset:/asset/liste_of.php?fk_product=__ID__'
-			,'order:+tabOF3:'.$langs->trans('OF').':@asset:/asset/liste_of.php?fk_commande=__ID__'
+			'product:+tabEquipement1:Asset:asset@asset:/asset/liste.php?fk_product=__ID__'
+			,'product:+tabOF1:WorkStation:asset@asset:/asset/workstation.php?fk_product=__ID__'
+			,'product:+tabOF2:OF:asset@asset:/asset/liste_of.php?fk_product=__ID__'
+			,'order:+tabOF3:OF:asset@asset:/asset/liste_of.php?fk_commande=__ID__'
 			//,'product:+tabEquipement2:Ordre de Fabrication:@asset:/asset/liste_of.php?fk_product=__ID__'
 			//,'product:+tabEquipement2:Attribut équipement:@asset:/asset/attribut.php?fk_product=__ID__&action=edit'
 		);

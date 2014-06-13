@@ -98,6 +98,12 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 		$THide[] = 'Produit';
 	}
 	
+	//echo $sql;
+	
+	function get_measuring_units_string($unite,$type = "weight"){
+		return measuring_units_string($unite,"weight");
+	}
+	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	
 	$r->liste($ATMdb, $sql, array(
@@ -136,7 +142,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 			,'label'=>array('recherche'=>true, 'table'=>'')
 		)
 		,'eval'=>array(
-			'unite'=>'(@val@) ? measuring_units_string(@val@,"weight") : ""'
+			'unite'=>'get_measuring_units_string(@unite@,"weight")'
 		)
 	));
 
@@ -145,7 +151,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 		echo '<a class="butAction" href="fiche.php?action=edit&fk_soc='.$fk_soc.'&fk_product='.$product->id.'&fk_asset_type='.$fk_asset_type.'">Créer un '.$langs->trans('Asset').'</a>';
 		echo '</div>';
 	}
-
+	
 	$ATMdb->close();
 
 	llxFooter('$Date: 2011/07/31 23:19:25 $ - $Revision: 1.152 $');
