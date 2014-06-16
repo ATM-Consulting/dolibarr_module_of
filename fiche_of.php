@@ -393,7 +393,19 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('AssetOF'));
 	
 
-	?>	<div class="OFContent" rel="<?=$assetOf->getId() ?>">	<?php
+	?><style type="text/css">
+		#assetChildContener .OFMaster {
+			
+			background:#fff;
+			-webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.52);
+			-moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.52);
+			box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.52);
+			
+			margin-bottom:20px;
+		}
+		
+	</style>
+		<div class="OFContent" rel="<?=$assetOf->getId() ?>">	<?php
 	
 	$TPrixFournisseurs = array();
 	

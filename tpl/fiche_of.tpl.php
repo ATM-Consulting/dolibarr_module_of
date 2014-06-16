@@ -22,8 +22,8 @@
 				
 			<table width="100%" class="border">
 				
-				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
-				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
+				<tr><td width="20%">Ordre de fabrication numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
+				<tr><td>Délai</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
 				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no]</td></tr>
 				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
 				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
@@ -77,14 +77,14 @@
 
 		<div class="of-details" style="margin-top: 25px;">
 			<table width="100%" class="border">
-				<tr height="40px;">
-					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
+				<tr style="height:40px; background-color: #dedede;" class="header">
+					<td style="border-right: none;" font-weight: bold;>Produits nécessaires à la fabrication</td>
 					<td style="border-left: none; text-align: right;">
 						
 						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>
 						
 					</td>
-					<td style="border-right: none; ">Produits à créer</td>
+					<td style="border-right: none; font-weight: bold; ">Produits à créer</td>
 					<td style="border-left: none; text-align: right;">
 						
 						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
@@ -98,12 +98,12 @@
 							<tr style="background-color:#dedede;">
 								<!--<td>Lot</td>
 								<td>Equipement</td>-->
-								<td>Produit</td>
-								<td>Quantité nécessaire</td>
-								<td>Quantité réelle</td>
-								<td class="nodraft">Quantité utilisée</td>
+								<th>Produit</td>
+								<th>Quantité nécessaire</td>
+								<th>Quantité réelle</td>
+								<th class="nodraft">Quantité utilisée</td>
 								<!-- <td class="draft">Delta</td> -->
-								<td class="draftedit" style="width:20px;">Action</td>
+								<th class="draftedit" style="width:20px;">Action</td>
 								
 							</tr>
 							<tr id="[TNeeded.id]">
@@ -124,11 +124,11 @@
 						<!-- TO_MAKE -->
 						<table width="100%" class="border tomake">
 							<tr style="background-color:#dedede;">
-								<td class="draftedit" style="width:20px;">Action</td>
-								<td>Produit</td>
-								<td>Quantité à produire</td>
-								<td>Fournisseur</td>
-								<td class="draftedit" style="width:20px;">Action</td>
+								<th class="draftedit" style="width:20px;">Action</th>
+								<th>Produit</th>
+								<th>Quantité à produire</th>
+								<th>Fournisseur</th>
+								<th class="draftedit" style="width:20px;">Action</th>
 								
 							</tr>
 							<tr id="[TTomake.id]">
@@ -197,9 +197,9 @@
 	
 	
 	<div style="clear:both;"></div>
+	
 	<div id="assetChildContener">
 		
-		<h2>OF Enfants</h2>
 	
 	</div>
 	
@@ -215,7 +215,7 @@
 		
 		function getChild() {
 			
-			$('#assetChildContener').empty();
+			$('#assetChildContener').html('<h2>Liste des ordres de fabrication enfants nécessaires</h2>');
 			
 			$.ajax({
 				
