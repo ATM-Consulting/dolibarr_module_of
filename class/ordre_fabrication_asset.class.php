@@ -660,7 +660,12 @@ class TAssetOFLine extends TObjetStd{
 		$ATMdb->Execute($sql);
 
 		if($this->type == "NEEDED" && $AssetOf->status == "OPEN"){
+			
+			$mvmt_stock_already_done = false;
+			
 			if($ATMdb->Get_line()){
+				$mvmt_stock_already_done = true;
+				
 				$idAsset = $ATMdb->Get_field('rowid');
 				$asset->load($ATMdb, $idAsset);
 				$asset->status = 'indisponible';
@@ -669,6 +674,15 @@ class TAssetOFLine extends TObjetStd{
 			else{
 				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
 			}
+			
+			if(!$mvmt_stock_already_done) {
+				//require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
+				dol_include_once('/product/stock/class/mouvementstock.class.php');
+				$mvmt = new MouvementStock($db);
+				$mvmt->livraison($user, $this->fk_product, 1, $this->qty_used, 0, 'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);
+				
+			}
+			
 		}
 		
 		//exit('3');
