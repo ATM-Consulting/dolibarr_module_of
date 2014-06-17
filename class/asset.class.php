@@ -111,43 +111,51 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0) {
-		
-		if(empty($this->serial_number)){
-			$this->serial_number = $this->getNextValue($ATMdb);
-		}
-		
-		parent::save($ATMdb);
-		
-		$this->save_link($ATMdb);
-
-		$this->addLotNumber($ATMdb);
-		
-		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
-		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
-			$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
-			$qty = $qtyKg * pow(10, -$this->contenancereel_units);
-		} else if(!empty($qty)) {
-			$this->contenancereel_value = $this->contenancereel_value + $qty;
+	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0) {
+				
+		if(!$destock_dolibarr_only) {
+			
+			if(empty($this->serial_number)){
+				$this->serial_number = $this->getNextValue($ATMdb);
+			}
+			
 			parent::save($ATMdb);
+			
+			$this->save_link($ATMdb);
+	
+			$this->addLotNumber($ATMdb);
+			
+			// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
+			if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
+				$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
+				$qty = $qtyKg * pow(10, -$this->contenancereel_units);
+			} else if(!empty($qty)) {
+				$this->contenancereel_value = $this->contenancereel_value + $qty;
+				parent::save($ATMdb);
+			}
+			
 		}
 		
 		// Enregistrement des mouvements
 		if(!empty($qty)){
-			$this->addStockMouvement($ATMdb,$qty,$description);
+			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
 
 		}
 	}
 	
-	function addStockMouvement(&$ATMdb,$qty,$description){
+	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
 		
-		$stock = new TAssetStock;
-		$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
+		if(!$destock_dolibarr_only) {
+		
+			$stock = new TAssetStock;
+			$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
+			
+		}
 
-		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description);
+		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
 	}
 	
-	function addStockMouvementDolibarr($fk_product,$qty,$description){
+	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
 		global $db, $user;
 		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
@@ -157,6 +165,14 @@ class TAsset extends TObjetStd{
 		$mouvS = new MouvementStock($db);
 		// We decrement stock of product (and sub-products)
 		// We use warehouse selected for each line
+		
+		/*
+		 * Si on est dans un cas où il faut seulement effectuer un mouvement de stock dolibarr, 
+		 * on valorise $fk_product qui n'est sinon pas disponible car il correspond à $this->fk_product,
+		 * et ce dernier n'est pas disponible car on est dans un cas où l'on n'a pas pu charger l'objet Equipement,
+		 * donc pas de $this->fk_product
+		 */ 
+		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
 		if($qty > 0) {
 			$result=$mouvS->reception($user, $fk_product, 1, $qty, 0, $description);

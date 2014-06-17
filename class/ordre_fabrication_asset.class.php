@@ -677,9 +677,12 @@ class TAssetOFLine extends TObjetStd{
 			
 			if(!$mvmt_stock_already_done) {
 				//require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-				dol_include_once('/product/stock/class/mouvementstock.class.php');
+				
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used, true, $this->fk_product);
+				
+				/*dol_include_once('/product/stock/class/mouvementstock.class.php');
 				$mvmt = new MouvementStock($db);
-				$mvmt->livraison($user, $this->fk_product, 1, $this->qty_used, 0, 'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);
+				$mvmt->livraison($user, $this->fk_product, 1, $this->qty_used, 0, 'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);*/
 				
 			}
 			
