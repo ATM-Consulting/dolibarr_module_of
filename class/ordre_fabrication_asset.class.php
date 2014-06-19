@@ -293,7 +293,7 @@ class TAssetOF extends TObjetStd{
 			} else {
 
 				$asset->load($ATMdb, $AssetOFLine->fk_asset);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0);
 				
 			}
 		}
