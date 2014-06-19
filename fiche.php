@@ -15,7 +15,6 @@ if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 	dol_include_once('/financement/class/affaire.class.php');
 }
 
-
 // Load traductions files requiredby by page
 $langs->Load("companies");
 $langs->Load("other");
@@ -127,6 +126,8 @@ function _action() {
 					$asset->save($PDOdb, '', "Modification manuelle", 0, false, 0, $no_destock_dolibarr);
 				}
 				else{
+					global $conf;
+					$conf->global->PRODUIT_SOUSPRODUITS = 0;
 					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
 					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
 				}
