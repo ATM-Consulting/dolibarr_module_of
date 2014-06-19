@@ -11,10 +11,13 @@ class ActionsAsset
     function doActions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $langs, $db, $conf, $user;
-		
-		/*echo '<pre>';
-		print_r($object);
-		echo '</pre>';*/
+
+		// Constante PRODUIT_SOUSPRODUITS passée à 0 pour ne pas déstocker les sous produits lors de la validation de l'expédition
+		if(in_array('expeditioncard',explode(':',$parameters['context'])) && $action === "confirm_valid") {
+			
+			$conf->global->PRODUIT_SOUSPRODUITS = 0;
+			
+		}
 		
         if($action == "validmodasset"){
         	//print_r($object);exit;
