@@ -287,7 +287,14 @@ class TAssetOF extends TObjetStd{
 			$asset = new TAsset;
 			
 			if($AssetOFLine->type == "TO_MAKE"){
+				
 				$AssetOFLine->makeAsset($ATMdb,$this, $AssetOFLine->fk_product, $AssetOFLine->qty,0,$AssetOFLine->lot_number);
+				
+			} else {
+
+				$asset->load($ATMdb, $AssetOFLine->fk_asset);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0);
+				
 			}
 		}
 	}
