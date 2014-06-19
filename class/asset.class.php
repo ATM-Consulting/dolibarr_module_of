@@ -111,7 +111,7 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0) {
+	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false) {
 				
 		if(!$destock_dolibarr_only) {
 			
@@ -137,7 +137,7 @@ class TAsset extends TObjetStd{
 		}
 		
 		// Enregistrement des mouvements
-		if(!empty($qty)){
+		if(!empty($qty) && !$no_destock_dolibarr){
 			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
 
 		}

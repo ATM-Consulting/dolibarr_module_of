@@ -122,8 +122,10 @@ function _action() {
 				$asset->contenance_units = ($_REQUEST['contenance_units']) ? $_REQUEST['contenance_units'] : 0;
 				$asset->contenancereel_units = ($_REQUEST['contenancereel_units']) ? $_REQUEST['contenance_units'] : 0;
 				
-				if(!isset($_REQUEST['type_mvt']))
-					$asset->save($PDOdb);
+				if(!isset($_REQUEST['type_mvt'])) {
+					$no_destock_dolibarr = true;
+					$asset->save($PDOdb, '', "Modification manuelle", 0, false, 0, $no_destock_dolibarr);
+				}
 				else{
 					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
 					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
