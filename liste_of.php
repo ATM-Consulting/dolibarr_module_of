@@ -107,8 +107,10 @@ function _liste() {
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
-		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid) 
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, ofel.fk_product, p.ref as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
+		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid)
+		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
+		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = ofe.fk_soc
 		  WHERE ofe.entity=".$conf->entity;
 
 	if($fk_soc>0) {$sql.=" AND ofe.fk_soc=".$fk_soc; }
@@ -137,6 +139,8 @@ function _liste() {
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
 			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
+			,'Produit'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+			,'Client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
