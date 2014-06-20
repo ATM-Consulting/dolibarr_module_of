@@ -164,6 +164,8 @@ function _liste() {
 			,'date_besoin'=>'Date du besoin'
 			,'status'=>'Status'
 			,'login'=>'Utilisateur en charge'
+			,'product'=>'Produit'
+			,'client'=>'Client'
 		)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
