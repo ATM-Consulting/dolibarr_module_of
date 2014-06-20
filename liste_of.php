@@ -139,7 +139,7 @@ function _liste() {
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
 			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
-			,'produit'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+			,'product'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 			,'client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
