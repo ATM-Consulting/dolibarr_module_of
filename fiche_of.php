@@ -285,7 +285,8 @@ function generateODTOF(&$PDOdb) {
 		$template = TEMPLATE_OF;
 	}
 	else{
-		$template = "templateOF.odt";
+		//$template = "templateOF.odt";
+		$template = "templateOF.doc";
 	}
 	
 	//echo $societe->name; exit;
@@ -306,12 +307,14 @@ function generateODTOF(&$PDOdb) {
 		)
 		,array()
 		,array(
-			'outFile'=>$dir.$assetOf->numero.".odt"
+			//'outFile'=>$dir.$assetOf->numero.".odt"
+			'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 		
 	);	
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
+	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
 }
 
