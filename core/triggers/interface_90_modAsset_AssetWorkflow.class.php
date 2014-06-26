@@ -170,6 +170,26 @@ class InterfaceAssetWorkflow
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
         }
+        elseif($action === 'ORDER_VALIDATE') {
+				
+        	global $conf;
+
+			if($conf->global->CREATE_OF_ON_ORDER_VALIDATE) {
+				dol_include_once('asset/class/ordre_fabrication_asset.class.php');
+				$ATMdb = new TPDOdb;
+	
+				foreach($object->lines as $line) {
+	
+					$assetOF = new TAssetOF;
+					$assetOF->fk_commande = $_REQUEST['id'];
+					$assetOF->fk_soc = $object->socid;
+					$assetOF->addLine($ATMdb, $line->fk_product, 'TO_MAKE', $line->qty);
+					$assetOF->save($ATMdb);
+					
+				}
+			}
+			
+        }
         
          /*
 		 *  PROPAL
