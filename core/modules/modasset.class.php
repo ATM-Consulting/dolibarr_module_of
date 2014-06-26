@@ -88,7 +88,7 @@ class modAsset extends DolibarrModules
 		//$this->style_sheet = '/mymodule/mymodule.css.php';
 
 		// Config pages. Put here list of php page names stored in admmin directory used to setup module.
-		$this->config_page_url = array("typeAsset.php@asset");
+		$this->config_page_url = array("admin.php@asset");
 
 		// Dependencies
 		$this->depends = array(1,25,50);		// List of modules id that must be enabled if this module is enabled
