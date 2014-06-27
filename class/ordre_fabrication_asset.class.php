@@ -249,7 +249,7 @@ class TAssetOF extends TObjetStd{
 	
 	
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
+	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
 		global $user, $conf;
 		
 		$k = $this->addChild($ATMdb, 'TAssetOFLine');
@@ -263,6 +263,8 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
+		
+		$TAssetOFLine->lot_number = $lot_number;
 		
 		$idAssetOFLine = $TAssetOFLine->save($ATMdb);
 		

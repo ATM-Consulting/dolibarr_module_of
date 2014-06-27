@@ -102,13 +102,13 @@ function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0){
 	return $TResult;
 }
 
-function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1){
+function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = ''){
 	
 	global $db;
 	
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($ATMdb, $id_assetOf);
-	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty);
+	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty,0, $lot_number);
 	$TassetOF->save($ATMdb);
 	
 	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
@@ -146,5 +146,5 @@ function _addlines(&$ATMdb,$idLine,$qty){
 	
 	$TAssetOFLine->delete($ATMdb);
 	
-	_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty);
+	_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty, $TAssetOFLine->lot_number);
 }
