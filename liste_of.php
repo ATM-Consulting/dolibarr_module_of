@@ -9,6 +9,8 @@
 	dol_include_once("/core/class/html.formother.class.php");
 	dol_include_once("/core/lib/company.lib.php");
 	
+	$langs->load('asset@asset');
+	
 	$action = __get('action');
 	
 	switch ($action) {

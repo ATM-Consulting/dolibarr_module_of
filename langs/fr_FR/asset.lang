@@ -1,6 +1,9 @@
 # Dolibarr language file - fr_FR
 CHARSET=UTF-8
 
+Module104160Name = Equipement
+Module104160Desc = Gestion des équipements et de la production (GPAO)
+
 # EQUIPEMENT
 Asset=Equipement
 ListAsset=Liste des équipements installés

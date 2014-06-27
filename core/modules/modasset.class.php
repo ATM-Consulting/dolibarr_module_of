@@ -49,7 +49,7 @@ class modAsset extends DolibarrModules
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->numero = 104121;
+		$this->numero = 104160;
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'asset';
 
@@ -95,7 +95,7 @@ class modAsset extends DolibarrModules
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->phpmin = array(5,3);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,5);	// Minimum version of Dolibarr required by module
-		$this->langfiles = array("asset@asset");
+		$this->langfiles = array('gpao@gpao');
 
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
@@ -104,30 +104,7 @@ class modAsset extends DolibarrModules
 		//                             2=>array('MAIN_MODULE_MYMODULE_NEEDSMARTY','chaine',1,'Constant to say module need smarty',1)
 		$this->const = array();
 
-		// Array to add new pages in new tabs
-		// Example: $this->tabs = array('objecttype:+tabname1:Title1:@mymodule:$user->rights->mymodule->read:/mymodule/mynewtab1.php?id=__ID__',  // To add a new tab identified by code tabname1
-        //                              'objecttype:+tabname2:Title2:@mymodule:$user->rights->othermodule->read:/mymodule/mynewtab2.php?id=__ID__',  // To add another new tab identified by code tabname2
-        //                              'objecttype:-tabname');                                                     // To remove an existing tab identified by code tabname
-		// where objecttype can be
-		// 'thirdparty'       to add a tab in third party view
-		// 'intervention'     to add a tab in intervention view
-		// 'order_supplier'   to add a tab in supplier order view
-		// 'invoice_supplier' to add a tab in supplier invoice view
-		// 'invoice'          to add a tab in customer invoice view
-		// 'order'            to add a tab in customer order view
-		// 'product'          to add a tab in product view
-		// 'stock'            to add a tab in stock view
-		// 'propal'           to add a tab in propal view
-		// 'member'           to add a tab in fundation member view
-		// 'contract'         to add a tab in contract view
-		// 'user'             to add a tab in user view
-		// 'group'            to add a tab in group view
-		// 'contact'          to add a tab in contact view
-		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
-        /*$this->tabs = array(
-        	'thirdparty:Equipements:@asset:$user->rights->asset->read:/custom/asset/equipement.php?tid=__ID__'
-        	,'product:Equipements:@asset:$user->rights->asset->read:/asset/equipement.php?pid=__ID__'
-        );*/
+	
 		$this->tabs = array(
 			'product:+tabEquipement1:Asset:asset@asset:$user->rights->asset->all->lire:/asset/liste.php?fk_product=__ID__'
 			,'product:+tabOF1:WorkStation:asset@asset:$user->rights->asset->of->lire:/asset/workstation.php?fk_product=__ID__'
@@ -139,20 +116,7 @@ class modAsset extends DolibarrModules
 
         // Dictionnaries
         $this->dictionnaries=array();
-        /*
-        $this->dictionnaries=array(
-            'langs'=>'cabinetmed@cabinetmed',
-            'tabname'=>array(MAIN_DB_PREFIX."cabinetmed_diaglec",MAIN_DB_PREFIX."cabinetmed_examenprescrit",MAIN_DB_PREFIX."cabinetmed_motifcons"),
-            'tablib'=>array("DiagnostiqueLesionnel","ExamenPrescrit","MotifConsultation"),
-            'tabsql'=>array('SELECT f.rowid as rowid, f.code, f.label, f.active FROM '.MAIN_DB_PREFIX.'cabinetmed_diaglec as f','SELECT f.rowid as rowid, f.code, f.label, f.active FROM '.MAIN_DB_PREFIX.'cabinetmed_examenprescrit as f','SELECT f.rowid as rowid, f.code, f.label, f.active FROM '.MAIN_DB_PREFIX.'cabinetmed_motifcons as f'),
-            'tabsqlsort'=>array("label ASC","label ASC","label ASC"),
-            'tabfield'=>array("code,label","code,label","code,label"),
-            'tabfieldvalue'=>array("code,label","code,label","code,label"),
-            'tabfieldinsert'=>array("code,label","code,label","code,label"),
-            'tabrowid'=>array("rowid","rowid","rowid"),
-            'tabcond'=>array($conf->cabinetmed->enabled,$conf->cabinetmed->enabled,$conf->cabinetmed->enabled)
-        );
-        */
+        
 
         // Boxes
 		// Add here list of php file(s) stored in includes/boxes that contains class to show a box.
@@ -233,7 +197,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'asset',
 					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/liste.php',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>100,
 					'enabled'=>'$user->rights->asset->all->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->all->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -259,7 +222,6 @@ class modAsset extends DolibarrModules
 			'mainmenu'=>'assetToComplete',
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste.php?no_serial=1',
-			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>101,
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
@@ -272,7 +234,6 @@ class modAsset extends DolibarrModules
 			'mainmenu'=>'assetlot',
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste_lot.php',
-			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>102,
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
@@ -286,7 +247,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'asset',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/liste_of.php',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>200,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -300,7 +260,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'newAssetOF',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/fiche_of.php?action=new',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>201,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -316,7 +275,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'asset',
 					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>300,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -331,7 +289,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'newworkstation',
 					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php?action=new',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>301,
 					'enabled'=>'$user->rights->asset->of->lire',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -345,7 +302,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'asset',
 					'leftmenu'=>'typeequipement',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/typeAsset.php',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>256,
 					'enabled'=>'$user->rights->asset->type->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->type->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -360,7 +316,6 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'newtypeequipement',
 					'leftmenu'=>'typeequipement',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/typeAsset.php?action=new',
-					'langs'=>'asset',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 					'position'=>257,
 					'enabled'=>'$user->rights->asset->type->write',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->type->write',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
