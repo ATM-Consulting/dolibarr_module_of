@@ -6,7 +6,7 @@
 	$langs->load('asset@asset');
 	
 	//if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
-	$ATMdb=new Tdb;
+	$ATMdb=new TPDOdb;
 	$asset=new TAsset_type;
 	
 	$mesg = '';
