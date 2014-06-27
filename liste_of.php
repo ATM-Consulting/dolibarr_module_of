@@ -107,8 +107,8 @@ function _liste() {
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, ofel.fk_product, p.ref as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
-		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid)
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
+		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = ofe.fk_soc
 		  WHERE ofe.entity=".$conf->entity;
