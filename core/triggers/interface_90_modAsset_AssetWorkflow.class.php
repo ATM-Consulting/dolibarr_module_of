@@ -170,6 +170,62 @@ class InterfaceAssetWorkflow
 			
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
         }
+        elseif($action === 'ORDER_VALIDATE') {
+				
+        	global $conf;
+
+			if($conf->global->CREATE_OF_ON_ORDER_VALIDATE) {
+				
+				dol_include_once('asset/class/ordre_fabrication_asset.class.php');
+				$ATMdb = new TPDOdb;
+				
+				/*echo "<pre>";
+				print_r($object);
+				echo "</pre>";exit;*/
+				
+				foreach($object->lines as $line) {
+					
+					// Uniquement si c'est un produit
+					if(!empty($line->fk_product)) {
+						
+						$assetOF = new TAssetOF;
+						$assetOF->fk_commande = $_REQUEST['id'];
+						$assetOF->fk_soc = $object->socid;
+						$assetOF->addLine($ATMdb, $line->fk_product, 'TO_MAKE', $line->qty);
+						$assetOF->save($ATMdb);
+						
+					}
+					
+				}
+			}
+			
+        }
+		elseif($action === 'ORDER_CANCEL') {
+			
+			if($conf->global->DELETE_OF_ON_ORDER_CANCEL) {
+
+				/*echo "<pre>";
+				print_r($TID_OF_command);
+				echo "</pre>";
+				exit;*/
+				
+				dol_include_once('asset/class/ordre_fabrication_asset.class.php');
+				$ATMdb = new TPDOdb;
+				
+				// On récupère les identifiants des of créés à partir de cette commande
+				$TID_OF_command = TAssetOF::getTID_OF_command($_REQUEST['id']);
+				
+				foreach($TID_OF_command as $id_of) {
+					
+					$asset = new TAssetOF;
+					$asset->load($ATMdb, $id_of);
+					$asset->delete($ATMdb);
+					
+				}
+
+			}
+			
+		}
         
          /*
 		 *  PROPAL

@@ -619,6 +619,29 @@ class TAssetOF extends TObjetStd{
 		
 		return $PDOdb->Get_field('rowid');
 	}
+	
+	/**
+	 * Retourne un tableau contenant les identifaints des OF créés à partir de la commande dont le rowid est égal à $id_command
+	 * @param int $id_command
+	 * @return array $TID_OF_command
+	 */
+	static function getTID_OF_command($id_command) {
+		
+		global $db;
+		$TID_OF_command = array();
+		
+		$sql = "SELECT rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
+		$sql.= " WHERE fk_commande = ".$id_command;
+		$resql = $db->query($sql);
+		
+		while($res = $db->fetch_object($resql)) {
+			$TID_OF_command[] = $res->rowid;
+		}
+		
+		return $TID_OF_command;
+		
+	}
 
 }
 
