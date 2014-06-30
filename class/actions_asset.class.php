@@ -58,7 +58,7 @@ class ActionsAsset
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  
-      	global $langs,$db;
+      	global $langs,$db,$conf;
 		$langs->load('asset@asset');
 		/*echo '<pre>';
 		print_r($object);
@@ -141,34 +141,39 @@ class ActionsAsset
 				print '<input class="button" type="submit" value="Modifier"></form></td></tr>';
 			}
 			elseif($action != "edit"){
-				//pre($object, true);exit;
-				$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
-
-				$resql = $db->query($sql);
-				if($resql){
-					$res = $db->fetch_object($resql);
-
-					$sql = "SELECT a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.rowid = ".$res->fk_asset;
+						
+				if($conf->climcneil->enabled) {
+				
+					//pre($object, true);exit;
+					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
+	
 					$resql = $db->query($sql);
-				}
-				$id_field = "id";
-				print '<tr><td height="10"><table width="100%" class="nobordernopadding"><tbody><tr>';
-				print '<td>Equipement</td>';
-				print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=modasset&'.$id_field.'='.$object->id.'">'
-						.img_picto('Définir Equipement', 'edit')
-						.'</a></td>';
-				PRINT '</tr></tbody></table></td>';
-				print '<td colspan="3">';
-				
-				if($resql){
-					$num = $db->num_rows($resql);
-					if($num > 0) {
+					if($resql){
 						$res = $db->fetch_object($resql);
-						print $res->serial_number.' - '.$res->label;
+	
+						$sql = "SELECT a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.rowid = ".$res->fk_asset;
+						$resql = $db->query($sql);
 					}
+					$id_field = "id";
+					print '<tr><td height="10"><table width="100%" class="nobordernopadding"><tbody><tr>';
+					print '<td>Equipement</td>';
+					print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=modasset&'.$id_field.'='.$object->id.'">'
+							.img_picto('Définir Equipement', 'edit')
+							.'</a></td>';
+					PRINT '</tr></tbody></table></td>';
+					print '<td colspan="3">';
+					
+					if($resql){
+						$num = $db->num_rows($resql);
+						if($num > 0) {
+							$res = $db->fetch_object($resql);
+							print $res->serial_number.' - '.$res->label;
+						}
+					}
+					
+					print '</select></td></tr>';
+					
 				}
-				
-				print '</select></td></tr>';
 
 			}
 			
