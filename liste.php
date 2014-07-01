@@ -142,7 +142,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 			,'label'=>array('recherche'=>true, 'table'=>'')
 		)
 		,'eval'=>array(
-			'unite'=>'get_measuring_units_string(@unite@,"weight")'
+			'unite'=>'get_measuring_units_string("@unite@","weight")'
 		)
 	));
 
