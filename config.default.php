@@ -24,7 +24,9 @@
 
 	dol_include_once('/abricot/inc.core.php');
 	
+	global $db;
+	
+	dol_include_once('/core/lib/admin.lib.php');
+	
 	// Pour afficher la sélection d'un équipement par produit lors de l'ajout des lignes d'une commande
-	if(!defined('USE_ASSET_IN_ORDER')) {
-		define('USE_ASSET_IN_ORDER', true);
-	}
+	dolibarr_set_const($db, 'USE_ASSET_IN_ORDER', 1);

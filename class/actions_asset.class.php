@@ -141,8 +141,8 @@ class ActionsAsset
 				print '<input class="button" type="submit" value="Modifier"></form></td></tr>';
 			}
 			elseif($action != "edit"){
-						
-				if(USE_ASSET_IN_ORDER) {
+
+				if(dolibarr_get_const($db, 'USE_ASSET_IN_ORDER')) {
 				
 					//pre($object, true);exit;
 					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
@@ -298,7 +298,7 @@ class ActionsAsset
 		
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
-        	if(USE_ASSET_IN_ORDER) {
+        	if(dolibarr_get_const($db, 'USE_ASSET_IN_ORDER')) {
 	        	?> 
 				<script type="text/javascript">
 					$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
