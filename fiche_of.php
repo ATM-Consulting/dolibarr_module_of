@@ -219,11 +219,17 @@ function generateODTOF(&$PDOdb) {
 	
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>$v) {
+
+		$prod = new Product($db);
+		$prod->fetch($v->fk_product);
+		$prod->fetch_optionals($prod->id);
 		
 		if($v->type == "TO_MAKE") {
 			
-			$prod = new Product($db);
-			$prod->fetch($v->fk_product);
+			/*echo "<pre>";
+			print_r($prod);
+			echo "</pre>";
+			exit;*/
 
 			$TToMake[] = array(
 							'type' => $v->type
@@ -231,15 +237,14 @@ function generateODTOF(&$PDOdb) {
 							, 'nomProd' => $prod->ref
 							, 'designation' => $prod->label
 							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
+							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
 						);
 
 		}
 		if($v->type == "NEEDED") {
 	
 			$unitLabel = "";
-
-			$prod = new Product($db);
-			$prod->fetch($v->fk_product);						
 
 			if($prod->weight_units == 0) {
 				$unitLabel = "Kg";
@@ -260,6 +265,8 @@ function generateODTOF(&$PDOdb) {
 							, 'poids' => $prod->weight
 							, 'unitPoids' => $unitLabel
 							, 'finished' => $prod->finished?"PM":"MP"
+							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
 						);
 		}
 
