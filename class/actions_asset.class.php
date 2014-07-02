@@ -142,7 +142,7 @@ class ActionsAsset
 			}
 			elseif($action != "edit"){
 						
-				if($conf->climcneil->enabled) {
+				if(USE_ASSET_IN_ORDER) {
 				
 					//pre($object, true);exit;
 					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
@@ -298,44 +298,46 @@ class ActionsAsset
 		
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
-        	?> 
-			<script type="text/javascript">
-				$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
-				$('#idprod').change( function(){
-					$.ajax({
-						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
-						,dataType: "json"
-						,data: {
-							fk_product: $('#idprod').val(),
-							fk_soc : <?= $object->socid; ?>
-							}
-						},"json").then(function(select){
-							if(select.length > 0){
-								$('#lotAff').empty().show();
-								$('#span_lot').show();
-								$.each(select, function(i,option){
-									if(select.length > 1){
-										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
-									}
-									else{
-										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
-									}
-								})
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
-							}
-							else{
-								$('#lotAff').empty();
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
-							}
-						});
-				});
-				$('#lotAff').change(function(){
-					$('#lot').val( $('#lotAff option:selected').val() );
-				});
-			</script>
-			<?php
+        	if(USE_ASSET_IN_ORDER) {
+	        	?> 
+				<script type="text/javascript">
+					$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
+					$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
+					$('#idprod').change( function(){
+						$.ajax({
+							type: "POST"
+							,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
+							,dataType: "json"
+							,data: {
+								fk_product: $('#idprod').val(),
+								fk_soc : <?= $object->socid; ?>
+								}
+							},"json").then(function(select){
+								if(select.length > 0){
+									$('#lotAff').empty().show();
+									$('#span_lot').show();
+									$.each(select, function(i,option){
+										if(select.length > 1){
+											$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
+										}
+										else{
+											$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
+										}
+									})
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+								}
+								else{
+									$('#lotAff').empty();
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+								}
+							});
+					});
+					$('#lotAff').change(function(){
+						$('#lot').val( $('#lotAff option:selected').val() );
+					});
+				</script>
+				<?php
+			}
         }
 
 		return 0;
