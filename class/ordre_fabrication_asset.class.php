@@ -795,6 +795,16 @@ class TAssetOFLine extends TObjetStd{
 
 	}
 	
+	function save(&$db) {
+		
+		global $conf;
+
+		$this->entity = $conf->entity;
+		
+		parent::save($db);
+
+	}
+	
 }
 /*
  * Link to product

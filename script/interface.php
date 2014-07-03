@@ -139,12 +139,41 @@ function _deletelineof(&$ATMdb,$idLine,$type){
 }
 
 function _addlines(&$ATMdb,$idLine,$qty){
-
+	
+	global $db;
+	
+	dol_include_once('product/class/product.class.php');
+	
 	$TAssetOFLine = new TAssetOFLine;
 	//$ATMdb->debug = true;
 	$TAssetOFLine->load($ATMdb, $idLine);
+	$TAssetOFLine->qty = $_REQUEST['qty'];
+	$TAssetOFLine->save($ATMdb);
 	
-	$TAssetOFLine->delete($ATMdb);
+	// On charge le produit pour pouvoir récupérer ses sous produits
+	$prod = new Product($db);
+	$prod->fetch($TAssetOFLine->fk_product);
 	
-	_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty, $TAssetOFLine->lot_number);
+	$TComposition = $prod->getChildsArbo($prod->id);
+	
+	// On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
+	$TAssetOF = new TAssetOF;
+	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
+	
+	foreach ($TAssetOF->TAssetOFLine as $line) {
+			
+		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
+		if($line->type == "NEEDED" && !empty($TComposition[$line->fk_product][1])) {
+
+			$line->qty = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
+			$line->qty_needed = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
+			$line->save($ATMdb);
+			
+		}
+		
+	}
+	
+	//$TAssetOFLine->delete($ATMdb);
+	
+	//_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty, $TAssetOFLine->lot_number);
 }
