@@ -172,11 +172,12 @@ class InterfaceAssetWorkflow
         }
         elseif($action === 'ORDER_VALIDATE') {
 				
-        	global $conf;
+        	global $conf, $db;
 
 			if($conf->global->CREATE_OF_ON_ORDER_VALIDATE) {
 				
 				dol_include_once('asset/class/ordre_fabrication_asset.class.php');
+				dol_include_once('product/class/product.class.php');
 				$ATMdb = new TPDOdb;
 				
 				/*echo "<pre>";
@@ -186,14 +187,23 @@ class InterfaceAssetWorkflow
 				foreach($object->lines as $line) {
 					
 					// Uniquement si c'est un produit
-					if(!empty($line->fk_product)) {
+					if(!empty($line->fk_product) && $line->fk_product_type == 0) {
 						
-						$assetOF = new TAssetOF;
-						$assetOF->fk_commande = $_REQUEST['id'];
-						$assetOF->fk_soc = $object->socid;
-						$assetOF->addLine($ATMdb, $line->fk_product, 'TO_MAKE', $line->qty);
-						$assetOF->save($ATMdb);
+						// On charge le produit pour vérifier son stock
+						$prod = new Product($db);
+						$prod->fetch($line->fk_product);
+						$prod->load_stock();
 						
+						if($prod->stock_reel < 1) {
+						
+							$assetOF = new TAssetOF;
+							$assetOF->fk_commande = $_REQUEST['id'];
+							$assetOF->fk_soc = $object->socid;
+							$assetOF->addLine($ATMdb, $line->fk_product, 'TO_MAKE', $line->qty);
+							$assetOF->save($ATMdb);
+							
+						}
+
 					}
 					
 				}
@@ -219,7 +229,9 @@ class InterfaceAssetWorkflow
 					
 					$asset = new TAssetOF;
 					$asset->load($ATMdb, $id_of);
-					$asset->delete($ATMdb);
+					
+					if($asset->status == "DRAFT" || $asset->status == "VALID")
+						$asset->delete($ATMdb);
 					
 				}
 
