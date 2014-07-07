@@ -238,7 +238,7 @@ function generateODTOF(&$PDOdb) {
 							, 'designation' => $prod->label
 							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
 							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
-							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
+							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
 						);
 
 		}
