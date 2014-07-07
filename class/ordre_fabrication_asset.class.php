@@ -42,6 +42,9 @@ class TAssetOF extends TObjetStd{
 		
 		$this->date_besoin = time();
 		$this->date_lancement = time();
+		
+		//Tableau d'erreurs
+		$this->errors = array();
 	}
 	
 	function load(&$db, $id) {
@@ -69,13 +72,17 @@ class TAssetOF extends TObjetStd{
 	
 	function save(&$db) {
 		global $conf;
-		
+
 		$this->set_temps_fabrication();
-		
+
 		$this->entity = $conf->entity;
+
+		if($conf->global->USE_LOT_IN_OF){
+			$this->setLotWithParent($db);
+		}
 		
 		parent::save($db);
-		
+
 		if($this->numero=='') {
 			$this->numero='OF'.str_pad( $this->getId() , 5, '0', STR_PAD_LEFT);
 			$wc = $this->withChild;
@@ -85,12 +92,29 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
+	function setLotWithParent(&$ATMdb){
+
+		if (count($this->TAssetOFLine) && $this->fk_assetOf_parent){
+			$ofParent = new TAssetOF;
+			$ofParent->load($ATMdb, $this->fk_assetOf_parent);
+			
+			foreach($ofParent->TAssetOFLine as $ofLigneParent){
+				foreach($this->TAssetOFLine as $ofLigne){
+					if($ofLigne->fk_product == $ofLigneParent->fk_product){
+						$ofLigne->lot_number = $ofLigneParent->lot_number;
+						$ofLigne->save($ATMdb);
+					}
+				}
+			}
+		}
+	}
+	
 	//Associe les équipements à l'OF
 	function setEquipement(&$ATMdb){
 		
 		foreach($this->TAssetOFLine as $TAssetOFLine){
 			
-			$TAssetOFLine->setAsset($ATMdb);	
+			$TAssetOFLine->setAsset($ATMdb,$this);	
 		}
 		
 		return true;
@@ -99,7 +123,7 @@ class TAssetOF extends TObjetStd{
 	function delLine(&$ATMdb,$iline){
 		
 		$this->TAssetOFLine[$iline]->to_delete=true;
-		
+
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
@@ -141,7 +165,7 @@ class TAssetOF extends TObjetStd{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1];
-			
+
 			if(isset($Tab[$prod->fk_product])) {
 				$Tab[$prod->fk_product]->qty += $prod->qty * $qty_parent;
 			}
@@ -151,12 +175,13 @@ class TAssetOF extends TObjetStd{
 			
 			if(!empty($row['childs'])) {
 				
-				if($createOF) {
-					$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
+				if(!$createOF) {
+					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
 				}
-				else {
-					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);	
-				}
+			}
+			
+			if($createOF) {
+				$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
 			}
 		}
 		
@@ -167,8 +192,10 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$ATMdb,$fk_product, $qty_needed) {
 		
+		global $conf;
+
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
-		
+
 		if($reste>0) {
 			null;
 		}
@@ -179,7 +206,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
-			
+
 		}
 		
 	}
@@ -222,8 +249,8 @@ class TAssetOF extends TObjetStd{
 	
 	
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0){
-		global $user;
+	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
+		global $user, $conf;
 		
 		$k = $this->addChild($ATMdb, 'TAssetOFLine');
 		
@@ -236,6 +263,8 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
+		
+		$TAssetOFLine->lot_number = $lot_number;
 		
 		$idAssetOFLine = $TAssetOFLine->save($ATMdb);
 		
@@ -260,7 +289,14 @@ class TAssetOF extends TObjetStd{
 			$asset = new TAsset;
 			
 			if($AssetOFLine->type == "TO_MAKE"){
-				$AssetOFLine->makeAsset($ATMdb,$AssetOFLine->fk_product,$AssetOFLine->qty_used, $this->rowid);
+				
+				$AssetOFLine->makeAsset($ATMdb,$this, $AssetOFLine->fk_product, $AssetOFLine->qty,0,$AssetOFLine->lot_number);
+				
+			} else {
+
+				$asset->load($ATMdb, $AssetOFLine->fk_asset);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0);
+				
 			}
 		}
 	}
@@ -273,10 +309,10 @@ class TAssetOF extends TObjetStd{
 		
 		foreach($this->TAssetOFLine as $AssetOFLine){
 			$asset = new TAsset;
+			$asset->load($ATMdb, $AssetOFLine->fk_asset);
 
 			if($AssetOFLine->type == "NEEDED"){
-				//TODO v2 : sélection d'un équipement à associé et décrémenter son stock
-				$asset->addStockMouvementDolibarr($AssetOFLine->fk_product,-$AssetOFLine->qty_used,'Utilisation via Ordre de Fabrication (OF n°'.$this->rowid.')');
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero,-$AssetOFLine->qty_used);
 			}
 
 		}
@@ -302,7 +338,7 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
-	private function addCommandeFourn($ofLigne, $resultatSQL) {
+	private function addCommandeFourn(&$ATMdb,$ofLigne, $resultatSQL) {
 
 		global $db, $user;
 		dol_include_once("fourn/class/fournisseur.commande.class.php");		
@@ -311,6 +347,7 @@ class TAssetOF extends TObjetStd{
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
 		$sql.= " WHERE fk_soc = ".$resultatSQL->fk_soc;
+		$sql.= " AND fk_statut = 0"; //uniquement brouillon
 		$sql.= " ORDER BY rowid DESC";
 		$sql.= " LIMIT 1";
 		$resql = $db->query($sql);
@@ -339,8 +376,59 @@ class TAssetOF extends TObjetStd{
 			
 			// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
 			$com->addline($desc, $resultatSQL->price/$resultatSQL->quantity, $ofLigne->qty, $txtva, 0, 0, $resultatSQL->fk_product, $resultatSQL->rowid);
-			
-		}		
+
+		}
+		
+		//Création association element_element entre la commande fournisseur et l'OF
+		$this->addElementElement($ATMdb,$com);
+	}
+
+	function delete(&$PDOdb){
+		
+		parent::delete($PDOdb);
+		
+		$this->delElementElement($PDOdb);
+		
+	}
+
+	function addElementElement(&$ATMdb,&$commandeFourn){
+		
+		$TIdCommandeFourn = $this->getElementElement($ATMdb);
+
+		if(!in_array($commandeFourn->id, $TIdCommandeFourn)){
+				
+			$ATMdb->Execute("INSERT INTO ".MAIN_DB_PREFIX."element_element (fk_source,fk_target,sourcetype,targettype) 
+								VALUES (".$this->getId().",".$commandeFourn->id.",'ordre_fabrication','order_supplier')");
+		}
+		
+	}
+	
+	function delElementElement(&$ATMdb){
+		
+		$ATMdb->Execute("DELETE FROM ".MAIN_DB_PREFIX."element_element 
+						 WHERE sourcetype = 'ordre_fabrication'
+						 	AND targettype = 'order_supplier'
+						 	AND fk_source = ".$this->getId());
+	}
+	
+	function getElementElement(&$ATMdb){
+		
+		$TIdCommandeFourn = array();
+		
+		$sql = "SELECT fk_target 
+				FROM ".MAIN_DB_PREFIX."element_element 
+				WHERE fk_source = ".$this->getId()." 
+					AND sourcetype = 'ordre_fabrication' 
+					AND targettype = 'order_supplier'";
+		
+		$ATMdb->Execute($sql);
+		
+		while($ATMdb->Get_line()){
+			$TIdCommandeFourn[] = $ATMdb->Get_field('fk_target');
+		}
+		
+		return $TIdCommandeFourn;
+
 	}
 	
 	function createOfAndCommandesFourn(&$ATMdb) {
@@ -361,10 +449,12 @@ class TAssetOF extends TObjetStd{
 			
 			// Boucle pour chaque produit de l'OF
 			foreach($assetOF->TAssetOFLine as $ofLigne) {
-				
+				//pre($ofLigne,true);
 				// On cherche le produit "TO_MAKE"
 				if($ofLigne->type == "TO_MAKE") {
 					
+					//pre($ofLigne,true); exit;
+
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
 					
 						// On récupère la ligne prix fournisseur correspondante
@@ -375,14 +465,14 @@ class TAssetOF extends TObjetStd{
 
 						$res = $db->fetch_object($resql);
 						
-						// Si composé fourni
+						// Si fabrication interne
 						if($res->compose_fourni) {
 						
 							// On charge le produit "TO_MAKE"
 							$prod = new Product($db);
 							$prod->fetch($ofLigne->fk_product);
 							$prod->load_stock();
-							
+
 							$stockProd = 0;
 							
 							// On récupère son stock
@@ -394,33 +484,40 @@ class TAssetOF extends TObjetStd{
 							// Sinon, commande fournisseur :
 							if($stockProd < $ofLigne->qty_needed) {
 								
-								$this->addCommandeFourn($ofLigne, $res);
+								$this->addCommandeFourn($ATMdb,$ofLigne, $res);
 
-							} else { // Suffisemment de stock, donc destockage :
+							} 
+							else { // Suffisemment de stock, donc destockage :
 								$assetOF->openOF($ATMdb);
 							}
-						} else { //Composé non fourni
+						}
+						elseif(!$res->compose_fourni) { //Commande Fournisseur
 						
-							$this->addCommandeFourn($ofLigne, $res);
+							$this->addCommandeFourn($ATMdb,$ofLigne, $res);
 
 							// On récupère les OF enfants pour les supprimer
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
-							
+
 							foreach($TabIdEnfantsDirects as $idOF) {
 							
 								$assetOF->removeChild("TAssetOF", $idOF);
 							}
-
+							
+							//Suppression des lignes NEEDED puisque inutiles
+							$assetOF->delLineNeeded($ATMdb);
+							$assetOF->unsetChildDeleted = true;
+							
 							$assetOF->save($ATMdb);
 							
 							// On casse la boucle
 							break;
-							
+
 						}
 
-					} else { // Fournisseur interne (Bourguignon)
+					} 
+					else { // Fournisseur interne (Bourguignon)
 					
-						if($ofLigne->fk_product_fournisseur_price == -1) { // Composé non fourni, kill OF enfants
+						if($ofLigne->fk_product_fournisseur_price == -1) { // Sortie de stock, kill OF enfants
 							
 							$TabIdEnfantsDirects = $assetOF->getEnfantsDirects();
 							
@@ -433,8 +530,9 @@ class TAssetOF extends TObjetStd{
 							
 							// On casse la boucle
 							break;
-							
-						} elseif($ofLigne->fk_product_fournisseur_price == -2){ // Composé fourni
+
+						}
+						elseif($ofLigne->fk_product_fournisseur_price == -2){ // Fabrication interne
 							$prod = new Product($db);
 							$prod->fetch($ofLigne->fk_product);
 							$prod->load_stock();
@@ -461,6 +559,17 @@ class TAssetOF extends TObjetStd{
 			
 		}
 
+	}
+	
+	function delLineNeeded(&$ATMdb){
+		
+		foreach($this->TAssetOFLine as $k=>$ofLigne){
+
+			if($ofLigne->type == "NEEDED"){
+				$this->delLine($ATMdb, $k);
+			}
+		}
+		
 	}
 	
 	static function ordre($ordre='ASAP'){
@@ -512,6 +621,29 @@ class TAssetOF extends TObjetStd{
 		
 		return $PDOdb->Get_field('rowid');
 	}
+	
+	/**
+	 * Retourne un tableau contenant les identifaints des OF créés à partir de la commande dont le rowid est égal à $id_command
+	 * @param int $id_command
+	 * @return array $TID_OF_command
+	 */
+	static function getTID_OF_command($id_command) {
+		
+		global $db;
+		$TID_OF_command = array();
+		
+		$sql = "SELECT rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
+		$sql.= " WHERE fk_commande = ".$id_command;
+		$resql = $db->query($sql);
+		
+		while($res = $db->fetch_object($resql)) {
+			$TID_OF_command[] = $res->rowid;
+		}
+		
+		return $TID_OF_command;
+		
+	}
 
 }
 
@@ -525,7 +657,7 @@ class TAssetOFLine extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset,fk_product_fournisseur_price','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used','type=float;');
-		$this->add_champs('type','type=chaine;');
+		$this->add_champs('type,lot_number','type=chaine;');
 		
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
@@ -540,52 +672,91 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 	//Affecte l'équipement à la ligne de l'OF
-	function setAsset(&$ATMdb){
-		global $db, $user;	
+	function setAsset(&$ATMdb,&$AssetOf){
+		global $db, $user, $conf;	
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenance_reel >= ".$this->qty." ORDER BY contenance_reel ASC LIMIT 1";
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenancereel_value >= ".$this->qty;
+		
+		if($conf->global->USE_LOT_IN_OF){
+			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+		}
+		
+		$sql .= " ORDER BY contenancereel_value ASC LIMIT 1";
+		
+		//echo $sql.'<br>';
+		//echo $this->lot_number.'<br>';
+		
 		$ATMdb->Execute($sql);
-		if($ATMdb->Get_line()){
-			$idAsset = $ATMdb->Get_field('rowid');
-			$asset->load($ATMdb, $idAsset);
-			$asset->status = 'indisponible';
-		}
-		else{
-			$asset = $this->makeAsset($ATMdb, $this->fk_product, $this->qty);
-		}
+
+		if($this->type == "NEEDED" && $AssetOf->status == "OPEN"){
+			
+			$mvmt_stock_already_done = false;
+			
+			if($ATMdb->Get_line()){
+				$mvmt_stock_already_done = true;
 				
-		$asset->save($ATMdb);
+				$idAsset = $ATMdb->Get_field('rowid');
+				$asset->load($ATMdb, $idAsset);
+				$asset->status = 'indisponible';
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty);
+			}
+			else{
+				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
+			}
+			
+			if(!$mvmt_stock_already_done) {
+				//require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
+				
+				//$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used, true, $this->fk_product);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty, true, $this->fk_product);
+				
+				/*dol_include_once('/product/stock/class/mouvementstock.class.php');
+				$mvmt = new MouvementStock($db);
+				$mvmt->livraison($user, $this->fk_product, 1, $this->qty_used, 0, 'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);*/
+				
+			}
+			
+		}
+		
+		//exit('3');
 		
 		$this->fk_asset = $idAsset;
 		$this->save($ATMdb);
-		
+
 		return true;
 	}
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$ATMdb,$fk_product,$qty, $idAsset = 0){
+	function makeAsset(&$ATMdb,&$AssetOf,$fk_product,$qty, $idAsset = 0,$lot_number = ''){
 		global $user,$conf;
 		include_once 'asset.class.php';
-		
+
 		$TAsset = new TAsset;
 		$TAsset->fk_soc = '';
 		$TAsset->fk_product = $fk_product;
 		$TAsset->entity = $user->entity;
-		
-		/*echo '<pre>';
-		print_r($TAsset);
-		echo '</pre>';*/
+		$TAsset->lot_number = $lot_number;
+		$TAsset->fk_asset_type = $TAsset->get_asset_type($ATMdb,$fk_product);
+		$TAsset->load_liste_type_asset($ATMdb);
+		$TAsset->load_asset_type($ATMdb);
 		
 		/*
 		 * Empêche l'ajout en stock des sous-produit d'un produit composé
 		 */
 		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
 		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
-		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication (OF n°'.$idAsset.')',$qty);
+		
+		if($conf->global->USE_LOT_IN_OF){
+			$TAsset->lot_number = $this->lot_number;
+		}
+		
+		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication n°'.$AssetOf->numero,$qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
+		
+		return $TAsset;
 	}
 	
 	function load(&$ATMdb, $id) {
@@ -600,29 +771,38 @@ class TAssetOFLine extends TObjetStd{
 		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity, pfp.compose_fourni,s.nom as 'name'
 		FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
 		WHERE fk_product = ".(int)$this->fk_product;
-		
+
 		$ATMdb->Execute($sql);
-		
+
 		$interne=new stdClass;
 		$interne->rowid=-1;
 		$interne->fk_soc=-1;
 		$interne->price=0;
 		$interne->compose_fourni=0;
 		$interne->name='Interne';
-		
+
 		$interne2=new stdClass;
 		$interne2->rowid=-2;
 		$interne2->fk_soc=-1;
 		$interne2->price=0;
 		$interne2->compose_fourni=1;
 		$interne2->name='Interne';
-		
+
 		$this->TFournisseurPrice = array_merge(
 			array($interne, $interne2)
 			,$ATMdb->Get_All()
 		);
+
+	}
+	
+	function save(&$db) {
 		
+		global $conf;
+
+		$this->entity = $conf->entity;
 		
+		parent::save($db);
+
 	}
 	
 }

@@ -15,11 +15,10 @@ if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
 	dol_include_once('/financement/class/affaire.class.php');
 }
 
-
 // Load traductions files requiredby by page
-$langs->load("companies");
-$langs->load("other");
-$langs->load("asset@asset");
+$langs->Load("companies");
+$langs->Load("other");
+$langs->Load("asset@asset");
 
 // Get parameters
 _action();
@@ -118,13 +117,17 @@ function _action() {
 				
 				$asset->set_values($_REQUEST);
 				
-				/*echo '<pre>';
-				print_r($asset);
-				echo '</pre>';exit;*/
+				//Cas spécifique contenance_units et contenancereel_units lorsqu'égale à 0 soit kg ou m, etc
+				$asset->contenance_units = ($_REQUEST['contenance_units']) ? $_REQUEST['contenance_units'] : 0;
+				$asset->contenancereel_units = ($_REQUEST['contenancereel_units']) ? $_REQUEST['contenance_units'] : 0;
 				
-				if(!isset($_REQUEST['type_mvt']))
-					$asset->save($PDOdb);
+				if(!isset($_REQUEST['type_mvt'])) {
+					$no_destock_dolibarr = true;
+					$asset->save($PDOdb, '', "Modification manuelle", 0, false, 0, $no_destock_dolibarr);
+				}
 				else{
+					global $conf;
+					$conf->global->PRODUIT_SOUSPRODUITS = 0;
 					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
 					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
 				}
@@ -334,13 +337,17 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	print_r($TFields);
 	echo '</pre>';exit;*/
 	
+	if($mode == "edit" && empty($asset->serial_number)){
+		$asset->serial_number = $asset->getNextValue($ATMdb);
+	}
+
 	if(defined('ASSET_FICHE_TPL')){
 		$tpl_fiche = ASSET_FICHE_TPL;
 	}
 	else{
 		$tpl_fiche = "fiche.tpl.php";
-	}
-	
+	}	
+
 	print $TBS->render('tpl/'.$tpl_fiche
 		,array(
 			'assetField'=>$TFields
@@ -379,7 +386,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
-						  'title'=>array(
+						'title'=>array(
 							'date_cre'=>'Date du mouvement'
 							,'qty'  =>'Quantité'
 							,'weight_units' => 'Unité'
@@ -387,6 +394,9 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 							,'type' => 'Commentaire'
 						)
 						,'link'=>array_merge($ASSET_LINK_ON_FIELD,array())
+						,'liste'=>array(
+							'titre'=> 'Mouvements de stock'
+						)
 					)
 				)
 			)

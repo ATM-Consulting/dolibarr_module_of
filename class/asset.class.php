@@ -11,7 +11,7 @@ class TAsset extends TObjetStd{
 		$this->add_champs('fk_soc,fk_product,entity','type=entier;');
 		$this->add_champs('contenancereel_value, contenance_value,point_chute', 'type=float;');
 		$this->add_champs('contenance_units, contenancereel_units', 'type=entier;');
-		$this->add_champs('commentaire,lot_number,gestion_stock,masque,reutilisable,status', 'type=chaine;');
+		$this->add_champs('commentaire,lot_number,gestion_stock,reutilisable,status', 'type=chaine;');
 		
 		//clé étrangère : type de la ressource
 		parent::add_champs('fk_asset_type','type=entier;index;');
@@ -81,6 +81,16 @@ class TAsset extends TObjetStd{
 		
 	}
 	
+	function get_asset_type(&$ATMdb,$fk_product){
+		
+		$sql = "SELECT type_asset FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$fk_product;
+		
+		$ATMdb->Execute($sql);
+		$ATMdb->Get_line();
+		
+		return $ATMdb->Get_field('type_asset');
+	}
+	
 	function load_asset_type(&$ATMdb) {
 		//on prend le type de ressource associé
 		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
@@ -101,35 +111,51 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0) {
-		parent::save($ATMdb);
-		$this->save_link($ATMdb);
-		
-		// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
-		if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
-			$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
-			$qty = $qtyKg * pow(10, -$this->contenancereel_units);
-		} else if(!empty($qty)) {
-			$this->contenancereel_value = $this->contenancereel_value + $qty;
+	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false) {
+				
+		if(!$destock_dolibarr_only) {
+			
+			if(empty($this->serial_number)){
+				$this->serial_number = $this->getNextValue($ATMdb);
+			}
+			
 			parent::save($ATMdb);
+			
+			$this->save_link($ATMdb);
+	
+			$this->addLotNumber($ATMdb);
+			
+			// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
+			if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
+				$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
+				$qty = $qtyKg * pow(10, -$this->contenancereel_units);
+			} else if(!empty($qty)) {
+				$this->contenancereel_value = $this->contenancereel_value + $qty;
+				parent::save($ATMdb);
+			}
+			
 		}
 		
 		// Enregistrement des mouvements
-		if(!empty($qty)){
-			$this->addStockMouvement($ATMdb,$qty,$description);
+		if(!empty($qty) && !$no_destock_dolibarr){
+			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
 
 		}
 	}
 	
-	function addStockMouvement(&$ATMdb,$qty,$description){
+	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
 		
-		$stock = new TAssetStock;
-		$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
+		if(!$destock_dolibarr_only) {
+		
+			$stock = new TAssetStock;
+			$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
+			
+		}
 
-		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description);
+		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
 	}
 	
-	function addStockMouvementDolibarr($fk_product,$qty,$description){
+	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
 		global $db, $user;
 		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
@@ -139,6 +165,14 @@ class TAsset extends TObjetStd{
 		$mouvS = new MouvementStock($db);
 		// We decrement stock of product (and sub-products)
 		// We use warehouse selected for each line
+		
+		/*
+		 * Si on est dans un cas où il faut seulement effectuer un mouvement de stock dolibarr, 
+		 * on valorise $fk_product qui n'est sinon pas disponible car il correspond à $this->fk_product,
+		 * et ce dernier n'est pas disponible car on est dans un cas où l'on n'a pas pu charger l'objet Equipement,
+		 * donc pas de $this->fk_product
+		 */ 
+		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
 		if($qty > 0) {
 			$result=$mouvS->reception($user, $fk_product, 1, $qty, 0, $description);
@@ -242,6 +276,37 @@ class TAsset extends TObjetStd{
 		
 		return $Tab;
 	}
+	
+	function getNextValue($ATMdb){
+		
+		dol_include_once('core/lib/functions2.lib.php');
+
+		global $db;
+
+		$mask = $this->assetType->masque;
+
+		$ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
+
+		return $ref;
+	}
+	
+	function addLotNumber(&$ATMdb){
+		
+		global $conf;
+		
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'assetlot WHERE lot_number = "'.$this->lot_number.'"';
+		$ATMdb->Execute($sql);
+
+		if($ATMdb->Get_line()){
+			return true;
+		}
+		elseif(!empty($this->lot_number)){
+			$lot = new TAssetLot;
+			$lot->lot_number = $this->lot_number;
+			$lot->entity = $conf->entity;
+			$lot->save($ATMdb);
+		}
+	}
 }
 
 class TAssetLink extends TObjetStd{
@@ -252,16 +317,16 @@ class TAssetLink extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_link');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_asset,fk_document','type=entier;');
-				
+
 		$this->_init_vars('type_document');
-		
+
 	    $this->start();
-	    
+
 		$this->asset = new TAsset;
 	}
 	function load(&$db, $id, $annexe=false) {
 		parent::load($db, $id);
-		
+
 		if($annexe){
 			$this->asset->load($db, $this->fk_asset, false);
 		}
@@ -276,9 +341,9 @@ class TAssetCommandedet extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'commandedet');	  
 		parent::add_champs('asset_lot','type=chaine;');
-				
+
 		parent::_init_vars();
-		
+
 	    parent::start();
 	}
 }
@@ -290,7 +355,7 @@ class TAssetPropaldet extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'propaldet');	  
 		parent::add_champs('asset_lot','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -304,7 +369,7 @@ class TAssetFacturedet extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'facturedet');	  
 		parent::add_champs('asset_lot','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -318,7 +383,7 @@ class TAssetPropal extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'propal');	  
 		parent::add_champs('fk_asset','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -332,7 +397,7 @@ class TAssetCommande extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'commande');	  
 		parent::add_champs('fk_asset','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -346,7 +411,7 @@ class TAssetFacture extends TObjetStdDolibarr{
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'facture');	  
 		parent::add_champs('fk_asset','type=chaine;');
-				
+
 		parent::_init_vars();
 		
 	    parent::start();
@@ -364,9 +429,9 @@ class TAssetStock extends TObjetStd{
 		parent::add_champs('date_mvt','type=date;');
 		parent::add_champs('type,lot','type=chaine;');
 		parent::add_champs('source,user,weight_units','type=entier;');
-				
+
 		parent::_init_vars();
-		
+
 	    parent::start();
 	}
 	
@@ -375,7 +440,7 @@ class TAssetStock extends TObjetStd{
 		
 		$asset = new TAsset;
 		$asset->load($ATMdb, $fk_asset);
-		
+
 		$this->fk_asset = $fk_asset;
 		$this->qty = $qty;
 		$this->date_mvt = date('Y-m-d H:i:s');
@@ -384,7 +449,7 @@ class TAssetStock extends TObjetStd{
 		$this->lot = $asset->lot_number;
 		$this->user = $user->id;
 		$this->weight_units = $asset->contenancereel_units;
-		
+
 		$this->save($ATMdb);
 	}
 	
@@ -407,7 +472,7 @@ class TAsset_type extends TObjetStd {
 		parent::add_champs('contenance_value, contenancereel_value, point_chute', 'type=float;');
 		parent::add_champs('contenance_units, contenancereel_units', 'type=entier;');
 		parent::add_champs('supprimable','type=entier;');
-				
+
 		parent::_init_vars();
 		parent::start();
 		$this->TField=array();
@@ -422,7 +487,7 @@ class TAsset_type extends TObjetStd {
 	function load_by_code(&$ATMdb, $code){
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_type WHERE code='".$code."'";
 		$ATMdb->Execute($sqlReq);
-		
+
 		if ($ATMdb->Get_line()) {
 			$this->load($ATMdb, $ATMdb->Get_field('rowid'));
 			return true;
@@ -460,7 +525,7 @@ class TAsset_type extends TObjetStd {
 		global $conf;
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE fk_asset_type=".$this->getId()." ORDER BY ordre ASC;";
 		$ATMdb->Execute($sqlReq);
-		
+
 		$Tab = array();
 		while($ATMdb->Get_line()) {
 			$Tab[]= $ATMdb->Get_field('rowid');
@@ -477,11 +542,11 @@ class TAsset_type extends TObjetStd {
 		$k=count($this->TField);
 		$this->TField[$k]=new TAsset_field;
 		$this->TField[$k]->set_values($TNField);
-		
+
 		$p=new TAsset;				
 		$p->add_champs($TNField['code'] ,'type=chaine' );
 		$p->init_db_by_vars($ATMdb);
-					
+
 		return $k;
 	}
 	
@@ -542,6 +607,21 @@ class TAsset_type extends TObjetStd {
 		//echo $r; exit;
 		return $r;
 	}
+	
+	//Function standard dolibarr pour afficher la structuration des masques
+	function info()
+    {
+    	global $conf,$langs,$db;
+	
+		$langs->load("admin");
+		
+		$tooltip=$langs->trans("GenericMaskCodes",$langs->transnoentities("Proposal"),$langs->transnoentities("Proposal"));
+		$tooltip.=$langs->trans("GenericMaskCodes2");
+		$tooltip.=$langs->trans("GenericMaskCodes3");
+		$tooltip.=$langs->trans("GenericMaskCodes5");
+		
+		return $tooltip;
+    }
 		
 }
 
@@ -619,9 +699,20 @@ class TAsset_field extends TObjetStd {
 			return true;
 		}
 		else {return false;}
-		
-		
 	}
 
 }
 
+class TAssetLot extends TObjetStd{
+/*
+ * Gestion des lot d'équipements 
+ * */
+	
+	function __construct() {
+		$this->set_table(MAIN_DB_PREFIX.'assetlot');
+		$this->add_champs('entity','type=entier;');
+		$this->add_champs('lot_number', 'type=chaine;');
+		
+	    $this->start();
+	}
+}

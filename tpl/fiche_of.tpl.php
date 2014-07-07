@@ -1,3 +1,4 @@
+
 <style type="text/css">
 	.draft, .draftedit,.nodraft,.viewmode,.of-details {
 		
@@ -22,11 +23,12 @@
 				
 			<table width="100%" class="border">
 				
-				<tr><td width="20%">Ordre de fabrication numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
-				<tr><td>Délai</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
-				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no]</td></tr>
+				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
+				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
+				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
-				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
+				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
+				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
@@ -77,14 +79,14 @@
 
 		<div class="of-details" style="margin-top: 25px;">
 			<table width="100%" class="border">
-				<tr style="height:40px; background-color: #dedede;" class="header">
-					<td style="border-right: none;" font-weight: bold;>Produits nécessaires à la fabrication</td>
+				<tr height="40px;">
+					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
 					<td style="border-left: none; text-align: right;">
 						
 						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>
 						
 					</td>
-					<td style="border-right: none; font-weight: bold; ">Produits à créer</td>
+					<td style="border-right: none; ">Produits à créer</td>
 					<td style="border-left: none; text-align: right;">
 						
 						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
@@ -92,23 +94,27 @@
 					</td>
 				</tr>
 				<tr style="background-color:#fff;">
-					<td colspan="2" width="60%" valign="top">
+					<td colspan="2" width="50%" valign="top">
 						<!-- NEEDED -->
 						<table width="100%" class="border needed">
 							<tr style="background-color:#dedede;">
-								<!--<td>Lot</td>
-								<td>Equipement</td>-->
-								<th>Produit</td>
-								<th>Quantité nécessaire</td>
-								<th>Quantité réelle</td>
-								<th class="nodraft">Quantité utilisée</td>
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td width="20%">Lot</td>
+								[onshow;block=end]
+								<!--<td>Equipement</td>-->
+								<td>Produit</td>
+								<td>Quantité nécessaire</td>
+								<td>Quantité réelle</td>
+								<td class="nodraft">Quantité utilisée</td>
 								<!-- <td class="draft">Delta</td> -->
-								<th class="draftedit" style="width:20px;">Action</td>
+								<td class="draftedit" style="width:20px;">Action</td>
 								
 							</tr>
 							<tr id="[TNeeded.id]">
-								<!--<td>Lot</td>
-								<td>Equipement</td>-->
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td>[TNeeded.lot_number;strconv=no]</td>
+								[onshow;block=end]
+								<!--<td>Equipement</td>-->
 								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
 								<td>[TNeeded.qty_needed]</td>
 								<td>[TNeeded.qty;strconv=no]</td>
@@ -120,21 +126,25 @@
 							</tr>
 						</table>
 					</td> 
-					<td colspan="2" width="40%" valign="top">
+					<td colspan="2" width="50%" valign="top">
 						<!-- TO_MAKE -->
 						<table width="100%" class="border tomake">
 							<tr style="background-color:#dedede;">
-								<th class="draftedit" style="width:20px;">Action</th>
-								<th>Produit</th>
-								<th>Quantité à produire</th>
-								<th>Fournisseur</th>
-								<th class="draftedit" style="width:20px;">Action</th>
+								<td class="draftedit" style="width:20px;">Action</td>
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td>Lot</td>
+								[onshow;block=end]
+								<td>Produit</td>
+								<td>Quantité à produire</td>
+								<td>Fournisseur</td>
+								<td class="draftedit" style="width:20px;">Action</td>
 								
 							</tr>
 							<tr id="[TTomake.id]">
-								
 								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
-								
+								[onshow;block=begin;when [view.use_lot_in_of]=='1']
+									<td>[TTomake.lot_number;strconv=no]</td>
+								[onshow;block=end]
 								<td>[TTomake.libelle;block=tr;strconv=no]</td>
 								<td>[TTomake.qty;strconv=no]</td>
 								<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
@@ -152,7 +162,7 @@
 [onshow;block=begin;when [view.mode]=='view']
 	<div class="tabsAction notinparentview">
 		
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[assetOf.id]'">
+		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Ordre de Fabrication?'))document.location.href='?action=delete&id=[assetOf.id]'">
 		&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
 		&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
 		
@@ -197,9 +207,9 @@
 	
 	
 	<div style="clear:both;"></div>
-	
 	<div id="assetChildContener">
 		
+		<h2>OF Enfants</h2>
 	
 	</div>
 	
@@ -215,8 +225,8 @@
 		
 		function getChild() {
 			
-			$('#assetChildContener').html('<h2>Liste des ordres de fabrication enfants nécessaires</h2>');
-			
+			$('#assetChildContener').empty();
+			$('#assetChildContener').show();
 			$.ajax({
 				
 				url:'script/interface.php?get=getofchildid&id=[assetOf.id]&json=1'
@@ -287,8 +297,7 @@
 		
 			
 		}
-	
-		
+
 		function refreshDisplay() {
 			
 			$(".btnaddproduct" ).click(function() {
@@ -404,6 +413,14 @@
 				$('td.nodraft').css('display','table-cell');
 			}
 			
+			
+			$(".TAssetOFLineLot").each(function(){
+				fk_product = $(this).attr('fk_product');
+				$(this).autocomplete({
+					source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
+					minLength : 1
+				});
+			})
 		}
 		
 		function refreshTab(id) {
@@ -415,7 +432,7 @@
 		     	
 		     	refreshDisplay();
 			});
-			
+
 		}
 		
 		function deleteLine(idLine,type){
@@ -437,11 +454,12 @@
 		
 		function addAllLines(id_assetOf,idLine,btnadd){
 			//var qty = $('#qty['+idLine+']').val();
-			var qty = $(btnadd).parent().next().next().find('input[type=text]').val();
+			qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
+			
 			$.ajax(
 				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
 			).done(function(){
-				refreshTab(id_assetOf) 
+				refreshTab(id_assetOf);
 			});
 		}
 		

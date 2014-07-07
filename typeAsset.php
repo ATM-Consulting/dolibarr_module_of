@@ -1,7 +1,7 @@
 <?php
-	require('../config.php');
-	require('../class/asset.class.php');
-	require('../lib/asset.lib.php');
+	require('config.php');
+	require('class/asset.class.php');
+	require('lib/asset.lib.php');
 	
 	$langs->load('asset@asset');
 	
@@ -168,19 +168,23 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	llxHeader('',$langs->trans('AssetType'), '', '', 0, 0);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'form1','POST');
+	$doliform=new Form($db);
+	
 	$form->Set_typeaff($mode);
 	echo $form->hidden('id', $asset->getId());
 	echo $form->hidden('action', 'save');
 	
 	$TBS=new TTemplateTBS();
 	
-	print $TBS->render('../tpl/asset.type.tpl.php'
+	print $TBS->render('tpl/asset.type.tpl.php'
 		,array()
 		,array(
 			'assetType'=>array(
 				'id'=>$asset->getId()
 				,'code'=>$form->texte('', 'code', $asset->code, 20,255,'','','à saisir')
 				,'libelle'=>$form->texte('', 'libelle', $asset->libelle, 20,255,'','','à saisir') 
+				,'masque'=>$form->texte('', 'masque', $asset->masque, 20,20,'','','à saisir')
+				,'info_masque'=>$doliform->textwithpicto('',$asset->info(),1,0,'',0,3)
 				,'point_chute'=>$form->texte('', 'point_chute', $asset->point_chute, 12,10,'','','à saisir')
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
 				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)

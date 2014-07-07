@@ -9,6 +9,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -39,16 +40,15 @@ function _action() {
 	********************************************************************/
 
 	$action=__get('action','view');
-	
-	
+
 		switch($action) {
 			case 'new':
 			case 'add':
 				$assetOf=new TAssetOF;
 				$assetOf->set_values($_REQUEST);
-				
+
 				$fk_product = __get('fk_product',0,'int');
-				
+
 				_fiche($PDOdb, $assetOf,'edit', $fk_product);
 
 				break;
@@ -64,31 +64,36 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) {
 					$assetOf->load($PDOdb, $_REQUEST['id'], false);
+
 					$mode = 'view';
 				}
 				else {
 					$mode = 'edit';
 				}
-				
+
+
 				$assetOf->set_values($_REQUEST);
 
+				//pre($_REQUEST,true);
+				
 				if(__get('fk_product_to_add',0)>0) {
 					$assetOf->addLine($PDOdb, __get('fk_product_to_add',0), 'TO_MAKE');		
 				//	print "Add ".__get('fk_product_to_add',0);			
 				}
 			
+				
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
-			
+
+
 					foreach($assetOf->TAssetOFLine as &$line) {
 						$line->TAssetOFLine=array();
 					}
+
 				}
-				
-				
 				
 				if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 					foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
@@ -97,51 +102,63 @@ function _action() {
 				}
 				
 				$assetOf->entity = $conf->entity;
-				
+
 				$assetOf->save($PDOdb);
-				
+
 				_fiche($PDOdb,$assetOf, $mode);
 
 				break;
-			
+
 			case 'valider':
 				
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				$assetOf->status = "VALID";				
-				
-				
+				$assetOf->status = "VALID";
+
+
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						$assetOf->TAssetOFLine[$k]->set_values($row);
 					}
 				}
 				$assetOf->createOfAndCommandesFourn($PDOdb);
-				//$assetOf->openOF($PDOdb);
+				$assetOf->unsetChildDeleted = true;
+				
 				$assetOf->save($PDOdb);
+				
+				//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+				
 				_fiche($PDOdb,$assetOf, 'view');
 
 				break;
-				
+
 			case 'lancer':
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "OPEN";
+
+				$assetOf->setEquipement($PDOdb);
+				
 				//$assetOf->openOF($PDOdb);
 				$assetOf->save($PDOdb);
 				_fiche($PDOdb, $assetOf, 'view');
 
 				break;
-				
+
 			case 'terminer':
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$assetOf->status = "CLOSE";
+				
 				$assetOf->closeOF($PDOdb);
 				$assetOf->save($PDOdb);
-				_fiche($PDOdb,$assetOf, 'view');
-				break;
 				
+				_fiche($PDOdb,$assetOf, 'view');
+				
+				break;
+
 			case 'delete':
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $_REQUEST['id'], false);
@@ -156,19 +173,19 @@ function _action() {
 				<?
 				
 				break;
-				
+
 			case 'view':
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $_REQUEST['id'], false);
-		
+
 				_fiche($PDOdb, $assetOf, 'view');
-				
+
 				break;
 			case 'createDocOF':
 				
 				generateODTOF($PDOdb);
-								
-				break;				
+
+				break;
 		}
 		
 	
@@ -187,13 +204,7 @@ function generateODTOF(&$PDOdb) {
 	foreach($assetOf as $k => $v) {
 		print $k."<br />";
 	}
-	//exit;
 	
-	/*echo "<pre>";
-	print_r($assetOf->TAssetWorkstationOF);
-	echo "</pre>";
-	
-	exit;*/
 	$TBS=new TTemplateTBS();
 	dol_include_once("/product/class/product.class.php");
 
@@ -208,28 +219,33 @@ function generateODTOF(&$PDOdb) {
 	
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>$v) {
+
+		$prod = new Product($db);
+		$prod->fetch($v->fk_product);
+		$prod->fetch_optionals($prod->id);
 		
 		if($v->type == "TO_MAKE") {
 			
-			$prod = new Product($db);
-			$prod->fetch($v->fk_product);
-			
+			/*echo "<pre>";
+			print_r($prod);
+			echo "</pre>";
+			exit;*/
+
 			$TToMake[] = array(
 							'type' => $v->type
 							, 'qte' => $v->qty
 							, 'nomProd' => $prod->ref
 							, 'designation' => $prod->label
 							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
+							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
 						);
-			
+
 		}
 		if($v->type == "NEEDED") {
 	
 			$unitLabel = "";
-			
-			$prod = new Product($db);
-			$prod->fetch($v->fk_product);						
-			
+
 			if($prod->weight_units == 0) {
 				$unitLabel = "Kg";
 			} else if ($prod->weight_units == -3) {
@@ -249,17 +265,12 @@ function generateODTOF(&$PDOdb) {
 							, 'poids' => $prod->weight
 							, 'unitPoids' => $unitLabel
 							, 'finished' => $prod->finished?"PM":"MP"
+							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
 						);
-	
-			
 		}
 
 	}
-
-	/*echo "<pre>";
-	print_r($TNeeded);
-	echo "</pre>";
-	exit;*/
 
 	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
@@ -282,6 +293,7 @@ function generateODTOF(&$PDOdb) {
 	}
 	else{
 		$template = "templateOF.odt";
+		//$template = "templateOF.doc";
 	}
 	
 	//echo $societe->name; exit;
@@ -303,80 +315,99 @@ function generateODTOF(&$PDOdb) {
 		,array()
 		,array(
 			'outFile'=>$dir.$assetOf->numero.".odt"
+			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 		
 	);	
 	
 	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
+	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
 }
 
 
 function _fiche_ligne(&$form, &$of, $type){
-		global $db, $conf;
-		
-		$TRes = array();
-		foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
-			$product = new Product($db);
-			$product->fetch($TAssetOFLine->fk_product);
-			
-			if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
-				$TRes[]= array(
-					'id'=>$TAssetOFLine->getId()
-					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'qty_needed'=>$TAssetOFLine->qty_needed
-					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
-					,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
-					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-					,'delete'=> '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
-				);
-			}
-			elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
-			
-				if(empty($TAssetOFLine->TFournisseurPrice)) {
-					$ATMdb=new TPDOdb;
-					$TAssetOFLine->loadFournisseurPrice($ATMdb);
-				}
-			
-				$Tab=array();
-				foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
-						
-					$Tab[ $objPrice->rowid ] = array(
-												'label' => ($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.utf8_encode ($objPrice->name).'"'.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composants a fabriquer' : '' ).')',
-												'compose_fourni' => $objPrice->compose_fourni
-											);
-					
-					/* ob_start()
-					 *  ?> <option value="51" composefourni="0" ofchild="5,3,7"> $( #select :selected).each(function() {  if($(this).attr('composefourni')==1  $(this).attr('ofchild').split(',')  }) <?  
-					 * $html = ob_get_clean() */
-					 
-				}
-				
-	 			/*foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
-	 				
-	 				//<option value="<?=$objPrice->rowid?>" compose_fourni="<?=$objPrice->compose_fourni?1:0?>"><?($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'?></option>
-	 				$option.='<option value="'.$objPrice->rowid.'" compose_fourni="'.$objPrice->compose_fourni.'">'.($objPrice->price>0 ? floatval($objPrice->price).' '.$conf->currency : '') .' (Fournisseur "'.$objPrice->name.'", '.($objPrice->quantity >0 ? $objPrice->quantity.' pièce(s) min,' : '').' '.($objPrice->compose_fourni ? 'composé fourni' : 'composé non fourni' ).')'.'</option>';	
-	 				
-				}*/
-				
-				//pre($Tab,true);
-				
-				$TRes[]= array(
-					'id'=>$TAssetOFLine->getId()
-					,'idProd'=>$product->id
-					,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a>'
-					,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
-					,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
-					,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price ) : $Tab[$TAssetOFLine->fk_product_fournisseur_price]['label']
-					
-					//,'fk_product_fournisseur_price'=>($of->status=='DRAFT') ? '<select class="flat" id="TAssetOFLine['.$k.'][fk_product_fournisseur_price]" name="TAssetOFLine['.$k.'][fk_product_fournisseur_price]">'.$option.'</select>' : $Tab[$TAssetOFLine->fk_product_fournisseur_price]
-					
-					,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
-				);
-			}
+	global $db, $conf, $langs;
+
+	$TRes = array();
+	foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
+		$product = new Product($db);
+		$product->fetch($TAssetOFLine->fk_product);
+		$product->load_stock();
+
+		if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
+			$TRes[]= array(
+				'id'=>$TAssetOFLine->getId()
+				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a> - '.$langs->trans("Stock")." : ".$product->stock_reel
+				,'qty_needed'=>$TAssetOFLine->qty_needed
+				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
+				,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
+				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
+				,'delete'=> '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+			);
 		}
+		elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 		
-		return $TRes;
+			if(empty($TAssetOFLine->TFournisseurPrice)) {
+				$ATMdb=new TPDOdb;
+				$TAssetOFLine->loadFournisseurPrice($ATMdb);
+			}
+		
+			$Tab=array();
+			foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
+				
+				$label = "";
+
+				//Si on a un prix fournisseur pour le produit
+				if($objPrice->price > 0){
+					$label .= floatval($objPrice->price).' '.$conf->currency;
+				}
+				
+				//Affiche le nom du fournisseur
+				$label .= ' (Fournisseur "'.utf8_encode ($objPrice->name).'"';
+
+				//Prix unitaire minimum si renseigné dans le PF
+				if($objPrice->quantity > 0){
+					' '.$objPrice->quantity.' pièce(s) min,';
+				} 
+				
+				//Affiche le type du PF :
+				if($objPrice->compose_fourni){//			soit on fabrique les composants
+					$label .= ' => Fabrication interne';
+				}
+				elseif($objPrice->quantity <= 0){//			soit on a le produit finis déjà en stock
+					$label .= ' => Sortie de stock';
+				}
+
+				if($objPrice->quantity > 0){//				soit on commande a un fournisseur
+					$label .= ' => Commande fournisseur';
+				}
+				
+				$label .= ")";
+
+				$Tab[ $objPrice->rowid ] = array(
+												'label' => $label,
+												'compose_fourni' => ($objPrice->compose_fourni) ? $objPrice->compose_fourni : 0
+											);
+
+			}
+			
+			$TRes[]= array(
+				'id'=>$TAssetOFLine->getId()
+				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a> - '.$langs->trans("Stock")." : ".$product->stock_reel
+				,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
+				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
+				,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
+			);
+		}
+	}
+	
+	return $TRes;
 }
 
 
@@ -388,6 +419,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	*
 	* Put here all code to build page
 	****************************************************/
+	
+	//pre($assetOf,true);
 	
 	llxHeader('',$langs->trans('OFAsset'),'','');
 	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('AssetOF'));
@@ -411,6 +444,20 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	
 	//$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
 	
+	//Affichage des erreurs
+	if(!empty($assetOf->errors)){
+		?>
+		<br><div class="error">
+		<?php
+		foreach($assetOf->errors as $error){
+			echo $error."<br>";
+		}
+		$assetOf->errors = array();
+		?>
+		</div><br>
+		<?php
+	}	
+	
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
 	
@@ -432,7 +479,34 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
 	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
 	
-	//pre($TToMake,true); exit;
+	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
+	
+	$HtmlCmdFourn = '';
+	
+	if(count($TIdCommandeFourn)){
+		foreach($TIdCommandeFourn as $idcommandeFourn){
+			$cmd = new CommandeFournisseur($db);
+			$cmd->fetch($idcommandeFourn);
+
+			$HtmlCmdFourn .= $cmd->getNomUrl(1)." ";
+		}
+	}
+	
+	if($conf->global->USE_LOT_IN_OF){
+		?>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".TAssetOFLineLot").each(function(){
+					fk_product = $(this).attr('fk_product');
+					$(this).autocomplete({
+						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
+						minLength : 1
+					});
+				})
+			});
+		</script>
+		<?php
+	}
 	
 	ob_start();
 	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
@@ -465,6 +539,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
 	
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
+
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -476,14 +551,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				'id'=> $assetOf->getId()
 				,'numero'=> ($mode=='edit') ? $form->texte('', 'numero', ($assetOf->numero) ? $assetOf->numero : 'OF'.str_pad( $assetOf->getLastId($PDOdb) +1 , 5, '0', STR_PAD_LEFT), 20,255,'','','à saisir') : '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->numero.'</a>'
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
-				,'fk_assetOf_parent'=>($mode=='edit') ? $form->combo('','fk_assetOf_parent',$TOFParent,$assetOf->fk_assetOf_parent) : '<a href="fiche_of.php?id='.$assetOf->fk_assetOf_parent.'">'.$TOFParent[$assetOf->fk_assetOf_parent].'</a>'
 				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
+				,'commande_fournisseur'=>$HtmlCmdFourn
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
 				,'temps_estime_fabrication'=>$assetOf->temps_estime_fabrication
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
 				
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : $client->getNomUrl(1)
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				
@@ -492,7 +567,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
 				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
-				,'fk_assetOf_parent'=>$assetOf->fk_assetOf_parent
+				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent) ? $assetOf->fk_assetOf_parent : ''
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -500,6 +575,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_product'=>$select_product
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
+				,'use_lot_in_of'=>(int)$conf->global->USE_LOT_IN_OF
 			)
 		)
 	);

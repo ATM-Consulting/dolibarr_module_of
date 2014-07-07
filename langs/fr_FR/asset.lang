@@ -1,6 +1,9 @@
 # Dolibarr language file - fr_FR
 CHARSET=UTF-8
 
+Module104160Name = Equipement
+Module104160Desc = Gestion des équipements et de la production (GPAO)
+
 # EQUIPEMENT
 Asset=Equipement
 ListAsset=Liste des équipements installés
@@ -20,3 +23,8 @@ OFAssetDeleted=Ordre de fabrication supprimé
 createOFFile = Générer document papier
 WorkStation=Poste de travail
 ListOrderProducts=Liste des produits de la commande
+
+#LOT
+ListAssetLot=Liste des lots d'équipement
+AssetLotDeleted=Lot supprimé
+AssetInLot=Equipements du lot

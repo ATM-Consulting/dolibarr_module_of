@@ -1,12 +1,12 @@
 <?php
-	require('../config.php');
-	require('../class/asset.class.php');
-	require('../lib/asset.lib.php');
+	require('config.php');
+	require('class/asset.class.php');
+	require('lib/asset.lib.php');
 	
 	$langs->load('asset@asset');
 	
 	//if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
-	$ATMdb=new Tdb;
+	$ATMdb=new TPDOdb;
 	$asset=new TAsset_type;
 	
 	$mesg = '';
@@ -175,7 +175,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	
 	$TBS=new TTemplateTBS();
 	
-	print $TBS->render('../tpl/asset.type.field.tpl.php'
+	print $TBS->render('tpl/asset.type.field.tpl.php'
 		,array(
 			'assetField'=>$TFields
 		)

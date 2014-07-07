@@ -1,4 +1,3 @@
-
 <?php
 /*
  * Script créant et vérifiant que les champs requis s'ajoutent bien
@@ -22,6 +21,9 @@
 	$o=new TAsset_field;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetLot;
+	$o->init_db_by_vars($ATMdb);
+
 	$o=new TAsset;
 	$o->init_db_by_vars($ATMdb);
 	

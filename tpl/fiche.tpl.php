@@ -16,6 +16,15 @@
 					</tr>
 				[onshow;block=end]
 				[onshow;block=begin;when [view.mode]!='new']
+				
+				<script type="text/javascript">
+					$(document).ready(function(){
+						$("#lot_number").autocomplete({
+							source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
+							minLength : 1
+						});
+					});
+				</script>
 				<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td>[asset.typehidden;strconv=no;protect=no]</tr>
 				<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
@@ -35,19 +44,19 @@
 			
 [onshow;block=begin;when [view.mode]=='view']
 	
-		</div>
+			</div>
 
 		</div>
 		
 		<div class="tabsAction">
-			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[asset.id]'">
+			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Equipement?')) document.location.href='?action=delete&id=[asset.id]'">
 			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
-			&nbsp; &nbsp; <input id="action-mvt-stock" class="butAction" type="button" onclick="document.location.href='?action=stock&id=1'" name="mvt_stock" value="Nouveau Mouvement Stock">
+			&nbsp; &nbsp; <input id="action-mvt-stock" class="butAction" type="button" onclick="document.location.href='?action=stock&id=[asset.id]'" name="mvt_stock" value="Nouveau Mouvement Stock">
 		</div>
-		<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
+		<!--<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">
 			<tr><td valign="middle" class="nobordernopadding"><div class="titre">Mouvements de stock</div></td></tr>
-		</table>
+		</table> -->
 		[view.liste;strconv=no]
 [onshow;block=end]
 

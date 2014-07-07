@@ -17,7 +17,7 @@ traite_get($ATMdb, $get);
 function traite_get(&$ATMdb, $case) {
 	switch (strtolower($case)) {
 		case 'autocomplete':
-			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term']));
+			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term'],$_REQUEST['fk_product']));
 			break;
 		case 'addofproduct':
 			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));
@@ -72,13 +72,26 @@ function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) {
 	
 }
 
-
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$ATMdb,$fieldcode,$value){
-	$sql = "SELECT DISTINCT(".$fieldcode.")
-			FROM ".MAIN_DB_PREFIX."rh_ressource
+function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0){
+	
+	if($fk_product){
+		$sql = "SELECT DISTINCT(al.".$fieldcode.")
+				FROM ".MAIN_DB_PREFIX."assetlot as al
+				LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.".$fieldcode." = al.".$fieldcode.")
+				LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product)
+				WHERE al.".$fieldcode." LIKE '".$value."%'
+				AND p.rowid = ".$fk_product."
+				ORDER BY al.".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
+	}
+	else{
+		$sql = "SELECT DISTINCT(".$fieldcode.")
+			FROM ".MAIN_DB_PREFIX."assetlot
 			WHERE ".$fieldcode." LIKE '".$value."%'
 			ORDER BY ".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
+	}
+	
+	
 	$ATMdb->Execute($sql);
 	
 	while ($ATMdb->Get_line()) {
@@ -89,13 +102,13 @@ function _autocomplete(&$ATMdb,$fieldcode,$value){
 	return $TResult;
 }
 
-function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1){
+function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = ''){
 	
 	global $db;
 	
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($ATMdb, $id_assetOf);
-	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty);
+	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty,0, $lot_number);
 	$TassetOF->save($ATMdb);
 	
 	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
@@ -110,7 +123,7 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1){
 			while($res = $db->fetch_object($resql)) {
 				
 				_addofworkstation($ATMdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
-				
+
 			}
 			
 		}
@@ -126,12 +139,41 @@ function _deletelineof(&$ATMdb,$idLine,$type){
 }
 
 function _addlines(&$ATMdb,$idLine,$qty){
-
+	
+	global $db;
+	
+	dol_include_once('product/class/product.class.php');
+	
 	$TAssetOFLine = new TAssetOFLine;
 	//$ATMdb->debug = true;
 	$TAssetOFLine->load($ATMdb, $idLine);
+	$TAssetOFLine->qty = $_REQUEST['qty'];
+	$TAssetOFLine->save($ATMdb);
 	
-	$TAssetOFLine->delete($ATMdb);
+	// On charge le produit pour pouvoir récupérer ses sous produits
+	$prod = new Product($db);
+	$prod->fetch($TAssetOFLine->fk_product);
 	
-	_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty);
+	$TComposition = $prod->getChildsArbo($prod->id);
+	
+	// On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
+	$TAssetOF = new TAssetOF;
+	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
+	
+	foreach ($TAssetOF->TAssetOFLine as $line) {
+			
+		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
+		if($line->type == "NEEDED" && !empty($TComposition[$line->fk_product][1])) {
+
+			$line->qty = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
+			$line->qty_needed = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
+			$line->save($ATMdb);
+			
+		}
+		
+	}
+	
+	//$TAssetOFLine->delete($ATMdb);
+	
+	//_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty, $TAssetOFLine->lot_number);
 }

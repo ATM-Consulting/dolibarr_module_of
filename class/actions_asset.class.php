@@ -11,10 +11,13 @@ class ActionsAsset
     function doActions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $langs, $db, $conf, $user;
-		
-		/*echo '<pre>';
-		print_r($object);
-		echo '</pre>';*/
+
+		// Constante PRODUIT_SOUSPRODUITS passée à 0 pour ne pas déstocker les sous produits lors de la validation de l'expédition
+		if(in_array('expeditioncard',explode(':',$parameters['context'])) && $action === "confirm_valid") {
+			
+			$conf->global->PRODUIT_SOUSPRODUITS = 0;
+			
+		}
 		
         if($action == "validmodasset"){
         	//print_r($object);exit;
@@ -55,7 +58,7 @@ class ActionsAsset
             
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) 
     {  
-      	global $langs,$db;
+      	global $langs,$db,$conf;
 		$langs->load('asset@asset');
 		/*echo '<pre>';
 		print_r($object);
@@ -138,34 +141,39 @@ class ActionsAsset
 				print '<input class="button" type="submit" value="Modifier"></form></td></tr>';
 			}
 			elseif($action != "edit"){
-				//pre($object, true);exit;
-				$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
 
-				$resql = $db->query($sql);
-				if($resql){
-					$res = $db->fetch_object($resql);
-
-					$sql = "SELECT a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.rowid = ".$res->fk_asset;
+				if(dolibarr_get_const($db, 'USE_ASSET_IN_ORDER')) {
+				
+					//pre($object, true);exit;
+					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$object->table_element." WHERE rowid = ".$object->id;
+	
 					$resql = $db->query($sql);
-				}
-				$id_field = "id";
-				print '<tr><td height="10"><table width="100%" class="nobordernopadding"><tbody><tr>';
-				print '<td>Equipement</td>';
-				print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=modasset&'.$id_field.'='.$object->id.'">'
-						.img_picto('Définir Equipement', 'edit')
-						.'</a></td>';
-				PRINT '</tr></tbody></table></td>';
-				print '<td colspan="3">';
-				
-				if($resql){
-					$num = $db->num_rows($resql);
-					if($num > 0) {
+					if($resql){
 						$res = $db->fetch_object($resql);
-						print $res->serial_number.' - '.$res->label;
+	
+						$sql = "SELECT a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.rowid = ".$res->fk_asset;
+						$resql = $db->query($sql);
 					}
+					$id_field = "id";
+					print '<tr><td height="10"><table width="100%" class="nobordernopadding"><tbody><tr>';
+					print '<td>Equipement</td>';
+					print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=modasset&'.$id_field.'='.$object->id.'">'
+							.img_picto('Définir Equipement', 'edit')
+							.'</a></td>';
+					PRINT '</tr></tbody></table></td>';
+					print '<td colspan="3">';
+					
+					if($resql){
+						$num = $db->num_rows($resql);
+						if($num > 0) {
+							$res = $db->fetch_object($resql);
+							print $res->serial_number.' - '.$res->label;
+						}
+					}
+					
+					print '</select></td></tr>';
+					
 				}
-				
-				print '</select></td></tr>';
 
 			}
 			
@@ -290,44 +298,46 @@ class ActionsAsset
 		
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
-        	?> 
-			<script type="text/javascript">
-				$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
-				$('#idprod').change( function(){
-					$.ajax({
-						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
-						,dataType: "json"
-						,data: {
-							fk_product: $('#idprod').val(),
-							fk_soc : <?= $object->socid; ?>
-							}
-						},"json").then(function(select){
-							if(select.length > 0){
-								$('#lotAff').empty().show();
-								$('#span_lot').show();
-								$.each(select, function(i,option){
-									if(select.length > 1){
-										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
-									}
-									else{
-										$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
-									}
-								})
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
-							}
-							else{
-								$('#lotAff').empty();
-								$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
-							}
-						});
-				});
-				$('#lotAff').change(function(){
-					$('#lot').val( $('#lotAff option:selected').val() );
-				});
-			</script>
-			<?php
+        	if(dolibarr_get_const($db, 'USE_ASSET_IN_ORDER')) {
+	        	?> 
+				<script type="text/javascript">
+					$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
+					$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
+					$('#idprod').change( function(){
+						$.ajax({
+							type: "POST"
+							,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
+							,dataType: "json"
+							,data: {
+								fk_product: $('#idprod').val(),
+								fk_soc : <?= $object->socid; ?>
+								}
+							},"json").then(function(select){
+								if(select.length > 0){
+									$('#lotAff').empty().show();
+									$('#span_lot').show();
+									$.each(select, function(i,option){
+										if(select.length > 1){
+											$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
+										}
+										else{
+											$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
+										}
+									})
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+								}
+								else{
+									$('#lotAff').empty();
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+								}
+							});
+					});
+					$('#lotAff').change(function(){
+						$('#lot').val( $('#lotAff option:selected').val() );
+					});
+				</script>
+				<?php
+			}
         }
 
 		return 0;
