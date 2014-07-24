@@ -156,7 +156,7 @@ class TAsset extends TObjetStd{
 	}
 	
 	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
-		global $db, $user;
+		global $db, $user,$conf;
 		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
 		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
@@ -165,6 +165,9 @@ class TAsset extends TObjetStd{
 		$mouvS = new MouvementStock($db);
 		// We decrement stock of product (and sub-products)
 		// We use warehouse selected for each line
+		
+		
+		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
 		
 		/*
 		 * Si on est dans un cas où il faut seulement effectuer un mouvement de stock dolibarr, 
