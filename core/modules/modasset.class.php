@@ -95,7 +95,7 @@ class modAsset extends DolibarrModules
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->phpmin = array(5,3);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,5);	// Minimum version of Dolibarr required by module
-		$this->langfiles = array('gpao@gpao');
+		$this->langfiles = array('asset@asset');
 
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
@@ -206,11 +206,10 @@ class modAsset extends DolibarrModules
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'Equipement',
+			'titre'=>$langs->trans('Asset'),
 			'mainmenu'=>'asset',
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste.php',
-			'langs'=>'products',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>100,
 			'target'=>'',
 			'user'=>2);		
