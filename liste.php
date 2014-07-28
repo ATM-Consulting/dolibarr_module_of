@@ -92,6 +92,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 		$sql.=" AND serial_number='' ";		
 	}
 	
+	if(dolibarr_get_const($db, "ASSET_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY e.rowid DESC";
 	
 	$THide = array('fk_soc','fk_product');
 	if(isset($_REQUEST['fk_product'])) {
