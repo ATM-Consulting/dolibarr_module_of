@@ -18,7 +18,7 @@ else {
 	return false;
 }
 
-$ATMdb = new Tdb;
+$ATMdb = new TPDOdb;
 $Tres = array();
 
 $sql = "SELECT rowid, serial_number, lot_number, contenancereel_value, contenancereel_units
