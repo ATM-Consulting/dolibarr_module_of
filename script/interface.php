@@ -165,8 +165,7 @@ function _addlines(&$ATMdb,$idLine,$qty){
 		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
 		if($line->type == "NEEDED" && !empty($TComposition[$line->fk_product][1])) {
 
-			$line->qty = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
-			$line->qty_needed = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
+			$line->qty = $line->qty_needed = $line->qty_used = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
 			$line->save($ATMdb);
 			
 		}

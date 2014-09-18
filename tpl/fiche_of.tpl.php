@@ -218,9 +218,11 @@
 		$(document).ready(function() {
 			var type = "";
 			
-			getChild();
-			refreshDisplay();
-
+			if([assetOf.id]>0) {
+				getChild();
+				refreshDisplay();
+			}
+			
 		});
 		
 		function getChild() {
