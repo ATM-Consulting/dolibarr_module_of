@@ -377,6 +377,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'serial_number'=>$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir')
 				,'produit'=>_fiche_visu_produit($asset,$mode)
+				,'entrepot'=>_fiche_visu_produit($asset,$mode,'warehouse')
 				,'societe'=>_fiche_visu_societe($asset,$mode)
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 				,'contenance_value'=>$form->texte('', 'contenance_value',number_format(($asset->getId()) ? $asset->contenance_value : $asset->assetType->contenance_value,2,',',''), 12,10,'','','0.00')
@@ -403,7 +404,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			,'view'=>array(
 				'mode'=>$mode
 				,'clinomadic'=>($conf->clinomadic->enabled) ? 'view' : 'none'
-				,'entrepot'=>($conf->clinomadic->enabled) ? _fiche_visu_produit($asset, 'warehouse') : 'none'
+				,'entrepot'=>($conf->clinomadic->enabled) ? _fiche_visu_produit($asset,'edit','warehouse') : 'none'
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
@@ -430,10 +431,12 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
 
-function _fiche_visu_produit(&$asset, $mode) {
+function _fiche_visu_produit(&$asset, $mode,$type='') {
 global $db, $conf;
 	
-	if($mode=='edit' || $mode=='new') {
+	dol_include_once('/product/class/html.formproduct.class.php');
+	
+	if(($mode=='edit' || $mode=='new') && $type == "") {
 		ob_start();	
 		$html=new Form($db);
 		$html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
@@ -441,12 +444,19 @@ global $db, $conf;
 		return ob_get_clean();
 		
 	}
-	elseif($mode=='warehouse'){
-		ob_start();	
+	elseif($type == "warehouse"){
+		ob_start();
 		
 		$html=new FormProduct($db);
 		
-		echo $html->selectWarehouses('','fk_entrepot');
+		if($mode=='edit' || $mode=='new'){
+			echo $html->selectWarehouses($asset->fk_entrepot,'fk_entrepot');
+		}
+		else{
+			$resql = $db->query('SELECT label FROM '.MAIN_DB_PREFIX.'entrepot WHERE rowid = '.$asset->fk_entrepot);
+			$res = $db->fetch_object($resql);
+			echo $res->label;
+		}
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();

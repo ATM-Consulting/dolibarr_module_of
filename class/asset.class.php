@@ -10,7 +10,7 @@ class TAsset extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_soc,fk_product,entity','type=entier;');
 		$this->add_champs('contenancereel_value, contenance_value,point_chute', 'type=float;');
-		$this->add_champs('contenance_units, contenancereel_units', 'type=entier;');
+		$this->add_champs('contenance_units, contenancereel_units, fk_entrepot', 'type=entier;');
 		$this->add_champs('commentaire,lot_number,gestion_stock,reutilisable,status', 'type=chaine;');
 		
 		//clé étrangère : type de la ressource

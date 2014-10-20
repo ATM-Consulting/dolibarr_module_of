@@ -28,6 +28,7 @@
 				<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td>[asset.typehidden;strconv=no;protect=no]</tr>
 				<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
 				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
+				<tr><td>Entrepôt</td><td>[asset.entrepot;strconv=no]</td></tr>
 				<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
 				<tr><td>Contenance Maximum</td><td>[asset.contenance_value;strconv=no] [asset.contenance_units;strconv=no]</td></tr>
 				<tr><td>Contenance Actuelle</td><td>[asset.contenancereel_value;strconv=no] [asset.contenancereel_units;strconv=no]</td></tr>
