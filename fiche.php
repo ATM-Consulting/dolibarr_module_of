@@ -30,7 +30,7 @@ if ($user->societe_id > 0)
 }
 
 function _action() {
-	global $user;	
+	global $user,$conf;	
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 	
@@ -149,6 +149,21 @@ function _action() {
 				$asset->serial_number.='(copie)';
 				//$PDOdb->db->debug=true;
 				$asset->save($PDOdb);
+				
+				_fiche($asset,'view');
+				
+				break;
+				
+			case 'retour_pret':
+				
+				if($conf->clinomadic->enabled){
+					$asset=new TAsset;
+					$asset->load($PDOdb, $_REQUEST['id'], false);
+					$asset->load_liste_type_asset($PDOdb);
+					$asset->load_asset_type($PDOdb);
+					$asset->retour_pret($PDOdb,$_REQUEST['fk_entrepot']);
+					//$PDOdb->db->debug=true;
+				}
 				
 				_fiche($asset,'view');
 				
@@ -348,6 +363,10 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 		$tpl_fiche = "fiche.tpl.php";
 	}	
 
+	if($conf->clinomadic->enabled){
+		
+	}
+
 	print $TBS->render('tpl/'.$tpl_fiche
 		,array(
 			'assetField'=>$TFields
@@ -383,6 +402,8 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			,'affaire'=>$TAffaire
 			,'view'=>array(
 				'mode'=>$mode
+				,'clinomadic'=>($conf->clinomadic->enabled) ? 'view' : 'none'
+				,'entrepot'=>($conf->clinomadic->enabled) ? _fiche_visu_produit($asset, 'warehouse') : 'none'
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
@@ -419,6 +440,16 @@ global $db, $conf;
 		
 		return ob_get_clean();
 		
+	}
+	elseif($mode=='warehouse'){
+		ob_start();	
+		
+		$html=new FormProduct($db);
+		
+		echo $html->selectWarehouses('','fk_entrepot');
+		//($asset->$name != "")? $asset->$name : $defaut
+		
+		return ob_get_clean();
 	}
 	else {
 		if($asset->fk_product > 0) {

@@ -48,10 +48,21 @@
 
 		</div>
 		
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$('#fk_entrepot').change(function(){
+					$('#lend-return').attr('onclick',"document.location.href='?action=retour_pret&id=[asset.id]&fk_entrepot="+$(this).val()+"'");
+				})
+			});
+		</script>
+		
 		<div class="tabsAction">
 			<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Equipement?')) document.location.href='?action=delete&id=[asset.id]'">
 			&nbsp; &nbsp; <input type="button" id="action-clone" value="Cloner" name="cancel" class="butAction" onclick="document.location.href='?action=clone&id=[asset.id]'">
 			&nbsp; &nbsp; <a href="?id=[asset.id]&action=edit" class="butAction">Modifier</a>
+			[onshow;block=begin;when [view.clinomadic]=='view']
+				&nbsp; &nbsp; [view.entrepot;strconv=no]<input type="button" id="lend-return" value="Retour de prêt" name="retour_pret" class="butAction" onclick="document.location.href='?action=retour_pret&id=[asset.id]&fk_entrepot=1'">
+			[onshow;block=end]
 			&nbsp; &nbsp; <input id="action-mvt-stock" class="butAction" type="button" onclick="document.location.href='?action=stock&id=[asset.id]'" name="mvt_stock" value="Nouveau Mouvement Stock">
 		</div>
 		<!--<table border="0" width="100%" summary="" style="margin-bottom: 2px;" class="notopnoleftnoright">

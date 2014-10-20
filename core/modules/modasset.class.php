@@ -104,7 +104,7 @@ class modAsset extends DolibarrModules
 		//                             2=>array('MAIN_MODULE_MYMODULE_NEEDSMARTY','chaine',1,'Constant to say module need smarty',1)
 		$this->const = array();
 
-	
+
 		$this->tabs = array(
 			'product:+tabEquipement1:Asset:asset@asset:$user->rights->asset->all->lire:/asset/liste.php?fk_product=__ID__'
 			,'product:+tabOF1:WorkStation:asset@asset:$user->rights->asset->of->lire:/asset/workstation.php?fk_product=__ID__'
@@ -133,43 +133,42 @@ class modAsset extends DolibarrModules
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
 		$r=0;
-		
+
 		$r++;
 		$this->rights[$r][0] = 104121;
 		$this->rights[$r][1] = 'Lire les '.$langs->trans('Asset');
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'all';
 		$this->rights[$r][5] = 'lire';
-		
-		
+
 		$r++;
 		$this->rights[$r][0] = 104124;
 		$this->rights[$r][1] = 'Créer les '.$langs->trans('Asset');
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'all';
 		$this->rights[$r][5] = 'write';
-		
+
 		$r++;
 		$this->rights[$r][0] = 104122;
 		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
-		
+
 		$r++;
 		$this->rights[$r][0] = 104123;
 		$this->rights[$r][1] = 'Créer des Ordres de fabrication';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'write';
-		
+
 		$r++;
 		$this->rights[$r][0] = 104126;
 		$this->rights[$r][1] = 'Lire les Types d\'équipement';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'type';
 		$this->rights[$r][5] = 'lire';
-		
+
 		$r++;
 		$this->rights[$r][0] = 104125;
 		$this->rights[$r][1] = 'Créer des Types d\'équipement';
@@ -203,7 +202,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>$langs->trans('Asset'),
@@ -212,9 +211,9 @@ class modAsset extends DolibarrModules
 			'url'=>'/asset/liste.php',
 			'position'=>100,
 			'target'=>'',
-			'user'=>2);		
+			'user'=>2);
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'A completer',
@@ -226,7 +225,7 @@ class modAsset extends DolibarrModules
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
 		
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
 			'titre'=>'Liste des Lots',
@@ -238,8 +237,19 @@ class modAsset extends DolibarrModules
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
 		
 		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+			'type'=>'left',			// This is a Left menu entry
+			'titre'=>'Prêté',
+			'mainmenu'=>'assetLent',
+			'leftmenu'=>'assetlist',
+			'url'=>'/asset/liste.php?pret=1',
+			'position'=>103,
+			'target'=>'',
+			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
 		
-		
+		$r++;
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Ordre de Fabrication',
@@ -266,8 +276,6 @@ class modAsset extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
-		
-		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Poste de travail',
@@ -280,8 +288,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);
 		$r++;
-		
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Nouveau poste de travail',
@@ -307,8 +314,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);
 		$r++;
-		
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=typeequipement',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'Nouveau type d\'équipement',
@@ -359,7 +365,9 @@ class modAsset extends DolibarrModules
 		
 		dol_include_once('/core/class/extrafields.class.php');
         $extrafields=new ExtraFields($this->db);
-		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'select', 0, 255, 'product');
+		
+		$param = array('options'=>array("asset_type:libelle:rowid"=>""));
+		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'sellist', 0, 255, 'product',0,0,'',$param);
 
 		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
 		file_get_contents($url);

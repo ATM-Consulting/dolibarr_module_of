@@ -143,7 +143,7 @@ class TAsset extends TObjetStd{
 		}
 	}
 	
-	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
+	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=1){
 		
 		if(!$destock_dolibarr_only) {
 		
@@ -152,10 +152,10 @@ class TAsset extends TObjetStd{
 			
 		}
 
-		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
+		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock,$fk_entrepot);
 	}
 	
-	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0){
+	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=1){
 		global $db, $user,$conf;
 		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
@@ -178,10 +178,11 @@ class TAsset extends TObjetStd{
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
 		if($qty > 0) {
-			$result=$mouvS->reception($user, $fk_product, 1, $qty, 0, $description);
+			$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
 		} else {
-			$result=$mouvS->livraison($user,$fk_product, 1, -$qty, 0, $description);
+			$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
 		}
+		//echo (int)$result; exit;
 	}
 	
 	function delete(&$db) {
@@ -309,6 +310,20 @@ class TAsset extends TObjetStd{
 			$lot->entity = $conf->entity;
 			$lot->save($ATMdb);
 		}
+	}
+	
+	//Spécifique Nomadic
+	function retour_pret(&$PDOdb,$fk_entrepot){
+		
+		//On remet en stock l'équipement
+		$this->addStockMouvement($PDOdb, 1, "Retour de prêt",false,0,$fk_entrepot);
+
+		//Réinitialisation des dates de pret et du statut
+		$this->etat = 0;
+		$this->set_date('date_deb_pret', '');
+		$this->set_date('date_fin_pret', '');
+		
+		$this->save($PDOdb);
 	}
 }
 

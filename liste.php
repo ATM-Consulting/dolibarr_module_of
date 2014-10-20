@@ -11,7 +11,7 @@
 	_liste($user->entity);
 
 function _liste($id_entity) {
-global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
+global $langs,$db,$user,$ASSET_LINK_ON_FIELD,$conf;
 	
 	$ATMdb=new TPDOdb;
 	
@@ -78,8 +78,14 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD;
 	
 	$sql="SELECT ".$fields."
 		  FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
-				LEFT OUTER JOIN llx_societe s ON (e.fk_soc=s.rowid))
-		  WHERE 1 ";
+				LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe s ON (e.fk_soc=s.rowid))";
+	
+	if($conf->clinomadic->enabled && isset($_REQUEST['pret']) && $_REQUEST['pret'] == 1 ){
+		$sql .= " WHERE etat = 2"; //prêté
+	}
+	else{
+		$sql .= " WHERE 1";
+	}
 			  
 	$fk_soc=0;$fk_product=0;
 	if(isset($_REQUEST['fk_soc'])) {$sql.=" AND e.fk_soc=".$_REQUEST['fk_soc']; $fk_soc=$_REQUEST['fk_soc'];}
