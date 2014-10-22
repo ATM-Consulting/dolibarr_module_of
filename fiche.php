@@ -379,6 +379,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'produit'=>_fiche_visu_produit($asset,$mode)
 				,'entrepot'=>_fiche_visu_produit($asset,$mode,'warehouse')
 				,'societe'=>_fiche_visu_societe($asset,$mode)
+				,'societe_localisation'=>_fiche_visu_societe($asset,$mode,"societe_localisation")
 				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
 				,'contenance_value'=>$form->texte('', 'contenance_value',number_format(($asset->getId()) ? $asset->contenance_value : $asset->assetType->contenance_value,2,',',''), 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
@@ -474,14 +475,19 @@ global $db, $conf;
 		}
 	}
 }
-function _fiche_visu_societe(&$asset, $mode) {
+function _fiche_visu_societe(&$asset, $mode,$type="societe") {
 global $db;
 	
 	if($mode=='edit') {
 		ob_start();	
 		
 		$html=new Form($db);
-		echo $html->select_company($asset->fk_soc,'fk_soc','',1);
+		if($type == "societe"){
+			echo $html->select_company($asset->fk_soc,'fk_soc','',1);
+		}
+		else{
+			echo $html->select_company($asset->fk_societe_localisation,'fk_societe_localisation','',1);
+		}
 		
 		return ob_get_clean();
 		
@@ -491,7 +497,13 @@ global $db;
 			require_once(DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php');
 			
 			$soc = new Societe($db);
-			$soc->fetch($asset->fk_soc);	
+			
+			if($type == "societe"){
+				$soc->fetch($asset->fk_soc);
+			}
+			else{
+				$soc->fetch($asset->fk_societe_localisation);
+			}
 				
 			return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$asset->fk_soc.'" style="font-weight:bold;">'.img_picto('','object_company.png', '', 0).' '.$soc->nom.'</a>';
 		} else {
