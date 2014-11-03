@@ -112,6 +112,8 @@ class TAsset extends TObjetStd{
 	}
 	
 	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false) {
+		
+		global $conf;
 				
 		if(!$destock_dolibarr_only) {
 			
@@ -141,6 +143,16 @@ class TAsset extends TObjetStd{
 			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
 
 		}
+		
+		//Spécifique Nomadic
+		if($conf->clinomadic->enabled){
+			$this->updateGaranties();
+		}
+	}
+
+	function updateGaranties(){
+		
+		//TODO MAJ garantie client et garantie fournisseur
 	}
 	
 	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=1){
