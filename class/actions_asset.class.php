@@ -61,7 +61,7 @@ class ActionsAsset
       	global $langs,$db,$conf;
 		$langs->load('asset@asset');
 		/*echo '<pre>';
-		print_r($object);
+		print_r($parameters['context']);
 		echo '</pre>';exit;*/
 
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context']))) 
@@ -212,11 +212,10 @@ class ActionsAsset
 			}
         }
 		elseif (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
-				
 			?>
 			<script type="text/javascript">
 				$(document).ready(function(){
-					$('tr .liste_titre:last-child').before('<td class="liste_titre" align="right">Composé fourni</td>');
+					$('tr.liste_titre').find('>td:last').before('<td class="liste_titre" align="right">Composé fourni</td>');
 				});
 			</script>
 			<?php
@@ -369,15 +368,16 @@ class ActionsAsset
         }
         
 		elseif(in_array('pricesuppliercard',explode(':',$parameters['context']))){
-				
-			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.$object->product_fourn_price_id);
+			
+			$resql = $db->query('SELECT compose_fourni FROM '.MAIN_DB_PREFIX.'product_fournisseur_price WHERE rowid = '.(($object->product_fourn_price_id) ? $object->product_fourn_price_id : $parameters['id_pfp']) );
+
 			$res = $db->fetch_object($resql);
 			
 			if($res){
 				?>
 				<script type="text/javascript">
 					$(document).ready(function(){
-						$('#row-<?php echo $object->product_fourn_price_id; ?>').find('>td:last').before('<td align="right"><?php echo ($res->compose_fourni) ? "Oui" : "Non" ; ?></td>');
+						$('#row-<?php echo ($object->product_fourn_price_id) ? $object->product_fourn_price_id : $parameters['id_pfp']; ?>').find('>td:last').before('<td align="right"><?php echo ($res->compose_fourni) ? "Oui" : "Non" ; ?></td>');
 					});
 				</script>
 				<?php
