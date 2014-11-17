@@ -74,38 +74,42 @@ class ActionsAsset
 			if($action == "create"){
 					
 				//pre($_REQUEST,true);
-				
+
 				if(isset($_REQUEST['origin']) && isset($_REQUEST['originid'])){
 					$sql = "SELECT fk_asset FROM ".MAIN_DB_PREFIX.$_REQUEST['origin']." WHERE rowid = ".$_REQUEST['originid'];
+													
+					if($resql = $db->query($sql)){
+						$res = $db->fetch_object($resql);
+						$fk_asset = $res->fk_asset;
+					}
 				}
-				
-				$resql = $db->query($sql);
-									
-				if($resql){
-					$res = $db->fetch_object($resql);
-					$fk_asset = $res->fk_asset;
-				}
-				else 
+				else{
 					$fk_asset = 0;
-				
+				}
+
 				$sql = "SELECT a.rowid, a.serial_number, p.label FROM ".MAIN_DB_PREFIX."asset as a LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product) WHERE a.fk_soc = ".$_REQUEST['socid']." ORDER BY a.serial_number ASC";
-				$resql = $db->query($sql);
 
 				print '<tr><td>Equipement</td>';
 				print '<td colspan="2">';
-				print '<select name="asset" class="flat" id="asset">';
-				print '<option value="0">&nbsp;</option>';
 
-				while ($res = $db->fetch_object($resql)) {
-					if($res->rowid == $fk_asset){
-						print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
-					}	
-					else{
-						print '<option value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+				if($resql = $db->query($sql)){
+					print '<select name="asset" class="flat" id="asset">';
+					print '<option value="0">&nbsp;</option>';
+
+					while ($res = $db->fetch_object($resql)) {
+						if($res->rowid == $fk_asset){
+							print '<option selected="selected" value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+						}	
+						else{
+							print '<option value="'.$res->rowid.'">'.$res->serial_number.' - '.$res->label.'</option>';
+						}
 					}
+					
+					print '</select>';
 				}
-				
-				print '</select>';
+				else{
+					print 'Aucun équipement associé à ce tiers';
+				}
 				print '</td></tr>';
 			}
 			elseif($action == "modasset"){
