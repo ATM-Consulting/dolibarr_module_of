@@ -127,7 +127,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD,$conf;
 		,'hide'=>$THide
 		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
 		,'liste'=>array(
-			'titre'=>'Liste des '.$langs->trans('Asset')
+			'titre'=> ($conf->clinomadic->enabled && isset($_REQUEST['pret']) && $_REQUEST['pret'] == 1 ) ?  'Liste des '.$langs->trans('Asset').' prêté' : 'Liste des '.$langs->trans('Asset')
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
