@@ -107,7 +107,8 @@ class TAsset extends TObjetStd{
 		foreach($this->assetType->TField as $field) {
 			$this->add_champs($field->code, 'type='.$field->type.';');
 		}
-		$this->init_db_by_vars($ATMdb);
+		//$this->_init_vars();
+		$this->init_db_by_vars($ATMdb); //TODO c'est a chier
 		parent::load($ATMdb, $this->getId());
 	}
 	

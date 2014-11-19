@@ -71,10 +71,11 @@ function _action() {
 				break;
 				
 			case 'save':
+				//pre($_REQUEST,true);exit;
 				$asset=new TAsset;
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load_liste_type_asset($PDOdb);
-				$asset->load_asset_type($PDOdb);
+				$asset->load_asset_type($PDOdb);//pre($asset,true);exit;
 				if(!empty($_REQUEST['id'])) $asset->load($PDOdb, $_REQUEST['id'], false);
 				
 				//on vérifie que le libellé est renseigné
@@ -366,7 +367,14 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	if($conf->clinomadic->enabled){
 		
 	}
-
+	
+	if(!empty($_REQUEST['fk_product'])){
+		dol_include_once('/product/class/product.class.php');
+		$product = new Product($db);
+		$product->fetch($_REQUEST['fk_product']);
+		$product->fetch_optionals($product->id);
+	}
+	
 	print $TBS->render('tpl/'.$tpl_fiche
 		,array(
 			'assetField'=>$TFields
@@ -389,7 +397,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,($asset->getId()) ? $asset->gestion_stock : $asset->assetType->gestion_stock)
 				,'status'=>$form->combo('','status',$asset->TStatus,$asset->status)
 				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),($asset->getId()) ? $asset->reutilisable : $asset->assetType->reutilisable)
-				,'typehidden'=>$form->hidden('fk_asset_type', $asset->fk_asset_type)
+				,'typehidden'=>$form->hidden('fk_asset_type', ($asset->fk_asset_type > 0) ? $asset->fk_asset_type : $product->array_options['options_type_asset'])
 			)
 			,'stock'=>array(
 				'type_mvt'=>$form2->combo('','type_mvt',array(''=>'','retrait'=>'Retrait','ajout'=>'Ajout'),'')
