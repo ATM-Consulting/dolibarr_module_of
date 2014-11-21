@@ -115,7 +115,7 @@ global $langs,$db,$user,$ASSET_LINK_ON_FIELD,$conf;
 	
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
-			'nbLine'=>$conf->global->MAIN_SIZE_LISTE_LIMIT
+			'nbLine'=>$conf->liste_limit
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
