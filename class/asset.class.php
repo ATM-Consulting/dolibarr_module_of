@@ -168,7 +168,7 @@ class TAsset extends TObjetStd{
 		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock,$fk_entrepot);
 	}
 	
-	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=1){
+	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
 		global $db, $user,$conf;
 		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
@@ -181,7 +181,7 @@ class TAsset extends TObjetStd{
 		
 		
 		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
-		
+		if($fk_entrepot > 0) $this->fk_entrepot = $fk_entrepot;
 		/*
 		 * Si on est dans un cas où il faut seulement effectuer un mouvement de stock dolibarr, 
 		 * on valorise $fk_product qui n'est sinon pas disponible car il correspond à $this->fk_product,
@@ -191,9 +191,9 @@ class TAsset extends TObjetStd{
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
 		if($qty > 0) {
-			$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
+			$result=$mouvS->reception($user, $fk_product, $this->fk_entrepot, $qty, 0, $description);
 		} else {
-			$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
+			$result=$mouvS->livraison($user,$fk_product, $this->fk_entrepot, -$qty, 0, $description);
 		}
 		//echo (int)$result; exit;
 	}
