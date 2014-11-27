@@ -4,7 +4,9 @@
 	//require('../lib/asset.lib.php');
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 	
-	global $user;
+	global $user,$langs;
+	
+	$langs->load('asset@asset');
 	
 	if (!($user->admin)) accessforbidden();
 	
@@ -19,6 +21,14 @@
 	print '<td>'.$langs->trans("Parameters").'</td>'."\n";
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
+	
+	print '<tr>';
+	print '<td>'.$langs->trans("UsetAssetProductionAttributs").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_USE_PRODUCTION_ATTRIBUT');
+	print '</td></tr>';	
 	
 	print '<tr>';
 	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
