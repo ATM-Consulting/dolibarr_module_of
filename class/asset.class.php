@@ -156,7 +156,7 @@ class TAsset extends TObjetStd{
 		//TODO MAJ garantie client et garantie fournisseur
 	}
 	
-	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=1){
+	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
 		
 		if(!$destock_dolibarr_only) {
 		
@@ -190,10 +190,12 @@ class TAsset extends TObjetStd{
 		 */ 
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
-		if($qty > 0) {
-			$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
-		} else {
-			$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
+		if($fk_entrepot > 0){
+			if($qty > 0) {
+				$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
+			} else {
+				$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
+			}
 		}
 		//echo (int)$result; exit;
 	}
