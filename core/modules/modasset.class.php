@@ -104,6 +104,10 @@ class modAsset extends DolibarrModules
 		//                             2=>array('MAIN_MODULE_MYMODULE_NEEDSMARTY','chaine',1,'Constant to say module need smarty',1)
 		$this->const = array(
 			0=>array('ASSET_USE_PRODUCTION_ATTRIBUT','chaine','1',"",1)
+			// Template à utiliser
+			,1=>array('TEMPLATE_OF','chaine','templateOF.odt',"Template à utiliser",1)
+			//Pour afficher la s�lection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
+			,2=>array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
 		);
 
 
