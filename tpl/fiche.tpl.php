@@ -17,17 +17,17 @@
 					});
 				</script>
 				<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td>[asset.typehidden;strconv=no;protect=no]</tr>
-				<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>[onshow;block=end]
 				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
 				<tr><td>Entrepôt</td><td>[asset.entrepot;strconv=no]</td></tr>
 				<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
 				<tr><td>Localisation</td><td>[asset.societe_localisation;strconv=no]</td></tr>
-				<tr><td>Contenance Maximum</td><td>[asset.contenance_value;strconv=no] [asset.contenance_units;strconv=no]</td></tr>
-				<tr><td>Contenance Actuelle</td><td>[asset.contenancereel_value;strconv=no] [asset.contenancereel_units;strconv=no]</td></tr>
-				<tr><td>Point de chute</td><td>[asset.point_chute;strconv=no]</td></tr>
-				<tr><td>Status</td><td>[asset.status;strconv=no]</td></tr>
-				<tr><td>Réutilisabilité</td><td>[asset.reutilisable;strconv=no]</td></tr>
-				<tr><td>Gestion du stock</td><td>[asset.gestion_stock;strconv=no]</td></tr>
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Contenance Maximum</td><td>[asset.contenance_value;strconv=no] [asset.contenance_units;strconv=no]</td></tr>[onshow;block=end]
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Contenance Actuelle</td><td>[asset.contenancereel_value;strconv=no] [asset.contenancereel_units;strconv=no]</td></tr>[onshow;block=end]
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Point de chute</td><td>[asset.point_chute;strconv=no]</td></tr>[onshow;block=end]
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Status</td><td>[asset.status;strconv=no]</td></tr>[onshow;block=end]
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Réutilisabilité</td><td>[asset.reutilisable;strconv=no]</td></tr>[onshow;block=end]
+				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Gestion du stock</td><td>[asset.gestion_stock;strconv=no]</td></tr>[onshow;block=end]
 				<tr>
 					<td style="width:20%" [assetField.obligatoire;strconv=no;protect=no]>[assetField.libelle;block=tr;strconv=no;protect=no] </td>
 					<td>[assetField.valeur;strconv=no;protect=no] </td>

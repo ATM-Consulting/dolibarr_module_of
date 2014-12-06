@@ -415,6 +415,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'clinomadic'=>($conf->clinomadic->enabled) ? 'view' : 'none'
 				,'entrepot'=>($conf->clinomadic->enabled) ? _fiche_visu_produit($asset,'edit','warehouse') : 'none'
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
+				,'champs_production'=>$conf->global->ASSET_USE_PRODUCTION_ATTRIBUT
 				,'liste'=>$liste->renderArray($PDOdb,$TAssetStock
 					,array(
 						'title'=>array(
