@@ -1,12 +1,3 @@
-[onshow;block=begin;when [view.mode]=='view']
-
-	
-		<div class="fiche"> <!-- begin div class="fiche" -->
-		
-			<div class="tabBar">
-				
-[onshow;block=end]				
-				
 			<table width="100%" class="border">
 				[onshow;block=begin;when [view.mode]=='new']
 					<tr>
@@ -45,9 +36,6 @@
 			</table>
 			
 [onshow;block=begin;when [view.mode]=='view']
-	
-			</div>
-
 		</div>
 		
 		<script type="text/javascript">

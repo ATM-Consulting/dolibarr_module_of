@@ -476,6 +476,7 @@ global $db, $conf;
 			
 			$product = new Product($db);
 			$product->fetch($asset->fk_product);
+			return $product->getNomUrl(1) . ' - ' . $product->label;
 				
 			return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$asset->fk_product.'" style="font-weight:bold;">'.img_picto('','object_product.png', '', 0).' '. $product->label.'</a>';
 		} else {
