@@ -266,13 +266,22 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	
 		$date = $stock->get_dtcre();
 		
-		$TAssetStock[]=array(
-			'date_cre'=>$date
-			,'qty'=>$stock->qty
-			,'weight_units'=>measuring_units_string($stock->weight_units,"weight")
-			,'lot' =>$stock->lot
-			,'type'=>$stock->type
-		);
+		if($conf->global->ASSET_USE_PRODUCTION_ATTRIBUT){
+			$TAssetStock[]=array(
+				'date_cre'=>$date
+				,'qty'=>$stock->qty
+				,'weight_units'=>easuring_units_string($stock->weight_units,"weight")
+				,'lot' =>$stock->lot
+				,'type'=>$stock->type
+			);
+		}
+		else{
+			$TAssetStock[]=array(
+				'date_cre'=>$date
+				,'qty'=>$stock->qty
+				,'type'=>$stock->type
+			);
+		}
 		
 		
 	}
