@@ -270,7 +270,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			$TAssetStock[]=array(
 				'date_cre'=>$date
 				,'qty'=>$stock->qty
-				,'weight_units'=>easuring_units_string($stock->weight_units,"weight")
+				,'weight_units'=>measuring_units_string($stock->weight_units,"weight")
 				,'lot' =>$stock->lot
 				,'type'=>$stock->type
 			);
