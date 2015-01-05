@@ -276,9 +276,9 @@ function generateODTOF(&$PDOdb) {
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
 		
 		$TWorkstations[] = array(
-							'libelle' => $v->ws->libelle
-							,'nb_hour_max' => $v->ws->nb_hour_max
-							,'nb_heures_prevues' => $v->nb_hour
+							'libelle' => utf8_decode($v->ws->libelle)
+							,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
+							,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 						);
 		
 	}
@@ -308,9 +308,10 @@ function generateODTOF(&$PDOdb) {
 			'date'=>date("d/m/Y")
 			,'numeroOF'=>$assetOf->numero
 			,'statutOF'=>TAssetOF::$TStatus[$assetOf->status]
-			,'prioriteOF'=>TAssetOF::$TOrdre[$assetOf->ordre]
+			,'prioriteOF'=>utf8_decode(TAssetOF::$TOrdre[$assetOf->ordre])
 			,'date'=>date("d/m/Y")
 			,'societe'=>$societe->name
+			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
 		)
 		,array()
 		,array(
