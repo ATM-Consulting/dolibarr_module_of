@@ -316,12 +316,13 @@ function generateODTOF(&$PDOdb) {
 		,array()
 		,array(
 			'outFile'=>$dir.$assetOf->numero.".odt"
+			,"convertToPDF"=>true
 			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 		
 	);	
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
 }
