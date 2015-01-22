@@ -11,7 +11,7 @@
 	_liste($user->entity);
 
 function _liste($id_entity) {
-global $langs,$db,$user,$ASSET_LINK_ON_FIELD,$conf;
+	global $langs,$db,$user,$ASSET_LINK_ON_FIELD,$conf;
 	
 	$ATMdb=new TPDOdb;
 	
