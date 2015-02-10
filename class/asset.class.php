@@ -112,9 +112,11 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false) {
+	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) {
 		
 		global $conf;
+		
+		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID; 
 				
 		if(!$destock_dolibarr_only) {
 			
@@ -141,7 +143,8 @@ class TAsset extends TObjetStd{
 		
 		// Enregistrement des mouvements
 		if(!empty($qty) && !$no_destock_dolibarr){
-			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock);
+
+			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock, $fk_entrepot);
 
 		}
 		
@@ -189,7 +192,7 @@ class TAsset extends TObjetStd{
 		 * donc pas de $this->fk_product
 		 */ 
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
-		
+
 		if($fk_entrepot > 0){
 			if($qty > 0) {
 				$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
@@ -197,7 +200,6 @@ class TAsset extends TObjetStd{
 				$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
 			}
 		}
-		//echo (int)$result; exit;
 	}
 	
 	function delete(&$db) {

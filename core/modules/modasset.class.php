@@ -108,6 +108,7 @@ class modAsset extends DolibarrModules
 			,1=>array('TEMPLATE_OF','chaine','templateOF.odt',"Template à utiliser",1)
 			//Pour afficher la s�lection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
 			,2=>array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
+			,3=>array('ASSET_DEFAULT_WAREHOUSE_ID',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF',1)
 		);
 
 

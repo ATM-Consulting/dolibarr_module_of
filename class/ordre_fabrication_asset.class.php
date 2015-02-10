@@ -679,6 +679,7 @@ class TAssetOFLine extends TObjetStd{
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
+		$asset->fk_product = $this->fk_product;
 		
 		$sql = "SELECT rowid 
 				FROM ".MAIN_DB_PREFIX."asset 
@@ -723,7 +724,7 @@ class TAssetOFLine extends TObjetStd{
 				//require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 				
 				//$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used, true, $this->fk_product);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty, true, $this->fk_product);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty, true, $this->fk_product,false,1);
 				
 				/*dol_include_once('/product/stock/class/mouvementstock.class.php');
 				$mvmt = new MouvementStock($db);

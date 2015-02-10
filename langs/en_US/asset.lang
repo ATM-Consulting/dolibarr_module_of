@@ -25,3 +25,9 @@ ListOrderProducts=Liste des produits de la commande
 ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
 AssetInLot=Equipements du lot
+
+#Configuration
+DefaultWarehouseId = Default warehouse for stock management
+UsetAssetProductionAttributs = Utiliser les champs de productions
+CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
+DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
