@@ -34,3 +34,4 @@ DefaultWarehouseId = Entrepôt de gestion du stock pour Ordre de Fabrication et 
 UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
+UseBatchNumberInOf = Utiliser la gestion des lots dans OF

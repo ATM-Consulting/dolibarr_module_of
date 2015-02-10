@@ -109,6 +109,7 @@ class modAsset extends DolibarrModules
 			//Pour afficher la s�lection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
 			,2=>array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
 			,3=>array('ASSET_DEFAULT_WAREHOUSE_ID',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF',1)
+			,3=>array('USE_LOT_IN_OF',0,'Utiliser la gestion des lots dans OF',0)
 		);
 
 
@@ -383,8 +384,6 @@ class modAsset extends DolibarrModules
 
 		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
 		file_get_contents($url);
-
-		dolibarr_set_const($db, 'USE_LOT_IN_OF', 1,'chaine',1);
 
 
 		return $this->_init($sql, $options);

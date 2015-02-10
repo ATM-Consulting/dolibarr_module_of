@@ -58,6 +58,15 @@
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL');
 	print '</td></tr>';	
+	
+	print '<tr>';
+	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('USE_LOT_IN_OF');
+	print '</td></tr>';	
+	
 	print "</table>";
 	
 	$form=new TFormCore;
