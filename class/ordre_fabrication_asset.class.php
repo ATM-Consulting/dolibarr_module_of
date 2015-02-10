@@ -112,6 +112,8 @@ class TAssetOF extends TObjetStd{
 	//Associe les équipements à l'OF
 	function setEquipement(&$ATMdb){
 		
+		//pre($this->TAssetOFLine,true);exit;
+		
 		foreach($this->TAssetOFLine as $TAssetOFLine){
 			
 			$TAssetOFLine->setAsset($ATMdb,$this);	
@@ -677,8 +679,12 @@ class TAssetOFLine extends TObjetStd{
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
+		$asset->fk_product = $this->fk_product;
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset WHERE contenancereel_value >= ".$this->qty;
+		$sql = "SELECT rowid 
+				FROM ".MAIN_DB_PREFIX."asset 
+				WHERE contenancereel_value >= ".$this->qty."
+					AND fk_product = ".$this->fk_product;
 		
 		if($conf->global->USE_LOT_IN_OF){
 			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
@@ -688,6 +694,8 @@ class TAssetOFLine extends TObjetStd{
 		
 		//echo $sql.'<br>';
 		//echo $this->lot_number.'<br>';
+		
+		//pre($this,true);
 		
 		$ATMdb->Execute($sql);
 
@@ -703,15 +711,20 @@ class TAssetOFLine extends TObjetStd{
 				$asset->status = 'indisponible';
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty);
 			}
-			else{
+			elseif($conf->global->USE_LOT_IN_OF){
 				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
+			}
+			else{
+				$product = new Product($db);
+				$product->fetch($this->fk_product);
+				$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
 			}
 			
 			if(!$mvmt_stock_already_done) {
 				//require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 				
 				//$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used, true, $this->fk_product);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty, true, $this->fk_product);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty, true, $this->fk_product,false,1);
 				
 				/*dol_include_once('/product/stock/class/mouvementstock.class.php');
 				$mvmt = new MouvementStock($db);
