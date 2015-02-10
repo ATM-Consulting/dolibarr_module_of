@@ -183,7 +183,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				'id'=>$asset->getId()
 				,'code'=>$form->texte('', 'code', $asset->code, 20,255,'','','à saisir')
 				,'libelle'=>$form->texte('', 'libelle', $asset->libelle, 20,255,'','','à saisir') 
-				,'masque'=>$form->texte('', 'masque', $asset->masque, 20,20,'','','à saisir')
+				,'masque'=>$form->texte('', 'masque', $asset->masque, 20,80,'','','à saisir')
 				,'info_masque'=>$doliform->textwithpicto('',$asset->info(),1,0,'',0,3)
 				,'point_chute'=>$form->texte('', 'point_chute', $asset->point_chute, 12,10,'','','à saisir')
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)

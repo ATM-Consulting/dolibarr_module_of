@@ -3,6 +3,8 @@ CHARSET=UTF-8
 
 Module104160Name = Equipement
 Module104160Desc = Gestion des équipements et de la production (GPAO)
+CreateAssetLot=Créer un lot d'équipement
+CreateAsset=Créer un équipement
 
 # EQUIPEMENT
 Asset=Equipement
@@ -14,17 +16,30 @@ AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher
 AssetListFields=Champs des équipements
 AssetAddType=Ajouter un type d'équipement
 AssetCreateType=Création type d'équipement
+AssetToComplete=A completer
+AssetLotsList=Liste des Lots
+AssetLoaned=Prêté
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
-CreateOFAsset=Créer un Ordre
+CreateOFAsset=Créer un Ordre de Fabrication
 ListOFAsset=Liste des ordres de fabrication
 OFAssetDeleted=Ordre de fabrication supprimé
 createOFFile = Générer document papier
 WorkStation=Poste de travail
 ListOrderProducts=Liste des produits de la commande
+AssetProductionOrder=Ordre de Fabrication
+AssetNewProductionOrder=Nouvel ordre de Fabrication
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
 AssetInLot=Equipements du lot
+
+# POSTE DE TRAVAIL
+AssetWorkstation=Poste de travail
+AssetNewWorkstation=Nouveau poste de travail
+
+# TYPES D'EQUIPEMENT
+AssetType=Types d'équipement
+AssetNewType=Nouveau type d'équipement

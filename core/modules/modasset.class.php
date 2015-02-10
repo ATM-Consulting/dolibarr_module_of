@@ -197,7 +197,7 @@ class modAsset extends DolibarrModules
 		// $this->rights[$r][5] = 'level2';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		// $r++;
 
-
+		$langs->load('asset@asset'); // load lang file to translate menu
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
 		$r=0;
@@ -227,7 +227,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'A completer',
+			'titre'=>$langs->trans('AssetToComplete'),
 			'mainmenu'=>'assetToComplete',
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste.php?no_serial=1',
@@ -239,7 +239,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'Liste des Lots',
+			'titre'=>$langs->trans('AssetLotsList'),
 			'mainmenu'=>'assetlot',
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste_lot.php',
@@ -251,7 +251,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
 			'type'=>'left',			// This is a Left menu entry
-			'titre'=>'Prêté',
+			'titre'=>$langs->trans('AssetLoaned'),
 			'mainmenu'=>'assetLent',
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste.php?pret=1',
@@ -263,7 +263,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>'Ordre de Fabrication',
+					'titre'=>$langs->trans('AssetProductionOrder'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/liste_of.php',
@@ -276,7 +276,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>'Nouvel ordre de Fabrication',
+					'titre'=>$langs->trans('AssetNewProductionOrder'),
 					'mainmenu'=>'newAssetOF',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/fiche_of.php?action=new',
@@ -289,7 +289,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>'Poste de travail',
+					'titre'=>$langs->trans('AssetWorkstation'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php',
@@ -302,7 +302,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>'Nouveau poste de travail',
+					'titre'=>$langs->trans('AssetNewWorkstation'),
 					'mainmenu'=>'newworkstation',
 					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php?action=new',
@@ -315,7 +315,7 @@ class modAsset extends DolibarrModules
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>'Types d\'équipement',
+					'titre'=>$langs->trans('AssetType'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'typeequipement',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/typeAsset.php',
@@ -328,7 +328,7 @@ class modAsset extends DolibarrModules
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=typeequipement',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>'Nouveau type d\'équipement',
+					'titre'=>$langs->trans('AssetNewType'),
 					'mainmenu'=>'newtypeequipement',
 					'leftmenu'=>'typeequipement',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/typeAsset.php?action=new',

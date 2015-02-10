@@ -155,7 +155,7 @@ function _liste($id_entity) {
 
 	if(isset($_REQUEST['fk_product'])){
 		echo '<div class="tabsAction">';
-		echo '<a class="butAction" href="fiche.php?action=edit&fk_soc='.$fk_soc.'&fk_product='.$product->id.'&fk_asset_type='.$fk_asset_type.'">Créer un '.$langs->trans('Asset').'</a>';
+		echo '<a class="butAction" href="fiche.php?action=edit&fk_soc='.$fk_soc.'&fk_product='.$product->id.'&fk_asset_type='.$fk_asset_type.'">'.$langs->trans('CreateAsset').'</a>';
 		echo '</div>';
 	}
 	
