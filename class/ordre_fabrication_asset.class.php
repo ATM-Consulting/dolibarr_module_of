@@ -703,8 +703,13 @@ class TAssetOFLine extends TObjetStd{
 				$asset->status = 'indisponible';
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty);
 			}
-			else{
+			elseif($conf->global->USE_LOT_IN_OF){
 				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
+			}
+			else{
+				$product = new Product($db);
+				$product->fetch($asset->fk_product);
+				$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
 			}
 			
 			if(!$mvmt_stock_already_done) {
