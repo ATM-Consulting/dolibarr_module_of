@@ -251,51 +251,28 @@ class modAsset extends DolibarrModules
 		
 		$r++;
 
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
-			'type'=>'left',			// This is a Left menu entry
-			'titre'=>$langs->trans('AssetLoaned'),
-			'mainmenu'=>'assetLent',
-			'leftmenu'=>'assetlist',
-			'url'=>'/asset/liste.php?pret=1',
-			'position'=>103,
-			'target'=>'',
-			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
+		if ($conf->clinomadic->enabled) 
+		{
+			$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+				'type'=>'left',			// This is a Left menu entry
+				'titre'=>$langs->trans('AssetLoaned'),
+				'mainmenu'=>'assetLent',
+				'leftmenu'=>'assetlist',
+				'url'=>'/asset/liste.php?pret=1',
+				'position'=>103,
+				'target'=>'',
+				'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
+			
+			$r++;
+		}
 		
-		$r++;
-
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetProductionOrder'),
-					'mainmenu'=>'asset',
-					'leftmenu'=>'assetOFlist',
-					'url'=>'/asset/liste_of.php',
-					'position'=>200,
-					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetNewProductionOrder'),
-					'mainmenu'=>'newAssetOF',
-					'leftmenu'=>'assetOFlist',
-					'url'=>'/asset/fiche_of.php?action=new',
-					'position'=>201,
-					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetWorkstation'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php',
-					'position'=>300,
+					'position'=>200,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
@@ -308,7 +285,7 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'newworkstation',
 					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php?action=new',
-					'position'=>301,
+					'position'=>201,
 					'enabled'=>'$user->rights->asset->of->lire',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
@@ -340,7 +317,33 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);
 		$r++;
-				
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetProductionOrder'),
+					'mainmenu'=>'asset',
+					'leftmenu'=>'assetOFlist',
+					'url'=>'/asset/liste_of.php',
+					'position'=>300,
+					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetNewProductionOrder'),
+					'mainmenu'=>'newAssetOF',
+					'leftmenu'=>'assetOFlist',
+					'url'=>'/asset/fiche_of.php?action=new',
+					'position'=>301,
+					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
 		// Exports
 		$r=1;
 
