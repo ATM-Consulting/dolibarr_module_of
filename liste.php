@@ -95,7 +95,7 @@ function _liste($id_entity) {
 		$sql.= ' AND e.entity='.$id_entity;		
 	}	
 	if(isset($_REQUEST['no_serial'])) {
-		$sql.=" AND serial_number='' ";		
+		$sql.=" AND serial_number='' OR serial_number = 'ErrorBadMask'";		
 	}
 	
 	if(dolibarr_get_const($db, "ASSET_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY e.rowid DESC";
