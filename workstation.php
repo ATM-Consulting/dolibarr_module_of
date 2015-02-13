@@ -4,6 +4,8 @@
 	require('./class/asset.class.php');
 	require('./class/ordre_fabrication_asset.class.php');
 	
+	$langs->load('asset@asset');
+	
 	dol_include_once('/core/class/html.form.class.php');
 	
 	
@@ -259,7 +261,7 @@ function _liste(&$ATMdb) {
 			'fk_usergroup'=>"Groupe"
 		)
 		,'liste'=>array(
-			'titre'=>'Liste des '.$langs->trans('Workstation')
+			'titre'=>'Liste des '.$langs->trans('workstation')
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
