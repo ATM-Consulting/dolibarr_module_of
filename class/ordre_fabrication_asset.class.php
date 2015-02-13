@@ -283,6 +283,28 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
+	/* 
+	 * Fonction qui permet de mettre à jour les postes de travail liais à un produit
+	 * pour la création d'un OF depuis une fiche produit
+	 */
+	function addWorkStation($PDOdb, $db, $fk_product) 
+	{
+		$sql = "SELECT fk_asset_workstation, nb_hour";
+		$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+		$sql.= " WHERE fk_product = ".$fk_product;
+		$resql = $db->query($sql);
+		
+		if($resql) {
+			while($res = $db->fetch_object($resql)) {
+				$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+				$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $res->fk_asset_workstation;
+				$this->TAssetWorkstationOF[$k]->nb_hour = $res->nb_hour;
+			}
+		}
+		
+		//$this->loadChild($PDOdb);
+	}
+	
 	//Finalise un OF => incrémention/décrémentation du stock
 	function closeOF(&$ATMdb){
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';

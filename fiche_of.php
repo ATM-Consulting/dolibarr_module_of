@@ -18,6 +18,7 @@ if(!$user->rights->asset->of->write) accessforbidden();
 
 // Load traductions files requiredby by page
 $langs->load("other");
+$langs->load("asset@asset");
 
 // Get parameters
 _action();
@@ -29,7 +30,7 @@ if ($user->societe_id > 0)
 }
 
 function _action() {
-	global $user;	
+	global $user, $db;	
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 	
@@ -64,24 +65,20 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) {
 					$assetOf->load($PDOdb, $_REQUEST['id'], false);
-
 					$mode = 'view';
 				}
 				else {
 					$mode = 'edit';
 				}
 
-
 				$assetOf->set_values($_REQUEST);
-
-				//pre($_REQUEST,true);
 				
-				if(__get('fk_product_to_add',0)>0) {
-					$assetOf->addLine($PDOdb, __get('fk_product_to_add',0), 'TO_MAKE');		
-				//	print "Add ".__get('fk_product_to_add',0);			
+				$fk_product = __get('fk_product_to_add',0);
+				if($fk_product > 0) {
+					$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE');	
+					$assetOf->addWorkstation($PDOdb, $db, $fk_product);
 				}
-			
-				
+
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
@@ -104,7 +101,10 @@ function _action() {
 				$assetOf->entity = $conf->entity;
 
 				$assetOf->save($PDOdb);
-
+				
+				//Si on viens d'un produit alors je recharge les enfants
+				if ($fk_product > 0) $assetOf->loadChild($PDOdb);
+				
 				_fiche($PDOdb,$assetOf, $mode);
 
 				break;
@@ -423,9 +423,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	****************************************************/
 	
 	//pre($assetOf,true);
-	
 	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('AssetOF'));
+	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'));
 	
 
 	?><style type="text/css">
@@ -578,6 +577,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int)$conf->global->USE_LOT_IN_OF
+				,'hasChildren' => !empty($Tid)
 			)
 		)
 	);
