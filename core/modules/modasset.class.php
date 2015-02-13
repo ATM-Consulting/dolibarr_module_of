@@ -388,7 +388,9 @@ class modAsset extends DolibarrModules
 		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
 		file_get_contents($url);
 
-
+		//Permet d'activer la gestion des produit virtuel
+		dolibarr_set_const($db, "PRODUIT_SOUSPRODUITS", 1);
+		
 		return $this->_init($sql, $options);
 	}
 
