@@ -109,7 +109,7 @@ class modAsset extends DolibarrModules
 			//Pour afficher la s�lection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
 			,2=>array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
 			,3=>array('ASSET_DEFAULT_WAREHOUSE_ID',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF',1)
-			,3=>array('USE_LOT_IN_OF',0,'Utiliser la gestion des lots dans OF',0)
+			,3=>array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
 		);
 
 
@@ -246,25 +246,26 @@ class modAsset extends DolibarrModules
 			'leftmenu'=>'assetlist',
 			'url'=>'/asset/liste_lot.php',
 			'position'=>102,
+			'enabled'=>'$conf->global->USE_LOT_IN_OF',
 			'target'=>'',
 			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
 		
 		$r++;
 
-		if ($conf->clinomadic->enabled) 
-		{
-			$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
-				'type'=>'left',			// This is a Left menu entry
-				'titre'=>$langs->trans('AssetLoaned'),
-				'mainmenu'=>'assetLent',
-				'leftmenu'=>'assetlist',
-				'url'=>'/asset/liste.php?pret=1',
-				'position'=>103,
-				'target'=>'',
-				'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
-			
-			$r++;
-		}
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetlist',		// Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+			'type'=>'left',			// This is a Left menu entry
+			'titre'=>$langs->trans('AssetLoaned'),
+			'mainmenu'=>'assetLent',
+			'leftmenu'=>'assetlist',
+			'url'=>'/asset/liste.php?pret=1',
+			'position'=>103,
+			'target'=>'',
+			'enabled'=>'$conf->clinomadic->enabled',
+			'user'=>2);				// 0=Menu for internal users,1=external users, 2=both
+		
+		$r++;
+		
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry

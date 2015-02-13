@@ -1,14 +1,25 @@
 <?php
+	
 	require('config.php');
 	require('./class/asset.class.php');
 	
-	if(!$user->rights->asset->all->lire) accessforbidden();
-	if(!$user->rights->asset->of->lire) accessforbidden();
+	$lotActive = dolibarr_get_const($db, 'USE_LOT_IN_OF');
 	
-	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
-	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
+	if (empty($lotActive))
+	{
+		_conf_lot_disabled();
+	}
+	else 
+	{
+		if(!$user->rights->asset->all->lire) accessforbidden();
+		if(!$user->rights->asset->of->lire) accessforbidden();
 	
-	_liste();
+		require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
+		require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
+		
+		_liste();
+	}
+	
 	
 
 function _liste() {
@@ -74,4 +85,16 @@ function _liste() {
 
 	llxFooter('');
 
+}
+
+function _conf_lot_disabled() {
+	global $langs;
+	
+	$langs->load('asset@asset');
+	
+	llxHeader('',$langs->trans('ListAssetLot'),'','');
+	
+	print '<a href="'.DOL_URL_ROOT.'/custom/asset/admin/admin.php">'.$langs->trans('LotDisabled').'</a>';
+	
+	llxFooter('');
 }

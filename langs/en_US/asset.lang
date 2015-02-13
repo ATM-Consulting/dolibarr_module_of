@@ -3,6 +3,8 @@ CHARSET=UTF-8
 
 CreateAssetLot=Créer un lot d'équipement
 CreateAsset=Créer un équipement
+AssetSetup=Configuration du module Equipement
+LotDisabled=L'option pour utiliser des lots dans OF est désactiver
 
 # EQUIPEMENT
 Asset=Equipement

@@ -7,6 +7,7 @@
 	global $user,$langs;
 	
 	$langs->load('asset@asset');
+	$langs->load('admin');
 	
 	if (!($user->admin)) accessforbidden();
 	
@@ -22,10 +23,11 @@
 		
 		setEventMessage("Configuration enregistrée");
 	}
-	
-	llxHeader('','Gestion des équipements, à propos','');
+
+	llxHeader('','Gestion des équipements, à propos', '');
 	
 	//$head = assetPrepareHead();
+	$linkback = '<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 	dol_fiche_head($head, 'procedure', $langs->trans("Asset"), 0, 'recouvrementico@recouvrement');
 	print_fiche_titre($langs->trans("AssetSetup"),$linkback);
 	
