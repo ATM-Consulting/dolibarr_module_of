@@ -49,7 +49,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 				}
 			}
 			
-			setEventMessage($langs->trans('AssetOF')." créés avec succès", 'mesgs');
+			setEventMessage($langs->trans('OFAsset')." créés avec succès", 'mesgs');
 			
 	}
 			
