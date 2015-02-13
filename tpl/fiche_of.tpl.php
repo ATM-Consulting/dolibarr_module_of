@@ -204,15 +204,10 @@
 	</div>
 </div>
 	
-	
-	
 	<div style="clear:both;"></div>
-	<div id="assetChildContener">
-		
-		<h2>OF Enfants</h2>
-	
-	</div>
-	
+		<div id="assetChildContener" [view.hasChildren;noerr;if [val]='';then 'style="display:none"']>
+			<h2 id="titleOFEnfants">OF Enfants</h2>
+		</div>
 	<script type="text/javascript">
 		
 		$(document).ready(function() {
@@ -227,7 +222,7 @@
 		
 		function getChild() {
 			
-			$('#assetChildContener').empty();
+			$('#assetChildContener > *:not("#titleOFEnfants")').remove();
 			$('#assetChildContener').show();
 			$.ajax({
 				
