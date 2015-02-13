@@ -226,6 +226,9 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 		<?
 	}
 	
+	// Utilisé pour afficher les bulles d'aide :: A voir si on ferais mieux pas de copier la fonction dans la class TFormCore pour éviter cette instant
+	$html=new Form($db);
+	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formeq','POST');
 	$form->Set_typeaff($mode);
 	
@@ -392,12 +395,12 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			'asset'=>array(
 				'id'=>$asset->getId()
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
-				,'serial_number'=>$form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir')
+				,'serial_number'=>$html->textwithpicto($form->texte('', 'serial_number', $asset->serial_number, 100,255,'','','à saisir'), $langs->trans('CreateAssetFromProductErrorBadMask'), 1, 'help', '', 0, 3)
 				,'produit'=>_fiche_visu_produit($asset,$mode)
 				,'entrepot'=>_fiche_visu_produit($asset,$mode,'warehouse')
 				,'societe'=>_fiche_visu_societe($asset,$mode)
 				,'societe_localisation'=>_fiche_visu_societe($asset,$mode,"societe_localisation")
-				,'lot_number'=>$form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir')
+				,'lot_number'=>$html->textwithpicto($form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir'), $langs->trans('CreateAssetFromProductNumLot'), 1, 'help', '', 0, 3)
 				,'contenance_value'=>$form->texte('', 'contenance_value',number_format(($asset->getId()) ? $asset->contenance_value : $asset->assetType->contenance_value,2,',',''), 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
 				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format(($asset->getId()) ? $asset->contenancereel_value :  $asset->assetType->contenancereel_value,2,',',''), 12,10,'','','0.00')
@@ -451,17 +454,16 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 }
 
 function _fiche_visu_produit(&$asset, $mode,$type='') {
-global $db, $conf;
+global $db, $conf, $langs;
 	
 	dol_include_once('/product/class/html.formproduct.class.php');
 	
 	if(($mode=='edit' || $mode=='new') && $type == "") {
 		ob_start();	
 		$html=new Form($db);
-		$html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+		print $html->textwithpicto($html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array()), $langs->trans('CreateAssetFromProductDescListProduct'), 1, 'help', '', 0, 3);
 		
 		return ob_get_clean();
-		
 	}
 	elseif($type == "warehouse"){
 		ob_start();

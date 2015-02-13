@@ -51,3 +51,9 @@ UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
 UseBatchNumberInOf = Utiliser la gestion des lots dans OF
+
+
+CreateAssetFromProductDescListProduct=La liste contient uniquement les produits avec un état "En vente"
+CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.
+CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement" => "Liste des Lots" => "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
+
