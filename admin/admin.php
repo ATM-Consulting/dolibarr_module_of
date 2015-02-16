@@ -62,6 +62,13 @@
 	print '</td></tr>';	
 	
 	print '<tr>';
+	print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('CREATE_CHILDREN_OF');
+	print '</td></tr>';	
+	
+	print '<tr>';
 	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	
@@ -85,11 +92,14 @@ function showParameters(&$form) {
 		<input type="hidden" name="action" value="save" />
 		<table width="100%" class="noborder" style="background-color: #fff;">
 			<tr class="liste_titre">
-				<td colspan="2"><?php echo $langs->trans('Parameters') ?></td>
+				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
 			</tr>
 			
 			<tr>
-				<td><?php echo $langs->trans('DefaultWarehouseId') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID]'); ?></td>
+				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr>
 		</table>
 		<p align="right">	

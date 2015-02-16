@@ -48,6 +48,10 @@ AssetNewType=Nouveau type d'équipement
 
 #Configuration
 DefaultWarehouseId = Default warehouse for stock management
+DefaultWarehouseIdToMake=Default warehouse for stock management (products to make)
+DefaultWarehouseIdNeeded=Default warehouse for stock management (products needed)
+ParametersWarehouse=Warehouses
+CreateAssetChildrenOF=Créer des OF enfants lorsque les produits nécessaires sont hors stock et sans composants
 UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande

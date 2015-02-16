@@ -151,6 +151,7 @@ class TAssetOF extends TObjetStd{
 		global $db;	
 		
 		$Tab=array();
+		
 		$product = new Product($db);
 		$product->fetch($id_product);
 		$TRes = $product->getChildsArbo($product->id);
@@ -161,6 +162,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	private function getProductComposition_arrayMerge(&$ATMdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) {
+		global $conf;
 		
 		foreach($TRes as $row) {
 			
@@ -182,7 +184,7 @@ class TAssetOF extends TObjetStd{
 				}
 			}
 			
-			if($createOF) {
+			if(!empty($conf->global->CREATE_CHILDREN_OF) && $createOF) {
 				$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
 			}
 		}
@@ -301,8 +303,6 @@ class TAssetOF extends TObjetStd{
 				$this->TAssetWorkstationOF[$k]->nb_hour = $res->nb_hour;
 			}
 		}
-		
-		//$this->loadChild($PDOdb);
 	}
 	
 	//Finalise un OF => incrémention/décrémentation du stock

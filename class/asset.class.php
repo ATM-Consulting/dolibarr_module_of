@@ -116,7 +116,7 @@ class TAsset extends TObjetStd{
 		
 		global $conf;
 		
-		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID; 
+		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE; 
 				
 		if(!$destock_dolibarr_only) {
 			

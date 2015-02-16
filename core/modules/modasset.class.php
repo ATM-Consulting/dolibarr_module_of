@@ -103,13 +103,14 @@ class modAsset extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0) );
 		//                             2=>array('MAIN_MODULE_MYMODULE_NEEDSMARTY','chaine',1,'Constant to say module need smarty',1)
 		$this->const = array(
-			0=>array('ASSET_USE_PRODUCTION_ATTRIBUT','chaine','1',"",1)
+			array('ASSET_USE_PRODUCTION_ATTRIBUT','chaine','1',"",1)
 			// Template à utiliser
-			,1=>array('TEMPLATE_OF','chaine','templateOF.odt',"Template à utiliser",1)
+			,array('TEMPLATE_OF','chaine','templateOF.odt',"Template à utiliser",1)
 			//Pour afficher la s�lection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
-			,2=>array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
-			,3=>array('ASSET_DEFAULT_WAREHOUSE_ID',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF',1)
-			,3=>array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
+			,array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
+			,array('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits a fabriquer)',1)
+			,array('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits nécessaires)',1)
+			,array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
 		);
 
 
