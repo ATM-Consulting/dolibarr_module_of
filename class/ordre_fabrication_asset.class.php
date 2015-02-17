@@ -179,7 +179,8 @@ class TAssetOF extends TObjetStd{
 			
 			if (!empty($conf->global->CREATE_CHILDREN_OF))
 			{
-				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) {
+				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
+				{
 					if(!$createOF) {
 						$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
 					}
@@ -193,8 +194,6 @@ class TAssetOF extends TObjetStd{
 				}
 				
 			}
-			
-			
 		}
 		
 	} 
@@ -203,25 +202,22 @@ class TAssetOF extends TObjetStd{
 	 * Crée une OF si produit composé pas en stock
 	 */
 	function createOFifneeded(&$ATMdb,$fk_product, $qty_needed) {
-		
 		global $conf;
 
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
 
-		if($reste>0) {
+		if($reste>=0) {
 			null;
 		}
 		else {
-			
 			$k=$this->addChild($ATMdb,'TAssetOF');
 			$this->TAssetOF[$k]->status = "DRAFT";
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
-
 		}
-		
 	}
+	
 	/*
 	 * retourne le stock restant du produit
 	 */
@@ -234,7 +230,6 @@ class TAssetOF extends TObjetStd{
 		$product->load_stock();
 		
 		return $product->stock_reel;
-		
 	}
 	
 	/*function createCommandeFournisseur($type='externe'){
@@ -258,8 +253,7 @@ class TAssetOF extends TObjetStd{
 		return 1;
 	}*/
 	
-	
-	
+
 	//Ajoute une ligne de produit à l'OF
 	function addLine(&$ATMdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
 		global $user, $conf;
