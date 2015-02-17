@@ -224,6 +224,12 @@
 		$(document).ready(function() {
 			var type = "";
 			
+			/* Le 1er formulaire s'enregistre sans ajax, donc je prend la précaution de ne pas passer au statut suivant lors de l'enregistrement */
+			var formParent = $("div.OFMaster:first form");
+			formParent.find("input[type=submit]").unbind().click(function() {
+				formParent.children("input[name=action]").val("save");
+			});
+			
 			if([assetOf.id]>0) {
 				getChild();
 				refreshDisplay();
@@ -436,9 +442,10 @@
 			})
 		}
 		
-		function refreshTab(id) {
+		function refreshTab(id, action) {
+			if (typeof(action) == 'undefined') action = 'view';
 			
-			$.get("fiche_of.php?action=edit&id="+id , function(data) {
+			$.get("fiche_of.php?action="+action+"&id="+id , function(data) {
 		     	$('div.OFContent[rel='+id+'] table.needed').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.needed') );
 		     	$('div.OFContent[rel='+id+'] table.tomake').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.tomake') );
 		     	$('div.OFContent[rel='+id+'] table.workstation').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.workstation') );
@@ -466,14 +473,24 @@
 		
 		
 		function addAllLines(id_assetOf,idLine,btnadd){
-			//var qty = $('#qty['+idLine+']').val();
-			qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
+			[onshow;block=begin;when [view.mode]=='view']
+				return alert("Votre OF doit être au statut brouillon et devez être en modification pour mettre à jour les valeurs des produits nécessaires.");
+			[onshow;block=end]
 			
-			$.ajax(
-				{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
-			).done(function(){
-				refreshTab(id_assetOf);
-			});
+			
+			[onshow;block=begin;when [view.mode]!='view']
+			if ($(btnadd).attr('statut') == 'DRAFT') {
+				qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
+				
+				$.ajax(
+					{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
+				).done(function(){
+					refreshTab(id_assetOf, 'edit');
+				});
+			} else {
+				alert("Cette OF n'est plus au statut brouillon.");
+			}
+			[onshow;block=end]
 		}
 		
 </script>
