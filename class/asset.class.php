@@ -117,7 +117,7 @@ class TAsset extends TObjetStd{
 		global $conf;
 		
 		if($conf->clinomadic->enabled){
-			$fk_entrepot = $asset->fk_entrepot;
+			$fk_entrepot = $this->fk_entrepot;
 		}
 		
 		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID; 
