@@ -18,7 +18,7 @@
 					<input type="hidden" name="action" value="save">
 				[onshow;block=end]
 				[onshow;block=begin;when [view.status]=='DRAFT']
-					<input type="hidden" name="action" value="[assetOf.id;noerr;if [val]>0;then 'valider';else 'create']">
+					<input type="hidden" name="action" value="[assetOf.id;noerr;if [val]!=0;then 'valider';else 'create']">
 				[onshow;block=end]
 				[onshow;block=begin;when [view.status]=='VALID']
 					<input type="hidden" name="action" value="lancer">
@@ -286,6 +286,8 @@
 										
 										if ($(this).attr('rel') == 'noajax') return true;
 										
+										var oldInputAction = $(targetForm).children('input[name=action]').val();
+										$(targetForm).children('input[name=action]').val('save');
 										$.ajax({
 											url: $(targetForm).attr('action'),
 											data: $(targetForm).serialize(),
@@ -303,7 +305,8 @@
 												$.jnotify('Une erreur c\'est produite', "error");
 											}
 										});
-										
+									
+										$(targetForm).children('input[name=action]').val(oldInputAction);
 										return false;
 									});
 							});
@@ -385,26 +388,6 @@
 					}
 				});
 			});
-			
-			/*
-			$("input[name=valider]").click(function(){
-				if(confirm('Valider cet Ordre de Fabrication?')) {
-					$('input[name=action]').val('valider');
-					$('#formOF[assetOf.id]').submit();	
-				}
-				
-			});
-			
-			$("input[name=lancer]").click(function(){
-				$('input[name=action]').val('lancer');
-				$('#formOF[assetOf.id]').submit();	
-			})
-			*/
-			
-			$("input[name=save]").click(function(){
-				$('input[name=action]').val('save');
-			})
-			
 			
 			if([assetOf.id]>0) {
 				$('div.of-details').show();
