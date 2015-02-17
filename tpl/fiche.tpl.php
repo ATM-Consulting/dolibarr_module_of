@@ -17,7 +17,9 @@
 					});
 				</script>
 				<tr><td width="20%">Numéro de série</td><td>[asset.serial_number;strconv=no]</td>[asset.typehidden;strconv=no;protect=no]</tr>
-				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>[onshow;block=end]
+				[onshow;block=begin;when [view.use_lot_in_of]=='1']
+					[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Numéro Lot</td><td>[asset.lot_number;strconv=no;protect=no]</td></tr>[onshow;block=end]
+				[onshow;block=end]
 				<tr><td>Produit</td><td>[asset.produit;strconv=no]</td></tr>
 				<tr><td>Entrepôt</td><td>[asset.entrepot;strconv=no]</td></tr>
 				<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>

@@ -106,11 +106,12 @@ class modAsset extends DolibarrModules
 			array('ASSET_USE_PRODUCTION_ATTRIBUT','chaine','1',"",1)
 			// Template à utiliser
 			,array('TEMPLATE_OF','chaine','templateOF.odt',"Template à utiliser",1)
-			//Pour afficher la s�lection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
+			//Pour afficher la sélection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
 			,array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits a fabriquer)',1)
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits nécessaires)',1)
 			,array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
+			,array('CREATE_CHILDREN_OF', 'chaine', 1,'Permet de créer des OF enfants si les composant sont hors stock',1)
 		);
 
 

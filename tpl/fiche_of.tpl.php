@@ -2,8 +2,12 @@
 <style type="text/css">
 	.draft, .draftedit,.nodraft,.viewmode,.of-details {
 		
-		display:none;
+		/*display:none;*/
 		
+	}
+	
+	#status {
+		display:none;
 	}
 	
 </style>
@@ -16,10 +20,21 @@
 [onshow;block=end]				
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
 		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
-				<input type="hidden" value="save" name="action">		
+				[onshow;block=begin;when [view.status]=='CLOSE']
+					<input type="hidden" name="action" value="save">
+				[onshow;block=end]
+				[onshow;block=begin;when [view.status]=='DRAFT']
+					<input type="hidden" name="action" value="valider">
+				[onshow;block=end]
+				[onshow;block=begin;when [view.status]=='VALID']
+					<input type="hidden" name="action" value="lancer">
+				[onshow;block=end]
+				[onshow;block=begin;when [view.status]=='OPEN']
+					<input type="hidden" name="action" value="terminer">
+				[onshow;block=end]
+				
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">		
 				<input type="hidden" value="[assetOf.id]" name="id">
-				
 				
 			<table width="100%" class="border">
 				
@@ -35,16 +50,17 @@
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
 				<tr><td>Statut</td><td>[assetOf.status;strconv=no]
 					[onshow;block=begin;when [view.status]!='CLOSE']
-					<span class="viewmode notinparentview">, passer à l'état : 
-					[onshow;block=begin;when [view.status]=='DRAFT']
-						<input type="button" class="butAction" name="valider" value="Valider">
-					[onshow;block=end]
-					[onshow;block=begin;when [view.status]=='VALID']
-						&nbsp; &nbsp; <input type="button" onclick="return confirm('Lancer cet Ordre de Fabrication?');" class="butAction" name="lancer" value="Production en cours">
-					[onshow;block=end]
-					[onshow;block=begin;when [view.status]=='OPEN']
-						&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication?');" class="butAction">Terminer</a>
-					[onshow;block=end]
+						<span class="viewmode notinparentview">passer à l'état :
+						[onshow;block=begin;when [view.status]=='DRAFT']
+							<input type="button" onclick="if (confirm('Valider cet Ordre de Fabrication ?')) { submitForm([assetOf.id]); }" class="butAction" name="valider" value="Valider">
+						[onshow;block=end]
+						[onshow;block=begin;when [view.status]=='VALID']
+							<input type="button" onclick="if (confirm('Lancer cet Ordre de Fabrication ?')) { submitForm([assetOf.id]); }" class="butAction" name="lancer" value="Production en cours">
+						[onshow;block=end]
+						[onshow;block=begin;when [view.status]=='OPEN']
+							<input type="button" onclick="if (confirm('Terminer cet Ordre de Fabrication ?')) { submitForm([assetOf.id]); }" class="butAction" name="terminer" value="Terminer">
+							<!-- <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication ?');" class="butAction">Terminer</a> -->
+						[onshow;block=end]
 					[onshow;block=end]
 					</span>
 				</td></tr>
@@ -251,9 +267,11 @@
 								
 								var id_form = html.find('form').attr('id');
 								
+								html.find('input[name="ajax"]').val(1);
+								
 								$('#assetChildContener').append(html);
 								
-								$('#assetChildContener .notinparentview').remove();
+								/*$('#assetChildContener .notinparentview').remove();*/
 								
 								refreshDisplay();
 								
@@ -272,15 +290,28 @@
 								});
 								
 									$("#"+id_form).submit(function() {
-										$.post($(this).attr('action'), $( this ).serialize() );
-							
-										$(this).css('border' , '5px solid green');
+										var targetForm = this;
 										
-										$(this).animate({ "border": "5px solid green" }, 'slow');
-										$(this).animate({ "border": "0px" }, 'slow');
+										if ($(this).attr('rel') == 'noajax') return true;
 										
-										$.jnotify('Modifications enregistr&eacute;es', "ok");   
-							
+										$.ajax({
+											url: $(targetForm).attr('action'),
+											data: $(targetForm).serialize(),
+											type: 'POST',
+											async: false,
+											success: function () {
+												$(targetForm).css('border' , '5px solid green');
+												
+												$(targetForm).animate({ "border": "5px solid green" }, 'slow');
+												$(targetForm).animate({ "border": "0px" }, 'slow');
+																							
+												$.jnotify('Modifications enregistr&eacute;es', "ok");
+											},
+											error: function () {
+												$.jnotify('Une erreur c\'est produite', "error");
+											}
+										});
+										
 										return false;
 									});
 							});
@@ -289,14 +320,16 @@
 						
 					}
 			
-			}
-		});
+				}
+			});
 		
-			
+		}
+
+		function submitForm(assetOFId) {
+			$('#formOF'+assetOFId).attr('rel', 'noajax').submit();	
 		}
 
 		function refreshDisplay() {
-			
 			$(".btnaddproduct" ).click(function() {
 				var type = $(this).attr('rel');
 				var idassetOf = $(this).attr('id_assetOf');
@@ -361,6 +394,7 @@
 				});
 			});
 			
+			/*
 			$("input[name=valider]").click(function(){
 				if(confirm('Valider cet Ordre de Fabrication?')) {
 					$('input[name=action]').val('valider');
@@ -373,6 +407,12 @@
 				$('input[name=action]').val('lancer');
 				$('#formOF[assetOf.id]').submit();	
 			})
+			*/
+			
+			$("input[name=save]").click(function(){
+				$('input[name=action]').val('save');
+			})
+			
 			
 			if([assetOf.id]>0) {
 				$('div.of-details').show();

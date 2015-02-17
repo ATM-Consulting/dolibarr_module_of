@@ -177,16 +177,24 @@ class TAssetOF extends TObjetStd{
 				$Tab[$prod->fk_product]=$prod;	
 			}
 			
-			if(!empty($row['childs'])) {
-				
-				if(!$createOF) {
-					$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
+			if (!empty($conf->global->CREATE_CHILDREN_OF))
+			{
+				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) {
+					if(!$createOF) {
+						$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
+					}
 				}
+				
+				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
+				{
+					if($createOF) {
+						$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
+					}
+				}
+				
 			}
 			
-			if(!empty($conf->global->CREATE_CHILDREN_OF) && $createOF) {
-				$this->createOFifneeded($ATMdb, $prod->fk_product, $prod->qty * $qty_parent);
-			}
+			
 		}
 		
 	} 
@@ -610,6 +618,7 @@ class TAssetOF extends TObjetStd{
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
 		$sql.= " WHERE fk_assetOf_parent = ".$id_parent;
+		$sql.= " ORDER BY rowid";
 		
 		$Tab = $ATMdb->ExecuteAsArray($sql);
 		foreach($Tab as $row) {
@@ -718,7 +727,7 @@ class TAssetOFLine extends TObjetStd{
 		//echo $this->lot_number.'<br>';
 		
 		//pre($this,true);
-		
+
 		$ATMdb->Execute($sql);
 
 		if($this->type == "NEEDED" && $AssetOf->status == "OPEN"){

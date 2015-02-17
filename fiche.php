@@ -425,6 +425,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			,'view'=>array(
 				'mode'=>$mode
 				,'clinomadic'=>($conf->clinomadic->enabled) ? 'view' : 'none'
+				,'use_lot_in_of'=>(int)$conf->global->USE_LOT_IN_OF
 				,'entrepot'=>($conf->clinomadic->enabled) ? _fiche_visu_produit($asset,'edit','warehouse') : 'none'
 				,'module_financement'=>(int)isset($conf->global->MAIN_MODULE_FINANCEMENT)
 				,'champs_production'=>$conf->global->ASSET_USE_PRODUCTION_ATTRIBUT

@@ -69,6 +69,13 @@
 	print '</td></tr>';	
 	
 	print '<tr>';
+	print '<td>'.$langs->trans("CreateAssetChildrenOFWithComposant").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT');
+	print '</td></tr>';	
+	
+	print '<tr>';
 	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	

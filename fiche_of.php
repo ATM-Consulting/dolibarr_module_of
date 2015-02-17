@@ -41,155 +41,151 @@ function _action() {
 	********************************************************************/
 
 	$action=__get('action','view');
-
-		switch($action) {
-			case 'new':
-			case 'add':
-				$assetOf=new TAssetOF;
-				$assetOf->set_values($_REQUEST);
-
-				$fk_product = __get('fk_product',0,'int');
-
-				_fiche($PDOdb, $assetOf,'edit', $fk_product);
-
-				break;
-
-			case 'edit'	:
-				$assetOf=new TAssetOF;
-				$assetOf->load($PDOdb, $_REQUEST['id']);
-
-				_fiche($PDOdb,$assetOf,'edit');
-				break;
-
-			case 'save':
-				$assetOf=new TAssetOF;
-				if(!empty($_REQUEST['id'])) {
-					$assetOf->load($PDOdb, $_REQUEST['id'], false);
-					$mode = 'view';
-				}
-				else {
-					$mode = 'edit';
-				}
-
-				$assetOf->set_values($_REQUEST);
-				
-				$fk_product = __get('fk_product_to_add',0);
-				if($fk_product > 0) {
-					$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE');	
-					$assetOf->addWorkstation($PDOdb, $db, $fk_product);
-				}
-
-				if(!empty($_REQUEST['TAssetOFLine'])) {
-					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
-						if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
-						$assetOf->TAssetOFLine[$k]->set_values($row);
-					}
-
-
-					foreach($assetOf->TAssetOFLine as &$line) {
-						$line->TAssetOFLine=array();
-					}
-
-				}
-				
-				if(!empty($_REQUEST['TAssetWorkstationOF'])) {
-					foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
-						$assetOf->TAssetWorkstationOF[$k]->set_values($row);
-					}
-				}
-				
-				$assetOf->entity = $conf->entity;
-
-				$assetOf->save($PDOdb);
-				
-				//Si on viens d'un produit alors je recharge les enfants
-				if ($fk_product > 0) $assetOf->loadChild($PDOdb);
-				
-				_fiche($PDOdb,$assetOf, $mode);
-
-				break;
-
-			case 'valider':
-				
-				$assetOf=new TAssetOF;
-				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				$assetOf->status = "VALID";
-
-
-				if(!empty($_REQUEST['TAssetOFLine'])) {
-					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
-						$assetOf->TAssetOFLine[$k]->set_values($row);
-					}
-				}
-				$assetOf->createOfAndCommandesFourn($PDOdb);
-				$assetOf->unsetChildDeleted = true;
-				
-				$assetOf->save($PDOdb);
-				
-				//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
-				$assetOf=new TAssetOF;
-				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				
-				_fiche($PDOdb,$assetOf, 'view');
-
-				break;
-
-			case 'lancer':
-				$assetOf=new TAssetOF;
-				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				$assetOf->status = "OPEN";
-
-				$assetOf->setEquipement($PDOdb);
-				
-				//$assetOf->openOF($PDOdb);
-				$assetOf->save($PDOdb);
-				_fiche($PDOdb, $assetOf, 'view');
-
-				break;
-
-			case 'terminer':
-				$assetOf=new TAssetOF;
-				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-				$assetOf->status = "CLOSE";
-				
-				$assetOf->closeOF($PDOdb);
-				$assetOf->save($PDOdb);
-				
-				_fiche($PDOdb,$assetOf, 'view');
-				
-				break;
-
-			case 'delete':
-				$assetOf=new TAssetOF;
-				$assetOf->load($PDOdb, $_REQUEST['id'], false);
-				
-				//$PDOdb->db->debug=true;
-				$assetOf->delete($PDOdb);
-				
-				?>
-				<script language="javascript">
-					document.location.href="<?=dol_buildpath('/asset/liste_of.php',1); ?>?delete_ok=1";					
-				</script>
-				<?
-				
-				break;
-
-			case 'view':
-				$assetOf=new TAssetOF;
-				$assetOf->load($PDOdb, $_REQUEST['id'], false);
-
-				_fiche($PDOdb, $assetOf, 'view');
-
-				break;
-			case 'createDocOF':
-				
-				generateODTOF($PDOdb);
-
-				break;
-		}
-		
 	
-	
+	switch($action) {
+		case 'new':
+		case 'add':
+			$assetOf=new TAssetOF;
+			$assetOf->set_values($_REQUEST);
+
+			$fk_product = __get('fk_product',0,'int');
+
+			_fiche($PDOdb, $assetOf,'edit', $fk_product);
+
+			break;
+
+		case 'edit'	:
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $_REQUEST['id']);
+
+			_fiche($PDOdb,$assetOf,'edit');
+			break;
+
+		case 'save':
+			$assetOf=new TAssetOF;
+			if(!empty($_REQUEST['id'])) {
+				$assetOf->load($PDOdb, $_REQUEST['id'], false);
+				$mode = 'view';
+			}
+			else {
+				$mode = 'edit';
+			}
+
+			$assetOf->set_values($_REQUEST);
+			
+			$fk_product = __get('fk_product_to_add',0);
+			if($fk_product > 0) {
+				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE');	
+				$assetOf->addWorkstation($PDOdb, $db, $fk_product);
+			}
+
+			if(!empty($_REQUEST['TAssetOFLine'])) {
+				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+					if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
+					$assetOf->TAssetOFLine[$k]->set_values($row);
+				}
+
+
+				foreach($assetOf->TAssetOFLine as &$line) {
+					$line->TAssetOFLine=array();
+				}
+
+			}
+			
+			if(!empty($_REQUEST['TAssetWorkstationOF'])) {
+				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
+					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
+				}
+			}
+			
+			$assetOf->entity = $conf->entity;
+
+			$assetOf->save($PDOdb);
+			
+			//Si on viens d'un produit alors je recharge les enfants
+			if ($fk_product > 0) $assetOf->loadChild($PDOdb);
+			
+			_fiche($PDOdb,$assetOf, $mode);
+
+			break;
+
+		case 'valider':
+			$assetOf=new TAssetOF;
+			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			$assetOf->status = "VALID";
+
+
+			if(!empty($_REQUEST['TAssetOFLine'])) {
+				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+					$assetOf->TAssetOFLine[$k]->set_values($row);
+				}
+			}
+			$assetOf->createOfAndCommandesFourn($PDOdb);
+			$assetOf->unsetChildDeleted = true;
+			
+			$assetOf->save($PDOdb);
+			
+			//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
+			$assetOf=new TAssetOF;
+			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			
+			_fiche($PDOdb,$assetOf, 'view');
+
+			break;
+
+		case 'lancer':
+			$assetOf=new TAssetOF;
+			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			$assetOf->status = "OPEN";
+
+			$assetOf->setEquipement($PDOdb);
+			
+			//$assetOf->openOF($PDOdb);
+			$assetOf->save($PDOdb);
+			_fiche($PDOdb, $assetOf, 'view');
+
+			break;
+
+		case 'terminer':
+			$assetOf=new TAssetOF;
+			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			$assetOf->status = "CLOSE";
+			
+			$assetOf->closeOF($PDOdb);
+			$assetOf->save($PDOdb);
+			
+			_fiche($PDOdb,$assetOf, 'view');
+			
+			break;
+
+		case 'delete':
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $_REQUEST['id'], false);
+			
+			//$PDOdb->db->debug=true;
+			$assetOf->delete($PDOdb);
+			
+			?>
+			<script language="javascript">
+				document.location.href="<?=dol_buildpath('/asset/liste_of.php',1); ?>?delete_ok=1";					
+			</script>
+			<?
+			
+			break;
+
+		case 'view':
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $_REQUEST['id'], false);
+
+			_fiche($PDOdb, $assetOf, 'view');
+
+			break;
+		case 'createDocOF':
+			
+			generateODTOF($PDOdb);
+
+			break;
+	}
 	
 }
 
@@ -401,7 +397,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$product->id.'">'.img_picto('', 'object_product.png').$product->libelle.'</a> - '.$langs->trans("Stock")." : ".$product->stock_reel
-				,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Ajout des produit nécessaire', 'previous.png').'</a>'
+				,'addneeded'=> '<a href="#null" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>'
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
 				,'delete'=> '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>'
