@@ -251,6 +251,7 @@
 						
 							$.ajax({
 								url : "[assetOf.url]"
+								,async: false
 								,data:{
 									action:"[view.actionChild]"
 									,id:Tid[x]

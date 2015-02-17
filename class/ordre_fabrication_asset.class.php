@@ -612,7 +612,7 @@ class TAssetOF extends TObjetStd{
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
 		$sql.= " WHERE fk_assetOf_parent = ".$id_parent;
-		$sql.= " ORDER BY rowid";
+		$sql.= " ORDER BY fk_assetOf_parent, rowid";
 		
 		$Tab = $ATMdb->ExecuteAsArray($sql);
 		foreach($Tab as $row) {
