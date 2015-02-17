@@ -54,13 +54,14 @@ function _action() {
 
 			break;
 
-		case 'edit'	:
+		case 'edit':
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $_REQUEST['id']);
 
 			_fiche($PDOdb,$assetOf,'edit');
 			break;
-
+		
+		case 'create':
 		case 'save':
 			$assetOf=new TAssetOF;
 			if(!empty($_REQUEST['id'])) {
@@ -101,6 +102,9 @@ function _action() {
 			$assetOf->entity = $conf->entity;
 
 			$assetOf->save($PDOdb);
+			
+			//Si on créé un OF il faut recharger la page pour avoir le bon rendu
+			if ($action == 'create') header('Location: '.$_SERVER["PHP_SELF"].'?id='.$assetOf->getId());
 			
 			//Si on viens d'un produit alors je recharge les enfants
 			if ($fk_product > 0) $assetOf->loadChild($PDOdb);

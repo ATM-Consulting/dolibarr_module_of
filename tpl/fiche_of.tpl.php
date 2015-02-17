@@ -1,4 +1,3 @@
-
 <style type="text/css">
 	/* Nécessaire pour cacher les informations qui ne doivent pas être accessibles à la 1ere étape de création d'un OF :: C'est très sale */ 
 	[onshow;block=begin;when [assetOf.id]==0]
@@ -7,19 +6,19 @@
 	}		
 	[onshow;block=end]
 	
+	[onshow;block=begin;when [assetOf.id]!=0]
 	#status {
 		display:none;
 	}
-	
-</style>
-				
+	[onshow;block=end]
+</style>		
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
-		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
+		<form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
 				[onshow;block=begin;when [view.status]=='CLOSE']
 					<input type="hidden" name="action" value="save">
 				[onshow;block=end]
 				[onshow;block=begin;when [view.status]=='DRAFT']
-					<input type="hidden" name="action" value="valider">
+					<input type="hidden" name="action" value="[assetOf.id;noerr;if [val]>0;then 'valider';else 'create']">
 				[onshow;block=end]
 				[onshow;block=begin;when [view.status]=='VALID']
 					<input type="hidden" name="action" value="lancer">
@@ -64,131 +63,132 @@
 				
 			</table>
 			
-		<div class="of-details" style="margin-top: 25px;">
-			<div style="text-align: right;height:40px;" class="draftedit">
-				<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
+			<div class="of-details" style="margin-top: 25px;">
+				<div style="text-align: right;height:40px;" class="draftedit">
+					<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
+				</div>
+				<table width="100%" class="border workstation">
+					<tr style="background-color:#dedede;">
+						<th>Poste de travail</th>
+						<th>Nb. heures prévues</th>
+						<th>Nb. heures réelles</th>
+						<th class="draftedit">Action</th>
+					</tr>
+					<tr id="WS[workstation.id]" style="background-color:#fff;">
+						<td>[workstation.libelle;block=tr]</td>
+						<td>[workstation.nb_hour;strconv=no]</td>
+						<td>[workstation.nb_hour_real;strconv=no]</td>
+						<td class="draftedit">[workstation.delete;strconv=no]</td>
+					</tr>
+					<tr>
+						<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
+					</tr>
+				</table>
 			</div>
-			<table width="100%" class="border workstation">
-				<tr style="background-color:#dedede;">
-					<th>Poste de travail</th>
-					<th>Nb. heures prévues</th>
-					<th>Nb. heures réelles</th>
-					<th class="draftedit">Action</th>
-				</tr>
-				<tr id="WS[workstation.id]" style="background-color:#fff;">
-					<td>[workstation.libelle;block=tr]</td>
-					<td>[workstation.nb_hour;strconv=no]</td>
-					<td>[workstation.nb_hour_real;strconv=no]</td>
-					<td class="draftedit">[workstation.delete;strconv=no]</td>
-				</tr>
-				<tr>
-					<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
-				</tr>
-			</table>
-		</div>
-
-
-		<div class="of-details" style="margin-top: 25px;">
-			<table width="100%" class="border">
-				<tr height="40px;">
-					<td style="border-right: none;">Produits nécessaires à la fabrication</td>
-					<td style="border-left: none; text-align: right;">
-						
-						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>
-						
-					</td>
-					<td style="border-right: none; ">Produits à créer</td>
-					<td style="border-left: none; text-align: right;">
-						
-						<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
-						
-					</td>
-				</tr>
-				<tr style="background-color:#fff;">
-					<td colspan="2" width="50%" valign="top">
-						<!-- NEEDED -->
-						<table width="100%" class="border needed">
-							<tr style="background-color:#dedede;">
-								[onshow;block=begin;when [view.use_lot_in_of]=='1']
-									<td width="20%">Lot</td>
-								[onshow;block=end]
-								<!--<td>Equipement</td>-->
-								<td>Produit</td>
-								<td>Quantité nécessaire</td>
-								<td>Quantité réelle</td>
-								<td class="nodraft">Quantité utilisée</td>
-								<!-- <td class="draft">Delta</td> -->
-								<td class="draftedit" style="width:20px;">Action</td>
-								
-							</tr>
-							<tr id="[TNeeded.id]">
-								[onshow;block=begin;when [view.use_lot_in_of]=='1']
-									<td>[TNeeded.lot_number;strconv=no]</td>
-								[onshow;block=end]
-								<!--<td>Equipement</td>-->
-								<td>[TNeeded.libelle;block=tr;strconv=no]</td>
-								<td>[TNeeded.qty_needed]</td>
-								<td>[TNeeded.qty;strconv=no]</td>
-								<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
-								
-								<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
-								<td class="draftedit">[TNeeded.delete;strconv=no]</td>
-								
-							</tr>
-						</table>
-					</td> 
-					<td colspan="2" width="50%" valign="top">
-						<!-- TO_MAKE -->
-						<table width="100%" class="border tomake">
-							<tr style="background-color:#dedede;">
-								<td class="draftedit" style="width:20px;">Action</td>
-								[onshow;block=begin;when [view.use_lot_in_of]=='1']
-									<td>Lot</td>
-								[onshow;block=end]
-								<td>Produit</td>
-								<td>Quantité à produire</td>
-								<td>Fournisseur</td>
-								<td class="draftedit" style="width:20px;">Action</td>
-								
-							</tr>
-							<tr id="[TTomake.id]">
-								<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
-								[onshow;block=begin;when [view.use_lot_in_of]=='1']
-									<td>[TTomake.lot_number;strconv=no]</td>
-								[onshow;block=end]
-								<td>[TTomake.libelle;block=tr;strconv=no]</td>
-								<td>[TTomake.qty;strconv=no]</td>
-								<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
-								
-								<td class="draftedit">[TTomake.delete;strconv=no]</td>
-								
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-		</div>
-
-
-[onshow;block=begin;when [view.mode]=='view']
-	<div class="tabsAction notinparentview">
-		
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Ordre de Fabrication?'))document.location.href='?action=delete&id=[assetOf.id]'">
-		&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
-		&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
-		
-	</div>
-[onshow;block=end]
 	
-[onshow;block=begin;when [view.mode]!='view']
+	
+			<div class="of-details" style="margin-top: 25px;">
+				<table width="100%" class="border">
+					<tr height="40px;">
+						<td style="border-right: none;">Produits nécessaires à la fabrication</td>
+						<td style="border-left: none; text-align: right;">
+							
+							<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>
+							
+						</td>
+						<td style="border-right: none; ">Produits à créer</td>
+						<td style="border-left: none; text-align: right;">
+							
+							<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
+							
+						</td>
+					</tr>
+					<tr style="background-color:#fff;">
+						<td colspan="2" width="50%" valign="top">
+							<!-- NEEDED -->
+							<table width="100%" class="border needed">
+								<tr style="background-color:#dedede;">
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td width="20%">Lot</td>
+									[onshow;block=end]
+									<!--<td>Equipement</td>-->
+									<td>Produit</td>
+									<td>Quantité nécessaire</td>
+									<td>Quantité réelle</td>
+									<td class="nodraft">Quantité utilisée</td>
+									<!-- <td class="draft">Delta</td> -->
+									<td class="draftedit" style="width:20px;">Action</td>
+									
+								</tr>
+								<tr id="[TNeeded.id]">
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>[TNeeded.lot_number;strconv=no]</td>
+									[onshow;block=end]
+									<!--<td>Equipement</td>-->
+									<td>[TNeeded.libelle;block=tr;strconv=no]</td>
+									<td>[TNeeded.qty_needed]</td>
+									<td>[TNeeded.qty;strconv=no]</td>
+									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
+									
+									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
+									<td class="draftedit">[TNeeded.delete;strconv=no]</td>
+									
+								</tr>
+							</table>
+						</td> 
+						<td colspan="2" width="50%" valign="top">
+							<!-- TO_MAKE -->
+							<table width="100%" class="border tomake">
+								<tr style="background-color:#dedede;">
+									<td class="draftedit" style="width:20px;">Action</td>
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>Lot</td>
+									[onshow;block=end]
+									<td>Produit</td>
+									<td>Quantité à produire</td>
+									<td>Fournisseur</td>
+									<td class="draftedit" style="width:20px;">Action</td>
+									
+								</tr>
+								<tr id="[TTomake.id]">
+									<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>[TTomake.lot_number;strconv=no]</td>
+									[onshow;block=end]
+									<td>[TTomake.libelle;block=tr;strconv=no]</td>
+									<td>[TTomake.qty;strconv=no]</td>
+									<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
+									
+									<td class="draftedit">[TTomake.delete;strconv=no]</td>
+									
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</div>
 
-		<p align="center">
-			[onshow;block=begin;when [view.mode]!='add']
-				<input type="submit" value="Enregistrer" name="save" class="button">
-				&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='[assetOf.url_liste]'">
+
+			[onshow;block=begin;when [view.mode]=='view']
+				<div class="tabsAction notinparentview buttonsAction">
+					
+					<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Ordre de Fabrication?'))document.location.href='?action=delete&id=[assetOf.id]'">
+					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
+					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
+					
+				</div>
 			[onshow;block=end]
-		</p>
-[onshow;block=end]	
+
+			[onshow;block=begin;when [view.mode]!='view']
+				<p align="center">
+					[onshow;block=begin;when [view.mode]!='add']
+						<br />
+						<input type="submit" value="Enregistrer" name="save" class="button">
+						&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='[assetOf.url_liste]'">
+						<br /><br />
+					[onshow;block=end]
+				</p>
+			[onshow;block=end]	
 
 		</form>
 
@@ -259,14 +259,11 @@
 							}).done(function(data) {
 								
 								var html = $(data).find('div.OFMaster');
+								html.find('.buttonsAction').remove();
 								
 								var id_form = html.find('form').attr('id');
 								
-								html.find('input[name="ajax"]').val(1);
-								
 								$('#assetChildContener').append(html);
-								
-								/*$('#assetChildContener .notinparentview').remove();*/
 								
 								refreshDisplay();
 								
