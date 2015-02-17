@@ -1,23 +1,18 @@
 
 <style type="text/css">
+	/* Nécessaire pour cacher les informations qui ne doivent pas être accessibles à la 1ere étape de création d'un OF :: C'est très sale */ 
+	[onshow;block=begin;when [assetOf.id]==0]
 	.draft, .draftedit,.nodraft,.viewmode,.of-details {
-		
-		/*display:none;*/
-		
-	}
+		display:none;		
+	}		
+	[onshow;block=end]
 	
 	#status {
 		display:none;
 	}
 	
 </style>
-
-
-[onshow;block=begin;when [view.mode]=='view']
-
-	
 				
-[onshow;block=end]				
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
 		   <form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
 				[onshow;block=begin;when [view.status]=='CLOSE']
