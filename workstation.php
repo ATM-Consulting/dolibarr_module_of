@@ -151,7 +151,7 @@ global $db,$langs,$conf, $user;
 	
 	$l=new TListviewTBS('listWS');
 
-	$sql= "SELECT wsp.rowid as id, ws.libelle, wsp.rang, wsp.nb_hour 
+	$sql= "SELECT wsp.fk_asset_workstation as id, ws.libelle, wsp.rang, wsp.nb_hour 
 	
 	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
 	 

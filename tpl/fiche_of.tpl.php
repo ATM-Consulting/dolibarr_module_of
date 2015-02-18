@@ -224,10 +224,12 @@
 		$(document).ready(function() {
 			var type = "";
 			
-			/* Le 1er formulaire s'enregistre sans ajax, donc je prend la précaution de ne pas passer au statut suivant lors de l'enregistrement */
+			/* Le 1er formulaire s'enregistre sans ajax, donc je prend la précaution de ne pas passer au statut suivant lors de l'enregistrement 
+			 ni de sauter l'étape de création */
 			var formParent = $("div.OFMaster:first form");
 			formParent.find("input[type=submit]").unbind().click(function() {
-				formParent.children("input[name=action]").val("save");
+				var action = formParent.children("input[name=action]").val();
+				if (action != "save" && action != "create") formParent.children("input[name=action]").val("save");
 			});
 			
 			if([assetOf.id]>0) {
