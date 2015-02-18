@@ -49,6 +49,7 @@ AssetType=Types d'équipement
 AssetNewType=Nouveau type d'équipement
 
 #Configuration
+DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
 DefaultWarehouseIdToMake=Entrepôt de gestion du stock pour Ordre de Fabrication et Equipement (produits a fabriquer)
 DefaultWarehouseIdNeeded=Entrepôt de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
 UseWarehouseId=Utiliser les entrepôts définit par défaut

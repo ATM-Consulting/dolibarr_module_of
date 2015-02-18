@@ -47,6 +47,7 @@ AssetType=Types d'équipement
 AssetNewType=Nouveau type d'équipement
 
 #Configuration
+DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
 DefaultWarehouseId = Default warehouse for stock management
 DefaultWarehouseIdToMake=Default warehouse for stock management (products to make)
 DefaultWarehouseIdNeeded=Default warehouse for stock management (products needed)

@@ -102,15 +102,18 @@ function showParameters(&$form) {
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
 			</tr>
 			
+			<?php /*
 			<tr>
 				<td><?php echo $langs->trans('UseWarehouseId') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_WAREHOUSE_ID'); ?></td>
-			</tr>
+			</tr> 
+			 */ ?>
 			<tr>
-				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
+				<td><?php echo $langs->trans('DefaultWarehouseId') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
-			<tr>
+			<?php /*
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
-			</tr>
+			</tr> 
+			 */ ?>
 		</table>
 		<p align="right">	
 			<input type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" /> 
