@@ -34,7 +34,7 @@
 				
 				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
 				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
-				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.fk_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
+				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
 				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no;magnet=tr]</td></tr>
@@ -65,7 +65,9 @@
 			
 			<div class="of-details" style="margin-top: 25px;">
 				<div style="text-align: right;height:40px;" class="draftedit">
-					<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
+					[onshow;block=begin;when [view.mode]!='view']
+						<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
+					[onshow;block=end]
 				</div>
 				<table width="100%" class="border workstation">
 					<tr style="background-color:#dedede;">
@@ -90,17 +92,17 @@
 			<div class="of-details" style="margin-top: 25px;">
 				<table width="100%" class="border">
 					<tr height="40px;">
-						<td style="border-right: none;">Produits nécessaires à la fabrication</td>
+						<td style="border-right: none;">&nbsp;&nbsp;<b>Produits nécessaires à la fabrication</b></td>
 						<td style="border-left: none; text-align: right;">
-							
-							<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>
-							
+							[onshow;block=begin;when [view.mode]!='view']
+								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>						
+							[onshow;block=end]
 						</td>
-						<td style="border-right: none; ">Produits à créer</td>
+						<td style="border-right: none; ">&nbsp;&nbsp;<b>Produits à créer</b></td>
 						<td style="border-left: none; text-align: right;">
-							
-							<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
-							
+							[onshow;block=begin;when [view.mode]!='view']
+								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
+							[onshow;block=end]
 						</td>
 					</tr>
 					<tr style="background-color:#fff;">
@@ -167,7 +169,6 @@
 					</tr>
 				</table>
 			</div>
-
 
 			[onshow;block=begin;when [view.mode]=='view']
 				<div class="tabsAction notinparentview buttonsAction">

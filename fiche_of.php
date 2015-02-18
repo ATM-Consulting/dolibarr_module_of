@@ -541,6 +541,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 
+	$hasParent = false;
+	if (!empty($assetOf->fk_assetOf_parent))
+	{
+		$TAssetOFParent = new TAssetOF;
+		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
+		$hasParent = true;
+	}
+	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -568,7 +576,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
 				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
-				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent) ? $assetOf->fk_assetOf_parent : ''
+				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
+				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
 			)
 			,'view'=>array(
 				'mode'=>$mode
