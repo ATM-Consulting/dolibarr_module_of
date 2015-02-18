@@ -368,9 +368,7 @@
 			});
 			
 			$(".btnaddworkstation" ).unbind().click(function() {
-				
-				var idassetOf = $(this).attr('id_assetOf');
-				
+				var from = $(this);
 				$( "#dialog-workstation" ).dialog({
 					show: {
 						effect: "blind",
@@ -382,7 +380,7 @@
 							$( this ).dialog( "close" );
 						},				
 						"Ajouter": function(){
-							var idassetOf = [assetOf.id];
+							var idassetOf = from.attr('id_assetOf');
 							var fk_asset_workstation = $('#fk_asset_workstation').val();
 							
 							$.ajax({
@@ -391,7 +389,7 @@
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";
 								$( "#dialog-workstation" ).dialog("close");
-								refreshTab(idassetOf);
+								refreshTab(idassetOf, '[view.mode]');
 							});
 						}
 					}
