@@ -116,12 +116,17 @@ class TAsset extends TObjetStd{
 	{
 		global $conf;
 		
+		if($this->fk_entrepot){
+			$fk_entrepot = $this->fk_entrepot;
+		}
+
 		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE; 
 				
 		if(!$destock_dolibarr_only) 
 		{
 			if(empty($this->serial_number))
 			{
+
 				$this->serial_number = $this->getNextValue($ATMdb);
 			}
 			
