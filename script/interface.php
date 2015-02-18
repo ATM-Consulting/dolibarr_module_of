@@ -171,13 +171,14 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 		
 		foreach ($TAssetOF->TAssetOFLine as $line) 
 		{
+			//Si le produit TO_MAKE de cette OF correspond au notre, on maj sa qté ainsi que ces needed et on stop le traitement pcq pas besoin d'aller plus loin
 			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
 			{
 				$TIdLineModified[] = $TAssetOF->rowid;
 				$line->qty = $qty;
 				$line->save($ATMdb);
 				
-				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty);
+				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, true);
 				$break = true;
 				break;
 			}
@@ -197,6 +198,7 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 	
 	$TAssetOFChildId = array();
 	$TAssetOF->getListeOFEnfants($ATMdb, $TAssetOFChildId, $TAssetOF->rowid, false);
+	
 	foreach ($TAssetOF->TAssetOFLine as $line) 
 	{
 		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE

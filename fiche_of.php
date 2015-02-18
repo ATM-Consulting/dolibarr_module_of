@@ -577,7 +577,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int)$conf->global->USE_LOT_IN_OF
-				,'hasChildren' => !empty($Tid)
+				,'hasChildren' => (int) !empty($Tid)
 			)
 		)
 	);

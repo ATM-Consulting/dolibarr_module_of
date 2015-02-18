@@ -216,7 +216,7 @@
 </div>
 	
 	<div style="clear:both;"></div>
-		<div id="assetChildContener" [view.hasChildren;noerr;if [val]=='';then 'style="display:none"';else '']>
+		<div id="assetChildContener" [view.hasChildren;noerr;if [val]==0;then 'style="display:none"';else '']>
 			<h2 id="titleOFEnfants">OF Enfants</h2>
 		</div>
 	<script type="text/javascript">
