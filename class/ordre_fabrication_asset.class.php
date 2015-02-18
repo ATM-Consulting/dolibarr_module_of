@@ -308,21 +308,22 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Finalise un OF => incrémention/décrémentation du stock
-	function closeOF(&$ATMdb){
+	function closeOF(&$ATMdb)
+	{
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
-		foreach($this->TAssetOFLine as $AssetOFLine){
+		foreach($this->TAssetOFLine as $AssetOFLine)
+		{
 			$asset = new TAsset;
 			
-			if($AssetOFLine->type == "TO_MAKE"){
-				
-				$AssetOFLine->makeAsset($ATMdb,$this, $AssetOFLine->fk_product, $AssetOFLine->qty,0,$AssetOFLine->lot_number);
-				
-			} else {
-
+			if($AssetOFLine->type == "TO_MAKE")
+			{
+				$AssetOFLine->makeAsset($ATMdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number);
+			} 
+			else 
+			{
 				$asset->load($ATMdb, $AssetOFLine->fk_asset);
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0);
-				
 			}
 		}
 	}
@@ -768,7 +769,8 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$ATMdb,&$AssetOf,$fk_product,$qty, $idAsset = 0,$lot_number = ''){
+	function makeAsset(&$ATMdb, &$AssetOf, $fk_product, $qty, $idAsset = 0, $lot_number = '')
+	{
 		global $user,$conf;
 		include_once 'asset.class.php';
 
@@ -787,11 +789,12 @@ class TAssetOFLine extends TObjetStd{
 		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
 		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
 		
-		if($conf->global->USE_LOT_IN_OF){
+		if($conf->global->USE_LOT_IN_OF)
+		{
 			$TAsset->lot_number = $this->lot_number;
 		}
 		
-		$TAsset->save($ATMdb,$user,'Création via Ordre de Fabrication n°'.$AssetOf->numero,$qty);
+		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero, $qty);
 		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
 		
 		return $TAsset;

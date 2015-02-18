@@ -112,15 +112,16 @@ class TAsset extends TObjetStd{
 		parent::load($ATMdb, $this->getId());
 	}
 	
-	function save(&$ATMdb,$user='',$description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) {
-		
+	function save(&$ATMdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) 
+	{
 		global $conf;
 		
 		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE; 
 				
-		if(!$destock_dolibarr_only) {
-			
-			if(empty($this->serial_number)){
+		if(!$destock_dolibarr_only) 
+		{
+			if(empty($this->serial_number))
+			{
 				$this->serial_number = $this->getNextValue($ATMdb);
 			}
 			
