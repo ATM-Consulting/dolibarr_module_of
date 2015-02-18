@@ -216,7 +216,7 @@
 </div>
 	
 	<div style="clear:both;"></div>
-		<div id="assetChildContener" [view.hasChildren;noerr;if [val]='';then 'style="display:none"']>
+		<div id="assetChildContener" [view.hasChildren;noerr;if [val]=='';then 'style="display:none"';else '']>
 			<h2 id="titleOFEnfants">OF Enfants</h2>
 		</div>
 	<script type="text/javascript">
@@ -332,7 +332,7 @@
 		}
 
 		function refreshDisplay() {
-			$(".btnaddproduct" ).click(function() {
+			$(".btnaddproduct" ).unbind().click(function() {
 				var type = $(this).attr('rel');
 				var idassetOf = $(this).attr('id_assetOf');
 				
@@ -356,7 +356,7 @@
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";
 								$( "#dialog" ).dialog("close");
-								refreshTab(idassetOf);
+								refreshTab(idassetOf, 'edit');
 								getChild();
 							});
 						}
@@ -365,7 +365,7 @@
 				
 			});
 			
-			$(".btnaddworkstation" ).click(function() {
+			$(".btnaddworkstation" ).unbind().click(function() {
 				
 				var idassetOf = $(this).attr('id_assetOf');
 				
@@ -445,10 +445,10 @@
 		function refreshTab(id, action) {
 			if (typeof(action) == 'undefined') action = 'view';
 			
-			$.get("fiche_of.php?action="+action+"&id="+id , function(data) {
-		     	$('div.OFContent[rel='+id+'] table.needed').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.needed') );
-		     	$('div.OFContent[rel='+id+'] table.tomake').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.tomake') );
-		     	$('div.OFContent[rel='+id+'] table.workstation').replaceWith(  $(data).find('div.OFContent[rel='+id+'] table.workstation') );
+			$.get("fiche_of.php?action="+action+"&id="+id , function(data) {		     	
+		     	$('div.OFMaster[assetof_id='+id+'] table.needed').replaceWith(  $(data).find('div.OFMaster[assetof_id='+id+'] table.needed') );
+		     	$('div.OFMaster[assetof_id='+id+'] table.tomake').replaceWith(  $(data).find('div.OFMaster[assetof_id='+id+'] table.tomake') );
+		     	$('div.OFMaster[assetof_id='+id+'] table.workstation').replaceWith(  $(data).find('div.OFMaster[assetof_id='+id+'] table.workstation') );
 		     	
 		     	refreshDisplay();
 			});
@@ -471,25 +471,31 @@
 			
 		}
 		
-		
 		function addAllLines(id_assetOf,idLine,btnadd){
 			[onshow;block=begin;when [view.mode]=='view']
 				return alert("Votre OF doit être au statut brouillon et devez être en modification pour mettre à jour les valeurs des produits nécessaires.");
 			[onshow;block=end]
 			
-			
 			[onshow;block=begin;when [view.mode]!='view']
-			if ($(btnadd).attr('statut') == 'DRAFT') {
-				qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
-				
-				$.ajax(
-					{url : "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty}
-				).done(function(){
-					refreshTab(id_assetOf, 'edit');
-				});
-			} else {
-				alert("Cette OF n'est plus au statut brouillon.");
-			}
+				if ($(btnadd).attr('statut') == 'DRAFT') {
+					qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
+					
+					$.ajax({
+						url: "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty+"&type=json"
+						,dataType: 'json'
+					}).done(function(data){			
+						if(data.length > 0) {
+							for (i in data)
+							{
+								refreshTab(data[i], 'edit');
+							}
+							
+							$.jnotify('Mise à jour des quantités enregistr&eacute;es', "ok");
+						}
+					});
+				} else {
+					alert("Cette OF n'est plus au statut brouillon.");
+				}
 			[onshow;block=end]
 		}
 		

@@ -605,7 +605,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	
-	function getListeOFEnfants(&$ATMdb, &$Tid, $id_parent=null) {
+	function getListeOFEnfants(&$ATMdb, &$Tid, $id_parent=null, $recursive = true) {
 			
 		if(is_null($id_parent))$id_parent = $this->getId();
 		
@@ -617,7 +617,7 @@ class TAssetOF extends TObjetStd{
 		$Tab = $ATMdb->ExecuteAsArray($sql);
 		foreach($Tab as $row) {
 			$Tid[] = $row->rowid;
-			$this->getListeOFEnfants($ATMdb, $Tid, $row->rowid);
+			if ($recursive) $this->getListeOFEnfants($ATMdb, $Tid, $row->rowid);
 		}
 				
 	}

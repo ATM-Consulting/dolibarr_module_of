@@ -26,7 +26,7 @@ function traite_get(&$ATMdb, $case) {
 			__out(_deletelineof($ATMdb,$_REQUEST['idLine'],$_REQUEST['type']));
 			break;
 		case 'addlines':
-			__out(_addlines($ATMdb,$_REQUEST['idLine'],$_REQUEST['qty']));
+			__out(_addlines($ATMdb,$_REQUEST['idLine'],$_REQUEST['qty']),$_REQUEST['type']);
 			break;
 		case 'addofworkstation':
 			__out(_addofworkstation($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_asset_workstation']));
@@ -139,40 +139,73 @@ function _deletelineof(&$ATMdb,$idLine,$type){
 }
 
 function _addlines(&$ATMdb,$idLine,$qty){
-	
-	global $db;
+	global $db, $conf;
 	
 	dol_include_once('product/class/product.class.php');
 	
+	//On met à jour la 1ère ligne des TO_MAKE
 	$TAssetOFLine = new TAssetOFLine;
 	//$ATMdb->debug = true;
 	$TAssetOFLine->load($ATMdb, $idLine);
 	$TAssetOFLine->qty = $_REQUEST['qty'];
 	$TAssetOFLine->save($ATMdb);
-	
-	// On charge le produit pour pouvoir récupérer ses sous produits
-	$prod = new Product($db);
-	$prod->fetch($TAssetOFLine->fk_product);
-	
-	$TComposition = $prod->getChildsArbo($prod->id);
-	
-	// On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
+
+	//On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
 	$TAssetOF = new TAssetOF;
 	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
 	
-	foreach ($TAssetOF->TAssetOFLine as $line) {
-			
-		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
-		if($line->type == "NEEDED" && !empty($TComposition[$line->fk_product][1])) {
+	$TIdLineModified = array($TAssetOFLine->fk_assetOf);
+	
+ 	_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified);
+	
+	return $TIdLineModified;
+}
 
-			$line->qty = $line->qty_needed = $line->qty_used = $_REQUEST['qty'] * $TComposition[$line->fk_product][1];
-			$line->save($ATMdb);
-			
+function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)
+{
+	$break = false;
+	foreach ($TAssetOFChildId as $idOF)
+	{
+		$TAssetOF = new TAssetOF;
+		$TAssetOF->load($ATMdb, $idOF);
+		
+		foreach ($TAssetOF->TAssetOFLine as $line) 
+		{
+			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
+			{
+				$TIdLineModified[] = $TAssetOF->rowid;
+				$line->qty = $qty;
+				$line->save($ATMdb);
+				
+				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty);
+				$break = true;
+				break;
+			}
 		}
 		
+		if ($break) break;
 	}
+}
+
+function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)
+{
+	$prod = new Product($db);
+	$prod->fetch($fk_product);
+	$TComposition = $prod->getChildsArbo($prod->id);
 	
-	//$TAssetOFLine->delete($ATMdb);
+	if (empty($TComposition)) return;
 	
-	//_addofproduct($ATMdb, $TAssetOFLine->fk_assetOf, $TAssetOFLine->fk_product, "TO_MAKE",$qty, $TAssetOFLine->lot_number);
+	$TAssetOFChildId = array();
+	$TAssetOF->getListeOFEnfants($ATMdb, $TAssetOFChildId, $TAssetOF->rowid, false);
+	foreach ($TAssetOF->TAssetOFLine as $line) 
+	{
+		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
+		if($line->type == 'NEEDED' && !empty($TComposition[$line->fk_product][1])) 
+		{
+			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
+			$line->save($ATMdb);		
+
+			if (!empty($TAssetOFChildId)) _updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified);		
+		}
+	}	
 }
