@@ -50,6 +50,7 @@ AssetNewType=Nouveau type d'équipement
 DefaultWarehouseId = Default warehouse for stock management
 DefaultWarehouseIdToMake=Default warehouse for stock management (products to make)
 DefaultWarehouseIdNeeded=Default warehouse for stock management (products needed)
+UseWarehouseId=Utiliser les entrepôts définit par défaut
 ParametersWarehouse=Warehouses
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants uniquement pour les produits hors stock nécessaires à la fabrication ayant des composants
