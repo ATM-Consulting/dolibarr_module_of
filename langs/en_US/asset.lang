@@ -48,10 +48,9 @@ AssetNewType=Nouveau type d'équipement
 
 #Configuration
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
-DefaultWarehouseId = Default warehouse for stock management
-DefaultWarehouseIdToMake=Default warehouse for stock management (products to make)
-DefaultWarehouseIdNeeded=Default warehouse for stock management (products needed)
-UseWarehouseId=Utiliser les entrepôts définit par défaut
+DefaultWarehouseIdToMake=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits à fabriquer)
+DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
+UseManualWarehouse=Définir manuellement les entrepôts sur l'OF
 ParametersWarehouse=Warehouses
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants uniquement pour les produits hors stock nécessaires à la fabrication ayant des composants
