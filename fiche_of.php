@@ -494,7 +494,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		}
 	}
 	
-	if($conf->global->USE_LOT_IN_OF){
+	/*if($conf->global->USE_LOT_IN_OF){
 		?>
 		<script type="text/javascript">
 			$(document).ready(function(){
@@ -508,7 +508,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 			});
 		</script>
 		<?php
-	}
+	}*/
 	
 	ob_start();
 	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
