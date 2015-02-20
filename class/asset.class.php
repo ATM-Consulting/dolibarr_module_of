@@ -133,25 +133,25 @@ class TAsset extends TObjetStd{
 			parent::save($ATMdb);
 			
 			$this->save_link($ATMdb);
-	
 			$this->addLotNumber($ATMdb);
 			
 			// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
-			if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) {
+			if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) 
+			{
 				$qtyKg = $this->contenancereel_value * pow(10, $this->contenancereel_units) - $this->old_contenancereel * pow(10,$this->old_contenancereel_units);
 				$qty = $qtyKg * pow(10, -$this->contenancereel_units);
-			} else if(!empty($qty)) {
+			} 
+			else if(!empty($qty)) 
+			{
 				$this->contenancereel_value = $this->contenancereel_value + $qty;
 				parent::save($ATMdb);
 			}
-			
 		}
 		
 		// Enregistrement des mouvements
-		if(!empty($qty) && !$no_destock_dolibarr){
-
+		if(!empty($qty) && !$no_destock_dolibarr)
+		{
 			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock, $fk_entrepot);
-
 		}
 		
 		//Spécifique Nomadic
@@ -167,11 +167,10 @@ class TAsset extends TObjetStd{
 	
 	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
 		
-		if(!$destock_dolibarr_only) {
-		
+		if(!$destock_dolibarr_only) 
+		{
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
-			
 		}
 
 		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock,$fk_entrepot);
@@ -187,7 +186,6 @@ class TAsset extends TObjetStd{
 		$mouvS = new MouvementStock($db);
 		// We decrement stock of product (and sub-products)
 		// We use warehouse selected for each line
-		
 		
 		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
 		//if($fk_entrepot == 0) $fk_entrepot = $this->fk_entrepot;

@@ -110,12 +110,11 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Associe les équipements à l'OF
-	function setEquipement(&$ATMdb){
-		
+	function setEquipement(&$ATMdb)
+	{
 		//pre($this->TAssetOFLine,true);exit;
-		
-		foreach($this->TAssetOFLine as $TAssetOFLine){
-			
+		foreach($this->TAssetOFLine as $TAssetOFLine)
+		{
 			$TAssetOFLine->setAsset($ATMdb,$this);	
 		}
 		
@@ -308,7 +307,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Finalise un OF => incrémention/décrémentation du stock
-	function closeOF(&$ATMdb)
+	function closeOF(&$ATMdb, $conf = null)
 	{
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
@@ -321,9 +320,9 @@ class TAssetOF extends TObjetStd{
 				$AssetOFLine->makeAsset($ATMdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number);
 			} 
 			else 
-			{
+			{		
 				$asset->load($ATMdb, $AssetOFLine->fk_asset);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
 		}
 	}
@@ -695,13 +694,14 @@ class TAssetOFLine extends TObjetStd{
 		$this->TFournisseurPrice=array();
 		
 	    $this->start();
-		
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
 	}
 	
 	//Affecte l'équipement à la ligne de l'OF
-	function setAsset(&$ATMdb,&$AssetOf){
+	function setAsset(&$ATMdb,&$AssetOf)
+	{
 		global $db, $user, $conf;	
+		
 		include_once 'asset.class.php';
 		
 		$asset = new TAsset;
@@ -735,7 +735,7 @@ class TAssetOFLine extends TObjetStd{
 				$idAsset = $ATMdb->Get_field('rowid');
 				$asset->load($ATMdb, $idAsset);
 				$asset->status = 'indisponible';
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
 			elseif($conf->global->USE_LOT_IN_OF){
 				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
@@ -746,24 +746,14 @@ class TAssetOFLine extends TObjetStd{
 				$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
 			}
 			
-			if(!$mvmt_stock_already_done) {
-				//require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-				
-				//$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used, true, $this->fk_product);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty, true, $this->fk_product,false,1);
-				
-				/*dol_include_once('/product/stock/class/mouvementstock.class.php');
-				$mvmt = new MouvementStock($db);
-				$mvmt->livraison($user, $this->fk_product, 1, $this->qty_used, 0, 'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero,-$this->qty_used);*/
-				
+			if(!$mvmt_stock_already_done) 
+			{
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
-			
 		}
 		
-		//exit('3');
-		
 		$this->fk_asset = $idAsset;
-		$this->save($ATMdb);
+		$this->save($ATMdb, $conf);
 
 		return true;
 	}
@@ -783,20 +773,12 @@ class TAssetOFLine extends TObjetStd{
 		$TAsset->load_liste_type_asset($ATMdb);
 		$TAsset->load_asset_type($ATMdb);
 		
-		/*
-		 * Empêche l'ajout en stock des sous-produit d'un produit composé
-		 */
-		$varconf = $conf->global->PRODUIT_SOUSPRODUITS;
-		$conf->global->PRODUIT_SOUSPRODUITS = NULL;
-		
 		if($conf->global->USE_LOT_IN_OF)
 		{
 			$TAsset->lot_number = $this->lot_number;
 		}
 		
-		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero, $qty);
-		$conf->global->PRODUIT_SOUSPRODUITS = $varconf;
-		
+		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero, $qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE);
 		return $TAsset;
 	}
 	
