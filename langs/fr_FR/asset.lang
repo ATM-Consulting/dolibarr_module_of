@@ -38,6 +38,7 @@ AssetNewProductionOrder=Nouvel ordre de Fabrication
 ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
 AssetInLot=Equipements du lot
+OFAssetLotEmpty=Erreur de saisie sur les lots
 
 
 # POSTE DE TRAVAIL

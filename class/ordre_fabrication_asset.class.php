@@ -77,7 +77,8 @@ class TAssetOF extends TObjetStd{
 
 		$this->entity = $conf->entity;
 
-		if($conf->global->USE_LOT_IN_OF){
+		if(!empty($conf->global->USE_LOT_IN_OF))
+		{
 			$this->setLotWithParent($db);
 		}
 		
@@ -92,8 +93,8 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
-	function setLotWithParent(&$ATMdb){
-
+	function setLotWithParent(&$ATMdb)
+	{
 		if (count($this->TAssetOFLine) && $this->fk_assetOf_parent){
 			$ofParent = new TAssetOF;
 			$ofParent->load($ATMdb, $this->fk_assetOf_parent);
@@ -672,6 +673,20 @@ class TAssetOF extends TObjetStd{
 		
 	}
 
+	function checkLotIsFill()
+	{
+		$fill = true;
+		foreach ($this->TAssetOFLine as $OFLine) 
+		{
+			if (empty($OFLine->lot_number)) 
+			{
+				$fill = false;
+				break;
+			}
+		}
+		
+		return $fill;
+	}
 }
 
 class TAssetOFLine extends TObjetStd{

@@ -83,7 +83,7 @@ function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0)
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
 	
-	if (!empty($value)) $sq .= 'WHERE '.$fieldcode.' LIKE '.$ATMdb->quote($value).' ';
+	if (!empty($value)) $sql .= 'WHERE '.$fieldcode.' LIKE '.$ATMdb->quote($value.'%').' ';
 	
 	if (!empty($value) && $fk_product) $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
 	elseif ($fk_product) $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';

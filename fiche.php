@@ -52,7 +52,6 @@ function _action() {
 				break;
 			
 			case 'edit'	:
-			
 				$asset=new TAsset;
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load_liste_type_asset($PDOdb);

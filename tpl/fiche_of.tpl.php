@@ -42,7 +42,7 @@
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
-				<tr><td>Statut</td><td>[assetOf.status;strconv=no]
+				<tr><td>Statut</td><td>[assetOf.status;strconv=no],
 					[onshow;block=begin;when [view.status]!='CLOSE']
 						<span class="viewmode notinparentview">passer à l'état :
 						[onshow;block=begin;when [view.status]=='DRAFT']
@@ -270,6 +270,12 @@
 								
 								var html = $(data).find('div.OFMaster');
 								html.find('.buttonsAction').remove();
+								
+								var TAssetOFLineLot = html.find('input.TAssetOFLineLot');
+								for (var i = 0; i < TAssetOFLineLot.length; i++)
+								{
+									$(TAssetOFLineLot).attr('disabled', 'true').css('border', 'none').css('background', 'none');
+								}
 								
 								var id_form = html.find('form').attr('id');
 								

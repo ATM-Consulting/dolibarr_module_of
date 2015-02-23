@@ -30,7 +30,7 @@ if ($user->societe_id > 0)
 }
 
 function _action() {
-	global $user, $db;	
+	global $user, $db, $conf, $langs;	
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 	
@@ -93,7 +93,7 @@ function _action() {
 				}
 
 			}
-			
+
 			if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
@@ -117,8 +117,18 @@ function _action() {
 		case 'valider':
 			$assetOf=new TAssetOF;
 			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			
+			//Si use_lot alors check de la saisie du lot pour chaque ligne avant validation
+			if (!empty($conf->global->USE_LOT_IN_OF)) {
+				if (!$assetOf->checkLotIsFill())
+				{
+					setEventMessage($langs->trans('OFAssetLotEmpty'), 'errors');
+					_fiche($PDOdb,$assetOf, 'view');
+					break;
+				}
+			}
+					
 			$assetOf->status = "VALID";
-
 
 			if(!empty($_REQUEST['TAssetOFLine'])) {
 				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
@@ -493,22 +503,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 			$HtmlCmdFourn .= $cmd->getNomUrl(1)." ";
 		}
 	}
-	
-	/*if($conf->global->USE_LOT_IN_OF){
-		?>
-		<script type="text/javascript">
-			$(document).ready(function(){
-				$(".TAssetOFLineLot").each(function(){
-					fk_product = $(this).attr('fk_product');
-					$(this).autocomplete({
-						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
-						minLength : 1
-					});
-				})
-			});
-		</script>
-		<?php
-	}*/
 	
 	ob_start();
 	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
