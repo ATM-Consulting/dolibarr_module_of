@@ -687,6 +687,57 @@ class TAssetOF extends TObjetStd{
 		
 		return $fill;
 	}
+	
+	/*
+	 * Fonction qui vérifie si la quantité des équipement est suffisante pour lancer la production
+	 * Alimente $this->errors 
+	 * return true if OK else false 
+	 */
+	function checkQtyAsset($PDOdb, $conf)
+	{
+		global $db;
+		
+		$res = true;
+		foreach($this->TAssetOFLine as $TAssetOFLine)
+		{
+			if ($TAssetOFLine->type != "NEEDED") continue;
+			
+			$sql = "SELECT rowid 
+				FROM ".MAIN_DB_PREFIX."asset 
+				WHERE contenancereel_value >= ".$TAssetOFLine->qty."
+					AND fk_product = ".$TAssetOFLine->fk_product;
+		
+			if($conf->global->USE_LOT_IN_OF)
+			{
+				$sql .= ' AND lot_number = "'.$TAssetOFLine->lot_number.'"';
+			}
+			
+			$sql .= " ORDER BY contenancereel_value ASC LIMIT 1";
+			
+			$PDOdb->Execute($sql);
+			
+			if(!$PDOdb->Get_line()) 
+			{
+				$product = new Product($db);
+				$product->fetch($TAssetOFLine->fk_product);
+				
+				if($conf->global->USE_LOT_IN_OF)
+				{
+					$res = false;
+					$this->errors[] = "La quantité d'équipement pour le produit ".$product->label." dans le lot n°".$TAssetOFLine->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+				}
+				else
+				{
+					$res = false;
+					$this->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
+				}
+			}
+			
+		}
+		
+		return $res;
+	}
+	
 }
 
 class TAssetOFLine extends TObjetStd{
@@ -733,18 +784,14 @@ class TAssetOFLine extends TObjetStd{
 		
 		$sql .= " ORDER BY contenancereel_value ASC LIMIT 1";
 		
-		//echo $sql.'<br>';
-		//echo $this->lot_number.'<br>';
-		
-		//pre($this,true);
-
 		$ATMdb->Execute($sql);
 
-		if($this->type == "NEEDED" && $AssetOf->status == "OPEN"){
-			
+		if($this->type == "NEEDED" && $AssetOf->status == "OPEN")
+		{
 			$mvmt_stock_already_done = false;
 			
-			if($ATMdb->Get_line()){
+			if($ATMdb->Get_line())
+			{
 				$mvmt_stock_already_done = true;
 				
 				$idAsset = $ATMdb->Get_field('rowid');
@@ -752,10 +799,12 @@ class TAssetOFLine extends TObjetStd{
 				$asset->status = 'indisponible';
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
-			elseif($conf->global->USE_LOT_IN_OF){
-				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
+			elseif($conf->global->USE_LOT_IN_OF)
+			{
+				$AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
 			}
-			else{
+			else
+			{
 				$product = new Product($db);
 				$product->fetch($this->fk_product);
 				$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
@@ -763,12 +812,12 @@ class TAssetOFLine extends TObjetStd{
 			
 			if(!$mvmt_stock_already_done) 
 			{
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);	
 			}
 		}
 		
 		$this->fk_asset = $idAsset;
-		$this->save($ATMdb, $conf);
+		$this->save($ATMdb, $conf);	
 
 		return true;
 	}

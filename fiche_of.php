@@ -151,12 +151,15 @@ function _action() {
 		case 'lancer':
 			$assetOf=new TAssetOF;
 			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-			$assetOf->status = "OPEN";
-
-			$assetOf->setEquipement($PDOdb);
 			
+			if ($assetOf->checkQtyAsset($PDOdb, $conf))
+			{
+				$assetOf->status = "OPEN";
+				$assetOf->setEquipement($PDOdb); 
+				$assetOf->save($PDOdb);
+			}
+						
 			//$assetOf->openOF($PDOdb);
-			$assetOf->save($PDOdb);
 			_fiche($PDOdb, $assetOf, 'view');
 
 			break;

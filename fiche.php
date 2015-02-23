@@ -461,7 +461,7 @@ global $db, $conf, $langs;
 	if(($mode=='edit' || $mode=='new') && $type == "") {
 		ob_start();	
 		$html=new Form($db);
-		print $html->textwithpicto($html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,1,2,'',3,array()), $langs->trans('CreateAssetFromProductDescListProduct'), 1, 'help', '', 0, 3);
+		print $html->textwithpicto($html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,-1,2,'',3,array()), $langs->trans('CreateAssetFromProductDescListProduct'), 1, 'help', '', 0, 3);
 		
 		return ob_get_clean();
 	}
