@@ -907,6 +907,13 @@ class TAssetOFLine extends TObjetStd{
 		$this->loadFournisseurPrice($ATMdb);
 	}
 	
+	function delete(&$db)
+	{
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
+		$db->Execute($sql);
+		parent::delete($db);
+	}
+	
 	function set_workstations(&$ATMdb, $Tworkstations)
 	{
 		if (empty($Tworkstations)) return false;
@@ -1045,6 +1052,14 @@ class TAssetWorkstationOF extends TObjetStd{
 		
 		$this->ws = new TAssetWorkstation;
 		
+	}
+	
+	function delete(&$db)
+	{
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND targettype = "user"';
+		$db->Execute($sql);
+		
+		parent::delete($db);
 	}
 	
 	function set_users(&$ATMdb, $Tusers)
