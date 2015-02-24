@@ -902,9 +902,74 @@ class TAssetOFLine extends TObjetStd{
 	function load(&$ATMdb, $id) {
 		
 		parent::load($ATMdb, $id);
+		$this->workstations = $this->get_workstations($ATMdb);
 		
 		$this->loadFournisseurPrice($ATMdb);
+	}
+	
+	function set_workstations(&$ATMdb, $Tworkstations)
+	{
+		if (empty($Tworkstations)) return false;
+	
+		$this->workstations = array();
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
+		$ATMdb->Execute($sql);
 		
+		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (';
+		$sql.= 'fk_source, sourcetype, fk_target, targettype';
+		$sql.= ') VALUES ';
+		
+		$save = false;
+		foreach ($Tworkstations as $id_workstation) 
+		{
+			if ($id_workstation <= 0) continue;
+			
+			$this->workstations[] = $id_workstation;
+			$save = true;
+			
+			$sql.= '(';
+			$sql.= (int) $this->rowid.',';
+			$sql.= $ATMdb->quote('tassetofline').',';
+			$sql.= (int) $id_workstation.',';
+			$sql.= $ATMdb->quote('tassetworkstation');
+			$sql.= '),';
+		}
+		
+		if ($save)
+		{
+			$sql = rtrim($sql, ',');
+			$ATMdb->Execute($sql);
+		}
+	}
+	
+	function get_workstations(&$ATMdb)
+	{		
+		$res = array();
+		
+		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
+		$sql.= ' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
+		
+		$ATMdb->Execute($sql);
+		while ($ATMdb->Get_line()) $res[] = $ATMdb->Get_field('fk_target');
+		
+		return $res;
+	}	
+	
+	function visu_checkbox_workstation(&$db, &$of, &$form, $name)
+	{
+		$include = array();
+		
+		$sql = 'SELECT libelle, rowid FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid IN (SELECT fk_asset_workstation FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_assetOf = '.(int) $of->rowid.')';
+		$resql = $db->query($sql);
+		
+		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
+		while ($r = $db->fetch_object($resql)) 
+		{
+			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->workstations) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before') . '</p>';
+		}
+		
+		return $res;
 	}
 	
 	function loadFournisseurPrice(&$ATMdb) {
@@ -986,6 +1051,8 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 		if (empty($Tusers)) return false;
 		
+		$this->users = array();
+		
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND targettype = "user"';
 		$ATMdb->Execute($sql);
 		
@@ -993,8 +1060,14 @@ class TAssetWorkstationOF extends TObjetStd{
 		$sql.= 'fk_source, sourcetype, fk_target, targettype';
 		$sql.= ') VALUES ';
 		
+		$save = false;
 		foreach ($Tusers as $id_user) 
 		{
+			if ($id_user <= 0) continue;
+				
+			$this->users[] = $id_user;
+			$save = true;
+			
 			$sql.= '(';
 			$sql.= (int) $this->rowid.',';
 			$sql.= $ATMdb->quote('tassetworkstationof').',';
@@ -1003,9 +1076,11 @@ class TAssetWorkstationOF extends TObjetStd{
 			$sql.= '),';
 		}
 		
-		$sql = rtrim($sql, ',');
-		
-		$ATMdb->Execute($sql);
+		if ($save)
+		{
+			$sql = rtrim($sql, ',');
+			$ATMdb->Execute($sql);
+		}
 	}
 	
 	function get_users(&$ATMdb)
@@ -1033,25 +1108,20 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 	}
 	
-	function visu_select_user(&$db, &$form, $group, $name, $mode)
+	function visu_checkbox_user(&$db, &$form, $group, $name)
 	{
-		$res = '';
 		$include = array();
 		
 		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) WHERE uu.fk_usergroup = '.(int) $group;
 		$resql = $db->query($sql);
 		
+		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
 		while ($r = $db->fetch_object($resql)) 
 		{
-			
-			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->lastname.' '.$r->firstname, $name, $r->fk_user, (in_array($r->fk_user, $this->users) ? true : false), 'style="vertical-align:text-bottom;"') . '</p>';
-			
-			
+			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->lastname.' '.$r->firstname, $name, $r->fk_user, (in_array($r->fk_user, $this->users) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before').'</p>';
 		}
 		
-		
 		return $res;
-		//return $doliform->select_dolusers((!empty($this->users) ? $this->users : -1), $name,1, '', ($mode == 'edit' ? 0 : 1), $include, '', 0, 0, 0, 1);
 	}
 	
 }

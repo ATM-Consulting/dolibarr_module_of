@@ -84,6 +84,12 @@ function _action() {
 			if(!empty($_REQUEST['TAssetOFLine'])) {
 				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 					if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
+					
+					if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
+					{
+						$assetOf->TAssetOFLine[$k]->set_workstations($PDOdb, $row['fk_workstation']);
+						unset($row['fk_workstation']);	
+					}
 					$assetOf->TAssetOFLine[$k]->set_values($row);
 				}
 
@@ -106,7 +112,7 @@ function _action() {
 			$assetOf->save($PDOdb);
 			
 			//Si on créé un OF il faut recharger la page pour avoir le bon rendu
-			if ($action == 'create' || ($action == 'save' && !empty($_REQUEST['TAssetWorkstationOF']))) header('Location: '.$_SERVER["PHP_SELF"].'?id='.$assetOf->getId());
+			if ($action == 'create') header('Location: '.$_SERVER["PHP_SELF"].'?id='.$assetOf->getId());
 			
 			//Si on viens d'un produit alors je recharge les enfants
 			if ($fk_product > 0) $assetOf->loadChild($PDOdb);
@@ -368,6 +374,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
 				,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
 				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
+				,'workstations'=>$TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]')
 				,'delete'=> '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>'
 			);
 		}
@@ -528,7 +535,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		
 		$TWorkstation[]=array(
 			'libelle'=>'<a href="workstation.php?action=view&id='.$ws->rowid.'">'.$ws->libelle.'</a>'
-			,'fk_user' => $TAssetWorkstationOF->visu_select_user($db, $form, $ws->fk_usergroup, 'TAssetWorkstationOF['.$k.'][fk_user][]', $mode)
+			,'fk_user' => $TAssetWorkstationOF->visu_checkbox_user($db, $form, $ws->fk_usergroup, 'TAssetWorkstationOF['.$k.'][fk_user][]')
 			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
 			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
 			,'delete'=> '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>'
@@ -590,7 +597,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_product'=>$select_product
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-				,'use_lot_in_of'=>(int)$conf->global->USE_LOT_IN_OF
+				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
+				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 				,'hasChildren' => (int) !empty($Tid)
 			)
 		)

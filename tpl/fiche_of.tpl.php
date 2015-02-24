@@ -121,6 +121,9 @@
 									<td>Quantité réelle</td>
 									<td class="nodraft">Quantité utilisée</td>
 									<!-- <td class="draft">Delta</td> -->
+									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
+										<td width="20%">Poste</td>
+									[onshow;block=end]
 									<td class="draftedit" style="width:20px;">Action</td>
 									
 								</tr>
@@ -133,8 +136,10 @@
 									<td>[TNeeded.qty_needed]</td>
 									<td>[TNeeded.qty;strconv=no]</td>
 									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
-									
 									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
+									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
+										<td width="20%">[TNeeded.workstations;strconv=no]</td>
+									[onshow;block=end]
 									<td align='center' class="draftedit">[TNeeded.delete;strconv=no]</td>
 									
 								</tr>
