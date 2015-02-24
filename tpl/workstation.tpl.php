@@ -5,6 +5,8 @@
 <table width="100%" class="border">
 	<tr><td width="20%">Libellé</td><td>[ws.libelle; strconv=no]</td></tr>
 	<tr><td width="20%">Groupe d'utilisateurs</td><td>[ws.fk_usergroup; strconv=no]</td></tr>
+	<tr><td width="20%">Nombre d'heure de préparation</td><td>[ws.nb_hour_prepare; strconv=no]</td></tr>
+	<tr><td width="20%">Nombre d'heure de fabrication</td><td>[ws.nb_hour_manufacture; strconv=no]</td></tr>
 	<tr><td width="20%">Nombre d'heure maximale</td><td>[ws.nb_hour_max; strconv=no]</td></tr>
 </table>
 

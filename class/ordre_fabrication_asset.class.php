@@ -661,8 +661,9 @@ class TAssetOF extends TObjetStd{
 		$TID_OF_command = array();
 		
 		$sql = "SELECT rowid";
-		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
-		$sql.= " WHERE fk_commande = ".$id_command;
+		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf of";
+		$sql.= " INNER JOIN ".MAIN_DB_PREFIX."element_element ee ON (of.rowid = ee.fk_source AND ee.sourcetype = 'ordre_fabrication' AND ee.targettype = 'order_supplier')";
+		$sql.= " WHERE ee.fk_target = ".$id_command;
 		$resql = $db->query($sql);
 		
 		while($res = $db->fetch_object($resql)) {
@@ -670,22 +671,74 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		return $TID_OF_command;
-		
 	}
 
 	function checkLotIsFill()
 	{
 		$fill = true;
-		foreach ($this->TAssetOFLine as $OFLine) 
+		foreach ($this->TAssetOFLine as $OFLine)
 		{
-			if (empty($OFLine->lot_number)) 
+			if ($OFLine->type == 'TO_MAKE') 
 			{
-				$fill = false;
+				if (empty($OFLine->lot_number)) 
+				{
+					$fill = false;
+					break;
+				}
+				
+				if ($OFLine->fk_product_fournisseur_price <= 0) $fill = $this->checkChildrenLotIsFill($OFLine);
+			}
+		}
+			
+		return $fill;
+	}
+
+	function checkChildrenLotIsFill($line)
+	{
+		global $db;
+		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		
+		$fill = true;
+		$product = new Product($db);
+		$children = $product->getChildsArbo($line->fk_product);
+		
+		foreach ($this->TAssetOFLine as $OFLine)
+		{
+			if ($OFLine->type == 'NEEDED' && isset($children[$OFLine->fk_product]))
+			{
+				if (empty($OFLine->lot_number)) 
+				{
+					$fill = false;
+					break;
+				}
+			}
+		}
+		
+		
+		return $fill;
+	}
+	
+	function checkCommandeFournisseur(&$ATMdb)
+	{
+		global $db;
+		
+		$res = true;
+		$Tid = $this->getElementElement($ATMdb);
+		
+		foreach ($Tid as $id)
+		{
+			$cmdf = new CommandeFournisseur($db);
+			$cmdf->fetch($id);
+			
+			//4 = livraison partielle # 5 = livraison total
+			if (!in_array($cmdf->statut, array(4,5)))
+			{
+				$res = false;
 				break;
 			}
 		}
 		
-		return $fill;
+		return $res;
 	}
 	
 	/*
@@ -902,7 +955,7 @@ class TAssetWorkstationProduct extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
-		$this->add_champs('nb_hour,rang','type=float;'); // nombre d'heure associé au poste de charge et au produit
+		$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour,rang','type=float;'); // nombre d'heure associé au poste de charge et au produit
 		
 		$this->start();
 		
@@ -929,15 +982,76 @@ class TAssetWorkstationOF extends TObjetStd{
 		
 	}
 	
-	function load(&$ATMdb, $id) {
+	function set_users(&$ATMdb, $Tusers)
+	{
+		if (empty($Tusers)) return false;
 		
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND targettype = "user"';
+		$ATMdb->Execute($sql);
+		
+		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (';
+		$sql.= 'fk_source, sourcetype, fk_target, targettype';
+		$sql.= ') VALUES ';
+		
+		foreach ($Tusers as $id_user) 
+		{
+			$sql.= '(';
+			$sql.= (int) $this->rowid.',';
+			$sql.= $ATMdb->quote('tassetworkstationof').',';
+			$sql.= (int) $id_user.',';
+			$sql.= $ATMdb->quote('user');
+			$sql.= '),';
+		}
+		
+		$sql = rtrim($sql, ',');
+		
+		$ATMdb->Execute($sql);
+	}
+	
+	function get_users(&$ATMdb)
+	{		
+		$res = array();
+		
+		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
+		$sql.= ' AND sourcetype = "tassetworkstationof" AND targettype = "user"';
+		
+		$ATMdb->Execute($sql);
+		while ($ATMdb->Get_line()) $res[] = $ATMdb->Get_field('fk_target');
+		
+		return $res;
+	}
+	
+	function load(&$ATMdb, $id) 
+	{	
 		parent::load($ATMdb,$id);
+		$this->users = $this->get_users($ATMdb);
 		
-		if($this->fk_asset_workstation >0){
-			$this->ws->load($ATMdb, $this->fk_asset_workstation);			
+		if($this->fk_asset_workstation >0)
+		{
+			$this->ws->load($ATMdb, $this->fk_asset_workstation);
+		}
+	}
+	
+	function visu_select_user(&$db, &$form, $group, $name, $mode)
+	{
+		$res = '';
+		$include = array();
+		
+		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) WHERE uu.fk_usergroup = '.(int) $group;
+		$resql = $db->query($sql);
+		
+		while ($r = $db->fetch_object($resql)) 
+		{
+			
+			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->lastname.' '.$r->firstname, $name, $r->fk_user, (in_array($r->fk_user, $this->users) ? true : false), 'style="vertical-align:text-bottom;"') . '</p>';
+			
 			
 		}
 		
+		
+		return $res;
+		//return $doliform->select_dolusers((!empty($this->users) ? $this->users : -1), $name,1, '', ($mode == 'edit' ? 0 : 1), $include, '', 0, 0, 0, 1);
 	}
 	
 }
@@ -954,7 +1068,7 @@ class TAssetWorkstation extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_usergroup','type=entier;index;');
 		$this->add_champs('libelle','type=chaine;');
-		$this->add_champs('nb_hour_max','type=float;'); // charge maximale du poste de travail
+		$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
 		
 	    $this->start();
 	}

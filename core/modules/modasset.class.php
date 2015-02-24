@@ -113,6 +113,7 @@ class modAsset extends DolibarrModules
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits nécessaires)',1)
 			,array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
 			,array('CREATE_CHILDREN_OF', 'chaine', 1,'Permet de créer des OF enfants si les composant sont hors stock',1)
+			,array('ASSET_DEFINED_WORKSTATION_BY_NEEDED', 'chaine', 0,'Permet de ventiler les produits de composition par poste de travail',1)
 		);
 
 

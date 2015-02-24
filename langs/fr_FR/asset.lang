@@ -39,11 +39,13 @@ ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
 AssetInLot=Equipements du lot
 OFAssetLotEmpty=Erreur de saisie sur les lots
+OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
 
 
 # POSTE DE TRAVAIL
 AssetWorkstation=Poste de travail
 AssetNewWorkstation=Nouveau poste de travail
+AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail
 
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement

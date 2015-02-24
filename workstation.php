@@ -21,23 +21,28 @@
 		switch($action) {
 			
 			case 'add':
-				
 				$fk_asset_workstation = __get('fk_asset_workstation',0,'int');
 				
 				$wsp = new TAssetWorkstationProduct;
 				$wsp->fk_product = $fk_product;
 				$wsp->fk_asset_workstation = $fk_asset_workstation;
+				
+				$ws = new TAssetWorkstation;
+				$ws->load($ATMdb,$fk_asset_workstation);
+				
+				$wsp->nb_hour_prepare = $ws->nb_hour_prepare;
+				$wsp->nb_hour_manufacture = $ws->nb_hour_manufacture;
+				$wsp->nb_hour = $ws->nb_hour_prepare + $ws->nb_hour_manufacture;
+				
 				$wsp->save($ATMdb);
 			
 				setEventMessage('Poste de travail ajouté');
 			
-				
 				_liste_link($ATMdb, $fk_product);
 				
 				break;
 			
 			case 'list':
-				
 				_liste_link($ATMdb, $fk_product);
 				
 				break;
@@ -49,10 +54,13 @@
 					$wsp = new TAssetWorkstationProduct;
 					//$ATMdb->debug=true;
 					$wsp->load($ATMdb, $id);
-					$wsp->nb_hour = (double)$row[ 'nb_hour' ];
-					$wsp->rang = (double)$row[ 'rang' ];
-					$wsp->save($ATMdb);
 					
+					$wsp->nb_hour_prepare = Tools::string2num($row['nb_hour_prepare']);
+					$wsp->nb_hour_manufacture = Tools::string2num($row['nb_hour_manufacture']);
+					$wsp->nb_hour = $wsp->nb_hour_prepare + $wsp->nb_hour_manufacture;
+					$wsp->rang = (double) $row['rang'];
+					
+					$wsp->save($ATMdb);
 				}
 				
 				setEventMessage('Modifications enregistrées');
@@ -60,6 +68,15 @@
 				_liste_link($ATMdb, $fk_product);
 				break;
 			
+			case 'delete':				
+				$wsp = new TAssetWorkstationProduct;
+				$wsp->load($ATMdb, GETPOST('id_wsp'));
+				$wsp->to_delete = true;
+				$wsp->save($ATMdb);
+				
+				_liste_link($ATMdb, $fk_product);
+				
+				break;
 		}
 		
 	}
@@ -71,6 +88,7 @@
 				$ws=new TAssetWorkstation;
 				$ws->load($ATMdb, __get('id',0,'integer'));
 				$ws->set_values($_REQUEST);
+				$ws->nb_hour_max = $ws->nb_hour_prepare + $ws->nb_hour_manufacture;
 				$ws->save($ATMdb);
 				
 				_fiche($ATMdb, $ws);
@@ -87,7 +105,6 @@
 			case 'edit':
 				$ws=new TAssetWorkstation;
 				$ws->load($ATMdb, __get('id',0,'integer'));
-				
 				_fiche($ATMdb, $ws,'edit');
 				
 				break;
@@ -127,7 +144,7 @@
 	llxFooter();
 
 function _liste_link(&$ATMdb, $fk_product) {
-global $db,$langs,$conf, $user;	
+	global $db,$langs,$conf, $user;	
 	
 	if($fk_product>0){
 		if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
@@ -151,7 +168,7 @@ global $db,$langs,$conf, $user;
 	
 	$l=new TListviewTBS('listWS');
 
-	$sql= "SELECT wsp.fk_asset_workstation as id, ws.libelle, wsp.rang, wsp.nb_hour 
+	$sql= "SELECT wsp.rowid as id, wsp.fk_asset_workstation as id_ws, ws.libelle, wsp.rang, wsp.nb_hour_prepare, wsp.nb_hour_manufacture, wsp.nb_hour, '' as 'action'
 	
 	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
 	 
@@ -161,15 +178,21 @@ global $db,$langs,$conf, $user;
 	$liste =  $l->render($ATMdb, $sql,array(
 	
 		'link'=>array(
-			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
+			'libelle'=>'<a href="?action=view&id=@id_ws@">@val@</a>'
 			,'rang'=>'<input type="text" name="TAssetWorkstationProduct[@id@][rang]" value="@val@" size="5" />'
-			,'nb_hour'=>'<input type="text" name="TAssetWorkstationProduct[@id@][nb_hour]" value="@val@" size="5" />'
+			,'nb_hour_prepare'=>'<input type="text" name="TAssetWorkstationProduct[@id@][nb_hour_prepare]" value="@val@" size="5" />'
+			,'nb_hour_manufacture'=>'<input type="text" name="TAssetWorkstationProduct[@id@][nb_hour_manufacture]" value="@val@" size="5" />'
+			//,'nb_hour'=>'<input type="text" name="TAssetWorkstationProduct[@id@][nb_hour]" value="@val@" size="5" />'
+			,'nb_hour'=>'@val@'
+			,'action'=> '<a href="workstation.php?action=delete&fk_product='.$fk_product.'&id_wsp=@id@">'.img_picto('Supprimer', 'delete.png').'</a>'
 		)
-		
 		,'title'=>array(
-			'nb_hour'=>"Nombre d'heures"
+			'nb_hour_prepare'=>"Nombre d'heures de préparation"
+			,'nb_hour_manufacture'=>"Nombre d'heures de fabrication"
+			,'nb_hour'=>"Nombre d'heures"
 			,'rang'=>"Rang"
 		)
+		,'hide'=>array('id_ws')
 	
 	));
 	
@@ -209,11 +232,12 @@ function _fiche(&$ATMdb, &$ws, $mode='view') {
 	
 	$TForm=array(
 		'libelle'=>$form->texte('', 'libelle', $ws->libelle,80,255)
-		,'nb_hour_max'=>$form->texte('', 'nb_hour_max', $ws->nb_hour_max,3,3)
+		,'nb_hour_prepare'=>$form->texte('', 'nb_hour_prepare', $ws->nb_hour_prepare,3,3)
+		,'nb_hour_manufacture'=>$form->texte('', 'nb_hour_manufacture', $ws->nb_hour_manufacture,3,3)
+		,'nb_hour_max'=>$ws->nb_hour_max
 		,'fk_usergroup'=>$formDoli->select_dolgroups($ws->fk_usergroup, 'fk_usergroup',0,'', ($mode=='view') ? 1 : 0 )
 		,'id'=>$ws->getId()
 	);
-	
 	
 	print $TBS->render('./tpl/workstation.tpl.php',array(),array(
 			'ws'=>$TForm
@@ -235,7 +259,7 @@ function _liste(&$ATMdb) {
 	
 	$l=new TListviewTBS('listWS');
 
-	$sql= "SELECT ws.rowid as id, ws.libelle,ws.fk_usergroup,ws.nb_hour_max 
+	$sql= "SELECT ws.rowid as id, ws.libelle, ws.fk_usergroup, ws.nb_hour_prepare, ws.nb_hour_manufacture, ws.nb_hour_max 
 	
 	FROM ".MAIN_DB_PREFIX."asset_workstation ws LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_product wsp ON (wsp.fk_asset_workstation=ws.rowid)
 	 LEFT OUTER JOIN ".MAIN_DB_PREFIX."asset_workstation_of wsof ON (wsof.fk_asset_workstation=ws.rowid)
@@ -255,6 +279,8 @@ function _liste(&$ATMdb) {
 			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
 		)
 		,'title'=>array(
+			'nb_hour_prepare'=>"Nombre d'heure de preparation",
+			'nb_hour_manufacture'=>"Nombre d'heure de fabrication",
 			'nb_hour_max'=>"Nombre d'heure maximum",
 			'id'=>"Id",
 			'libelle'=>"Intitulé poste de travail",

@@ -87,15 +87,16 @@ function _action() {
 					$assetOf->TAssetOFLine[$k]->set_values($row);
 				}
 
-
 				foreach($assetOf->TAssetOFLine as &$line) {
 					$line->TAssetOFLine=array();
 				}
-
 			}
 
 			if(!empty($_REQUEST['TAssetWorkstationOF'])) {
-				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) {
+				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) 
+				{
+					$assetOf->TAssetWorkstationOF[$k]->set_users($PDOdb, $row['fk_user']);
+					unset($row['fk_user']);
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 				}
 			}
@@ -105,7 +106,7 @@ function _action() {
 			$assetOf->save($PDOdb);
 			
 			//Si on créé un OF il faut recharger la page pour avoir le bon rendu
-			if ($action == 'create') header('Location: '.$_SERVER["PHP_SELF"].'?id='.$assetOf->getId());
+			if ($action == 'create' || ($action == 'save' && !empty($_REQUEST['TAssetWorkstationOF']))) header('Location: '.$_SERVER["PHP_SELF"].'?id='.$assetOf->getId());
 			
 			//Si on viens d'un produit alors je recharge les enfants
 			if ($fk_product > 0) $assetOf->loadChild($PDOdb);
@@ -167,6 +168,14 @@ function _action() {
 		case 'terminer':
 			$assetOf=new TAssetOF;
 			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			
+			if (!$assetOf->checkCommandeFournisseur($PDOdb))
+			{
+				setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
+				_fiche($PDOdb,$assetOf, 'view');
+				break;
+			}
+			
 			$assetOf->status = "CLOSE";
 			
 			$assetOf->closeOF($PDOdb);
@@ -309,8 +318,6 @@ function generateODTOF(&$PDOdb) {
 		$template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
-	
-	//echo $societe->name; exit;
 	
 	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
@@ -515,13 +522,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	//$Tid[] = $assetOf->rowid;
 	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
 	
-	
 	$TWorkstation=array();
 	foreach($assetOf->TAssetWorkstationOF as $k=>$TAssetWorkstationOF) {
 		$ws = & $TAssetWorkstationOF->ws;
 		
 		$TWorkstation[]=array(
-			'libelle'=>$ws->libelle
+			'libelle'=>'<a href="workstation.php?action=view&id='.$ws->rowid.'">'.$ws->libelle.'</a>'
+			,'fk_user' => $TAssetWorkstationOF->visu_select_user($db, $form, $ws->fk_usergroup, 'TAssetWorkstationOF['.$k.'][fk_user][]', $mode)
 			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
 			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
 			,'delete'=> '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>'
@@ -558,6 +565,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'numero'=> ($mode=='edit') ? $form->texte('', 'numero', ($assetOf->numero) ? $assetOf->numero : 'OF'.str_pad( $assetOf->getLastId($PDOdb) +1 , 5, '0', STR_PAD_LEFT), 20,255,'','','à saisir') : '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->numero.'</a>'
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
 				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
+				,'statut_commande'=> $commande->getLibStatut(0)
 				,'commande_fournisseur'=>$HtmlCmdFourn
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)

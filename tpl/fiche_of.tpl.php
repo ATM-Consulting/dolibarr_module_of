@@ -36,7 +36,7 @@
 				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
 				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
-				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
+				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr] - [assetOf.statut_commande;strconv=no;magnet=tr]</td></tr>
 				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
@@ -72,15 +72,17 @@
 				<table width="100%" class="border workstation">
 					<tr style="background-color:#dedede;">
 						<th>Poste de travail</th>
+						<th>Utilisateur associé</th>
 						<th>Nb. heures prévues</th>
 						<th>Nb. heures réelles</th>
 						<th class="draftedit">Action</th>
 					</tr>
 					<tr id="WS[workstation.id]" style="background-color:#fff;">
-						<td>[workstation.libelle;block=tr]</td>
-						<td>[workstation.nb_hour;strconv=no]</td>
-						<td>[workstation.nb_hour_real;strconv=no]</td>
-						<td class="draftedit">[workstation.delete;strconv=no]</td>
+						<td>[workstation.libelle;strconv=no;block=tr]</td>
+						<td align='center'>[workstation.fk_user;strconv=no]</td>
+						<td align='center'>[workstation.nb_hour;strconv=no]</td>
+						<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
+						<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
 					</tr>
 					<tr>
 						<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
@@ -133,7 +135,7 @@
 									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
 									
 									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
-									<td class="draftedit">[TNeeded.delete;strconv=no]</td>
+									<td align='center' class="draftedit">[TNeeded.delete;strconv=no]</td>
 									
 								</tr>
 							</table>
@@ -153,7 +155,7 @@
 									
 								</tr>
 								<tr id="[TTomake.id]">
-									<td class="draftedit">[TTomake.addneeded;strconv=no]</td>
+									<td align='center' class="draftedit">[TTomake.addneeded;strconv=no]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[TTomake.lot_number;strconv=no]</td>
 									[onshow;block=end]
@@ -161,7 +163,7 @@
 									<td>[TTomake.qty;strconv=no]</td>
 									<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									
-									<td class="draftedit">[TTomake.delete;strconv=no]</td>
+									<td align='center' class="draftedit">[TTomake.delete;strconv=no]</td>
 									
 								</tr>
 							</table>
