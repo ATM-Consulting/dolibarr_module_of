@@ -32,25 +32,10 @@
 			case 'save':
 				//$ATMdb->db->debug=true;
 				$asset->load($ATMdb, $_REQUEST['id']);
-				$asset->set_values($_REQUEST);
 				$mesg = '<div class="ok">Modifications effectuées.</div>';
 				$mode = 'view';
-				if(isset($_REQUEST['TField'])){
-				
-					foreach($_REQUEST['TField'] as $k=>$field) {
-						$asset->TField[$k]->set_values($field);					
-					}
-				}
-				
 
-				if(isset($_REQUEST['newField']) ) {				
-					//ajout de ce champs à la classe asset
-					$asset->addField($ATMdb, $_REQUEST['TNField']);
-					
-					$mesg = '<div class="ok">Le champs a bien été créé.</div>';
-					$mode = 'edit';
-				}
-
+				$asset->set_values($_REQUEST);
 				
 				$asset->save($ATMdb);
 				$asset->load($ATMdb, $_REQUEST['id']);
@@ -118,7 +103,7 @@ function _liste(&$ATMdb, &$asset) {
 		FROM ".MAIN_DB_PREFIX."asset_type
 		WHERE 1 ";
 	
-	$TOrder = array('Code'=>'ASC');
+	$TOrder = array('ID'=>'ASC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 				
@@ -175,6 +160,14 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 	echo $form->hidden('action', 'save');
 	
 	$TBS=new TTemplateTBS();
+
+	$langs->load('other');
+	$measuring_units_values = array(
+		'weight' => $langs->trans('Weight'),
+		'size' => $langs->trans('Length'),
+		'surface' => $langs->trans('Surface'),
+		'volume' => $langs->trans('Volume')
+	);
 	
 	print $TBS->render('tpl/asset.type.tpl.php'
 		,array()
@@ -188,6 +181,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				,'point_chute'=>$form->texte('', 'point_chute', $asset->point_chute, 12,10,'','','à saisir')
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
 				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)
+				,'measuring_units'=>$form->combo('', 'measuring_units', $measuring_units_values, $asset->measuring_units, 1 , 'loadMeasuringUnits(this);')
 				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
 				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', $asset->contenancereel_value, 12,10,'','','')
@@ -221,12 +215,15 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
 	
 	$langs->load("other");
 	
+	if (!empty($asset->measuring_units)) $type = $asset->measuring_units;
+	else $type = 'weight';
+	
 	if($mode=='edit') {
 		ob_start();	
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, "weight", $asset->$name);
+		echo $html->select_measuring_units($name, $type, $asset->$name);
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
@@ -237,7 +234,7 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, "weight", $defaut);
+		echo $html->select_measuring_units($name, $type, $defaut);
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
@@ -245,9 +242,35 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
 	else{
 		ob_start();	
 		
-		echo measuring_units_string($asset->$name, "weight");
+		echo measuring_units_string($asset->$name, $type);
 		
 		return ob_get_clean();
 	}
+	
+	/*
+	 *
+			// Weight
+            print '<tr><td>'.$langs->trans("Weight").'</td><td colspan="3">';
+            print '<input name="weight" size="4" value="'.GETPOST('weight').'">';
+            print $formproduct->select_measuring_units("weight_units","weight");
+            print '</td></tr>';
+            // Length
+            print '<tr><td>'.$langs->trans("Length").'</td><td colspan="3">';
+            print '<input name="size" size="4" value="'.GETPOST('size').'">';
+            print $formproduct->select_measuring_units("size_units","size");
+            print '</td></tr>';
+            // Surface
+            print '<tr><td>'.$langs->trans("Surface").'</td><td colspan="3">';
+            print '<input name="surface" size="4" value="'.GETPOST('surface').'">';
+            print $formproduct->select_measuring_units("surface_units","surface");
+            print '</td></tr>';
+            // Volume
+            print '<tr><td>'.$langs->trans("Volume").'</td><td colspan="3">';
+            print '<input name="volume" size="4" value="'.GETPOST('volume').'">';
+            print $formproduct->select_measuring_units("volume_units","volume");
+            print '</td></tr>'; 
+	 * 
+	 */
+	
 }
 	

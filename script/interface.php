@@ -32,9 +32,10 @@ function traite_get(&$ATMdb, $case) {
 			__out(_addofworkstation($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_asset_workstation']));
 			break;	
 		case 'deleteofworkstation':	
-			
 			__out(_deleteofworkstation($ATMdb,$_REQUEST['id_assetOf'], $_REQUEST['fk_asset_workstation_of'] ));
-			
+			break;
+		case 'measuringunits':
+			__out(_measuringUnits(GETPOST('type'), GETPOST('name')), 'json');
 			break;
 		case 'getofchildid':
 			$Tid = array();
@@ -184,6 +185,17 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 		
 		if ($break) break;
 	}
+}
+
+function _measuringUnits($type, $name)
+{
+	global $db;
+	
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	
+	$html=new FormProduct($db);
+	return array($html->load_measuring_units($name, $type, 0));
 }
 
 function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)

@@ -15,6 +15,7 @@
 	<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
 	<tr><td width="20%">Gestion du stock</td><td>[assetType.gestion_stock; strconv=no]</td></tr>
 	<tr><td width="20%">Réutilisable</td><td>[assetType.reutilisable; strconv=no]</td></tr>
+	<tr><td width="20%">Type de l'unité</td><td>[assetType.measuring_units;strconv=no]</td></tr>
 	<tr><td width="20%">Contenance maximum</td><td>[assetType.contenance_value;strconv=no] [assetType.contenance_units;strconv=no]</td></tr>
 	<tr><td width="20%">Contenance par défaut</td><td>[assetType.contenancereel_value;strconv=no] [assetType.contenancereel_units;strconv=no]</td></tr>
 </table>
@@ -34,6 +35,39 @@
 			});
 		});
 	});
+	
+	
+	function loadMeasuringUnits(obj)
+	{
+		var type_unit = $(obj).val();
+		
+		$.ajax({
+			url:'script/interface.php?get=measuringunits'
+			,data: {
+				type: type_unit,
+				name: 'contenance_units'
+			}
+			,dataType: 'json'
+			,success: function(html) {
+				$('select[name=contenance_units]').remove();
+				$('input#contenance_value').after(html);	
+			}
+		});
+		
+		$.ajax({
+			url:'script/interface.php?get=measuringunits'
+			,data: {
+				type: type_unit,
+				name: 'contenancereel_units'
+			}
+			,dataType: 'json'
+			,success: function(html) {
+				$('select[name=contenancereel_units]').remove();
+				$('input#contenancereel_value').after(html);	
+			}
+		});
+		
+	}
 	</script>
 [onshow;block=end]
 

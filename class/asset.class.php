@@ -501,7 +501,7 @@ class TAssetStock extends TObjetStd{
 class TAsset_type extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'asset_type');
-		parent::add_champs('libelle,code,reutilisable,masque,gestion_stock','type=chaine;');
+		parent::add_champs('libelle,code,reutilisable,masque,gestion_stock,measuring_units','type=chaine;');
 		parent::add_champs('entity','type=entier;index;');
 		parent::add_champs('contenance_value, contenancereel_value, point_chute', 'type=float;');
 		parent::add_champs('contenance_units, contenancereel_units', 'type=entier;');
