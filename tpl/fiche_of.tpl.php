@@ -72,14 +72,18 @@
 				<table width="100%" class="border workstation">
 					<tr style="background-color:#dedede;">
 						<th>Poste de travail</th>
-						<th>Utilisateur associé</th>
+						[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+							<th>Utilisateur associé</th>
+						[onshow;block=end]
 						<th>Nb. heures prévues</th>
 						<th>Nb. heures réelles</th>
 						<th class="draftedit">Action</th>
 					</tr>
 					<tr id="WS[workstation.id]" style="background-color:#fff;">
 						<td>[workstation.libelle;strconv=no;block=tr]</td>
-						<td align='center'>[workstation.fk_user;strconv=no]</td>
+						[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+							<td align='center'>[workstation.fk_user;strconv=no]</td>
+						[onshow;block=end]
 						<td align='center'>[workstation.nb_hour;strconv=no]</td>
 						<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
 						<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>

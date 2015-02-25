@@ -43,7 +43,8 @@ OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande four
 # POSTE DE TRAVAIL
 AssetWorkstation=Poste de travail
 AssetNewWorkstation=Nouveau poste de travail
-AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail
+AssetDefinedUserByWorkstation=Permettre l'association d'un ou plusieurs utilisateurs d'être assigné à un poste de travail sur un OF
+AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail sur un OF
 
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement

@@ -101,8 +101,11 @@ function _action() {
 			if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) 
 				{
-					$assetOf->TAssetWorkstationOF[$k]->set_users($PDOdb, $row['fk_user']);
-					unset($row['fk_user']);
+					if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
+					{
+						$assetOf->TAssetWorkstationOF[$k]->set_users($PDOdb, $row['fk_user']);
+						unset($row['fk_user']);
+					}
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 				}
 			}
@@ -598,6 +601,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
+				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 				,'hasChildren' => (int) !empty($Tid)
 			)

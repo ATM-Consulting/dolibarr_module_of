@@ -83,6 +83,13 @@
 	print '</td></tr>';	
 	
 	print '<tr>';
+	print '<td>'.$langs->trans("AssetDefinedUserByWorkstation").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_DEFINED_USER_BY_WORKSTATION');
+	print '</td></tr>';
+	
+	print '<tr>';
 	print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
