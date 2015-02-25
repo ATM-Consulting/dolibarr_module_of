@@ -74,7 +74,6 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 
 		$this->set_temps_fabrication();
-
 		$this->entity = $conf->entity;
 
 		if(!empty($conf->global->USE_LOT_IN_OF))
@@ -95,15 +94,27 @@ class TAssetOF extends TObjetStd{
 	
 	function setLotWithParent(&$ATMdb)
 	{
-		if (count($this->TAssetOFLine) && $this->fk_assetOf_parent){
+		if (count($this->TAssetOFLine) && $this->fk_assetOf_parent)
+		{
 			$ofParent = new TAssetOF;
 			$ofParent->load($ATMdb, $this->fk_assetOf_parent);
 			
-			foreach($ofParent->TAssetOFLine as $ofLigneParent){
-				foreach($this->TAssetOFLine as $ofLigne){
-					if($ofLigne->fk_product == $ofLigneParent->fk_product){
-						$ofLigne->lot_number = $ofLigneParent->lot_number;
-						$ofLigne->save($ATMdb);
+			foreach($ofParent->TAssetOFLine as $ofLigneParent)
+			{
+				foreach($this->TAssetOFLine as $ofLigne)
+				{
+					if($ofLigne->fk_product == $ofLigneParent->fk_product)
+					{
+						if (empty($this->update_parent))
+						{
+							$ofLigne->lot_number = $ofLigneParent->lot_number;
+							$ofLigne->save($ATMdb);	
+						}
+						else 
+						{
+							$ofLigneParent->lot_number = $ofLigne->lot_number;
+							$ofLigneParent->save($ATMdb);
+						}
 					}
 				}
 			}

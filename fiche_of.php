@@ -90,6 +90,7 @@ function _action() {
 						$assetOf->TAssetOFLine[$k]->set_workstations($PDOdb, $row['fk_workstation']);
 						unset($row['fk_workstation']);	
 					}
+
 					$assetOf->TAssetOFLine[$k]->set_values($row);
 				}
 
@@ -106,12 +107,15 @@ function _action() {
 						$assetOf->TAssetWorkstationOF[$k]->set_users($PDOdb, $row['fk_user']);
 						unset($row['fk_user']);
 					}
+					
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 				}
 			}
 			
 			$assetOf->entity = $conf->entity;
 
+			//Permet de mettre à jour le lot de l'OF parent
+			if (!empty($assetOf->fk_assetOf_parent)) $assetOf->update_parent = true;
 			$assetOf->save($PDOdb);
 			
 			//Si on créé un OF il faut recharger la page pour avoir le bon rendu
