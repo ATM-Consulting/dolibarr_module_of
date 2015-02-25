@@ -272,7 +272,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			$TAssetStock[]=array(
 				'date_cre'=>$date
 				,'qty'=>$stock->qty
-				,'weight_units'=>measuring_units_string($stock->weight_units,"weight")
+				,'weight_units'=>measuring_units_string($stock->weight_units,$asset->assetType->measuring_units)
 				,'lot' =>$stock->lot
 				,'type'=>$stock->type
 			);
@@ -569,8 +569,8 @@ global $db;
 		ob_start();	
 		
 		$html=new FormProduct($db);
-		
-		echo $html->select_measuring_units($name, "weight", ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
+
+		echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
@@ -581,7 +581,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, "weight", ($asset->getId()) ? $defaut : $asset->assetType->$name);
+		echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
 		//($asset->$name != "")? $asset->$name : $defaut
 		
 		return ob_get_clean();
@@ -589,7 +589,7 @@ global $db;
 	else{
 		ob_start();	
 		
-		echo measuring_units_string($asset->$name, "weight");
+		echo measuring_units_string($asset->$name, $asset->assetType->measuring_units);
 		
 		return ob_get_clean();
 	}
