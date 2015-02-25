@@ -51,6 +51,22 @@ AssetNewType=Nouveau type d'équipement
 #Contrôle
 AssetControl=Contrôle
 AssetNewControl=Ajouter un contrôle
+ListControl=Liste des contrôles
+AssetEmptyControl=Aucun contrôle à afficher
+AssetCreateControl=Créer un contrôle
+AssetAddControl=Ajout d'un contrôle
+AssetAddControlEvent=Ajout du contrôle enregistré
+AssetSaveControlEvent=Modifications du contrôle enregistrées
+AssetDeleteControlEvent=Suppression du contrôle enregistrée
+AssetListControl=Liste des contrôles
+AssetAddValueMultiple=Ajouter une valeur
+AssetAddControlValue=Ajouter une valeur pour un choix multiple
+AssetSaveControlValueEvent=Valeur enregistrée
+ListControlMultiple=Liste des valeurs
+AssetDeleteControlValueEvent=Suppression de la valeur enregistrée
+AssetEmptyControlMultiple=Aucune valeur à afficher
+AssetCreateControlMultiple=Créer une valeur
+AssetListValueMultiple=Liste des valeurs
 
 #Configuration
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement

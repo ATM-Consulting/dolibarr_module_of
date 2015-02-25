@@ -359,7 +359,20 @@ class modAsset extends DolibarrModules
 					'url'=>'/asset/list_control.php',
 					'position'=>302,
 					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->write',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetListControl'),
+					'mainmenu'=>'assetControlList',
+					'leftmenu'=>'assetNewControl',
+					'url'=>'/asset/list_control.php',
+					'position'=>303,
+					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -369,13 +382,41 @@ class modAsset extends DolibarrModules
 					'titre'=>$langs->trans('AssetNewControl'),
 					'mainmenu'=>'assetControlList',
 					'leftmenu'=>'assetNewControl',
-					'url'=>'/asset/control.php',
-					'position'=>303,
+					'url'=>'/asset/control.php?action=new',
+					'position'=>304,
 					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->write',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetListValueMultiple'),
+					'mainmenu'=>'assetControlList',
+					'leftmenu'=>'assetNewControl',
+					'url'=>'/asset/list_control_multiple.php',
+					'position'=>305,
+					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetAddValueMultiple'),
+					'mainmenu'=>'assetControlList',
+					'leftmenu'=>'assetNewControl',
+					'url'=>'/asset/control.php?action=addValue',
+					'position'=>306,
+					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		
 		
 		// Exports
 		$r=1;
@@ -435,9 +476,6 @@ class modAsset extends DolibarrModules
 	 */
 	function remove()
 	{
-			
-		
-			
 		$sql = array();
 
 		return $this->_remove($sql);

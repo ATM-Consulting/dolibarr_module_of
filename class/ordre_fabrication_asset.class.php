@@ -33,7 +33,7 @@ class TAssetOF extends TObjetStd{
 		
 		$this->start();
 		
-		$this->workstation=null;
+		$this->workstations=array();
 		$this->status='DRAFT';
 		
 		$this->setChild('TAssetOFLine','fk_assetOf');
@@ -1175,23 +1175,80 @@ class TAssetWorkstation extends TObjetStd{
 		$this->entity = $conf->entity;
 		
 		parent::save($ATMdb);
-		
-		
 	}
 	
-	static function getWorstations(&$ATMdb) {
+	static function getWorstations(&$ATMdb) 
+	{
 		global $conf;
 		
 		$TWorkstation=array();
 		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
 		
 		$ATMdb->Execute($sql);
-		while($ATMdb->Get_line()){
+		while($ATMdb->Get_line())
+		{
 			$TWorkstation[$ATMdb->Get_field('rowid')]=$ATMdb->Get_field('libelle');
 		}
 		
-		
 		return $TWorkstation;
+	}
+	
+}
+
+
+class TAssetControl extends TObjetStd
+{
+	static $TType=array(
+			'text'=>'Texte libre'
+			,'checkbox'=>'Réponse oui / non'
+			,'num'=> 'Réponse numérique'
+			,'checkboxmultiple'=>'Réponse multiple'
+			
+		);
+	
+	function __construct() 
+	{
+		$this->set_table(MAIN_DB_PREFIX.'asset_control');
+    	$this->TChamps = array(); 	  
+		$this->add_champs('libelle,type,question','type=chaine;');
+		
+	    $this->start();
+		
+		$this->setChild('TAssetControlMultiple','fk_control');
+		
+	}
+	
+}
+
+class TAssetControlMultiple extends TObjetStd
+{
+	function __construct() 
+	{
+		$this->set_table(MAIN_DB_PREFIX.'asset_control_multiple');
+    	$this->TChamps = array(); 	  
+		$this->add_champs('fk_control','type=entier;index;');
+		$this->add_champs('value','type=chaine;');
+		
+	    $this->start();
+		
+	}
+	
+	function visu_select_control(&$db, &$form, $name)
+	{
+		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_control WHERE type = "checkboxmultiple"';
+		$resql = $db->Execute($sql);
+		
+		$res = '<select name="'.$name.'"><option value=""></option>';
+		
+		while($db->Get_line())
+		{
+			$fk_control = $db->Get_field('rowid');
+			$res.= '<option '.($this->fk_control == $fk_control ? 'selected="selected"' : '').' value="'.$fk_control.'">'.$db->Get_field('libelle').'</option>';
+		}
+		
+		$res.= '</select>';
+		
+		return $res;
 	}
 	
 }
