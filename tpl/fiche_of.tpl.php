@@ -452,16 +452,9 @@
 			
 			[onshow;block=begin;when [view.use_lot_in_of]==1]
 				$(".TAssetOFLineLot").each(function(){
-					/*
 					fk_product = $(this).attr('fk_product');
 					$(this).autocomplete({
 						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
-						minLength : 1
-					});
-					*/
-					//fk_product = $(this).attr('fk_product');
-					$(this).autocomplete({
-						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number",
 						minLength : 1
 					});
 				})
