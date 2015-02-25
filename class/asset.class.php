@@ -196,7 +196,13 @@ class TAsset extends TObjetStd{
 		 * donc pas de $this->fk_product
 		 */ 
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
-
+		
+		//Dans le cas d'une gestion de stock quantitative, on divise la quantité destocké par la contenance total de l'équipement
+		if($this->gestion_stock === 'QUANTITY'){
+			$qty = $qty / $this->contenance_value;
+			$qty = number_format($qty,2,'.','');
+		}
+		
 		if($fk_entrepot > 0){
 			if($qty > 0) {
 				$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
