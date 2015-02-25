@@ -63,3 +63,9 @@
 	$o=new TAssetFacture;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TAssetControl;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TAssetControlMultiple;
+	$o->init_db_by_vars($ATMdb);
+	
