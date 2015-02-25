@@ -96,6 +96,13 @@
 	print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
 	print '</td></tr>';	
 	
+	print '<tr>';
+	print '<td>'.$langs->trans("AssetUseControl").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_USE_CONTROL');
+	print '</td></tr>';	
+	
 	
 	print "</table>";
 	
