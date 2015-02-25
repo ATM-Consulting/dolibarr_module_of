@@ -113,6 +113,9 @@ class modAsset extends DolibarrModules
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits nécessaires)',1)
 			,array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
 			,array('CREATE_CHILDREN_OF', 'chaine', 1,'Permet de créer des OF enfants si les composant sont hors stock',1)
+			,array('ASSET_DEFINED_USER_BY_WORKSTATION', 'chaine', 0,'Permettre l\'association d\'un ou plusieurs utilisateurs d\'être assigné à un poste de travail sur un OF',1)
+			,array('ASSET_DEFINED_WORKSTATION_BY_NEEDED', 'chaine', 0,'Permet de ventiler les produits de composition par poste de travail',1)
+			,array('ASSET_USE_CONTROL', 'chaine', 0,'Permet de définir des contrôles à appliquer lors du processus de l\'OF',1)
 		);
 
 
@@ -334,7 +337,7 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-
+		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetNewProductionOrder'),
@@ -344,6 +347,32 @@ class modAsset extends DolibarrModules
 					'position'=>301,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetControl'),
+					'mainmenu'=>'asset',
+					'leftmenu'=>'assetControlList',
+					'url'=>'/asset/list_control.php',
+					'position'=>302,
+					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->write',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetNewControl'),
+					'mainmenu'=>'assetControlList',
+					'leftmenu'=>'assetNewControl',
+					'url'=>'/asset/control.php',
+					'position'=>303,
+					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->write',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;

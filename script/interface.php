@@ -32,9 +32,10 @@ function traite_get(&$ATMdb, $case) {
 			__out(_addofworkstation($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_asset_workstation']));
 			break;	
 		case 'deleteofworkstation':	
-			
 			__out(_deleteofworkstation($ATMdb,$_REQUEST['id_assetOf'], $_REQUEST['fk_asset_workstation_of'] ));
-			
+			break;
+		case 'measuringunits':
+			__out(_measuringUnits(GETPOST('type'), GETPOST('name')), 'json');
 			break;
 		case 'getofchildid':
 			$Tid = array();
@@ -61,40 +62,38 @@ function _addofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation, $nb_hour
 	
 	
 }
-function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) {
-	
+function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) 
+{
 	$of=new TAssetOF;
 	$of->load($ATMdb, $id_assetOf);
-	
 	$of->removeChild('TAssetWorkstationOF', $fk_asset_workstation_of);
-	
-	$of->save($ATMdb);
-	
+	$of->save($ATMdb);	
 }
 
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0){
+function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0)
+{
+	$value = trim($value);
 	
-	if($fk_product){
-		$sql = "SELECT DISTINCT(al.".$fieldcode.")
-				FROM ".MAIN_DB_PREFIX."assetlot as al
-				LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.".$fieldcode." = al.".$fieldcode.")
-				LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = a.fk_product)
-				WHERE al.".$fieldcode." LIKE '".$value."%'
-				AND p.rowid = ".$fk_product."
-				ORDER BY al.".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
-	}
-	else{
-		$sql = "SELECT DISTINCT(".$fieldcode.")
-			FROM ".MAIN_DB_PREFIX."assetlot
-			WHERE ".$fieldcode." LIKE '".$value."%'
-			ORDER BY ".$fieldcode." ASC"; //TODO Rajouté un filtre entité ?
+	$sql = 'SELECT DISTINCT(al.'.$fieldcode.') ';
+	$sql .= 'FROM '.MAIN_DB_PREFIX.'assetlot as al ';
+	
+	if($fk_product)
+	{
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
 	
+	if (!empty($value)) $sql .= 'WHERE '.$fieldcode.' LIKE '.$ATMdb->quote($value.'%').' ';
 	
+	if (!empty($value) && $fk_product) $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
+	elseif ($fk_product) $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';
+	
+	$sql .= 'ORDER BY al.'.$fieldcode;
+		
 	$ATMdb->Execute($sql);
-	
-	while ($ATMdb->Get_line()) {
+	while ($ATMdb->Get_line()) 
+	{
 		$TResult[] = $ATMdb->Get_field($fieldcode);
 	}
 	
@@ -186,6 +185,17 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 		
 		if ($break) break;
 	}
+}
+
+function _measuringUnits($type, $name)
+{
+	global $db;
+	
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	
+	$html=new FormProduct($db);
+	return array($html->load_measuring_units($name, $type, 0));
 }
 
 function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)

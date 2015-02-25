@@ -38,6 +38,8 @@ AssetNewProductionOrder=Nouvel ordre de Fabrication
 ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
 AssetInLot=Equipements du lot
+OFAssetLotEmpty=Erreur de saisie sur les lots
+OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
 
 
 # POSTE DE TRAVAIL
@@ -47,6 +49,10 @@ AssetNewWorkstation=Nouveau poste de travail
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement
 AssetNewType=Nouveau type d'équipement
+
+#Contrôle
+AssetControl=Contrôle
+AssetNewControl=Ajouter un contrôle
 
 #Configuration
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
@@ -60,6 +66,9 @@ UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
 UseBatchNumberInOf = Utiliser la gestion des lots dans OF
+AssetDefinedUserByWorkstation=Permettre l'association d'un ou plusieurs utilisateurs d'être assigné à un poste de travail sur un OF
+AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail sur un OF
+AssetUseControl=Permet de définir des contrôles à appliquer lors du processus de l'OF
 
 
 CreateAssetFromProductDescListProduct=La liste contient uniquement les produits avec un état "En vente"
