@@ -322,7 +322,7 @@ class TAssetOF extends TObjetStd{
 			else 
 			{		
 				$asset->load($ATMdb, $AssetOFLine->fk_asset);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
 		}
 	}
@@ -338,7 +338,7 @@ class TAssetOF extends TObjetStd{
 			$asset->load($ATMdb, $AssetOFLine->fk_asset);
 
 			if($AssetOFLine->type == "NEEDED"){
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero,-$AssetOFLine->qty_used);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number,-$AssetOFLine->qty_used);
 			}
 
 		}
@@ -735,7 +735,7 @@ class TAssetOFLine extends TObjetStd{
 				$idAsset = $ATMdb->Get_field('rowid');
 				$asset->load($ATMdb, $idAsset);
 				$asset->status = 'indisponible';
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
 			elseif($conf->global->USE_LOT_IN_OF){
 				$AssetOf->errors[] = "Lot incorrect, aucun équipement associé au lot n°".$this->lot_number.".";
@@ -748,7 +748,7 @@ class TAssetOFLine extends TObjetStd{
 			
 			if(!$mvmt_stock_already_done) 
 			{
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
 		}
 		
