@@ -906,7 +906,8 @@ class TAssetOFLine extends TObjetStd{
 			$TAsset->lot_number = $this->lot_number;
 		}
 		
-		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero, $qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE);
+		$TAsset->save($ATMdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock
+		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero." - Equipement : ".$TAsset->serial_number, $qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE);
 		return $TAsset;
 	}
 	
