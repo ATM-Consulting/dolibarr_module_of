@@ -118,8 +118,8 @@ function _action() {
 				$asset->set_values($_REQUEST);
 				
 				//Cas spécifique contenance_units et contenancereel_units lorsqu'égale à 0 soit kg ou m, etc
-				$asset->contenance_units = ($_REQUEST['contenance_units']) ? $_REQUEST['contenance_units'] : 0;
-				$asset->contenancereel_units = ($_REQUEST['contenancereel_units']) ? $_REQUEST['contenance_units'] : 0;
+				$asset->contenance_units = ($_REQUEST['contenance_units']) ? $_REQUEST['contenance_units'] : $asset->contenance_units;
+				$asset->contenancereel_units = ($_REQUEST['contenancereel_units']) ? $_REQUEST['contenance_units'] : $asset->contenancereel_units;
 				
 				if(!isset($_REQUEST['type_mvt'])) {
 					$no_destock_dolibarr = true;
@@ -272,7 +272,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			$TAssetStock[]=array(
 				'date_cre'=>$date
 				,'qty'=>$stock->qty
-				,'weight_units'=>measuring_units_string($stock->weight_units,$asset->assetType->measuring_units)
+				,'weight_units'=>measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units)
 				,'lot' =>$stock->lot
 				,'type'=>$stock->type
 			);
