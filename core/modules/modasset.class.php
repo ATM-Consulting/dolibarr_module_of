@@ -211,7 +211,7 @@ class modAsset extends DolibarrModules
 		$r=0;
 		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
 					'type'=>'top',			// This is a Top menu entry
-					'titre'=>$langs->trans('Asset'),
+					'titre'=>$langs->trans('GPAO'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/liste.php',
