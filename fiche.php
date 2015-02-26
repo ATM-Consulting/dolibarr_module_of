@@ -272,7 +272,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			$TAssetStock[]=array(
 				'date_cre'=>$date
 				,'qty'=>$stock->qty
-				,'weight_units'=>($asset->gestion_stock != 'Unitaire' ) ? measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units) : 'unité(s)'
+				,'weight_units'=>($asset->gestion_stock != 'UNIT' ) ? measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units) : 'unité(s)'
 				,'lot' =>$stock->lot
 				,'type'=>$stock->type
 			);
@@ -564,7 +564,7 @@ global $db;
 	
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-
+	
 	if($mode=='edit') {
 		ob_start();	
 		
