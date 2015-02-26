@@ -196,13 +196,39 @@ class TAsset extends TObjetStd{
 		 * donc pas de $this->fk_product
 		 */ 
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
+		
+		//Dans le cas d'une gestion de stock quantitative, on divise la quantité destocké par la contenance total de l'équipement
+		if($this->gestion_stock === 'QUANTITY' && $this->assetType->measuring_units != 'unit'){
+			
+			$product = new Product($db);
+			$product->fetch($fk_product);
+			
+			//Bas oui parce que dans Dolibarr un coup on a 'size' et un coup on a 'lenght' pour la même chose....j'aime Dolibarr...
+			$type_unit = ($this->assetType->measuring_units === 'size') ? 'length' : $this->assetType->measuring_units ;
+			
+			//Pour destocker dans la bonne unité, on met dans l'unité correspondant au produit
+			$unite = $product->{$type_unit."_units"}-$this->contenance_units;
+			$qty_product = ($product->{$type_unit} > 0) ? $product->{$type_unit} : $this->contenance_value;
 
+			$qty = $qty / ($qty_product * pow(10,$unite));
+			$qty = round($qty,5);
+		}
+		
 		if($fk_entrepot > 0){
-			if($qty > 0) {
-				$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
-			} else {
-				$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
-			}
+			
+			//TODO finaliser cette partie spécifique
+			//Si on destocke l'intégralité de notre équipement dès le premier mouvement
+			/*if($this->destock_dolibarr_on_first_mvt && $this->contenancereel_value == $this->contenance_value){
+				
+				//Alors on passse la quantité à destocker = contenance maximum du produit
+				$qty = $this->contenance_value * pow(10,$unite);*/
+
+				if($qty > 0) {
+					$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, 0, $description);
+				} else {
+					$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
+				}
+			//}
 		}
 	}
 	
