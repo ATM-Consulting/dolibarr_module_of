@@ -12,17 +12,36 @@
 	<tr><td width="20%">Libellé</td><td>[assetType.libelle; strconv=no]</td></tr>
 	<tr><td width="20%">Code (facultatif)</td><td>[assetType.code; strconv=no]</td></tr>[assetType.supprimable; strconv=no]
 	<tr><td width="20%">Masque de numérotation</td><td>[assetType.masque; strconv=no][assetType.info_masque; strconv=no]</td></tr>
-	<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
 	<tr><td width="20%">Gestion du stock</td><td>[assetType.gestion_stock; strconv=no]</td></tr>
 	<tr><td width="20%">Réutilisable</td><td>[assetType.reutilisable; strconv=no]</td></tr>
-	<tr><td width="20%">Type de l'unité</td><td>[assetType.measuring_units;strconv=no]</td></tr>
-	<tr><td width="20%">Contenance maximum</td><td>[assetType.contenance_value;strconv=no] [assetType.contenance_units;strconv=no]</td></tr>
-	<tr><td width="20%">Contenance par défaut</td><td>[assetType.contenancereel_value;strconv=no] [assetType.contenancereel_units;strconv=no]</td></tr>
+	[onshow;block=begin;when [assetType.gestion_stock]='Quantitative']
+		<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
+		<tr><td width="20%">Type de l'unité</td><td>[assetType.measuring_units;strconv=no]</td></tr>
+		<tr><td width="20%">Contenance maximum</td><td>[assetType.contenance_value;strconv=no] [assetType.contenance_units;strconv=no]</td></tr>
+		<tr><td width="20%">Contenance par défaut</td><td>[assetType.contenancereel_value;strconv=no] [assetType.contenancereel_units;strconv=no]</td></tr>
+	[onshow;block=end]
 </table>
 
 [onshow;block=begin;when [view.mode]=='edit']
 	<script>
 	 $(document).ready(function(){
+	 	
+	 	$("#gestion_stock").change(function(){
+	 		if($(this).find("option:selected").val() == 'UNIT'){
+				$("#measuring_units").parent().parent().hide();
+				$("#contenance_value").parent().parent().hide();
+				$("#contenancereel_value").parent().parent().hide();
+				
+				$("#contenance_value").val('1');
+				$("#contenancereel_value").val('1');
+	 		}
+	 		else{
+	 			$("#measuring_units").parent().parent().show();
+				$("#contenance_value").parent().parent().show();
+				$("#contenancereel_value").parent().parent().show();
+	 		}
+	 	})
+	 	
 	 	$( "#sortable" ).css('cursor','pointer');
 		$(function() {
 			$( "#sortable" ).sortable({

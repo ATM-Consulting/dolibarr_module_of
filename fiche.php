@@ -272,7 +272,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			$TAssetStock[]=array(
 				'date_cre'=>$date
 				,'qty'=>$stock->qty
-				,'weight_units'=>measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units)
+				,'weight_units'=>($asset->gestion_stock != 'Unitaire' ) ? measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units) : 'unité(s)'
 				,'lot' =>$stock->lot
 				,'type'=>$stock->type
 			);
@@ -564,14 +564,19 @@ global $db;
 	
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	
+
 	if($mode=='edit') {
 		ob_start();	
 		
 		$html=new FormProduct($db);
-
-		echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
-		//($asset->$name != "")? $asset->$name : $defaut
+		
+		if($asset->gestion_stock == 'UNIT'){
+			echo "unité(s)";
+		}
+		else{
+			echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
+			//($asset->$name != "")? $asset->$name : $defaut
+		}
 		
 		return ob_get_clean();
 		
@@ -581,15 +586,25 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
-		//($asset->$name != "")? $asset->$name : $defaut
+		if($asset->gestion_stock == 'UNIT'){
+			echo "unité(s)";
+		}
+		else{
+			echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
+			//($asset->$name != "")? $asset->$name : $defaut
+		}
 		
 		return ob_get_clean();
 	}
 	else{
 		ob_start();	
 		
-		echo measuring_units_string($asset->$name, $asset->assetType->measuring_units);
+		if($asset->gestion_stock == 'UNIT'){
+			echo "unité(s)";
+		}
+		else{
+			echo measuring_units_string($asset->$name, $asset->assetType->measuring_units);
+		}
 		
 		return ob_get_clean();
 	}
