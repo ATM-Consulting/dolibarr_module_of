@@ -198,7 +198,7 @@ class TAsset extends TObjetStd{
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
 		//Dans le cas d'une gestion de stock quantitative, on divise la quantité destocké par la contenance total de l'équipement
-		if($this->gestion_stock === 'QUANTITY'){
+		if($this->gestion_stock === 'QUANTITY' && $this->assetType->measuring_units != 'unit'){
 			
 			$product = new Product($db);
 			$product->fetch($fk_product);

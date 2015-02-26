@@ -267,12 +267,11 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	foreach($asset->TStock as &$stock) {
 	
 		$date = $stock->get_dtcre();
-		
 		if($conf->global->ASSET_USE_PRODUCTION_ATTRIBUT){
 			$TAssetStock[]=array(
 				'date_cre'=>$date
 				,'qty'=>$stock->qty
-				,'weight_units'=>($asset->gestion_stock != 'UNIT' ) ? measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units) : 'unité(s)'
+				,'weight_units'=>($asset->gestion_stock != 'UNIT' && $asset->assetType->measuring_units != 'unit') ? measuring_units_string($asset->contenancereel_units,$asset->assetType->measuring_units) : 'unité(s)'
 				,'lot' =>$stock->lot
 				,'type'=>$stock->type
 			);
@@ -570,7 +569,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		if($asset->gestion_stock == 'UNIT'){
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units = 'unit'){
 			echo "unité(s)";
 		}
 		else{
@@ -586,7 +585,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		if($asset->gestion_stock == 'UNIT'){
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units = 'unit'){
 			echo "unité(s)";
 		}
 		else{
@@ -599,7 +598,7 @@ global $db;
 	else{
 		ob_start();	
 		
-		if($asset->gestion_stock == 'UNIT'){
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units = 'unit'){
 			echo "unité(s)";
 		}
 		else{

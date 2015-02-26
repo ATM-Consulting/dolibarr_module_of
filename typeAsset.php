@@ -163,6 +163,7 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 
 	$langs->load('other');
 	$measuring_units_values = array(
+		'unit' => $langs->trans('Unitaire'),
 		'weight' => $langs->trans('Weight'),
 		'size' => $langs->trans('Length'),
 		'surface' => $langs->trans('Surface'),
@@ -223,8 +224,13 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, $type, $asset->$name);
-		//($asset->$name != "")? $asset->$name : $defaut
+		if($type == 'unit'){
+			echo "unité(s)";
+		}
+		else{
+			echo $html->select_measuring_units($name, $type, $asset->$name);
+			//($asset->$name != "")? $asset->$name : $defaut
+		}
 		
 		return ob_get_clean();
 		
@@ -234,15 +240,25 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
 		
 		$html=new FormProduct($db);
 		
-		echo $html->select_measuring_units($name, $type, $defaut);
-		//($asset->$name != "")? $asset->$name : $defaut
+		if($type == 'unit'){
+			echo "unité(s)";
+		}
+		else{
+			echo $html->select_measuring_units($name, $type, $defaut);
+			//($asset->$name != "")? $asset->$name : $defaut
+		}
 		
 		return ob_get_clean();
 	}
 	else{
-		ob_start();	
-		
-		echo measuring_units_string($asset->$name, $type);
+		ob_start();
+			
+		if($type == 'unit'){
+			echo "unité(s)";
+		}
+		else{
+			echo measuring_units_string($asset->$name, $type);
+		}
 		
 		return ob_get_clean();
 	}

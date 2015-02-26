@@ -195,7 +195,9 @@ function _measuringUnits($type, $name)
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	
 	$html=new FormProduct($db);
-	return array($html->load_measuring_units($name, $type, 0));
+	
+	if($type == 'unit') return array(' unité(s)');
+	else return array($html->load_measuring_units($name, $type, 0));
 }
 
 function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)
