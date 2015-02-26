@@ -102,13 +102,26 @@ function _liste($id_entity) {
 	
 	$THide = array('fk_soc','fk_product');
 	if(isset($_REQUEST['fk_product'])) {
-		$THide[] = 'Produit';
+		$THide[] = 'Produit,ID';
 	}
 	
 	//echo $sql;
 	
-	function get_measuring_units_string($unite,$type = "weight"){
-		return measuring_units_string($unite,"weight");
+	function get_measuring_units_string($fk_asset,$unite){
+			
+		$PDOdb = new TPDOdb;	
+		
+		$asset = new TAsset;
+		$asset->load($PDOdb, $fk_asset);
+		
+		if($asset->gestion_stock != 'UNIT'){
+			return measuring_units_string($unite,$asset->assetType->measuring_units);
+		}
+		else{
+			return 'unité(s)';
+		}
+		
+		$PDOdb->close();
 	}
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
@@ -149,7 +162,7 @@ function _liste($id_entity) {
 			,'label'=>array('recherche'=>true, 'table'=>'')
 		)
 		,'eval'=>array(
-			'unite'=>'get_measuring_units_string("@unite@","weight")'
+			'unite'=>'get_measuring_units_string(@ID@,"@unite@")'
 		)
 	));
 
