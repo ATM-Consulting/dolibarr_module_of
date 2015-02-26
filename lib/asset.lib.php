@@ -1,7 +1,7 @@
 <?php
 
 function assetPrepareHead(&$asset,$type='type-asset') {
-	global $user;
+	global $user, $conf;
 	
 	switch ($type) {
 		case 'type-asset':
@@ -16,9 +16,11 @@ function assetPrepareHead(&$asset,$type='type-asset') {
 				);
 			break;
 		case 'assetOF':
-			return array(
-					array(DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$asset->getId(), 'Fiche','fiche')
-				);
+			$res = array(array(DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$asset->getId(), 'Fiche','fiche'));
+			if (!empty($conf->global->ASSET_USE_CONTROL)) $res[] = array(DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$asset->getId().'&action=control', 'Contrôle','controle');
+			
+			return $res;
+			break;
 		case 'assetlot':
 			return array(
 					array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?id='.$asset->getId(), 'Fiche','fiche')

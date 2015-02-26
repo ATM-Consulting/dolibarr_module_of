@@ -5,6 +5,7 @@ CreateAssetLot=Créer un lot d'équipement
 CreateAsset=Créer un équipement
 AssetSetup=Configuration du module Equipement
 LotDisabled=L'option pour utiliser des lots dans OF est désactiver
+ficheOF=Fiche
 
 # EQUIPEMENT
 Asset=Equipement
