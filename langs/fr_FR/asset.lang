@@ -10,6 +10,7 @@ LotDisabled=L'option pour utiliser des lots dans OF est désactiver
 ficheOF=Fiche
 
 # EQUIPEMENT
+GPAO=GPAO
 Asset=Equipement
 ListAsset=Liste des équipements installés
 AssetDeleted=Equipement supprimé
