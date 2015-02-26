@@ -42,7 +42,8 @@
 			)
 			,'subQuery'=>array()
 			,'link'=>array(
-				'question'=>'<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id=@id@">@val@</a>'
+				'libelle'=>'<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id=@id@">@val@</a>'
+				,'question'=>'<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id=@id@">@val@</a>'
 				,'action'=>'<a title="Modifier" href="control.php?id=@id@&action=edit">'.img_picto('','edit.png', '', 0).'</a>&nbsp;&nbsp;&nbsp;<a title="Supprimer" onclick="if (!window.confirm(\'Confirmez-vous la suppression ?\')) return false;" href="control.php?id=@id@&action=delete">'.img_picto('','delete.png', '', 0)."</a>"
 			)
 			,'search'=>array(

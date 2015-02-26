@@ -39,6 +39,7 @@ class TAssetOF extends TObjetStd{
 		$this->setChild('TAssetOFLine','fk_assetOf');
 		$this->setChild('TAssetWorkstationOF','fk_assetOf');
 		$this->setChild('TAssetOF','fk_assetOf_parent');
+		$this->setChild('TAssetOFControl','fk_assetOf');
 		
 		$this->date_besoin = time();
 		$this->date_lancement = time();
@@ -51,7 +52,6 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 		
 		$res = parent::load($db,$id);
-		
 		
 		return $res;
 	}
@@ -801,6 +801,88 @@ class TAssetOF extends TObjetStd{
 		
 		return $res;
 	}
+
+	function updateControl(&$ATMdb, $subAction)
+	{
+		if ($subAction == 'addControl')
+		{
+			$TControl =  __get('TControl', array());
+
+			foreach ($TControl as $fk_control)
+			{
+				$ofControl = new TAssetOFControl;
+				$ofControl->fk_assetOf = $this->getId();
+				$ofControl->fk_control = $fk_control;
+				$ofControl->response = '';
+				$this->TAssetOFControl[] = $ofControl;
+				
+			}
+			
+			$this->save($ATMdb);
+			setEventMessage("Contrôle ajouté");
+		}
+		elseif ($subAction == 'updateControl')
+		{
+			$TControlDelete = __get('TControlDelete', array());
+			$TResponse = __get('TControlResponse', false);
+			foreach ($this->TAssetOFControl as $ofControl)
+			{
+				//Si la ligne est marqué à supprimer alors on delete l'info et on passe à la suite
+				if (in_array($ofControl->getId(), $TControlDelete))
+				{
+					$ofControl->delete($ATMdb);
+					continue;
+				}
+				
+				//Toutes les valeurs sont envoyées sous forme de tableau
+				$val = !empty($TResponse[$ofControl->getId()]) ? implode(',', $TResponse[$ofControl->getId()]) : '';
+				$ofControl->response = $val;
+				$ofControl->save($ATMdb);
+			}
+			
+			setEventMessage("Modifications enregistrées");
+		}
+	}
+	
+	function generate_visu_control_value($fk_control, $type, $value, $name)
+	{
+		$res = '';
+		switch ($type) {
+			case 'text':
+				$res = '<input name="'.$name.'" type="text" style="width:99%;" maxlength="255" value="'.$value.'" />';
+				break;
+				
+			case 'num':
+				$res = '<input name="'.$name.'" type="number" style="width:55px" value="'.$value.'" min="0" />';
+				break;
+				
+			case 'checkbox':
+				$res = '<input name="'.$name.'" type="checkbox" '.($value ? 'checked="checked"' : '').' value="1" />&nbsp;&nbsp;';
+				break;
+			
+			case 'checkboxmultiple':
+				$ATMdb = new TPDOdb;
+				$values = explode(',', $value);
+				$control = new TAssetControl;
+				$control->load($ATMdb, $fk_control);
+				
+				foreach ($control->TAssetControlMultiple as $controlValue)
+				{
+					$res.= '<span style="border:1px solid #A4B2C3;padding:0 4px 0 2px;">';
+					$res.= '<input name="'.$name.'" style="vertical-align:middle" '.(in_array($controlValue->getId(), $values) ? 'checked="checked"' : '').' type="checkbox" value="'.$controlValue->getId().'" />';
+					$res.= '&nbsp;'.$controlValue->value.'</span>&nbsp;&nbsp;&nbsp;';
+				}
+				
+				$res = trim($res);
+				break;
+				
+			default:
+				
+				break;
+		}
+		
+		return $res;
+	}
 	
 }
 
@@ -1215,9 +1297,9 @@ class TAssetControl extends TObjetStd
 	    $this->start();
 		
 		$this->setChild('TAssetControlMultiple','fk_control');
+		$this->setChild('TAssetOFControl','fk_control');
 		
-	}
-	
+	}	
 }
 
 class TAssetControlMultiple extends TObjetStd
@@ -1249,6 +1331,20 @@ class TAssetControlMultiple extends TObjetStd
 		$res.= '</select>';
 		
 		return $res;
+	}
+	
+}
+
+class TAssetOFControl extends TObjetStd
+{
+	function __construct() 
+	{
+		$this->set_table(MAIN_DB_PREFIX.'assetOf_control');
+    	$this->TChamps = array(); 	  
+		$this->add_champs('fk_assetOf,fk_control','type=entier;');
+		$this->add_champs('response','type=chaine;');
+		
+	    $this->start();		
 	}
 	
 }
