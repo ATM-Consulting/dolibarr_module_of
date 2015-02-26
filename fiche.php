@@ -569,7 +569,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units = 'unit'){
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
 			echo "unité(s)";
 		}
 		else{
@@ -585,7 +585,7 @@ global $db;
 		
 		$html=new FormProduct($db);
 		
-		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units = 'unit'){
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
 			echo "unité(s)";
 		}
 		else{
@@ -598,7 +598,7 @@ global $db;
 	else{
 		ob_start();	
 		
-		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units = 'unit'){
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
 			echo "unité(s)";
 		}
 		else{
