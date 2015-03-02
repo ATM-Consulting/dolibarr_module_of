@@ -350,7 +350,7 @@ function generateODTOF(&$PDOdb) {
 		
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
-			,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
+			,'nb_hour_real' => utf8_decode($v->nb_hour_real)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 		);
 		
