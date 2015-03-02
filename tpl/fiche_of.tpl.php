@@ -42,7 +42,7 @@
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
-				<tr><td>Statut</td><td>[assetOf.status;strconv=no],
+				<tr><td>Statut</td><td><span style="display:none;">[assetOf.status;strconv=no]</span>[assetOf.statustxt;strconv=no],
 					[onshow;block=begin;when [view.status]!='CLOSE']
 						<span class="viewmode notinparentview">passer à l'état :
 						[onshow;block=begin;when [view.status]=='DRAFT']

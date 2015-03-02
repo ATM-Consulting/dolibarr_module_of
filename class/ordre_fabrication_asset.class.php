@@ -786,6 +786,75 @@ class TAssetOF extends TObjetStd{
 		{
 			if ($TAssetOFLine->type != "NEEDED") continue;
 			
+			//
+			$completeSql = '';
+			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
+			
+			$is_cumulate = TAsset_type::getIsCumulate($PDOdb, $TAssetOFLine->fk_product);
+			$is_perishable = TAsset_type::getIsPerishable($PDOdb, $TAssetOFLine->fk_product);
+		
+			if ($is_cumulate)
+			{
+				$sql.= ' WHERE contenancereel_value > 0';
+				if (is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
+				else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
+			}
+			else 
+			{
+				$sql.= ' WHERE contenancereel_value >= '.$this->qty;
+				if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
+				else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
+			}
+	
+			$sql.= ' AND fk_product = '.$TAssetOFLine->fk_product;
+			
+			if ($conf->global->USE_LOT_IN_OF)
+			{
+				$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+			}
+			
+			$sql.= $completeSql;
+		
+			$PDOdb->Execute($sql);
+			
+			$qty_needed = $TAssetOFLine->qty;
+			$qty_cumulate = 0;
+			$break=false;
+			
+			while ($PDOdb->Get_line())
+			{
+				$idAsset = $PDOdb->Get_field('rowid');
+				$asset->load($ATMdb, $idAsset);
+				
+				$qty_cumulate += $asset->contenancereel_value;
+				
+				//On a suffisament en stock, break = true donc pas de msg d'erreur
+				if ($qty_cumulate - $qty_needed >= 0)
+				{
+					$break = true;
+				}
+
+				if ($break) break;
+			}
+			
+			if(!$break) 
+			{
+				$product = new Product($db);
+				$product->fetch($TAssetOFLine->fk_product);
+				
+				if($conf->global->USE_LOT_IN_OF)
+				{
+					$res = false;
+					$this->errors[] = "La quantité d'équipement pour le produit ".$product->label." dans le lot n°".$TAssetOFLine->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+				}
+				else
+				{
+					$res = false;
+					$this->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
+				}
+			}
+			
+			/*
 			$sql = "SELECT rowid 
 				FROM ".MAIN_DB_PREFIX."asset 
 				WHERE contenancereel_value >= ".$TAssetOFLine->qty."
@@ -816,7 +885,7 @@ class TAssetOF extends TObjetStd{
 					$this->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
 				}
 			}
-			
+			*/
 		}
 		
 		return $res;
@@ -990,13 +1059,13 @@ class TAssetOFLine extends TObjetStd{
 		if ($is_cumulate)
 		{
 			$sql.= ' WHERE contenancereel_value > 0';
-			if (is_perishable) $completeSql = ' ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
+			if (is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
 			else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
 		}
 		else 
 		{
 			$sql.= ' WHERE contenancereel_value >= '.$this->qty;
-			if ($is_perishable) $completeSql = ' ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
+			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
 			else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
 		}
 

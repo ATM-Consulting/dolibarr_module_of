@@ -641,6 +641,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
+				,'statustxt'=>TAssetOf::$TStatus[$assetOf->status]
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
 				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
