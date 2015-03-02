@@ -399,6 +399,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'societe'=>_fiche_visu_societe($asset,$mode)
 				,'societe_localisation'=>_fiche_visu_societe($asset,$mode,"societe_localisation")
 				,'lot_number'=>$html->textwithpicto($form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir'), $langs->trans('CreateAssetFromProductNumLot'), 1, 'help', '', 0, 3)
+				,'dluo'=>$html->textwithpicto($form->calendrier('', 'dluo', $asset->dluo), $langs->trans('AssetDescDLUO'), 1, 'help', '', 0, 3)
 				,'contenance_value'=>$form->texte('', 'contenance_value',number_format(($asset->getId()) ? $asset->contenance_value : $asset->assetType->contenance_value,2,',',''), 12,10,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
 				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format(($asset->getId()) ? $asset->contenancereel_value :  $asset->assetType->contenancereel_value,2,',',''), 12,10,'','','0.00')
@@ -564,11 +565,15 @@ global $db;
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	
+	$ATMdb = new TPDOdb;
+	$objType = new TAsset_type;
+	$objType->load($ATMdb, $asset->fk_asset_type);
+	
 	if($mode=='edit') {
 		ob_start();	
 		
 		$html=new FormProduct($db);
-		
+
 		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
 			echo "unité(s)";
 		}
@@ -576,6 +581,7 @@ global $db;
 			echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
 			//($asset->$name != "")? $asset->$name : $defaut
 		}
+
 		
 		return ob_get_clean();
 		
@@ -592,11 +598,12 @@ global $db;
 			echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
 			//($asset->$name != "")? $asset->$name : $defaut
 		}
+
 		
 		return ob_get_clean();
 	}
 	else{
-		ob_start();	
+		ob_start();
 		
 		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
 			echo "unité(s)";
@@ -604,6 +611,7 @@ global $db;
 		else{
 			echo measuring_units_string($asset->$name, $asset->assetType->measuring_units);
 		}
+
 		
 		return ob_get_clean();
 	}

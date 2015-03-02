@@ -133,7 +133,7 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 
 function _deletelineof(&$ATMdb,$idLine,$type){
 	$TAssetOFLine = new TAssetOFLine;
-	$TAssetOFLine->load($ATMdb, $idLine,$qty,$fkassetOfLineParent);
+	$TAssetOFLine->load($ATMdb, $idLine);	
 	$TAssetOFLine->delete($ATMdb);
 }
 

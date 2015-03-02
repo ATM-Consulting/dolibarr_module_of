@@ -25,6 +25,8 @@
 		<tr><td width="20%">Contenance par défaut</td><td>[assetType.contenancereel_value;strconv=no] [assetType.contenancereel_units;strconv=no]</td></tr>
 		<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
 	[onshow;block=end]
+	<tr><td width="20%">Périssable</td><td>[assetType.perishable; strconv=no]</td></tr>
+	<tr><td width="20%">Cumulable</td><td>[assetType.cumulate; strconv=no]</td></tr>
 	<tr><td width="20%">Réutilisable</td><td>[assetType.reutilisable; strconv=no]</td></tr>
 	
 </table>
@@ -71,7 +73,7 @@
 					var result = $('#sortable').sortable('toArray'); 
 					for (var i = 0; i< result.length; i++){
 						$(".ordre"+result[i]).attr("value", i)
-						}
+					}
 				}
 			});
 		});

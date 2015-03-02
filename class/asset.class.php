@@ -12,6 +12,7 @@ class TAsset extends TObjetStd{
 		$this->add_champs('contenancereel_value, contenance_value,point_chute', 'type=float;');
 		$this->add_champs('contenance_units, contenancereel_units, fk_entrepot', 'type=entier;');
 		$this->add_champs('commentaire,lot_number,gestion_stock,reutilisable,status', 'type=chaine;');
+		$this->add_champs('dluo','type=date;');
 		
 		//clé étrangère : type de la ressource
 		parent::add_champs('fk_asset_type','type=entier;index;');
@@ -38,6 +39,32 @@ class TAsset extends TObjetStd{
 		$this->TField=array();
 		$this->assetType=new TAsset_type;
 		$this->TType = array();
+	}
+
+	function set_values($request)
+	{
+		if (isset($request['dluo']))
+		{
+			$this->set_date('dluo', $request['dluo']);	
+			unset($request['dluo']);
+		} 
+	
+		parent::set_values($request);
+	}
+
+	public static function set_element_element($fk_source, $sourceType, $fk_target, $targetType)
+	{
+		$ATMdb = new TPDOdb;
+		
+		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (fk_source, sourcetype, fk_target, targettype)';
+		$sql.= ' VALUES (';
+		$sql.= (int) $fk_source;
+		$sql.= ', '.$ATMdb->quote($sourceType);
+		$sql.= ', '.(int) $fk_target;
+		$sql.= ', '.$ATMdb->quote($targetType);
+		$sql.= ')';
+		
+		$ATMdb->Execute($sql);
 	}
 
 	function reinit() {
@@ -115,18 +142,13 @@ class TAsset extends TObjetStd{
 	function save(&$ATMdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) 
 	{
 		global $conf;
-		
-		if($this->fk_entrepot){
-			$fk_entrepot = $this->fk_entrepot;
-		}
-
-		$fk_entrepot = ($fk_entrepot) ? $fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE; 
 				
+		if (!$fk_entrepot) $fk_entrepot = $this->fk_entrepot;
+		
 		if(!$destock_dolibarr_only) 
 		{
 			if(empty($this->serial_number))
 			{
-
 				$this->serial_number = $this->getNextValue($ATMdb);
 			}
 			
@@ -328,16 +350,16 @@ class TAsset extends TObjetStd{
 		return $Tab;
 	}
 	
-	function getNextValue($ATMdb){
-		
+	function getNextValue($ATMdb)
+	{	
 		dol_include_once('core/lib/functions2.lib.php');
 
 		global $db;
 
 		$mask = $this->assetType->masque;
-
 		$ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
-
+		if ($ref == 'ErrorBadMask') $ref = '';
+		
 		return $ref;
 	}
 	
@@ -535,7 +557,7 @@ class TAsset_type extends TObjetStd {
 		parent::add_champs('libelle,code,reutilisable,masque,gestion_stock,measuring_units','type=chaine;');
 		parent::add_champs('entity','type=entier;index;');
 		parent::add_champs('contenance_value, contenancereel_value, point_chute', 'type=float;');
-		parent::add_champs('contenance_units, contenancereel_units', 'type=entier;');
+		parent::add_champs('contenance_units, contenancereel_units,cumulate,perishable', 'type=entier;');
 		parent::add_champs('supprimable','type=entier;');
 
 		parent::_init_vars();
@@ -558,6 +580,36 @@ class TAsset_type extends TObjetStd {
 			return true;
 		}
 		return false;
+	}
+	
+	public static function getIsCumulate($ATMdb, $fk_product)
+	{
+		$sql = 'SELECT fk_asset_type FROM '.MAIN_DB_PREFIX.'asset WHERE fk_product = '.(int) $fk_product.' LIMIT 1';
+		$ATMdb->Execute($sql);
+		$ATMdb->Get_line();
+		$fk_asset_type = $ATMdb->Get_field('fk_asset_type');
+		
+		if (!$fk_asset_type) return 0;
+		
+		$assetType = new TAsset_type;
+		$assetType->load($ATMdb, $fk_asset_type);
+
+		return (int) $assetType->cumulate;
+	}
+	
+	public static function getIsPerishable($ATMdb, $fk_product)
+	{
+		$sql = 'SELECT fk_asset_type FROM '.MAIN_DB_PREFIX.'asset WHERE fk_product = '.(int) $fk_product.' LIMIT 1';
+		$ATMdb->Execute($sql);
+		$ATMdb->Get_line();
+		$fk_asset_type = $ATMdb->Get_field('fk_asset_type');
+		
+		if (!$fk_asset_type) return 0;
+		
+		$assetType = new TAsset_type;
+		$assetType->load($ATMdb, $fk_asset_type);
+
+		return (int) $assetType->perishable;
 	}
 	
 	/**

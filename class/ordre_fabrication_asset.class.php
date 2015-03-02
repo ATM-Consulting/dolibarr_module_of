@@ -81,6 +81,15 @@ class TAssetOF extends TObjetStd{
 			$this->setLotWithParent($db);
 		}
 		
+		//Sécurité sur la maj de l'objet, si on supprime les lignes d'un OF en mode edit, lors de l'enregistrement les infos sont ré-insert avec un fk_product à 0
+		foreach ($this->TAssetOFLine as $k => $ofLine)
+		{
+			if (!$ofLine->fk_product)
+			{
+				unset($this->TAssetOFLine[$k]);
+			}
+		}
+		
 		parent::save($db);
 
 		if($this->numero=='') {
@@ -323,18 +332,29 @@ class TAssetOF extends TObjetStd{
 	{
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
+		if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		else $fk_entrepot = $asset->fk_entrepot;
+		
 		foreach($this->TAssetOFLine as $AssetOFLine)
 		{
 			$asset = new TAsset;
 			
 			if($AssetOFLine->type == "TO_MAKE")
 			{
-				$AssetOFLine->makeAsset($ATMdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number);
+				$objAsset = $AssetOFLine->makeAsset($ATMdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number);
+				TAsset::set_element_element($AssetOFLine->getId(), 'TAssetOFLine', $objAsset->getId(), 'TAsset');
 			} 
 			else 
-			{		
-				$asset->load($ATMdb, $AssetOFLine->fk_asset);
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+			{
+				// TODO l'attribut qty_used destock une nouvelle fois sur 1 équipement mais ne prend pas en compte si l'équipement est cumulable, périsable ...
+				// La boucle permet de reprendre tous les équipements utilisés pour la fabrication, mais on ne sais pas quelle qté a été utilisé
+				$ids_asset = $AssetOFLine->getElementElement();
+				foreach ($ids_asset as $id_asset)
+				{
+					$asset->load($ATMdb, $id_asset);
+					$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number, $AssetOFLine->qty - $AssetOFLine->qty_used, $asset->rowid == 0 ? true : false, $asset->rowid == 0 ? $AssetOFLine->fk_product : 0, false, $fk_entrepot);
+				}
+				
 			}
 		}
 	}
@@ -875,10 +895,49 @@ class TAssetOF extends TObjetStd{
 				
 				$res = trim($res);
 				break;
+		}
+		
+		return $res;
+	}
+
+	function getControlPDF(&$ATMdb)
+	{
+		$res = array();
+		
+		foreach ($this->TAssetOFControl as $ofControl)
+		{
+			$control = new TAssetControl;
+			$control->load($ATMdb, $ofControl->fk_control);
+			
+			switch ($control->type) {
+				case 'text':
+				case 'num':
+					$res[] = array(
+						'question'=>utf8_decode($control->question)
+						,'response'=>$ofControl->response
+					);
+					break;
+									
+				case 'checkbox':
+					$res[] = array(
+						'question'=>utf8_decode($control->question)
+						,'response'=>$ofControl->response ? 'Oui' : 'Non'
+					);
+					break;
 				
-			default:
-				
-				break;
+				case 'checkboxmultiple':
+					$res2 = '';
+					foreach ($control->TAssetControlMultiple as $controlVal)
+					{
+						$res2 .= $controlVal->value.', ';
+					}
+					
+					$res[] = array(
+						'question'=>utf8_decode($control->question)
+						,'response'=>rtrim($res2, ', ')
+					);
+					break;
+			}
 		}
 		
 		return $res;
@@ -894,7 +953,7 @@ class TAssetOFLine extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_asset,fk_product_fournisseur_price','type=entier;index;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used','type=float;');
 		$this->add_champs('type,lot_number','type=chaine;');
 		
@@ -916,32 +975,104 @@ class TAssetOFLine extends TObjetStd{
 		
 		include_once 'asset.class.php';
 		
+		$ATMdb2 = new TPDOdb;
+		
 		$asset = new TAsset;
 		$asset->fk_product = $this->fk_product;
 		
-		$sql = "SELECT rowid 
-				FROM ".MAIN_DB_PREFIX."asset 
-				WHERE contenancereel_value >= ".$this->qty."
-					AND fk_product = ".$this->fk_product;
+		$completeSql = '';
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
 		
-		if($conf->global->USE_LOT_IN_OF){
+		$is_cumulate = TAsset_type::getIsCumulate($ATMdb, $this->fk_product);
+		$is_perishable = TAsset_type::getIsPerishable($ATMdb, $this->fk_product);
+		
+		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
+		if ($is_cumulate)
+		{
+			$sql.= ' WHERE contenancereel_value > 0';
+			if (is_perishable) $completeSql = ' ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
+			else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
+		}
+		else 
+		{
+			$sql.= ' WHERE contenancereel_value >= '.$this->qty;
+			if ($is_perishable) $completeSql = ' ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
+			else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
+		}
+
+		$sql.= ' AND fk_product = '.$this->fk_product;
+		
+		if ($conf->global->USE_LOT_IN_OF)
+		{
 			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
 		}
 		
-		$sql .= " ORDER BY contenancereel_value ASC LIMIT 1";
+		$sql.= $completeSql;
 		
-		$ATMdb->Execute($sql);
+		$ATMdb2->Execute($sql);
 
 		if($this->type == "NEEDED" && $AssetOf->status == "OPEN")
 		{
-			$mvmt_stock_already_done = false;
+			$nbRecord = $ATMdb2->Get_Recordcount();
+			$mvmt_stock_already_done = $nbRecord > 0 ? true : false;
+			$qty_needed = $this->qty;
+			$break=false;
 			
-			if($ATMdb->Get_line())
+			while ($ATMdb2->Get_line())
 			{
+				$idAsset = $ATMdb2->Get_field('rowid');
+				$asset->load($ATMdb, $idAsset);
+				
+				if ($asset->contenancereel_value - $qty_needed >= 0)
+				{
+					$qty_to_destock = $qty_needed;
+					$break = true;
+				}
+				else 
+				{
+					$qty_to_destock = $asset->contenancereel_value;
+					$qty_needed -= $asset->contenancereel_value;
+				}
+					
+				TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
+				
+				if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+				else $fk_entrepot = $asset->fk_entrepot;
+				
+				$asset->status = 'indisponible';
+				//On affiche aussi l'ID de l'équipement dans la description pcq le serial_number peut être vide
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
+			
+				if ($break) break;
+			}
+			
+			if ($nbRecord <= 0)
+			{
+				if($conf->global->USE_LOT_IN_OF)
+				{
+					$AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+				}
+				else
+				{
+					$product = new Product($db);
+					$product->fetch($this->fk_product);
+					$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
+				}
+			}
+			
+			if(!$mvmt_stock_already_done) 
+			{
+				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+			}
+			
+			/*
+			if($ATMdb->Get_line())
+			{					
 				$mvmt_stock_already_done = true;
 				
 				$idAsset = $ATMdb->Get_field('rowid');
 				$asset->load($ATMdb, $idAsset);
+				
 				$asset->status = 'indisponible';
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
@@ -960,6 +1091,7 @@ class TAssetOFLine extends TObjetStd{
 			{
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
+			*/
 		}
 		
 		$this->fk_asset = $idAsset;
@@ -988,13 +1120,35 @@ class TAssetOFLine extends TObjetStd{
 			$TAsset->lot_number = $this->lot_number;
 		}
 		
-		$TAsset->save($ATMdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock
-		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero." - Equipement : ".$TAsset->serial_number, $qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE);
+		if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
+		else $fk_entrepot = $TAsset->fk_entrepot;
+			
+		$TAsset->save($ATMdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock	
+		$TAsset->save($ATMdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero." - Equipement : ".$TAsset->serial_number, $qty, false, 0, false, $fk_entrepot);
+
 		return $TAsset;
 	}
 	
-	function load(&$ATMdb, $id) {
+	function getWorkstationsPDF(&$db)
+	{
+		$res = '';
+		if (count($this->workstations) <= 0)
+			return $res;
 		
+		$sql = 'SELECT libelle FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid IN ('.implode(',', $this->workstations).')';
+		$resql = $db->query($sql);
+		
+		while ($r = $db->fetch_object($resql)) 
+		{
+			$res .= $r->libelle.', ';
+		}
+		
+		$res = rtrim($res, ', ');
+		
+		return $res;
+	}
+	
+	function load(&$ATMdb, $id) {
 		parent::load($ATMdb, $id);
 		$this->workstations = $this->get_workstations($ATMdb);
 		
@@ -1202,6 +1356,26 @@ class TAssetWorkstationOF extends TObjetStd{
 		
 		$ATMdb->Execute($sql);
 		while ($ATMdb->Get_line()) $res[] = $ATMdb->Get_field('fk_target');
+		
+		return $res;
+	}
+
+	function getUsersPDF(&$db, &$ATMdb)
+	{
+		$res = '';
+		$ids_user = $this->get_users($ATMdb);
+		
+		if(count($ids_user) <= 0) return $res;
+		
+		$sql = 'SELECT lastname, firstname FROM '.MAIN_DB_PREFIX.'user WHERE rowid IN ('.implode(',', $ids_user).')';
+		$resql = $db->query($sql);
+		
+		while ($r = $db->fetch_object($resql)) 
+		{
+			$res .= $r->lastname.' '.$r->firstname.', ';
+		}
+		
+		$res = rtrim($res, ', ');
 		
 		return $res;
 	}

@@ -66,6 +66,7 @@
 					[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Contenance Actuelle</td><td>[asset.contenancereel_value;strconv=no] [asset.contenancereel_units;strconv=no]</td></tr>[onshow;block=end]
 					[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Point de chute</td><td>[asset.point_chute;strconv=no]</td></tr>[onshow;block=end]
 				[onshow;block=end]
+				<tr><td>DLUO</td><td>[asset.dluo;strconv=no]</td></tr>
 				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Status</td><td>[asset.status;strconv=no]</td></tr>[onshow;block=end]
 				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Réutilisabilité</td><td>[asset.reutilisable;strconv=no]</td></tr>[onshow;block=end]
 				<tr>

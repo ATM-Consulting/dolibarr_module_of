@@ -181,6 +181,8 @@ function _fiche(&$ATMdb, &$asset, $mode) {
 				,'info_masque'=>$doliform->textwithpicto('',$asset->info(),1,0,'',0,3)
 				,'point_chute'=>$form->texte('', 'point_chute', $asset->point_chute, 12,10,'','','à saisir')
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,$asset->gestion_stock)
+				,'perishable'=>$doliform->textwithpicto($form->combo('','perishable',array(0 => 'non', 1 => 'oui'),$asset->perishable), $langs->trans('AssetDescPerishable'),1,0,'',0,3)
+				,'cumulate'=>$doliform->textwithpicto($form->combo('','cumulate',array(0 => 'non', 1 => 'oui'),$asset->cumulate), $langs->trans('AssetDescCumulate'),1,0,'',0,3)
 				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),$asset->reutilisable)
 				,'measuring_units'=>$form->combo('', 'measuring_units', $measuring_units_values, $asset->measuring_units, 1 , 'loadMeasuringUnits(this);')
 				,'contenance_value'=>$form->texte('', 'contenance_value', $asset->contenance_value, 12,10,'','','')

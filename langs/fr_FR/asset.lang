@@ -23,6 +23,7 @@ AssetCreateType=Création type d'équipement
 AssetToComplete=A completer
 AssetLotsList=Liste des Lots
 AssetLoaned=Prêté
+AssetDescDLUO=Date Limite d'Utilisation Optimale
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
@@ -51,6 +52,8 @@ AssetNewWorkstation=Nouveau poste de travail
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement
 AssetNewType=Nouveau type d'équipement
+AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
+AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
 
 #Contrôle
 AssetControl=Contrôle
@@ -76,7 +79,7 @@ AssetListValueMultiple=Liste des valeurs
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
 DefaultWarehouseIdToMake=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits à fabriquer)
 DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
-UseManualWarehouse=Définir manuellement les entrepôts sur l'OF
+UseDefinedWarehouse=Permet de définir si on doit utiliser les entrepôts définis ci-dessous pour le stockage/destockage des équipements ou utiliser l'entrepôt renseigné sur chaque équipement
 ParametersWarehouse=Entrepôts
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants uniquement pour les produits hors stock nécessaires à la fabrication ayant des composants
