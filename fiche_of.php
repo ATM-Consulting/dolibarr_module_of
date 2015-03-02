@@ -18,6 +18,7 @@ if(!$user->rights->asset->of->write) accessforbidden();
 
 // Load traductions files requiredby by page
 $langs->load("other");
+$langs->load("orders");
 $langs->load("asset@asset");
 
 // Get parameters
@@ -350,6 +351,7 @@ function generateODTOF(&$PDOdb) {
 		
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
+			,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
 			,'nb_hour_real' => utf8_decode($v->nb_hour_real)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 		);
@@ -377,6 +379,19 @@ function generateODTOF(&$PDOdb) {
 		//$template = "templateOF.doc";
 	}
 	
+	$refcmd = '';
+	$TIdCommandeFourn = array();
+	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
+	
+	foreach ($TIdCommandeFourn as $id)
+	{
+		$cmd = new Commande($db);
+		$cmd->fetch($id);
+		$refcmd .= $cmd->ref.', ';
+	}
+	
+	$refcmd = rtrim($refcmd, ', ');
+	
 	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
@@ -389,9 +404,10 @@ function generateODTOF(&$PDOdb) {
 		,array(
 			'date'=>date("d/m/Y")
 			,'numeroOF'=>$assetOf->numero
-			,'statutOF'=>TAssetOF::$TStatus[$assetOf->status]
+			,'statutOF'=>utf8_decode(TAssetOF::$TStatus[$assetOf->status])
 			,'prioriteOF'=>utf8_decode(TAssetOF::$TOrdre[$assetOf->ordre])
 			,'date'=>date("d/m/Y")
+			,'refcmd'=>$refcmd
 			,'societe'=>$societe->name
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
 			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
