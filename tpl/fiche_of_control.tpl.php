@@ -29,21 +29,23 @@
 		</div>
 	</form>	
 	
-	<form action="" method="POST">
+	<form action="[view.url]" method="POST">
 		<input type="hidden" name="action" value="control" />
 		<input type="hidden" name="subAction" value="updateControl" />
 		<input type="hidden" name="id" value="[assetOf.id]" />
-		<table width="100%" class="border workstation">
+		<table width="100%" class="border">
 			<tr height="40px;">
-				<td colspan="3">&nbsp;&nbsp;<b>Contrôles associés</b></td>
+				<td colspan="4">&nbsp;&nbsp;<b>Contrôles associés</b></td>
 			</tr>
 			<tr style="background-color:#dedede;">
-				<th align="left" width="30%">&nbsp;&nbsp;Libellé du contrôle</th>
-				<th align="left" width="40%">&nbsp;&nbsp;Valeur</th>
+				<th align="left" width="10%">&nbsp;&nbsp;Libellé du contrôle</th>
+				<th align="left" width="30%">&nbsp;&nbsp;Question</th>
+				<th align="left" width="30%">&nbsp;&nbsp;Réponse</th>
 				<th width="5%">Supprimer</th>
 			</tr>
 			<tr style="background-color:#fff;">
 				<td>&nbsp;&nbsp;[TAssetOFControl.libelle;strconv=no;block=tr]</td>
+				<td>&nbsp;&nbsp;[TAssetOFControl.question;strconv=no;block=tr]</td>
 				<td>[TAssetOFControl.response;strconv=no;block=tr]</td>
 				<td align="center">[TAssetOFControl.delete;strconv=no;block=tr]</td>
 			</tr>

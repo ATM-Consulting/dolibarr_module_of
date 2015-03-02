@@ -252,7 +252,7 @@ function _action() {
 
 function generateODTOF(&$PDOdb) {
 	
-	global $db;
+	global $db,$conf;
 
 	$assetOf=new TAssetOF;
 	$assetOf->load($PDOdb, $_REQUEST['id'], false);
@@ -266,11 +266,19 @@ function generateODTOF(&$PDOdb) {
 	$TToMake = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit à fabriquer
 	$TNeeded = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit nécessaires
 	$TWorkstations = array(); // Tableau envoyé à la fonction render contenant les informations concernant les stations de travail
+	$TWorkstationUser = array(); // Tableau de liaison entre les postes et les utilisateurs
+	$TAssetWorkstation = array(); // Tableau de liaison entre les composants et les postes de travails
+	$TControl = array(); // Tableau de liaison entre l'OF et les controles associés
 	
 	$societe = new Societe($db);
 	$societe->fetch($assetOf->fk_soc);
 	
 	//pre($societe,true); exit;
+	
+	if (!empty($conf->global->ASSET_USE_CONTROL))
+	{
+		$TControl = $assetOf->getControlPDF($PDOdb);
+	}
 	
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>$v) {
@@ -287,16 +295,17 @@ function generateODTOF(&$PDOdb) {
 			exit;*/
 
 			$TToMake[] = array(
-							'type' => $v->type
-							, 'qte' => $v->qty
-							, 'nomProd' => $prod->ref
-							, 'designation' => $prod->label
-							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
-							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
-							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
-						);
+				'type' => $v->type
+				, 'qte' => $v->qty
+				, 'nomProd' => $prod->ref
+				, 'designation' => utf8_decode($prod->label)
+				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
+				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
+			);
 
 		}
+		
 		if($v->type == "NEEDED") {
 	
 			$unitLabel = "";
@@ -310,19 +319,28 @@ function generateODTOF(&$PDOdb) {
 			} else if ($prod->weight_units == 99) {
 				$unitLabel = "livre(s)";
 			}
-									
+								
 			$TNeeded[] = array(
-							'type' => $v->type
-							, 'qte' => $v->qty
-							, 'nomProd' => $prod->ref
-							, 'designation' => $prod->label
-							, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
-							, 'poids' => $prod->weight
-							, 'unitPoids' => $unitLabel
-							, 'finished' => $prod->finished?"PM":"MP"
-							, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
-							, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
-						);
+				'type' => $v->type
+				, 'qte' => $v->qty
+				, 'nomProd' => $prod->ref
+				, 'designation' => utf8_decode($prod->label)
+				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
+				, 'poids' => $prod->weight
+				, 'unitPoids' => $unitLabel
+				, 'finished' => $prod->finished?"PM":"MP"
+				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
+			);
+			
+			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
+			{
+				$TAssetWorkstation[] = array(
+					'nomProd'=>utf8_decode($prod->label)
+					,'workstations'=>utf8_decode($v->getWorkstationsPDF($db))
+				);
+			}
+			
 		}
 
 	}
@@ -331,11 +349,19 @@ function generateODTOF(&$PDOdb) {
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
 		
 		$TWorkstations[] = array(
-							'libelle' => utf8_decode($v->ws->libelle)
-							,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
-							,'nb_heures_prevues' => utf8_decode($v->nb_hour)
-						);
+			'libelle' => utf8_decode($v->ws->libelle)
+			,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
+			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
+		);
 		
+		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
+		{
+			$TWorkstationUser[] = array(
+				'workstation'=>utf8_decode($v->ws->libelle)
+				,'users'=>utf8_decode($v->getUsersPDF($db,$PDOdb))
+			);
+		}
+
 	}
 	
 	$dirName = 'OF'.$_REQUEST['id'].'('.date("d_m_Y").')';
@@ -356,6 +382,9 @@ function generateODTOF(&$PDOdb) {
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
 			,'lignesWorkstation'=>$TWorkstations
+			,'lignesAssetWorkstations'=>$TAssetWorkstation
+			,'lignesUser'=>$TWorkstationUser
+			,'lignesControl'=>$TControl
 		)
 		,array(
 			'date'=>date("d/m/Y")
@@ -365,6 +394,9 @@ function generateODTOF(&$PDOdb) {
 			,'date'=>date("d/m/Y")
 			,'societe'=>$societe->name
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
+			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
+			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
+			,'use_control'=>(int) $conf->global->ASSET_USE_CONTROL
 		)
 		,array()
 		,array(
@@ -641,7 +673,7 @@ function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
 	
 	if ($assetOf == -1)
 	{
-		$sql = 'SELECT rowid as id, libelle, type, "" as response, "" as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control WHERE rowid NOT IN (SELECT fk_control FROM '.MAIN_DB_PREFIX.'assetOf_control WHERE fk_assetOf ='.(int) $fk_assetOf.')';	
+		$sql = 'SELECT rowid as id, libelle, question, type, "" as response, "" as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control WHERE rowid NOT IN (SELECT fk_control FROM '.MAIN_DB_PREFIX.'assetOf_control WHERE fk_assetOf ='.(int) $fk_assetOf.')';	
 	}
 	else 
 	{
@@ -653,7 +685,7 @@ function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
 			$ids[] = $ofControl->getId();
 		}
 		
-		$sql = 'SELECT c.rowid as id, c.libelle, c.type, ofc.response, ofc.rowid as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control c';
+		$sql = 'SELECT c.rowid as id, c.libelle, c.question, c.type, ofc.response, ofc.rowid as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control c';
 		$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf_control ofc ON (ofc.fk_control = c.rowid)';
 		$sql.= ' WHERE ofc.rowid IN ('.implode(',', $ids).')';
 		
@@ -667,6 +699,7 @@ function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
 			,'libelle' => '<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id='.$PDOdb->Get_field('id').'">'.$PDOdb->Get_field('libelle').'</a>'
 			,'type' => TAssetControl::$TType[$PDOdb->Get_field('type')]
 			,'action' => '<input type="checkbox" value="'.$PDOdb->Get_field('id').'" name="TControl[]" />'
+			,'question' => $PDOdb->Get_field('question')
 			,'response' => ($assetOf == -1 ? '' : $assetOf->generate_visu_control_value($PDOdb->Get_field('id'), $PDOdb->Get_field('type'), $PDOdb->Get_field('response'), 'TControlResponse['.$PDOdb->Get_field('id_assetOf_control').'][]'))
 			,'delete' => '<input type="checkbox" value="'.$PDOdb->Get_field('id_assetOf_control').'" name="TControlDelete[]" />'
 		);

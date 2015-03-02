@@ -24,6 +24,7 @@
 				<tr><td>Entrepôt</td><td>[asset.entrepot;strconv=no]</td></tr>
 				<tr><td>Société</td><td>[asset.societe;strconv=no]</td></tr>
 				<tr><td>Localisation</td><td>[asset.societe_localisation;strconv=no]</td></tr>
+				<tr><td>DLUO</td><td>[asset.dluo;strconv=no]</td></tr>
 				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Contenance Maximum</td><td>[asset.contenance_value;strconv=no] [asset.contenance_units;strconv=no]</td></tr>[onshow;block=end]
 				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Contenance Actuelle</td><td>[asset.contenancereel_value;strconv=no] [asset.contenancereel_units;strconv=no]</td></tr>[onshow;block=end]
 				[onshow;block=begin;when [view.champs_production]=='1']<tr><td>Point de chute</td><td>[asset.point_chute;strconv=no]</td></tr>[onshow;block=end]

@@ -14,6 +14,8 @@
 	<tr><td width="20%">Masque de numérotation</td><td>[assetType.masque; strconv=no][assetType.info_masque; strconv=no]</td></tr>
 	<tr><td width="20%">Point de chute</td><td>[assetType.point_chute; strconv=no]</td></tr>
 	<tr><td width="20%">Gestion du stock</td><td>[assetType.gestion_stock; strconv=no]</td></tr>
+	<tr><td width="20%">Périssable</td><td>[assetType.perishable; strconv=no]</td></tr>
+	<tr><td width="20%">Cumulable</td><td>[assetType.cumulate; strconv=no]</td></tr>
 	<tr><td width="20%">Réutilisable</td><td>[assetType.reutilisable; strconv=no]</td></tr>
 	<tr><td width="20%">Type de l'unité</td><td>[assetType.measuring_units;strconv=no]</td></tr>
 	<tr><td width="20%">Contenance maximum</td><td>[assetType.contenance_value;strconv=no] [assetType.contenance_units;strconv=no]</td></tr>
@@ -30,7 +32,7 @@
 					var result = $('#sortable').sortable('toArray'); 
 					for (var i = 0; i< result.length; i++){
 						$(".ordre"+result[i]).attr("value", i)
-						}
+					}
 				}
 			});
 		});
