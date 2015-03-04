@@ -72,3 +72,6 @@
 	$o=new TAssetOFControl;
 	$o->init_db_by_vars($ATMdb);
 	
+	//Obligatoire pour que la fonctionnalité d'import standard fonctionne
+	$ATMdb->Execute("ALTER TABLE ".MAIN_DB_PREFIX."asset CHANGE rowid rowid INT(11) AUTO_INCREMENT");
+	

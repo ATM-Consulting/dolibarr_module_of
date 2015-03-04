@@ -13,6 +13,7 @@ class TAsset extends TObjetStd{
 		$this->add_champs('contenance_units, contenancereel_units, fk_entrepot', 'type=entier;');
 		$this->add_champs('commentaire,lot_number,gestion_stock,reutilisable,status', 'type=chaine;');
 		$this->add_champs('dluo','type=date;');
+		$this->add_champs('import_key','type=chaine;');//Obligatoire pour que la fonctionnalité d'import standard Dolibarr fonctionne
 		
 		//clé étrangère : type de la ressource
 		parent::add_champs('fk_asset_type','type=entier;index;');

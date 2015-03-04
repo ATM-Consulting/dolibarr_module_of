@@ -434,6 +434,48 @@ class modAsset extends DolibarrModules
 		// $this->export_sql_end[$r] .=' LEFT JOIN '.MAIN_DB_PREFIX.'product as p on (fd.fk_product = p.rowid)';
 		// $this->export_sql_end[$r] .=' WHERE f.fk_soc = s.rowid AND f.rowid = fd.fk_facture';
 		// $r++;
+		
+		// Example:
+		$this->import_code[$r]=$this->rights_class.'_'.$r;
+		$this->import_label[$r]='Asset';	// Translation key (used only if key ExportDataset_xxx_z not found)
+		$this->import_icon[$r]=$this->picto;
+		$this->import_entities_array[$r]=array();
+		$this->import_tables_array[$r]=array(
+				'p'=>MAIN_DB_PREFIX.'product'
+				,'a'=>MAIN_DB_PREFIX.'asset'
+				,'s'=>MAIN_DB_PREFIX.'societe'
+				,'s2'=>MAIN_DB_PREFIX.'societe'
+				,'e'=>MAIN_DB_PREFIX.'entrepot'
+			);
+		$this->import_tables_creator_array[$r]=array('p'=>'fk_user_author');	// Fields to store import user id
+		$this->import_fields_array[$r]=array(
+				'a.serial_number'=>"NumeroSerie"
+				,'a.lot_number'=>"NumeroLot"
+				,'a.fk_product'=>"ReferenceProduit"
+				,'a.fk_entrepot'=>"LibelleEntrepot"
+				,'a.fk_soc'=>"Societe"
+				,'a.fk_societe_localisation'=>"Localisation"
+				,'a.gestion_stock'=>"GestionStock"
+				,'a.dluo'=>"DLUO"
+			);
+		$this->import_regex_array[$r]=array();
+		$this->import_examplevalues_array[$r]=array(
+				'a.serial_number'=>"SN-0001"
+				,'a.lot_number'=>"LOT-0001"
+				,'a.fk_product'=>"PR-001"
+				,'a.fk_entrepot'=>"ENT-0001"
+				,'a.fk_soc'=>"ATM Consulting"
+				,'a.fk_societe_localisation'=> "ATM Consulting"
+				,'a.gestion_stock'=>"Unitaire"
+				,'a.dluo'=>"17/03/2015"
+			);
+		$this->import_convertvalue_array[$r]=array(
+				'a.fk_product'=>array('rule'=>'fetchidfromref','classfile'=>'/product/class/product.class.php','class'=>'Product','method'=>'fetch','element'=>'Product')
+				,'a.fk_entrepot'=>array('rule'=>'fetchidfromref','classfile'=>'/product/stock/class/entrepot.class.php','class'=>'Entrepot','method'=>'fetch','element'=>'Entrepot')
+				,'a.fk_soc'=>array('rule'=>'fetchidfromref','classfile'=>'/societe/class/societe.class.php','class'=>'Societe','method'=>'fetch','element'=>'Societe')
+				,'a.fk_societe_localisation'=>array('rule'=>'fetchidfromref','classfile'=>'/societe/class/societe.class.php','class'=>'Societe','method'=>'fetch','element'=>'Societe')
+		);
+		$r++;
 	}
 
 	/**
