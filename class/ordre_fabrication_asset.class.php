@@ -183,7 +183,7 @@ class TAssetOF extends TObjetStd{
 	
 	private function getProductComposition_arrayMerge(&$ATMdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) {
 		global $conf;
-		
+		//TODO c'est de la merde à refaire
 		foreach($TRes as $row) {
 			
 			$prod = new stdClass;
