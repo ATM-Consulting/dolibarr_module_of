@@ -162,6 +162,10 @@ function _addlines(&$ATMdb,$idLine,$qty){
 
 function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)
 {
+	if (!empty($TAssetOFChildId)){
+		return false;
+	}
+
 	$break = false;
 	foreach ($TAssetOFChildId as $idOF)
 	{
@@ -219,15 +223,19 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 		if($line->type == 'NEEDED' && !empty($TComposition[$line->fk_product][1])) 
 		{
 			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
-			$line->save($ATMdb);		
+			$line->save($ATMdb);
 
-			if (!empty($TAssetOFChildId)){
-			
-                if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified)) {
-                    $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
-                }
-            
-            }		
+		        if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified)) {
+		                $TComposition = $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
+  				if (!empty($conf->global->CREATE_CHILDREN_OF)) {
+
+					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty(TComposition)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
+						$TAssetOF->createOFifneeded($ATMdb,$line->fk_product, $line->qty);
+						$TAssetOF->save($ATMdb);
+					}
+				}
+//			var_dump($line->fk_product, $line->qty);
+		        }
 		}
 	}	
 }

@@ -175,7 +175,7 @@ class TAssetOF extends TObjetStd{
 		$product = new Product($db);
 		$product->fetch($id_product);
 		$TRes = $product->getChildsArbo($product->id);
-		
+//		var_dump($TRes);
 		$this->getProductComposition_arrayMerge($ATMdb,$Tab, $TRes, $quantite_to_make);
 		
 		return $Tab;
@@ -223,7 +223,7 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$ATMdb,$fk_product, $qty_needed) {
 		global $conf;
-
+//var_dump('createOFifneeded',$fk_product, $qty_needed);
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
