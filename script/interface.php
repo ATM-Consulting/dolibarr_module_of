@@ -21,6 +21,7 @@ function traite_get(&$ATMdb, $case) {
 			break;
 		case 'addofproduct':
 			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));
+
 			break;
 		case 'deletelineof':
 			__out(_deletelineof($ATMdb,$_REQUEST['idLine'],$_REQUEST['type']));
@@ -184,7 +185,7 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, true);
 				
                 
-                return true; // on a trouvé la ligne consernée
+		                return true; // on a trouvé la ligne consernée
 			}
 		}
 		
@@ -226,10 +227,10 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 			$line->save($ATMdb);
 
 		        if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified)) {
-		                $TComposition = $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
+		                $TCompositionSubProd = $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
   				if (!empty($conf->global->CREATE_CHILDREN_OF)) {
 
-					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty(TComposition)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
+					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
 						$TAssetOF->createOFifneeded($ATMdb,$line->fk_product, $line->qty);
 						$TAssetOF->save($ATMdb);
 					}
