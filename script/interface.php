@@ -178,13 +178,15 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 				$line->save($ATMdb);
 				
 				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, true);
-				$break = true;
-				break;
+				
+                
+                return true; // on a trouvé la ligne consernée
 			}
 		}
 		
-		if ($break) break;
 	}
+    
+    return false;
 }
 
 function _measuringUnits($type, $name)
@@ -219,7 +221,13 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
 			$line->save($ATMdb);		
 
-			if (!empty($TAssetOFChildId)) _updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified);		
+			if (!empty($TAssetOFChildId)){
+			
+                if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified)) {
+                    $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
+                }
+            
+            }		
 		}
 	}	
 }
