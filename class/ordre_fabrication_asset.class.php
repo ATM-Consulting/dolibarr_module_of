@@ -15,8 +15,9 @@ class TAssetOF extends TObjetStd{
  
 	static $TStatus=array(
 			'DRAFT'=>'Brouillon'
-			,'VALID'=>'Valide pour production'
-			,'OPEN'=>'Lancé la production'
+            ,'NEEDOFFER'=>'En attente de prix fournisseur'
+            ,'VALID'=>'Valide pour production'
+            ,'OPEN'=>'En cours de production'
 			,'CLOSE'=>'Terminé'
 		);
 		
@@ -48,10 +49,10 @@ class TAssetOF extends TObjetStd{
 		$this->errors = array();
 	}
 	
-	function load(&$db, $id) {
+	function load(&$db, $id/*, $loadOFChild=true*/) {
 		global $conf;
 		
-		$res = parent::load($db,$id);
+		$res = parent::load($db,$id,true);
 		
 		return $res;
 	}
@@ -777,11 +778,14 @@ class TAssetOF extends TObjetStd{
 	 * Alimente $this->errors 
 	 * return true if OK else false 
 	 */
-	function checkQtyAsset($PDOdb, $conf)
+	function checkQtyAsset(&$PDOdb, &$conf)
 	{
 		global $db;
 		
-		$res = true;
+        if(!$conf->global->USE_LOT_IN_OF) return true;
+        
+        
+		$qtyIsValid = true;
 		foreach($this->TAssetOFLine as $TAssetOFLine)
 		{
 			if ($TAssetOFLine->type != "NEEDED") continue;
@@ -844,51 +848,19 @@ class TAssetOF extends TObjetStd{
 				
 				if($conf->global->USE_LOT_IN_OF)
 				{
-					$res = false;
+					$qtyIsValid = false;
 					$this->errors[] = "La quantité d'équipement pour le produit ".$product->label." dans le lot n°".$TAssetOFLine->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
 				}
 				else
 				{
-					$res = false;
+					$qtyIsValid = false;
 					$this->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
 				}
 			}
 			
-			/*
-			$sql = "SELECT rowid 
-				FROM ".MAIN_DB_PREFIX."asset 
-				WHERE contenancereel_value >= ".$TAssetOFLine->qty."
-					AND fk_product = ".$TAssetOFLine->fk_product;
-		
-			if($conf->global->USE_LOT_IN_OF)
-			{
-				$sql .= ' AND lot_number = "'.$TAssetOFLine->lot_number.'"';
-			}
-			
-			$sql .= " ORDER BY contenancereel_value ASC LIMIT 1";
-			
-			$PDOdb->Execute($sql);
-			
-			if(!$PDOdb->Get_line()) 
-			{
-				$product = new Product($db);
-				$product->fetch($TAssetOFLine->fk_product);
-				
-				if($conf->global->USE_LOT_IN_OF)
-				{
-					$res = false;
-					$this->errors[] = "La quantité d'équipement pour le produit ".$product->label." dans le lot n°".$TAssetOFLine->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
-				}
-				else
-				{
-					$res = false;
-					$this->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
-				}
-			}
-			*/
 		}
 		
-		return $res;
+		return $qtyIsValid;
 	}
 
 	function updateControl(&$ATMdb, $subAction)
@@ -1125,7 +1097,7 @@ class TAssetOFLine extends TObjetStd{
 				{
 					$product = new Product($db);
 					$product->fetch($this->fk_product);
-					$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
+					//$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
 				}
 			}
 			

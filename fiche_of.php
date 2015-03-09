@@ -131,7 +131,10 @@ function _action() {
 
 		case 'valider':
 			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+            $id = GETPOST('id');
+            if(empty($id)) exit('Where is Waldo ?');
+            
+			$assetOf->load($PDOdb, $id);
 			
 			//Si use_lot alors check de la saisie du lot pour chaque ligne avant validation
 			if (!empty($conf->global->USE_LOT_IN_OF)) {
@@ -143,7 +146,7 @@ function _action() {
 				}
 			}
 					
-			$assetOf->status = "VALID";
+			$assetOf->status = 'VALID';
 
 			if(!empty($_REQUEST['TAssetOFLine'])) {
 				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
@@ -165,9 +168,14 @@ function _action() {
 
 		case 'lancer':
 			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
-			
-			if ($assetOf->checkQtyAsset($PDOdb, $conf))
+            $id = GETPOST('id');
+            if(empty($id)) exit('Where is Waldo ?');
+            
+            
+			$assetOf->load($PDOdb,$id);
+            
+			$qtyIsValid = $assetOf->checkQtyAsset($PDOdb, $conf);
+            if ($qtyIsValid)
 			{
 				$assetOf->status = "OPEN";
 				$assetOf->setEquipement($PDOdb); 
@@ -181,7 +189,7 @@ function _action() {
 
 		case 'terminer':
 			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id']);
 			
 			if (!$assetOf->checkCommandeFournisseur($PDOdb))
 			{
@@ -201,7 +209,7 @@ function _action() {
 
 		case 'delete':
 			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id'], false);
+			$assetOf->load($PDOdb, $_REQUEST['id']);
 			
 			//$PDOdb->db->debug=true;
 			$assetOf->delete($PDOdb);
