@@ -378,10 +378,14 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 		
 	}
 	
-	if(!empty($_REQUEST['fk_product'])){
+    
+    $fk_product = (int)GETPOST('fk_product');
+    if(!$fk_product) $fk_product=$asset->fk_product;
+    
+	if($fk_product>0){
 		dol_include_once('/product/class/product.class.php');
 		$product = new Product($db);
-		$product->fetch($_REQUEST['fk_product']);
+		$product->fetch($fk_product);
 		$product->fetch_optionals($product->id);
 	}
 	
@@ -408,7 +412,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,($asset->getId()) ? $asset->gestion_stock : $asset->assetType->gestion_stock)
 				,'status'=>$form->combo('','status',$asset->TStatus,$asset->status)
 				,'reutilisable'=>$form->combo('','reutilisable',array('oui'=>'oui','non'=>'non'),($asset->getId()) ? $asset->reutilisable : $asset->assetType->reutilisable)
-				,'typehidden'=>$form->hidden('fk_asset_type', ($asset->fk_asset_type > 0) ? $asset->fk_asset_type : $product->array_options['options_type_asset'])
+				,'typehidden'=>$form->hidden('fk_asset_type', ($product->array_options['options_type_asset'] > 0) ? $product->array_options['options_type_asset'] : $asset->fk_asset_type )
 			)
 			,'stock'=>array(
 				'type_mvt'=>$form2->combo('','type_mvt',array(''=>'','retrait'=>'Retrait','ajout'=>'Ajout'),'')

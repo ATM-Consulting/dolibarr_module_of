@@ -121,10 +121,7 @@ class TAsset extends TObjetStd{
 	
 	function load_asset_type(&$ATMdb) {
 		//on prend le type de ressource associé
-		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array('rowid'=>$this->fk_asset_type));
-
-		$this->assetType->load($ATMdb, $Tab[0]);
-		$this->fk_asset_type = $this->assetType->getId();
+		$this->assetType->load($ATMdb, $this->fk_asset_type);
 		
 		//on charge les champs associés au type.
 		$this->init_variables($ATMdb);
@@ -148,11 +145,12 @@ class TAsset extends TObjetStd{
 		
 		if(!$destock_dolibarr_only) 
 		{
+		  
 			if(empty($this->serial_number))
 			{
 				$this->serial_number = $this->getNextValue($ATMdb);
 			}
-			
+			  
 			parent::save($ATMdb);
 			
 			$this->save_link($ATMdb);
@@ -358,7 +356,7 @@ class TAsset extends TObjetStd{
 		global $db;
 
 		$mask = $this->assetType->masque;
-		$ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
+        $ref = get_next_value($db,$mask,'asset','serial_number',' AND fk_asset_type = '.$this->fk_asset_type);
 		if ($ref == 'ErrorBadMask') $ref = '';
 		
 		return $ref;

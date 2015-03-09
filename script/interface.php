@@ -17,23 +17,23 @@ traite_get($ATMdb, $get);
 function traite_get(&$ATMdb, $case) {
 	switch (strtolower($case)) {
 		case 'autocomplete':
-			__out(_autocomplete($ATMdb,$_REQUEST['fieldcode'],$_REQUEST['term'],$_REQUEST['fk_product']));
+			__out(_autocomplete($ATMdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product')));
 			break;
 		case 'addofproduct':
-			__out(_addofproduct($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_product'],$_REQUEST['type']));
+			__out(_addofproduct($ATMdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type')));
 
 			break;
 		case 'deletelineof':
-			__out(_deletelineof($ATMdb,$_REQUEST['idLine'],$_REQUEST['type']));
+			__out(_deletelineof($ATMdb,GETPOST('idLine'),GETPOST('type')));
 			break;
 		case 'addlines':
-			__out(_addlines($ATMdb,$_REQUEST['idLine'],$_REQUEST['qty']),$_REQUEST['type']);
+			__out(_addlines($ATMdb,GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
 			break;
 		case 'addofworkstation':
-			__out(_addofworkstation($ATMdb,$_REQUEST['id_assetOf'],$_REQUEST['fk_asset_workstation']));
+			__out(_addofworkstation($ATMdb,GETPOST('id_assetOf'),GETPOST('fk_asset_workstation')));
 			break;	
 		case 'deleteofworkstation':	
-			__out(_deleteofworkstation($ATMdb,$_REQUEST['id_assetOf'], $_REQUEST['fk_asset_workstation_of'] ));
+			__out(_deleteofworkstation($ATMdb,GETPOST('id_assetOf'), GETPOST('fk_asset_workstation_of') ));
 			break;
 		case 'measuringunits':
 			__out(_measuringUnits(GETPOST('type'), GETPOST('name')), 'json');
@@ -85,13 +85,13 @@ function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0)
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
 	
-	if (!empty($value)) $sql .= 'WHERE '.$fieldcode.' LIKE '.$ATMdb->quote($value.'%').' ';
+	if (!empty($value)) $sql .= 'WHERE al.'.$fieldcode.' LIKE '.$ATMdb->quote($value.'%').' ';
 	
 	if (!empty($value) && $fk_product) $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
 	elseif ($fk_product) $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';
 	
 	$sql .= 'ORDER BY al.'.$fieldcode;
-		
+//		print $sql;
 	$ATMdb->Execute($sql);
 	while ($ATMdb->Get_line()) 
 	{
