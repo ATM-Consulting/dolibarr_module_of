@@ -86,9 +86,11 @@ class TAsset extends TObjetStd{
 		global $conf;
 		
 		$res = parent::load($db,$id);
-		if($annexe)$this->load_link($db);
-		$this->load_stock($db);
-		$this->load_asset_type($db);
+		if($annexe){
+			$this->load_link($db);
+			$this->load_stock($db);
+			$this->load_asset_type($db);
+		}
 		//Sauvegarde de l'ancienne contenance réelle
 		$this->old_contenancereel = $this->contenancereel_value;
 		$this->old_contenancereel_units = $this->contenancereel_units;

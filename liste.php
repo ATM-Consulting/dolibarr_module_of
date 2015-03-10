@@ -112,7 +112,8 @@ function _liste($id_entity) {
 		$PDOdb = new TPDOdb;	
 		
 		$asset = new TAsset;
-		$asset->load($PDOdb, $fk_asset);
+		$asset->load($PDOdb, $fk_asset,false);
+		$asset->assetType->load($PDOdb, $asset->fk_asset_type);
 		
 		if($asset->gestion_stock != 'UNIT'){
 			return measuring_units_string($unite,$asset->assetType->measuring_units);
