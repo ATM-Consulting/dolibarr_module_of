@@ -624,9 +624,10 @@ class TAsset_type extends TObjetStd {
 		$this->save($db);
 	}
 	
-	function load(&$ATMdb, $id) {
+	function load(&$ATMdb, $id,$annexe = true) {
 		parent::load($ATMdb, $id);
-		$this->load_field($ATMdb);
+		
+		if($annexe)$this->load_field($ATMdb);
 	}
 	
 	/**
@@ -749,7 +750,7 @@ class TAsset_field extends TObjetStd {
 		parent::add_champs('code,libelle','type=chaine;');
 		parent::add_champs('type','type=chaine;');
 		parent::add_champs('obligatoire','type=entier;');
-		parent::add_champs('ordre','type=entier;');
+		parent::add_champs('ordre','type=entier;index;');
 		parent::add_champs('options','type=text;');
 		parent::add_champs('supprimable','type=entier;');
 		parent::add_champs('inliste,inlibelle','type=chaine;'); //varchar booléen : oui/non si le champs sera dans la liste de Ressource.
