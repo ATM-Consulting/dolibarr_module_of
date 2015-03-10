@@ -141,7 +141,10 @@ function showParameters(&$form) {
 		</p>
 	
 	</form>
-	
+	<p align="center" style="background: #fff;">
+	   Développé par <br />
+	   <a href="http://www.atm-consulting.fr/" target="_blank"><img src="../img/ATM_logo_petit.jpg" /></a>
+	</p>
 	
 	<br /><br />
 	<?php

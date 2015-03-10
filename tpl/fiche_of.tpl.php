@@ -254,6 +254,7 @@
 		function getChild() {
 			
 			$('#assetChildContener > *:not("#titleOFEnfants")').remove();
+			$('#assetChildContener').append('<p align="center" style="padding:10px; background:#fff;"><img src="img/loading.gif" /></p>');
 			$('#assetChildContener').show();
 			$.ajax({
 				
@@ -266,7 +267,7 @@
 						$('#assetChildContener').hide();
 					}
 					else {
-						
+						$('#assetChildContener > *:not("#titleOFEnfants")').remove();
 						for(x in Tid ){
 						
 							$.ajax({
