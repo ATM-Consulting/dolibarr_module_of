@@ -56,7 +56,7 @@ function _action() {
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load_liste_type_asset($PDOdb);
 				$asset->load_asset_type($PDOdb);
-				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				
 				_fiche($asset,'edit');
 				break;
@@ -64,7 +64,7 @@ function _action() {
 			case 'stock':
 				$asset=new TAsset;
 				$asset->load_liste_type_asset($PDOdb);
-				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				
 				_fiche($asset,'stock');
 				break;
@@ -75,7 +75,7 @@ function _action() {
 				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
 				$asset->load_liste_type_asset($PDOdb);
 				$asset->load_asset_type($PDOdb);//pre($asset,true);exit;
-				if(!empty($_REQUEST['id'])) $asset->load($PDOdb, $_REQUEST['id'], false);
+				if(!empty($_REQUEST['id'])) $asset->load($PDOdb, $_REQUEST['id']);
 				
 				//on vérifie que le libellé est renseigné
 				if  ( empty($_REQUEST['numId']) ){
@@ -142,7 +142,7 @@ function _action() {
 				
 			case 'clone':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				$asset->load_liste_type_asset($PDOdb);
 				$asset->load_asset_type($PDOdb);
 				$asset->reinit();
@@ -158,7 +158,7 @@ function _action() {
 				
 				if($conf->clinomadic->enabled){
 					$asset=new TAsset;
-					$asset->load($PDOdb, $_REQUEST['id'], false);
+					$asset->load($PDOdb, $_REQUEST['id']);
 					$asset->load_liste_type_asset($PDOdb);
 					$asset->load_asset_type($PDOdb);
 					$asset->retour_pret($PDOdb,$_REQUEST['fk_entrepot']);
@@ -171,7 +171,7 @@ function _action() {
 				
 			case 'delete':
 				$asset=new TAsset;
-				$asset->load($PDOdb, $_REQUEST['id'], false);
+				$asset->load($PDOdb, $_REQUEST['id']);
 				$asset->load_liste_type_asset($PDOdb);
 				
 				//$PDOdb->db->debug=true;
@@ -189,7 +189,7 @@ function _action() {
 	}
 	elseif(isset($_REQUEST['id']) && !empty($_REQUEST['id'])) {
 		$asset=new TAsset;
-		$asset->load($PDOdb, $_REQUEST['id'], false);
+		$asset->load($PDOdb, $_REQUEST['id']);
 		$asset->load_asset_type($PDOdb);
 		$asset->load_liste_type_asset($PDOdb);
 		
