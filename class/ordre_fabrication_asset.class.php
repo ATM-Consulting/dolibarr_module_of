@@ -71,7 +71,7 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
-	function save(&$db) {
+	function save(&$PDOdb) {
 		global $conf;
 
 		$this->set_temps_fabrication();
@@ -79,7 +79,7 @@ class TAssetOF extends TObjetStd{
 
 		if(!empty($conf->global->USE_LOT_IN_OF))
 		{
-			$this->setLotWithParent($db);
+			$this->setLotWithParent($PDOdb);
 		}
 		
 		//Sécurité sur la maj de l'objet, si on supprime les lignes d'un OF en mode edit, lors de l'enregistrement les infos sont ré-insert avec un fk_product à 0
@@ -91,17 +91,39 @@ class TAssetOF extends TObjetStd{
 			}
 		}
 		
-		parent::save($db);
+		parent::save($PDOdb);
 
-		if($this->numero=='') {
-			$this->numero='OF'.str_pad( $this->getId() , 5, '0', STR_PAD_LEFT);
-			$wc = $this->withChild;
-			$this->withChild=false;
-			parent::save($db);
-			$this->withChild=$wc;
-		}
+        $this->getNumero($PDOdb, true);
 	}
 	
+    function getNumero(&$PDOdb, $save=false) {
+        global $db;
+    
+        if(empty($this->numero)) {
+            dol_include_once('core/lib/functions2.lib.php');
+
+            $mask = 'OF{00000}';
+            $numero = get_next_value($db,$mask,'assetOf','numero');
+           
+            if($save) {
+                $this->numero = $numero;
+                
+                $wc = $this->withChild;
+                $this->withChild=false;
+                parent::save($PDOdb);
+                $this->withChild=$wc;
+                
+            }
+            
+        }
+        else{
+            $numero = $this->numero;
+        }
+
+        return $numero;
+        
+    }
+    
 	function setLotWithParent(&$ATMdb)
 	{
 		if (count($this->TAssetOFLine) && $this->fk_assetOf_parent)
@@ -995,7 +1017,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price','type=entier;index;');
-		$this->add_champs('qty_needed,qty,qty_used','type=float;');
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock','type=float;');
 		$this->add_champs('type,lot_number','type=chaine;');
 		
 		//clé étrangère
