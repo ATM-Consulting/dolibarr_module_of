@@ -40,15 +40,13 @@
 	print '<tr>';
 	print '<td>'.$langs->trans("UsetAssetProductionAttributs").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
-	
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_USE_PRODUCTION_ATTRIBUT');
 	print '</td></tr>';	
 	
-	print '<tr>';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
-	
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE');
 	print '</td></tr>';	
@@ -56,12 +54,11 @@
 	print '<tr>';
 	print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
-	
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL');
 	print '</td></tr>';	
 	
-	print '<tr>';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -75,7 +72,7 @@
 	print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT');
 	print '</td></tr>';	
 	
-	print '<tr>';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -89,7 +86,7 @@
 	print ajax_constantonoff('ASSET_DEFINED_USER_BY_WORKSTATION');
 	print '</td></tr>';
 	
-	print '<tr>';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -123,7 +120,7 @@ function showParameters(&$form) {
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
 			</tr>
 			
-			<tr>
+			<tr class="impair">
 				<td><?php echo $langs->trans('UseDefinedWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_DEFAULT_WAREHOUSE'); ?></td>
 			</tr> 
 			
@@ -131,13 +128,13 @@ function showParameters(&$form) {
 				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
 			
-			<tr>
+			<tr class="impair">
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr> 
 			
 		</table>
 		<p align="right">	
-			<input type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" /> 
+			<input class="button" type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" /> 
 		</p>
 	
 	</form>

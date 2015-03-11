@@ -250,7 +250,7 @@ class TAssetOF extends TObjetStd{
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
-			null;
+			return null;
 		}
 		else {
 			$k=$this->addChild($ATMdb,'TAssetOF');
@@ -258,6 +258,8 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($ATMdb, $fk_product, 'TO_MAKE', abs($qty_needed));
+			
+			return $k;
 		}
 	}
 	
@@ -675,6 +677,62 @@ class TAssetOF extends TObjetStd{
 			if ($recursive) $this->getListeOFEnfants($ATMdb, $Tid, $row->rowid);
 		}
 				
+	}
+	
+	function getOFEnfantWithProductToMake(&$ATMdb, &$res, $fk_product, $level=0, $recursive = true)
+	{
+		global $db;
+		
+		$tab = array();
+				
+		$sql = "SELECT a.rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf a";
+		$sql.= " INNER JOIN ".MAIN_DB_PREFIX."assetOf_line al ON (a.rowid = al.fk_assetOf AND al.type = 'TO_MAKE' AND al.fk_product = ".(int) $fk_product.")";
+		$sql.= " WHERE fk_assetOf_parent = ".$this->getId();
+		
+		$tab = $ATMdb->ExecuteAsArray($sql);
+		
+		foreach ($tab as $val)
+		{
+			if ($recursive)
+			{
+				$TAssetOF = new TAssetOF;
+				$TAssetOF->load($ATMdb, $val->rowid);
+				foreach ($TAssetOF->TAssetOFLine as $line)
+				{
+					$TAssetOF->getOFEnfantWithProductToMake($ATMdb, $res, $line->fk_product, $level+1);
+				}
+			}
+
+			$res[] = array('id_assetOf' => $val->rowid, 'level' => $level);
+		}
+		
+	}
+	
+	/*
+	 * Permet de supprimer le/les OF enfants
+	 * return 0 si aucun OF
+	 * return array id_assetOf si un ou +sieurs OF
+	 */
+	function deleteOFEnfant(&$ATMdb, $fk_product)
+	{
+		$res = $tab = array();
+		$this->getOFEnfantWithProductToMake($ATMdb, $tab, $fk_product);
+		
+		if (count($tab) <= 0) return 0;
+
+		foreach ($tab as $row)
+		{
+			if ($row['level'] == 0)
+			{
+				$TAssetOF = new TAssetOF;
+				$TAssetOF->load($ATMdb, $row['id_assetOf']);
+				$TAssetOF->delete($ATMdb);
+			}
+			$res[] = $row['id_assetOf'];
+		}
+
+		return $res;
 	}
 
 	static function status($status='DRAFT'){

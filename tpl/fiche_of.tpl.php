@@ -254,7 +254,7 @@
 		function getChild() {
 			
 			$('#assetChildContener > *:not("#titleOFEnfants")').remove();
-			$('#assetChildContener').append('<p align="center" style="padding:10px; background:#fff;"><img src="img/loading.gif" /></p>');
+			$('#assetChildContener').append('<p align="center" style="padding:10px; background:#fff;display:block;"><img src="img/loading.gif" /></p>');
 			$('#assetChildContener').show();
 			$.ajax({
 				
@@ -477,11 +477,25 @@
 		
 		function deleteLine(idLine,type){
 			$.ajax(
-				{url : "script/interface.php?get=deletelineof&idLine="+idLine+"&type="+type}
-			).done(function(){
+				{
+					url : "script/interface.php?get=deletelineof&idLine="+idLine+"&type="+type
+					,dataType : 'json'	
+				}
+			).done(function(TidAssetOF){
+				if (TidAssetOF != 0) 
+				{
+					for (var i in TidAssetOF)
+					{
+						$('div.OFMaster[assetof_id='+TidAssetOF[i]+']').remove();
+					}
+				}
+				
+				if ($('#assetChildContener div.OFMaster').length <= 0) $('#assetChildContener').css('display', 'none');
+				
 				$("#"+idLine).remove();
 			});
 		}
+		
 		function deleteWS(id_assetOf,idWS) {
 			$.ajax(
 				{url : "script/interface.php?get=deleteofworkstation&id_assetOf=[assetOf.id]&fk_asset_workstation_of="+idWS }
@@ -503,15 +517,36 @@
 					$.ajax({
 						url: "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty+"&type=json"
 						,dataType: 'json'
-					}).done(function(data){			
-						if(data.length > 0) {
-							for (i in data)
-							{
-								refreshTab(data[i], 'edit');
-							}
+					}).done(function(data){	
+						var nbOFModified = data[0].length;
+						var nbOFCreate = data[1].length;
+						
+						if (nbOFModified > 0 || nbOFCreate > 0)
+						{
+							if (data[0].length > 0) $.jnotify('Mise à jour des quantités enregistr&eacute;es', "ok");
 							
-							$.jnotify('Mise à jour des quantités enregistr&eacute;es', "ok");
+							if (nbOFCreate > 0)
+							{
+								if (nbOFCreate == 1) $.jnotify('Un OF a été créé', "ok");
+								else if (nbOFCreate > 1) $.jnotify('Des OF ont été créés', "ok");
+								
+								//Si des OF sont créés, je met à jour l'affichage de l'OF courant et j'actualise la totalité des OF enfants
+								refreshTab($('.OFContent').attr('rel'), 'edit');
+								getChild();
+								refreshDisplay();
+							}
+							else
+							{
+								//Si il n'y a que des OF modifiés, j'actualise les affichages de chacun
+								if(nbOFModified > 0) {
+									for (i in data[0])
+									{
+										refreshTab(data[0][i], 'edit');
+									}
+								}
+							}
 						}
+						
 					});
 				} else {
 					alert("Cette OF n'est plus au statut brouillon.");

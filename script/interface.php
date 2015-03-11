@@ -24,7 +24,7 @@ function traite_get(&$ATMdb, $case) {
 
 			break;
 		case 'deletelineof':
-			__out(_deletelineof($ATMdb,GETPOST('idLine'),GETPOST('type')));
+			__out(_deletelineof($ATMdb,GETPOST('idLine'),GETPOST('type')), 'json');
 			break;
 		case 'addlines':
 			__out(_addlines($ATMdb,GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
@@ -135,7 +135,15 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 function _deletelineof(&$ATMdb,$idLine,$type){
 	$TAssetOFLine = new TAssetOFLine;
 	$TAssetOFLine->load($ATMdb, $idLine);	
+	
+	//Permet de supprimer le/les OF enfant(s)
+	$TAssetOF = new TAssetOF;
+	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
+	$id_of_deleted = $TAssetOF->deleteOFEnfant($ATMdb, $TAssetOFLine->fk_product);
+	
 	$TAssetOFLine->delete($ATMdb);
+	
+	return $id_of_deleted;
 }
 
 function _addlines(&$ATMdb,$idLine,$qty){
@@ -154,20 +162,22 @@ function _addlines(&$ATMdb,$idLine,$qty){
 	$TAssetOF = new TAssetOF;
 	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
 	
+	//Id des lignes modifiés
 	$TIdLineModified = array($TAssetOFLine->fk_assetOf);
+	//Id des nouveaux OF créés
+	$TNewIdAssetOF = array();
 	
- 	_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified);
+ 	_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified, $TNewIdAssetOF);
 	
-	return $TIdLineModified;
+	return array($TIdLineModified, $TNewIdAssetOF);
 }
 
-function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)
+function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
 {
-	if (!empty($TAssetOFChildId)){
+	if (empty($TAssetOFChildId)){
 		return false;
 	}
 
-	$break = false;
 	foreach ($TAssetOFChildId as $idOF)
 	{
 		$TAssetOF = new TAssetOF;
@@ -182,10 +192,9 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 				$line->qty = $qty;
 				$line->save($ATMdb);
 				
-				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, true);
+				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF);
 				
-                
-		                return true; // on a trouvé la ligne consernée
+                return true; // on a trouvé la ligne consernée
 			}
 		}
 		
@@ -207,7 +216,7 @@ function _measuringUnits($type, $name)
 	else return array($html->load_measuring_units($name, $type, 0));
 }
 
-function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified)
+function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
 {
 	$prod = new Product($db);
 	$prod->fetch($fk_product);
@@ -216,8 +225,9 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 	if (empty($TComposition)) return;
 	
 	$TAssetOFChildId = array();
-	$TAssetOF->getListeOFEnfants($ATMdb, $TAssetOFChildId, $TAssetOF->rowid, false);
+	$TAssetOF->getListeOFEnfants($ATMdb, $TAssetOFChildId, $TAssetOF->rowid, false); //Récupération des OF enfants direct - les sous-enfants ne sont pas récupérés
 	
+	//Boucle sur les lignes de l'OF courant
 	foreach ($TAssetOF->TAssetOFLine as $line) 
 	{
 		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
@@ -226,17 +236,28 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
 			$line->save($ATMdb);
 
-		        if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified)) {
-		                $TCompositionSubProd = $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
-  				if (!empty($conf->global->CREATE_CHILDREN_OF)) {
-
+			//_updateToMake : si un OF enfant existe pour ce produit NEEDED alors on met à jour les qté de celui-ci
+	        if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF)) {
+				//Si on entre là, c'est que la création d'un OF doit être efféctué, uniquement si la conf nous le permet
+				
+				//TODO attention la création de l'OF ne prend pas en compte la quantité encore en stock
+  				
+  				if (!empty($conf->global->CREATE_CHILDREN_OF)) 
+  				{
+                	$TCompositionSubProd = $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
+					
 					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
-						$TAssetOF->createOFifneeded($ATMdb,$line->fk_product, $line->qty);
+						$k = $TAssetOF->createOFifneeded($ATMdb,$line->fk_product, $line->qty);
 						$TAssetOF->save($ATMdb);
+
+						if ($k !== null) $TNewIdAssetOF[] = $TAssetOF->TAssetOF[$k]->rowid;
 					}
 				}
-//			var_dump($line->fk_product, $line->qty);
-		        }
+				
+//				var_dump($line->fk_product, $line->qty);
+
+	        }
+			
 		}
-	}	
+	}
 }
