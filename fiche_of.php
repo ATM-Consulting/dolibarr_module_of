@@ -15,7 +15,6 @@ include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
 if(!$user->rights->asset->all->lire) accessforbidden();
 if(!$user->rights->asset->of->write) accessforbidden();
 
-
 // Load traductions files requiredby by page
 $langs->load("other");
 $langs->load("orders");
@@ -136,7 +135,7 @@ function _action() {
             
 			$assetOf->load($PDOdb, $id);
 			
-			//Si use_lot alors check de la saisie du lot pour chaque ligne avant validation
+           //Si use_lot alors check de la saisie du lot pour chaque ligne avant validation
 			if (!empty($conf->global->USE_LOT_IN_OF)) {
 				if (!$assetOf->checkLotIsFill())
 				{
@@ -171,38 +170,18 @@ function _action() {
             $id = GETPOST('id');
             if(empty($id)) exit('Where is Waldo ?');
             
-            
 			$assetOf->load($PDOdb,$id);
             
-			$qtyIsValid = $assetOf->checkQtyAsset($PDOdb, $conf);
-            if ($qtyIsValid)
-			{
-				$assetOf->status = "OPEN";
-				$assetOf->setEquipement($PDOdb); 
-				$assetOf->save($PDOdb);
-			}
-						
-			//$assetOf->openOF($PDOdb);
+			$assetOf->openOF($PDOdb);
 			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
 
 		case 'terminer':
 			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id']);
-			
-			if (!$assetOf->checkCommandeFournisseur($PDOdb))
-			{
-				setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
-				_fiche($PDOdb,$assetOf, 'view');
-				break;
-			}
-			
-			$assetOf->status = "CLOSE";
-			
+			$assetOf->load($PDOdb, $_REQUEST['id']);
 			$assetOf->closeOF($PDOdb);
-			$assetOf->save($PDOdb);
-			
+            
 			_fiche($PDOdb,$assetOf, 'view');
 			
 			break;
@@ -440,18 +419,19 @@ function generateODTOF(&$PDOdb) {
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs;
 
+    $ATMdb=new TPDOdb;
 	$TRes = array();
 	foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
 		$product = new Product($db);
 		$product->fetch($TAssetOFLine->fk_product);
 		$product->load_stock();
 
-		if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
+        if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
-				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : ".$product->stock_reel
+				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : ".$product->stock_reel.$TAssetOFLine->getAssetLinkedLinks($ATMdb)
 				,'qty_needed'=>$TAssetOFLine->qty_needed
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
 				,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
@@ -463,7 +443,7 @@ function _fiche_ligne(&$form, &$of, $type){
 		elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 		
 			if(empty($TAssetOFLine->TFournisseurPrice)) {
-				$ATMdb=new TPDOdb;
+				
 				$TAssetOFLine->loadFournisseurPrice($ATMdb);
 			}
 		
@@ -510,7 +490,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
-				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : ".$product->stock_reel
+				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : ".$product->stock_reel.$TAssetOFLine->getAssetLinkedLinks($ATMdb)
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )

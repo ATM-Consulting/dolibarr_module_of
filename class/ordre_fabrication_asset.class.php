@@ -352,11 +352,36 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
+    function launchOF(&$PDOdb) {
+        global $conf;
+      
+        $qtyIsValid = $this->checkQtyAsset($PDOdb, $conf);
+        if ($qtyIsValid)
+        {
+            $this->status = 'OPEN';
+            $this->setEquipement($PDOdb); 
+            $this->save($PDOdb);
+            
+            return true;
+        }
+                
+        return false;
+    }
+    
 	//Finalise un OF => incrémention/décrémentation du stock
 	function closeOF(&$ATMdb, $conf = null)
 	{
+	    $this->status = "CLOSE";
+        
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
+        if (!$this->checkCommandeFournisseur($ATMdb))
+        {
+                setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
+                return false;
+        }    
+        
+        
 		if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 		else $fk_entrepot = $asset->fk_entrepot;
 		
@@ -382,20 +407,35 @@ class TAssetOF extends TObjetStd{
 				
 			}
 		}
+
+        $this->save($PDOdb);
+
+        return true;
 	}
 	
 	function openOF(&$ATMdb){
-		global $db, $user;
+		global $db, $user, $conf;
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		dol_include_once("fourn/class/fournisseur.product.class.php");
 		dol_include_once("fourn/class/fournisseur.commande.class.php");
 		
+        
+        $this->launchOF($ATMdb); 
+        
 		foreach($this->TAssetOFLine as $AssetOFLine){
-			$asset = new TAsset;
-			$asset->load($ATMdb, $AssetOFLine->fk_asset);
+			/*$asset = new TAsset;
+			$asset->load($ATMdb, $AssetOFLine->fk_asset);*/
 
-			if($AssetOFLine->type == "NEEDED"){
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number,-$AssetOFLine->qty_used);
+			if($AssetOFLine->type == 'NEEDED'){
+			    $TAsset = $AssetOFLine->getAssetLinked($ATMdb);
+                
+                foreach($TAsset as $asset) {
+                     $asset->save($ATMdb,$user
+                             ,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number
+                             ,-$AssetOFLine->qty_used, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+                    
+                }
+                
 			}
 
 		}
@@ -868,8 +908,8 @@ class TAssetOF extends TObjetStd{
 		$qtyIsValid = true;
 		foreach($this->TAssetOFLine as $TAssetOFLine)
 		{
-			if ($TAssetOFLine->type != "NEEDED") continue;
-			
+			if ($TAssetOFLine->type != 'NEEDED') continue;
+			$qty_needed = $TAssetOFLine->qty;
 			//
 			$completeSql = '';
 			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
@@ -880,12 +920,12 @@ class TAssetOF extends TObjetStd{
 			if ($is_cumulate)
 			{
 				$sql.= ' WHERE contenancereel_value > 0';
-				if (is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
+				if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
 				else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
 			}
 			else 
 			{
-				$sql.= ' WHERE contenancereel_value >= '.$this->qty;
+				$sql.= ' WHERE contenancereel_value >= '.$qty_needed;
 				if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
 				else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
 			}
@@ -894,21 +934,22 @@ class TAssetOF extends TObjetStd{
 			
 			if ($conf->global->USE_LOT_IN_OF)
 			{
-				$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+				$sql .= ' AND lot_number = "'.$TAssetOFLine->lot_number.'"';
 			}
 			
 			$sql.= $completeSql;
-		
+	
 			$PDOdb->Execute($sql);
 			
-			$qty_needed = $TAssetOFLine->qty;
+			
 			$qty_cumulate = 0;
 			$break=false;
 			
 			while ($PDOdb->Get_line())
 			{
 				$idAsset = $PDOdb->Get_field('rowid');
-				$asset->load($ATMdb, $idAsset);
+                $asset=new TAsset;
+				$asset->load($PDOdb, $idAsset);
 				
 				$qty_cumulate += $asset->contenancereel_value;
 				
@@ -1099,7 +1140,7 @@ class TAssetOFLine extends TObjetStd{
 		$ATMdb2 = new TPDOdb;
 		
 		$asset = new TAsset;
-		$asset->fk_product = $this->fk_product;
+		$asset->fk_product = $this->fk_product; // Utile ?
 		
 		$completeSql = '';
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
@@ -1134,8 +1175,8 @@ class TAssetOFLine extends TObjetStd{
 
 		if($this->type == "NEEDED" && $AssetOf->status == "OPEN")
 		{
-			$nbRecord = $ATMdb2->Get_Recordcount();
-			$mvmt_stock_already_done = $nbRecord > 0 ? true : false;
+			$nbAssetFound = $ATMdb2->Get_Recordcount();
+			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
 			$qty_needed = $this->qty;
 			$break=false;
 			
@@ -1144,6 +1185,7 @@ class TAssetOFLine extends TObjetStd{
 				$idAsset = $ATMdb2->Get_field('rowid');
 				$asset->load($ATMdb, $idAsset);
 				
+                // Si j'ai assez de contenu dans mon équipement
 				if ($asset->contenancereel_value - $qty_needed >= 0)
 				{
 					$qty_to_destock = $qty_needed;
@@ -1151,23 +1193,26 @@ class TAssetOFLine extends TObjetStd{
 				}
 				else 
 				{
+				    // sinon si cumulable
 					$qty_to_destock = $asset->contenancereel_value;
 					$qty_needed -= $asset->contenancereel_value;
 				}
 					
-				TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
+                $this->addAssetLink($asset);
 				
 				if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 				else $fk_entrepot = $asset->fk_entrepot;
 				
 				$asset->status = 'indisponible';
 				//On affiche aussi l'ID de l'équipement dans la description pcq le serial_number peut être vide
-				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
+				//$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
+			    $asset->save($ATMdb,$user);
+			
 			
 				if ($break) break;
 			}
 			
-			if ($nbRecord <= 0)
+			if ($nbAssetFound == 0)
 			{
 				if($conf->global->USE_LOT_IN_OF)
 				{
@@ -1175,16 +1220,18 @@ class TAssetOFLine extends TObjetStd{
 				}
 				else
 				{
-					$product = new Product($db);
+					/*$product = new Product($db);
 					$product->fetch($this->fk_product);
-					//$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
+					$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;*/
 				}
 			}
-			
+            
+			/*
 			if(!$mvmt_stock_already_done) 
 			{
 				$asset->save($ATMdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
 			}
+			*/
 			
 			/*
 			if($ATMdb->Get_line())
@@ -1214,12 +1261,46 @@ class TAssetOFLine extends TObjetStd{
 			}
 			*/
 		}
-		
+
+        //TODO on créé un équipement si non trouver, voir pour réintégrer ce comportement sur paramétrage 
+
+		/*
 		$this->fk_asset = $idAsset;
 		$this->save($ATMdb, $conf);	
-
+*/
 		return true;
 	}
+    function getAssetLinkedLinks(&$ATMdb, $r='<br />') {
+        
+        $TAsset = $this->getAssetLinked($ATMdb);
+        
+        foreach($TAsset as &$asset) {
+            
+            $r.=$asset->getNomUrl(1).'<br />';
+        }
+        
+        return $r;
+    }
+    function getAssetLinked(&$ATMdb) {
+        
+        $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
+        
+        $Tab = array();
+        
+        foreach($TId as $id) {
+            $asset = new TAsset;
+            $asset->load($ATMdb, $id);
+            $Tab[] = $asset;
+        }
+        
+        return $Tab;
+    }
+
+    function addAssetLink(&$asset) {
+        
+        TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
+        
+    }
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
 	function makeAsset(&$ATMdb, &$AssetOf, $fk_product, $qty, $idAsset = 0, $lot_number = '')

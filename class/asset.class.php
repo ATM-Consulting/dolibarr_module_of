@@ -55,7 +55,7 @@ class TAsset extends TObjetStd{
 
 	public static function set_element_element($fk_source, $sourceType, $fk_target, $targetType)
 	{
-		$ATMdb = new TPDOdb;
+		$ATMdb = new TPDOdb;//TODO connexion de trop, devrait être en paramètre
 		
 		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (fk_source, sourcetype, fk_target, targettype)';
 		$sql.= ' VALUES (';
@@ -67,6 +67,17 @@ class TAsset extends TObjetStd{
 		
 		$ATMdb->Execute($sql);
 	}
+    
+    public static function get_element_element($fk_source, $sourceType, $targetType)
+    {
+        $ATMdb = new TPDOdb; //TODO connexion de trop, devrait être en paramètre
+        
+        $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element 
+                WHERE fk_source = ".$fk_source." AND sourcetype='".$sourceType."' AND targettype='".$targetType."'";
+        
+        return TRequeteCore::_get_id_by_sql($ATMdb, $sql, 'fk_target');
+        
+    }
 
 	function reinit() {
 		$this->rowid = 0;
@@ -294,6 +305,16 @@ class TAsset extends TObjetStd{
 		}
 		
 	}
+    
+    function getNomUrl($with_picto=true) {
+        
+        $url = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$this->getId(),1).'" />';
+        if($with_picto)$url.=img_picto('', 'pictoasset.png@asset');
+        $url.=$this->serial_number.'</a>';
+        
+        return $url;
+        
+    }
 	
 	private function _get_link_id(&$db) {
 		$db->Execute("SELECT rowid FROM ".$this->get_table()."_link WHERE fk_asset=".$this->rowid);
