@@ -159,7 +159,7 @@ class TAssetOF extends TObjetStd{
 		//pre($this->TAssetOFLine,true);exit;
 		foreach($this->TAssetOFLine as $TAssetOFLine)
 		{
-			$TAssetOFLine->setAsset($PDOdb,$this);	
+			$TAssetOFLine->setAsset($PDOdb,$this,true);	
 		}
 		
 		return true;
@@ -898,81 +898,11 @@ class TAssetOF extends TObjetStd{
 		global $db;
 		
         if(!$conf->global->USE_LOT_IN_OF) return true;
-        
-        
+         
 		$qtyIsValid = true;
 		foreach($this->TAssetOFLine as $TAssetOFLine)
 		{
-			if ($TAssetOFLine->type != 'NEEDED') continue;
-			$qty_needed = $TAssetOFLine->qty;
-			//
-			$completeSql = '';
-			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
-			
-			$is_cumulate = TAsset_type::getIsCumulate($PDOdb, $TAssetOFLine->fk_product);
-			$is_perishable = TAsset_type::getIsPerishable($PDOdb, $TAssetOFLine->fk_product);
-		
-			if ($is_cumulate)
-			{
-				$sql.= ' WHERE contenancereel_value > 0';
-				if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
-				else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
-			}
-			else 
-			{
-				$sql.= ' WHERE contenancereel_value >= '.$qty_needed;
-				if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
-				else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
-			}
-	
-			$sql.= ' AND fk_product = '.$TAssetOFLine->fk_product;
-			
-			if ($conf->global->USE_LOT_IN_OF)
-			{
-				$sql .= ' AND lot_number = "'.$TAssetOFLine->lot_number.'"';
-			}
-			
-			$sql.= $completeSql;
-	
-			$PDOdb->Execute($sql);
-			
-			
-			$qty_cumulate = 0;
-			$break=false;
-			
-			while ($PDOdb->Get_line())
-			{
-				$idAsset = $PDOdb->Get_field('rowid');
-                $asset=new TAsset;
-				$asset->load($PDOdb, $idAsset);
-				
-				$qty_cumulate += $asset->contenancereel_value;
-				
-				//On a suffisament en stock, break = true donc pas de msg d'erreur
-				if ($qty_cumulate - $qty_needed >= 0)
-				{
-					$break = true;
-				}
-
-				if ($break) break;
-			}
-			
-			if(!$break) 
-			{
-				$product = new Product($db);
-				$product->fetch($TAssetOFLine->fk_product);
-				
-				if($conf->global->USE_LOT_IN_OF)
-				{
-					$qtyIsValid = false;
-					$this->errors[] = "La quantité d'équipement pour le produit ".$product->label." dans le lot n°".$TAssetOFLine->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
-				}
-				else
-				{
-					$qtyIsValid = false;
-					$this->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
-				}
-			}
+			$qtyIsValid = $qtyIsValid & $TAssetOFLine->setAsset($PDOdb,$this, false);
 			
 		}
 		
@@ -1165,19 +1095,15 @@ class TAssetOFLine extends TObjetStd{
         $this->save($PDOdb);
     }
     
-	//Affecte l'équipement à la ligne de l'OF
-	function setAsset(&$PDOdb,&$AssetOf)
+	//Affecte les équipements à la ligne de l'OF
+	function setAsset(&$PDOdb,&$AssetOf, $forReal = false)
 	{
+	  
 		global $db, $user, $conf;	
 		
-        if($conf->global->USE_LOT_IN_OF) return true;
-        
+        if(!$conf->global->USE_LOT_IN_OF) return true;
+      
 		include_once 'asset.class.php';
-		
-		$PDOdb2 = new TPDOdb;
-		
-		$asset = new TAsset;
-		$asset->fk_product = $this->fk_product; // Utile ?
 		
 		$completeSql = '';
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
@@ -1189,7 +1115,7 @@ class TAssetOFLine extends TObjetStd{
 		if ($is_cumulate)
 		{
 			$sql.= ' WHERE contenancereel_value > 0';
-			if (is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
+			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
 			else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
 		}
 		else 
@@ -1208,104 +1134,73 @@ class TAssetOFLine extends TObjetStd{
 		
 		$sql.= $completeSql;
 		
-		$PDOdb2->Execute($sql);
+		$Tab = $PDOdb->ExecuteAsArray($sql);
 
-		if($this->type == "NEEDED" && $AssetOf->status == "OPEN") // TODO remove condition status
+        $no_error = true;
+ 
+		if($this->type == 'NEEDED' && ($AssetOf->status == 'OPEN' || !$forReal )  ) // TODO remove condition status
 		{
-			$nbAssetFound = $PDOdb2->Get_Recordcount();
+			$nbAssetFound = count($Tab);
 			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
 			$qty_needed = $this->qty;
 			$break=false;
 			
-			while ($PDOdb2->Get_line())
-			{
-				$idAsset = $PDOdb2->Get_field('rowid');
-				$asset->load($PDOdb, $idAsset);
-				
-                // Si j'ai assez de contenu dans mon équipement
-				if ($asset->contenancereel_value - $qty_needed >= 0)
-				{
-					$qty_to_destock = $qty_needed;
-					$break = true;
-				}
-				else 
-				{
-				    // sinon si cumulable
-					$qty_to_destock = $asset->contenancereel_value;
-					$qty_needed -= $asset->contenancereel_value;
-				}
-					
-                $this->addAssetLink($asset);
-				
-				if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
-				else $fk_entrepot = $asset->fk_entrepot;
-				
-				$asset->status = 'indisponible';
-				//On affiche aussi l'ID de l'équipement dans la description pcq le serial_number peut être vide
-				//$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
-			    $asset->save($PDOdb,$user);
-			
-			
-				if ($break) break;
-			}
-			
-			if ($nbAssetFound == 0)
-			{
-				if($conf->global->USE_LOT_IN_OF)
-				{
-					$AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
-				}
-				else
-				{
-					/*$product = new Product($db);
-					$product->fetch($this->fk_product);
-					$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;*/
-				}
-			}
+           
+            if ($nbAssetFound == 0) {
+                $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+                $no_error = false;                 
+            }
+            else {
+               
+               foreach($Tab as $row) {
             
-			/*
-			if(!$mvmt_stock_already_done) 
-			{
-				$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
-			}
-			*/
+                    $asset=new TAsset;
+                    $asset->load($PDOdb, $row->rowid);
+                    
+                    // Si j'ai assez de contenu dans mon équipement
+                    if ($asset->contenancereel_value - $qty_needed >= 0)
+                    {
+                        $qty_to_destock = $qty_needed;
+                        $break = true;
+                    }
+                    else 
+                    {
+                        // sinon si cumulable
+                        $qty_to_destock = $asset->contenancereel_value;
+                        $qty_needed -= $asset->contenancereel_value;
+                    }
+                        
+                    if($forReal) {
+                        $this->addAssetLink($asset);
+                    
+                        if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+                        else $fk_entrepot = $asset->fk_entrepot;
+                        
+                        $asset->status = 'indisponible';
+                        //On affiche aussi l'ID de l'équipement dans la description pcq le serial_number peut être vide
+                        //$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
+                        $asset->save($PDOdb,$user);
+                    }
+                
+                    if ($break) break;
+                }
+                    
+    
+            }
 			
-			/*
-			if($PDOdb->Get_line())
-			{					
-				$mvmt_stock_already_done = true;
-				
-				$idAsset = $PDOdb->Get_field('rowid');
-				$asset->load($PDOdb, $idAsset);
-				
-				$asset->status = 'indisponible';
-				$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, false, 0, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
-			}
-			elseif($conf->global->USE_LOT_IN_OF)
-			{
-				$AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
-			}
-			else
-			{
-				$product = new Product($db);
-				$product->fetch($this->fk_product);
-				$AssetOf->errors[] = "Aucun équipement disponible pour le produit ".$product->label;
-			}
 			
-			if(!$mvmt_stock_already_done) 
-			{
-				$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->serial_number, -$this->qty, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
-			}
-			*/
+            
 		}
 
-        //TODO on créé un équipement si non trouver, voir pour réintégrer ce comportement sur paramétrage 
+        
 
+        //TODO on créé un équipement si non trouver, voir pour réintégrer ce comportement sur paramétrage 
 		/*
 		$this->fk_asset = $idAsset;
 		$this->save($PDOdb, $conf);	
 */
-		return true;
+        if(!$no_error) return false;
+        else return true;
 	}
     function getAssetLinkedLinks(&$PDOdb, $r='<br />', $sep='<br />') {
         
