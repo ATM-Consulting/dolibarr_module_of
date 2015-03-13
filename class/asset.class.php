@@ -136,26 +136,10 @@ class TAsset extends TObjetStd{
 	
 	function getDefaultContenance() {
         /* récupère la contenance par défaut dans le produit ou la config du type */
-        global $db;
         
-        $unite = $this->assetType->measuring_units;
-       
-        if($unite=='unit') return 1;
-        elseif($this->fk_product>0) {
-            
-            dol_include_once('/product/class/product.class.php');
-            
-            $product = new Product($db);
-            $product->fetch($this->fk_product);
-             
-            if($unite=='size') $contenance = $product->length; 
-            else $contenance = $product->{$unite}; // TODO prendre en compte l'unité car j'ai la flemme
-            
-        }
+        return $this->assetType->getDefaultContenance($this->fk_product);
         
-        if(empty($contenance)) $contenance = $this->assetType->contenancereel_value;
         
-        return $contenance;
     }
     
 	function load_asset_type(&$PDOdb) {
@@ -665,7 +649,30 @@ class TAsset_type extends TObjetStd {
         return false;   
         		
 	}
-	
+    
+	function getDefaultContenance($fk_product=0) {
+        /* récupère la contenance par défaut dans le produit ou la config du type */
+        global $db;
+        
+        $unite = $this->measuring_units;
+       
+        if($unite=='unit') return 1;
+        elseif($fk_product>0) {
+            
+            dol_include_once('/product/class/product.class.php');
+            
+            $product = new Product($db);
+            $product->fetch($fk_product);
+             
+            if($unite=='size') $contenance = $product->length; 
+            else $contenance = $product->{$unite}; // TODO prendre en compte l'unité car j'ai la flemme
+            
+        }
+        
+        if(empty($contenance)) $contenance = $this->contenancereel_value;
+        
+        return $contenance;
+    }
 	public static function getIsPerishable(&$PDOdb, $fk_product)
 	{
 		$assetType = new TAsset_type;

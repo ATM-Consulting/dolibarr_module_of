@@ -317,8 +317,12 @@ class TAssetOF extends TObjetStd{
 		
 		$TAssetOFLine->lot_number = $lot_number;
 		
+        $TAssetOFLine->initConditionnement($PDOdb);
+        
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
+        
+        
 		if($type=='TO_MAKE') {
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine);
 		}
@@ -1107,8 +1111,8 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price','type=entier;index;');
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock','type=float;');
-		$this->add_champs('type,lot_number','type=chaine;');
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
+		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
 		
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
@@ -1335,7 +1339,22 @@ class TAssetOFLine extends TObjetStd{
         TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
         
     }
-	
+	function initConditionnement(&$PDOdb) {
+	    
+        $assetType = new TAsset_type; 
+        $assetType->load_by_fk_product($PDOdb, $this->fk_product);
+        $this->conditionnement = $assetType->getDefaultContenance($this->fk_product);
+        $this->conditionnement_unit = $assetType->contenance_units;
+        $this->measuring_units = $assetType->measuring_units;
+	}
+    
+    function libUnite() {
+        dol_include_once('/core/lib/product.lib.php');    
+            
+        return measuring_units_string($this->conditionnement_unit, $this->measuring_units); 
+        
+    }
+    
 	//Utilise l'équipement affecté à la ligne de l'OF
 	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty_to_make, $idAsset = 0, $lot_number = '')
 	{
@@ -1532,13 +1551,17 @@ class TAssetOFLine extends TObjetStd{
 
 	}
 	
-	function save(&$db) {
+	function save(&$PDOdb) {
 		
 		global $conf;
 
 		$this->entity = $conf->entity;
 		
-		parent::save($db);
+        if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile 
+            $this->initConditionnement($PDOdb);
+        }
+        
+		parent::save($PDOdb);
 
 	}
 	
