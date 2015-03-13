@@ -47,18 +47,20 @@ function _action() {
 				$asset=new TAsset;
 				$asset->load_liste_type_asset($PDOdb);
 				$asset->set_values($_REQUEST);
+                $asset->load_asset_type($PDOdb);
+                
 				_fiche($asset,'new');
 				
 				break;
 			
 			case 'edit'	:
 				$asset=new TAsset;
-				$asset->fk_asset_type = $_REQUEST['fk_asset_type'];
+                $asset->set_values($_REQUEST);
 				$asset->load_liste_type_asset($PDOdb);
 				$asset->load_asset_type($PDOdb);
-				$asset->load($PDOdb, $_REQUEST['id']);
-				
-				_fiche($asset,'edit');
+				if(!empty($_REQUEST['id'])) $asset->load($PDOdb, $_REQUEST['id']);
+			
+            	_fiche($asset,'edit');
 				break;
 			
 			case 'stock':
@@ -404,9 +406,9 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 				,'societe_localisation'=>_fiche_visu_societe($asset,$mode,"societe_localisation")
 				,'lot_number'=>$html->textwithpicto($form->texte('', 'lot_number', $asset->lot_number, 100,255,'','','à saisir'), $langs->trans('CreateAssetFromProductNumLot'), 1, 'help', '', 0, 3)
 				,'dluo'=>$html->textwithpicto($form->calendrier('', 'dluo', $asset->dluo), $langs->trans('AssetDescDLUO'), 1, 'help', '', 0, 3)
-				,'contenance_value'=>$form->texte('', 'contenance_value',number_format(($asset->getId()) ? $asset->contenance_value : $asset->assetType->contenance_value,2,',',''), 12,10,'','','0.00')
+				,'contenance_value'=>$form->texte('', 'contenance_value',$asset->contenance_value , 12,50,'','','0.00')
 				,'contenance_units'=>_fiche_visu_units($asset, $mode, 'contenance_units',-6)
-				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', number_format(($asset->getId()) ? $asset->contenancereel_value :  $asset->assetType->contenancereel_value,2,',',''), 12,10,'','','0.00')
+				,'contenancereel_value'=>$form->texte('', 'contenancereel_value', $asset->contenancereel_value, 12,50,'','','0.00')
 				,'contenancereel_units'=>_fiche_visu_units($asset, $mode, 'contenancereel_units',-6)
 				,'point_chute'=>$form->texte('', 'point_chute', ($asset->getId()) ? $asset->point_chute : $asset->assetType->point_chute, 12,10,'','','à saisir')
 				,'gestion_stock'=>$form->combo('','gestion_stock',$asset->TGestionStock,($asset->getId()) ? $asset->gestion_stock : $asset->assetType->gestion_stock)

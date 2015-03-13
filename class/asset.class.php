@@ -134,21 +134,44 @@ class TAsset extends TObjetStd{
 		return $PDOdb->Get_field('type_asset');
 	}
 	
+	function getDefaultContenance() {
+        /* récupère la contenance par défaut dans le produit ou la config du type */
+        global $db;
+        
+        $unite = $this->assetType->measuring_units;
+       
+        if($unite=='unit') return 1;
+        elseif($this->fk_product>0) {
+            
+            dol_include_once('/product/class/product.class.php');
+            
+            $product = new Product($db);
+            $product->fetch($this->fk_product);
+             
+            if($unite=='size') $contenance = $product->length; 
+            else $contenance = $product->{$unite}; // TODO prendre en compte l'unité car j'ai la flemme
+            
+        }
+        
+        if(empty($contenance)) $contenance = $this->assetType->contenancereel_value;
+        
+        return $contenance;
+    }
+    
 	function load_asset_type(&$PDOdb) {
 		//on prend le type de ressource associé
 		$this->assetType->load($PDOdb, $this->fk_asset_type);
 		
         if(empty($this->contenance_value) || $this->getId() == 0) { // On init car c'est le tout début
-            $this->contenancereel_value=$this->assetType->contenancereel_value;
-            $this->contenance_value=$this->assetType->contenance_value;
+           // $this->contenancereel_value=$this->assetType->contenancereel_value;
+            $this->contenance_value = $this->assetType->contenance_value;
+            $this->contenancereel_value = $this->getDefaultContenance();
             $this->measuring_units = $this->assetType->measuring_units;
             $this->gestion_stock = $this->assetType->gestion_stock;
             $this->reutilisable = $this->assetType->reutilisable;
         }
-        
-		//on charge les champs associés au type.
+        //on charge les champs associés au type.
 		$this->init_variables($PDOdb);
-
 	}
 	
 	function init_variables(&$PDOdb) {
@@ -157,7 +180,8 @@ class TAsset extends TObjetStd{
 		}
 		//$this->_init_vars();
 		$this->init_db_by_vars($PDOdb); //TODO c'est a chier
-		parent::load($PDOdb, $this->getId());
+		
+		if($this->getId()>0) parent::load($PDOdb, $this->getId());
 	}
 	
 	function save(&$PDOdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) 
@@ -653,7 +677,7 @@ class TAsset_type extends TObjetStd {
         return false;
 	}
 	
-	/**
+ 	/**
 	 * Attribut les champs directement, pour créer les types par défauts par exemple. 
 	 */
 	function chargement(&$db, $libelle, $code, $supprimable){
