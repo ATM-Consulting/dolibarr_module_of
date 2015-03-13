@@ -1206,7 +1206,7 @@ class TAssetOFLine extends TObjetStd{
 		
 		$PDOdb2->Execute($sql);
 
-		if($this->type == "NEEDED" && $AssetOf->status == "OPEN")
+		if($this->type == "NEEDED" && $AssetOf->status == "OPEN") // TODO remove condition status
 		{
 			$nbAssetFound = $PDOdb2->Get_Recordcount();
 			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
@@ -1350,6 +1350,8 @@ class TAssetOFLine extends TObjetStd{
             $contenance_max = $assetType;
             $nb_asset_to_create = ceil($qty_to_make / $contenance_max);
             
+            $qty_to_make_rest = $qty_to_make;
+            
             for($i=0;$i<$nb_asset_to_create;$i++) {
                 
                 $TAsset = new TAsset;
@@ -1358,6 +1360,18 @@ class TAssetOFLine extends TObjetStd{
                 $TAsset->entity = $user->entity;
                 $TAsset->fk_asset_type = $assetType->getId();
                 $TAsset->load_asset_type($PDOdb);
+                
+                if($qty_to_make_rest>$TAsset->contenance_value) {
+                    $qty_to_make_asset = $TAsset->contenance_value;
+                }
+                else {
+                    $qty_to_make_asset = $qty_to_make_rest;
+                }
+                   
+                $qty_to_make_rest-=$qty_to_make_asset;
+
+                
+                $TAsset->contenancereel_value = $qty_to_make_asset;
                 
                 if($conf->global->USE_LOT_IN_OF)
                 {
@@ -1372,7 +1386,8 @@ class TAssetOFLine extends TObjetStd{
                     
                 $TAsset->save($PDOdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
                 
-                TAsset::set_element_element($this->getId(), 'TAssetOFLine', $TAsset->getId(), 'TAsset');
+                $this->addAssetLink($TAsset);
+                
             }
             
             return true;
