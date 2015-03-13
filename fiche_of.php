@@ -203,7 +203,7 @@ function _action() {
 
 		case 'view':
 			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id'], false);
+			$assetOf->load($PDOdb, $_REQUEST['id']);
 
 			_fiche($PDOdb, $assetOf, 'view');
 
@@ -216,7 +216,7 @@ function _action() {
 			
 		case 'control':
 			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id'], false);
+			$assetOf->load($PDOdb, $_REQUEST['id']);
 		
 			$subAction = __get('subAction', false);
 			if ($subAction) $assetOf->updateControl($PDOdb, $subAction);
@@ -225,6 +225,14 @@ function _action() {
 		
 			break;
 			
+        case 'deleteAssetLink':
+                $assetOf=new TAssetOF;
+                $assetOf->load($PDOdb, $_REQUEST['id']);
+                
+               _fiche($PDOdb, $assetOf, 'edit'); 
+            
+               break;    
+            
 		default:
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $_REQUEST['id'], false);
@@ -430,9 +438,9 @@ function _fiche_ligne(&$form, &$of, $type){
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
+				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
-				            .$product->stock_reel.$TAssetOFLine->getAssetLinkedLinks($ATMdb)
+				            .$product->stock_reel._fiche_ligne_asset($ATMdb,$form, $of, $TAssetOFLine, 'NEEDED')
 				,'qty_needed'=>$TAssetOFLine->qty_needed
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
 				,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
@@ -491,7 +499,8 @@ function _fiche_ligne(&$form, &$of, $type){
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
-				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : ".$product->stock_reel.$TAssetOFLine->getAssetLinkedLinks($ATMdb)
+				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
+				        .$product->stock_reel._fiche_ligne_asset($ATMdb,$form, $of, $TAssetOFLine, false)
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
@@ -503,7 +512,36 @@ function _fiche_ligne(&$form, &$of, $type){
 	return $TRes;
 }
 
+function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED') {
+    
+    $TAsset = $assetOFLine->getAssetLinked($PDOdb);
+    
+    $r='<div>';
+    
+    if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED') {
+       // Pour le moment au limite au besoin, la création reste en dure, à voir
+       $r.=$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 10,255,' title="Ajouter un équipement" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
+            .'<a href="?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&serial_number=">'.img_right('lier').'</a>'
+            .'<br/>';
+    }
+   
+    foreach($TAsset as &$asset) {
 
+            $r.=$asset->getNomUrl(1,1);
+        
+            if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED') {
+                
+                $r.=' <a href="?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&idAsset='.$asset->getId().'&action=deleteAssetLink">'.img_delete('Suppresion du lien').'</a>';
+                
+            }  
+        
+    }
+    
+    $r.='</div>';
+    
+    return $r;
+        
+}
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	global $langs,$db,$conf;

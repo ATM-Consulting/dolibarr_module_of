@@ -8,32 +8,35 @@ require('../class/asset.class.php');
 require('../class/ordre_fabrication_asset.class.php');
 
 //Interface qui renvoie les emprunts de ressources d'un utilisateur
-$ATMdb=new TPDOdb;
+$PDOdb=new TPDOdb;
 
 $get = __get('get','emprunt');
 
-traite_get($ATMdb, $get);
+traite_get($PDOdb, $get);
 
-function traite_get(&$ATMdb, $case) {
+function traite_get(&$PDOdb, $case) {
 	switch (strtolower($case)) {
-		case 'autocomplete':
-			__out(_autocomplete($ATMdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product')));
-			break;
+        case 'autocomplete':
+            __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product')));
+            break;
+        case 'autocomplete-serial':
+            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number')));
+            break;
 		case 'addofproduct':
-			__out(_addofproduct($ATMdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type')));
+			__out(_addofproduct($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type')));
 
 			break;
 		case 'deletelineof':
-			__out(_deletelineof($ATMdb,GETPOST('idLine'),GETPOST('type')), 'json');
+			__out(_deletelineof($PDOdb,GETPOST('idLine'),GETPOST('type')), 'json');
 			break;
 		case 'addlines':
-			__out(_addlines($ATMdb,GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
+			__out(_addlines($PDOdb,GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
 			break;
 		case 'addofworkstation':
-			__out(_addofworkstation($ATMdb,GETPOST('id_assetOf'),GETPOST('fk_asset_workstation')));
+			__out(_addofworkstation($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_asset_workstation')));
 			break;	
 		case 'deleteofworkstation':	
-			__out(_deleteofworkstation($ATMdb,GETPOST('id_assetOf'), GETPOST('fk_asset_workstation_of') ));
+			__out(_deleteofworkstation($PDOdb,GETPOST('id_assetOf'), GETPOST('fk_asset_workstation_of') ));
 			break;
 		case 'measuringunits':
 			__out(_measuringUnits(GETPOST('type'), GETPOST('name')), 'json');
@@ -41,43 +44,62 @@ function traite_get(&$ATMdb, $case) {
 		case 'getofchildid':
 			$Tid = array();
 			$assetOf=new TAssetOF;
-			$assetOf->load($ATMdb, __get('id',0,'integer'));
+			$assetOf->load($PDOdb, __get('id',0,'integer'));
 			
-			$assetOf->getListeOFEnfants($ATMdb, $Tid);
+			$assetOf->getListeOFEnfants($PDOdb, $Tid);
 			
 			__out($Tid);
 			break;
 	}
 }
 
-function _addofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) {
+function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) {
 	
 	$of=new TAssetOF;
-	$of->load($ATMdb, $id_assetOf);
+	$of->load($PDOdb, $id_assetOf);
 	
-	$k = $of->addChild($ATMdb, 'TAssetWorkstationOF');
+	$k = $of->addChild($PDOdb, 'TAssetWorkstationOF');
 	
 	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
 	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour;
-	$of->save($ATMdb);
+	$of->save($PDOdb);
 	
 	
 }
-function _deleteofworkstation(&$ATMdb, $id_assetOf, $fk_asset_workstation_of) 
+function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of) 
 {
 	$of=new TAssetOF;
-	$of->load($ATMdb, $id_assetOf);
+	$of->load($PDOdb, $id_assetOf);
 	$of->removeChild('TAssetWorkstationOF', $fk_asset_workstation_of);
-	$of->save($ATMdb);	
+	$of->save($PDOdb);	
 }
 
+function _autocompleteSerial(&$PDOdb, $lot='') {
+        
+    $sql = 'SELECT DISTINCT(a.serial_number) ';
+    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE 1 ';
+    
+    if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote($lot.'%').' ';
+    
+    $sql .= 'ORDER BY a.serial_number';
+//      print $sql;
+    $PDOdb->Execute($sql);
+    while ($PDOdb->Get_line()) 
+    {
+        $TResult[] = $PDOdb->Get_field('serial_number');
+    }
+    
+    $PDOdb->close();
+    return $TResult;
+    
+}
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0)
+function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$lot_number=0, $table='assetlot')
 {
 	$value = trim($value);
 	
 	$sql = 'SELECT DISTINCT(al.'.$fieldcode.') ';
-	$sql .= 'FROM '.MAIN_DB_PREFIX.'assetlot as al ';
+	$sql .= 'FROM '.MAIN_DB_PREFIX.$table.' as al ';
 	
 	if($fk_product)
 	{
@@ -85,31 +107,31 @@ function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0)
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
 	
-	if (!empty($value)) $sql .= 'WHERE al.'.$fieldcode.' LIKE '.$ATMdb->quote($value.'%').' ';
+	if (!empty($value)) $sql .= 'WHERE al.'.$fieldcode.' LIKE '.$PDOdb->quote($value.'%').' ';
 	
 	if (!empty($value) && $fk_product) $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
 	elseif ($fk_product) $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';
 	
 	$sql .= 'ORDER BY al.'.$fieldcode;
 //		print $sql;
-	$ATMdb->Execute($sql);
-	while ($ATMdb->Get_line()) 
+	$PDOdb->Execute($sql);
+	while ($PDOdb->Get_line()) 
 	{
-		$TResult[] = $ATMdb->Get_field($fieldcode);
+		$TResult[] = $PDOdb->Get_field($fieldcode);
 	}
 	
-	$ATMdb->close();
+	$PDOdb->close();
 	return $TResult;
 }
 
-function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = ''){
+function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = ''){
 	
 	global $db;
 	
 	$TassetOF = new TAssetOF;
-	$TassetOF->load($ATMdb, $id_assetOf);
-	$TassetOF->addLine($ATMdb, $fk_product, $type,$qty,0, $lot_number);
-	$TassetOF->save($ATMdb);
+	$TassetOF->load($PDOdb, $id_assetOf);
+	$TassetOF->addLine($PDOdb, $fk_product, $type,$qty,0, $lot_number);
+	$TassetOF->save($PDOdb);
 	
 	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
 	if($type == "TO_MAKE") {
@@ -122,7 +144,7 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 			
 			while($res = $db->fetch_object($resql)) {
 				
-				_addofworkstation($ATMdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
+				_addofworkstation($PDOdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
 
 			}
 			
@@ -132,47 +154,47 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 
 }
 
-function _deletelineof(&$ATMdb,$idLine,$type){
+function _deletelineof(&$PDOdb,$idLine,$type){
 	$TAssetOFLine = new TAssetOFLine;
-	$TAssetOFLine->load($ATMdb, $idLine);	
+	$TAssetOFLine->load($PDOdb, $idLine);	
 	
 	//Permet de supprimer le/les OF enfant(s)
 	$TAssetOF = new TAssetOF;
-	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
-	$id_of_deleted = $TAssetOF->deleteOFEnfant($ATMdb, $TAssetOFLine->fk_product);
+	$TAssetOF->load($PDOdb, $TAssetOFLine->fk_assetOf);
+	$id_of_deleted = $TAssetOF->deleteOFEnfant($PDOdb, $TAssetOFLine->fk_product);
 	
-	$TAssetOFLine->delete($ATMdb);
+	$TAssetOFLine->delete($PDOdb);
 	
 	return $id_of_deleted;
 }
 
-function _addlines(&$ATMdb,$idLine,$qty){
+function _addlines(&$PDOdb,$idLine,$qty){
 	global $db, $conf;
 	
 	dol_include_once('product/class/product.class.php');
 	
 	//On met à jour la 1ère ligne des TO_MAKE
 	$TAssetOFLine = new TAssetOFLine;
-	//$ATMdb->debug = true;
-	$TAssetOFLine->load($ATMdb, $idLine);
+	//$PDOdb->debug = true;
+	$TAssetOFLine->load($PDOdb, $idLine);
 	$TAssetOFLine->qty = $_REQUEST['qty'];
-	$TAssetOFLine->save($ATMdb);
+	$TAssetOFLine->save($PDOdb);
 
 	//On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
 	$TAssetOF = new TAssetOF;
-	$TAssetOF->load($ATMdb, $TAssetOFLine->fk_assetOf);
+	$TAssetOF->load($PDOdb, $TAssetOFLine->fk_assetOf);
 	
 	//Id des lignes modifiés
 	$TIdLineModified = array($TAssetOFLine->fk_assetOf);
 	//Id des nouveaux OF créés
 	$TNewIdAssetOF = array();
 	
- 	_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified, $TNewIdAssetOF);
+ 	_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified, $TNewIdAssetOF);
 	
 	return array($TIdLineModified, $TNewIdAssetOF);
 }
 
-function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
+function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
 {
 	if (empty($TAssetOFChildId)){
 		return false;
@@ -181,7 +203,7 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 	foreach ($TAssetOFChildId as $idOF)
 	{
 		$TAssetOF = new TAssetOF;
-		$TAssetOF->load($ATMdb, $idOF);
+		$TAssetOF->load($PDOdb, $idOF);
 		
 		foreach ($TAssetOF->TAssetOFLine as $line) 
 		{
@@ -190,9 +212,9 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 			{
 				$TIdLineModified[] = $TAssetOF->rowid;
 				$line->qty = $qty;
-				$line->save($ATMdb);
+				$line->save($PDOdb);
 				
-				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF);
+				_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF);
 				
                 return true; // on a trouvé la ligne consernée
 			}
@@ -216,7 +238,7 @@ function _measuringUnits($type, $name)
 	else return array($html->load_measuring_units($name, $type, 0));
 }
 
-function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
+function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
 {
 	$prod = new Product($db);
 	$prod->fetch($fk_product);
@@ -225,7 +247,7 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 	if (empty($TComposition)) return;
 	
 	$TAssetOFChildId = array();
-	$TAssetOF->getListeOFEnfants($ATMdb, $TAssetOFChildId, $TAssetOF->rowid, false); //Récupération des OF enfants direct - les sous-enfants ne sont pas récupérés
+	$TAssetOF->getListeOFEnfants($PDOdb, $TAssetOFChildId, $TAssetOF->rowid, false); //Récupération des OF enfants direct - les sous-enfants ne sont pas récupérés
 	
 	//Boucle sur les lignes de l'OF courant
 	foreach ($TAssetOF->TAssetOFLine as $line) 
@@ -234,21 +256,21 @@ function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TI
 		if($line->type == 'NEEDED' && !empty($TComposition[$line->fk_product][1])) 
 		{
 			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
-			$line->save($ATMdb);
+			$line->save($PDOdb);
 
 			//_updateToMake : si un OF enfant existe pour ce produit NEEDED alors on met à jour les qté de celui-ci
-	        if(!_updateToMake($TAssetOFChildId, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF)) {
+	        if(!_updateToMake($TAssetOFChildId, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF)) {
 				//Si on entre là, c'est que la création d'un OF doit être efféctué, uniquement si la conf nous le permet
 				
 				//TODO attention la création de l'OF ne prend pas en compte la quantité encore en stock
   				
   				if (!empty($conf->global->CREATE_CHILDREN_OF)) 
   				{
-                	$TCompositionSubProd = $TAssetOF->getProductComposition($ATMdb,$line->fk_product, $line->qty);
+                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty);
 					
 					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
-						$k = $TAssetOF->createOFifneeded($ATMdb,$line->fk_product, $line->qty);
-						$TAssetOF->save($ATMdb);
+						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty);
+						$TAssetOF->save($PDOdb);
 
 						if ($k !== null) $TNewIdAssetOF[] = $TAssetOF->TAssetOF[$k]->rowid;
 					}

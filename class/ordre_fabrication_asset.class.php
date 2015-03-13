@@ -403,10 +403,7 @@ class TAssetOF extends TObjetStd{
 			} 
 			else 
 			{
-			    
                 $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-               
-				
 			}
 		}
 
@@ -1129,10 +1126,19 @@ class TAssetOFLine extends TObjetStd{
         
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout 
         
-        $TAsset = $this->getAssetLinked($PDOdb);
-                
         $sens = ($qty_to_destock>0) ? -1 : 1;        
         $qty_to_destock_rest =  abs($qty_to_destock);
+                
+        
+        if($conf->global->USE_LOT_IN_OF) {
+            $asset=new TAsset;
+            $asset->addStockMouvementDolibarr($this->fk_product,$qty_to_destock,'Utilisation via Ordre de Fabrication n°'.$this->numero, false, 0,$conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+            
+            return true;    
+        };
+        
+        $TAsset = $this->getAssetLinked($PDOdb);
+                
         
         foreach($TAsset as $asset) {
             
@@ -1143,7 +1149,7 @@ class TAssetOFLine extends TObjetStd{
             
              $asset->save($PDOdb,$user
                      ,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number
-                     ,$sens * $qty_asset_to_destock, true, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+                     ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
             
             $qty_to_destock_rest-= $qty_asset_to_destock;
             
@@ -1160,6 +1166,8 @@ class TAssetOFLine extends TObjetStd{
 	{
 		global $db, $user, $conf;	
 		
+        if($conf->global->USE_LOT_IN_OF) return true;
+        
 		include_once 'asset.class.php';
 		
 		$PDOdb2 = new TPDOdb;
@@ -1332,6 +1340,9 @@ class TAssetOFLine extends TObjetStd{
 	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty_to_make, $idAsset = 0, $lot_number = '')
 	{
 	   global $user,$conf;
+       
+        if($conf->global->USE_LOT_IN_OF) return true;
+       
 		include_once 'asset.class.php';
 
         $assetType = new TAsset_type;
