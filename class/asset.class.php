@@ -306,10 +306,11 @@ class TAsset extends TObjetStd{
 		
 	}
     
-    function getNomUrl($with_picto=true) {
+    function getNomUrl($with_picto=true, $with_lot=false) {
         
         $url = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$this->getId(),1).'" />';
         if($with_picto)$url.=img_picto('', 'pictoasset.png@asset');
+        if($with_lot)$url.='[ '.$this->lot_number.' ] ';
         $url.=$this->serial_number.'</a>';
         
         return $url;
