@@ -9,6 +9,8 @@ class TAsset extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_soc,fk_product,fk_societe_localisation,entity','type=entier;');
+        // contenancereel_value, contenance courante
+        // contenance_value, contenance maximale de l'équipement
 		$this->add_champs('contenancereel_value, contenance_value,point_chute', 'type=float;');
 		$this->add_champs('contenance_units, contenancereel_units, fk_entrepot', 'type=entier;');
 		$this->add_champs('commentaire,lot_number,gestion_stock,reutilisable,status', 'type=chaine;');
@@ -55,27 +57,27 @@ class TAsset extends TObjetStd{
 
 	public static function set_element_element($fk_source, $sourceType, $fk_target, $targetType)
 	{
-		$ATMdb = new TPDOdb;//TODO connexion de trop, devrait être en paramètre
+		$PDOdb = new TPDOdb;//TODO connexion de trop, devrait être en paramètre
 		
 		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (fk_source, sourcetype, fk_target, targettype)';
 		$sql.= ' VALUES (';
 		$sql.= (int) $fk_source;
-		$sql.= ', '.$ATMdb->quote($sourceType);
+		$sql.= ', '.$PDOdb->quote($sourceType);
 		$sql.= ', '.(int) $fk_target;
-		$sql.= ', '.$ATMdb->quote($targetType);
+		$sql.= ', '.$PDOdb->quote($targetType);
 		$sql.= ')';
 		
-		$ATMdb->Execute($sql);
+		$PDOdb->Execute($sql);
 	}
     
     public static function get_element_element($fk_source, $sourceType, $targetType)
     {
-        $ATMdb = new TPDOdb; //TODO connexion de trop, devrait être en paramètre
+        $PDOdb = new TPDOdb; //TODO connexion de trop, devrait être en paramètre
         
         $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element 
                 WHERE fk_source = ".$fk_source." AND sourcetype='".$sourceType."' AND targettype='".$targetType."'";
         
-        return TRequeteCore::_get_id_by_sql($ATMdb, $sql, 'fk_target');
+        return TRequeteCore::_get_id_by_sql($PDOdb, $sql, 'fk_target');
         
     }
 
@@ -109,48 +111,56 @@ class TAsset extends TObjetStd{
 		return $res;
 	}
 	
-	function load_liste_type_asset(&$ATMdb){
+	function load_liste_type_asset(&$PDOdb){
 		//chargement d'une liste de tout les types de ressources
 		$temp = new TAsset_type;
-		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset_type', array());
+		$Tab = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX.'asset_type', array());
 
 		$this->TType = array('');
 		foreach($Tab as $k=>$id){
-			$temp->load($ATMdb, $id);
+			$temp->load($PDOdb, $id);
 			$this->TType[$temp->getId()] = $temp->libelle;
 		}
 		
 	}
 	
-	function get_asset_type(&$ATMdb,$fk_product){
+	function get_asset_type(&$PDOdb,$fk_product){
 		
 		$sql = "SELECT type_asset FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$fk_product;
 		
-		$ATMdb->Execute($sql);
-		$ATMdb->Get_line();
+		$PDOdb->Execute($sql);
+		$PDOdb->Get_line();
 		
-		return $ATMdb->Get_field('type_asset');
+		return $PDOdb->Get_field('type_asset');
 	}
 	
-	function load_asset_type(&$ATMdb) {
+	function load_asset_type(&$PDOdb) {
 		//on prend le type de ressource associé
-		$this->assetType->load($ATMdb, $this->fk_asset_type);
+		$this->assetType->load($PDOdb, $this->fk_asset_type);
 		
+        if(empty($this->contenance_value) || $this->getId() == 0) { // On init car c'est le tout début
+            $this->contenancereel_value=$this->assetType->contenancereel_value;
+            $this->contenance_value=$this->assetType->contenance_value;
+            $this->measuring_units = $this->assetType->measuring_units;
+            $this->gestion_stock = $this->assetType->gestion_stock;
+            $this->reutilisable = $this->assetType->reutilisable;
+        }
+        
 		//on charge les champs associés au type.
-		$this->init_variables($ATMdb);
+		$this->init_variables($PDOdb);
 
 	}
 	
-	function init_variables(&$ATMdb) {
+	function init_variables(&$PDOdb) {
 		foreach($this->assetType->TField as $field) {
 			$this->add_champs($field->code, 'type='.$field->type.';');
 		}
 		//$this->_init_vars();
-		$this->init_db_by_vars($ATMdb); //TODO c'est a chier
-		parent::load($ATMdb, $this->getId());
+		$this->init_db_by_vars($PDOdb); //TODO c'est a chier
+		parent::load($PDOdb, $this->getId());
 	}
 	
-	function save(&$ATMdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) 
+	function save(&$PDOdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) 
 	{
 		global $conf;
 				
@@ -161,13 +171,13 @@ class TAsset extends TObjetStd{
 		  
 			if(empty($this->serial_number))
 			{
-				$this->serial_number = $this->getNextValue($ATMdb);
+				$this->serial_number = $this->getNextValue($PDOdb);
 			}
 			  
-			parent::save($ATMdb);
+            parent::save($PDOdb);
 			
-			$this->save_link($ATMdb);
-			$this->addLotNumber($ATMdb);
+			$this->save_link($PDOdb);
+			$this->addLotNumber($PDOdb);
 			
 			// Qty en paramètre est vide, on vérifie si le contenu du flacon a été modifié
 			if(empty($qty) && $this->contenancereel_value * pow(10, $this->contenancereel_units) != $this->old_contenancereel * pow(10,$this->old_contenancereel_units)) 
@@ -178,18 +188,18 @@ class TAsset extends TObjetStd{
 			else if(!empty($qty)) 
 			{
 				$this->contenancereel_value = $this->contenancereel_value + $qty;
-				parent::save($ATMdb);
+				parent::save($PDOdb);
 			}
 		}
 		
 		// Enregistrement des mouvements
 		if(!empty($qty) && !$no_destock_dolibarr)
 		{
-			$this->addStockMouvement($ATMdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock, $fk_entrepot);
+			$this->addStockMouvement($PDOdb,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock, $fk_entrepot);
 		}
 		
 		//Spécifique Nomadic
-		if($conf->clinomadic->enabled){
+		if($conf->clinomadic->enabled){ //TODO Et des triggers ! NON
 			$this->updateGaranties();
 		}
 	}
@@ -199,12 +209,12 @@ class TAsset extends TObjetStd{
 		//TODO MAJ garantie client et garantie fournisseur
 	}
 	
-	function addStockMouvement(&$ATMdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
+	function addStockMouvement(&$PDOdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
 		
 		if(!$destock_dolibarr_only) 
 		{
 			$stock = new TAssetStock;
-			$stock->mouvement_stock($ATMdb, $user, $this->rowid, $qty, $description, $this->rowid);
+			$stock->mouvement_stock($PDOdb, $user, $this->rowid, $qty, $description, $this->rowid);
 		}
 
 		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock,$fk_entrepot);
@@ -373,7 +383,7 @@ class TAsset extends TObjetStd{
 		return $Tab;
 	}
 	
-	function getNextValue($ATMdb)
+	function getNextValue($PDOdb)
 	{	
 		dol_include_once('core/lib/functions2.lib.php');
 
@@ -386,21 +396,21 @@ class TAsset extends TObjetStd{
 		return $ref;
 	}
 	
-	function addLotNumber(&$ATMdb){
+	function addLotNumber(&$PDOdb){
 		
 		global $conf;
 		
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'assetlot WHERE lot_number = "'.$this->lot_number.'"';
-		$ATMdb->Execute($sql);
+		$PDOdb->Execute($sql);
 
-		if($ATMdb->Get_line()){
+		if($PDOdb->Get_line()){
 			return true;
 		}
 		elseif(!empty($this->lot_number)){
 			$lot = new TAssetLot;
 			$lot->lot_number = $this->lot_number;
 			$lot->entity = $conf->entity;
-			$lot->save($ATMdb);
+			$lot->save($PDOdb);
 		}
 	}
 	
@@ -546,10 +556,10 @@ class TAssetStock extends TObjetStd{
 	}
 	
 	//Création d'une nouvelle entrée en stock
-	function mouvement_stock(&$ATMdb,$user,$fk_asset,$qty,$type,$id_source){
+	function mouvement_stock(&$PDOdb,$user,$fk_asset,$qty,$type,$id_source){
 		
 		$asset = new TAsset;
-		$asset->load($ATMdb, $fk_asset);
+		$asset->load($PDOdb, $fk_asset);
 
 		$this->fk_asset = $fk_asset;
 		$this->qty = $qty;
@@ -560,15 +570,15 @@ class TAssetStock extends TObjetStd{
 		$this->user = $user->id;
 		$this->weight_units = $asset->contenancereel_units;
 
-		$this->save($ATMdb);
+		$this->save($PDOdb);
 	}
 	
 	//Récupère la quantité de la dernière entrée en stock
-	function get_last_mouvement(&$ATMdb,$fk_asset){
+	function get_last_mouvement(&$PDOdb,$fk_asset){
 		$sql = "SELECT qty FROM ".MAIN_DB_PREFIX."asset_stock WHERE fk_asset = ".$fk_asset." ORDER BY rowid DESC LIMIT 1";
-		$ATMdb->Execute($sql);
-		if($ATMdb->Get_line())
-			return $ATMdb->Get_field("qty");
+		$PDOdb->Execute($sql);
+		if($PDOdb->Get_line())
+			return $PDOdb->Get_field("qty");
 		else 
 			return "error";
 	}
@@ -594,45 +604,53 @@ class TAsset_type extends TObjetStd {
 	}
 	
 	
-	function load_by_code(&$ATMdb, $code){
+	function load_by_code(&$PDOdb, $code){
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_type WHERE code='".$code."'";
-		$ATMdb->Execute($sqlReq);
+		$PDOdb->Execute($sqlReq);
 
-		if ($ATMdb->Get_line()) {
-			$this->load($ATMdb, $ATMdb->Get_field('rowid'));
+		if ($PDOdb->Get_line()) {
+			$this->load($PDOdb, $PDOdb->Get_field('rowid'));
 			return true;
 		}
 		return false;
 	}
 	
-	public static function getIsCumulate($ATMdb, $fk_product)
+    function load_by_fk_product(&$PDOdb, $fk_product) {
+        
+        $sql = 'SELECT type_asset FROM '.MAIN_DB_PREFIX.'product_extrafields WHERE fk_object = '.(int) $fk_product;
+        $PDOdb->Execute($sql);
+        if($PDOdb->Get_line()) {
+            $fk_asset_type = $PDOdb->Get_field('type_asset');
+            return $this->load($PDOdb, $fk_asset_type);
+        }
+        else {
+            return false;   
+        }
+        
+    }
+    
+	public static function getIsCumulate(&$PDOdb, $fk_product)
 	{
-		$sql = 'SELECT fk_asset_type FROM '.MAIN_DB_PREFIX.'asset WHERE fk_product = '.(int) $fk_product.' LIMIT 1';
-		$ATMdb->Execute($sql);
-		$ATMdb->Get_line();
-		$fk_asset_type = $ATMdb->Get_field('fk_asset_type');
-		
-		if (!$fk_asset_type) return 0;
 		
 		$assetType = new TAsset_type;
-		$assetType->load($ATMdb, $fk_asset_type);
-
-		return (int) $assetType->cumulate;
+		if($assetType->load_by_fk_product($PDOdb, $fk_product)) {
+		  return (int) $assetType->cumulate;    
+		}
+        
+        
+        return false;   
+        		
 	}
 	
-	public static function getIsPerishable($ATMdb, $fk_product)
+	public static function getIsPerishable(&$PDOdb, $fk_product)
 	{
-		$sql = 'SELECT fk_asset_type FROM '.MAIN_DB_PREFIX.'asset WHERE fk_product = '.(int) $fk_product.' LIMIT 1';
-		$ATMdb->Execute($sql);
-		$ATMdb->Get_line();
-		$fk_asset_type = $ATMdb->Get_field('fk_asset_type');
-		
-		if (!$fk_asset_type) return 0;
-		
 		$assetType = new TAsset_type;
-		$assetType->load($ATMdb, $fk_asset_type);
-
-		return (int) $assetType->perishable;
+        if($assetType->load_by_fk_product($PDOdb, $fk_product)) {
+		
+		  return (int) $assetType->perishable;
+        }
+        
+        return false;
 	}
 	
 	/**
@@ -646,74 +664,76 @@ class TAsset_type extends TObjetStd {
 		$this->save($db);
 	}
 	
-	function load(&$ATMdb, $id,$annexe = true) {
-		parent::load($ATMdb, $id);
+	function load(&$PDOdb, $id,$annexe = true) {
+		$res= parent::load($PDOdb, $id);
 		
-		if($annexe)$this->load_field($ATMdb);
+		if($annexe)$this->load_field($PDOdb);
+        
+        return $res;
 	}
 	
 	/**
 	 * Renvoie true si ce type est utilisé par une des ressources.
 	 */
-	function isUsedByAsset(&$ATMdb){
-		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('fk_asset_type'=>$this->getId()));
+	function isUsedByAsset(&$PDOdb){
+		$Tab = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX.'asset', array('fk_asset_type'=>$this->getId()));
 		if (count($Tab)>0) return true;
 		return false;
 
 	}
 	
-	function load_field(&$ATMdb) {
+	function load_field(&$PDOdb) {
 		global $conf;
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE fk_asset_type=".$this->getId()." ORDER BY ordre ASC;";
-		$ATMdb->Execute($sqlReq);
+		$PDOdb->Execute($sqlReq);
 
 		$Tab = array();
-		while($ATMdb->Get_line()) {
-			$Tab[]= $ATMdb->Get_field('rowid');
+		while($PDOdb->Get_line()) {
+			$Tab[]= $PDOdb->Get_field('rowid');
 		}
 		
 		$this->TField=array();
 		foreach($Tab as $k=>$id) {
 			$this->TField[$k]=new TAsset_field;
-			$this->TField[$k]->load($ATMdb, $id);
+			$this->TField[$k]->load($PDOdb, $id);
 		}
 	}
 	
-	function addField(&$ATMdb, $TNField) {
+	function addField(&$PDOdb, $TNField) {
 		$k=count($this->TField);
 		$this->TField[$k]=new TAsset_field;
 		$this->TField[$k]->set_values($TNField);
 
 		$p=new TAsset;				
 		$p->add_champs($TNField['code'] ,'type=chaine' );
-		$p->init_db_by_vars($ATMdb);
+		$p->init_db_by_vars($PDOdb);
 
 		return $k;
 	}
 	
-	function delField(&$ATMdb, $id){
+	function delField(&$PDOdb, $id){
 		$toDel = new TAsset_field;
-		$toDel->load($ATMdb,$id);
-		return $toDel->delete($ATMdb);
+		$toDel->load($PDOdb,$id);
+		return $toDel->delete($PDOdb);
 	}
 	
-	function delete(&$ATMdb) {
+	function delete(&$PDOdb) {
 		global $conf;
 		if ($this->supprimable){
 			//on supprime les champs associés à ce type
 			$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_field WHERE fk_asset_type=".$this->getId();
-			$ATMdb->Execute($sqlReq);
+			$PDOdb->Execute($sqlReq);
 			$Tab = array();
-			while($ATMdb->Get_line()) {
-				$Tab[]= $ATMdb->Get_field('rowid');
+			while($PDOdb->Get_line()) {
+				$Tab[]= $PDOdb->Get_field('rowid');
 			}
 			$temp = new TAsset_field;
 			foreach ($Tab as $k => $id) {
-				$temp->load($ATMdb, $id);
-				$temp->delete($ATMdb);
+				$temp->load($PDOdb, $id);
+				$temp->delete($PDOdb);
 			}
 			//puis on supprime le type
-			parent::delete($ATMdb);
+			parent::delete($PDOdb);
 			return true;
 		}
 		else {return false;}
@@ -813,8 +833,8 @@ class TAsset_field extends TObjetStd {
 		$this->save($db);
 	}
 	
-	function load(&$ATMdb, $id){
-		parent::load($ATMdb, $id);
+	function load(&$PDOdb, $id){
+		parent::load($PDOdb, $id);
 		$this->TListe = array();
 		foreach (explode(";",$this->options) as $key => $value) {
 			$this->TListe[] = $value;
@@ -831,12 +851,12 @@ class TAsset_field extends TObjetStd {
 		parent::save($db);
 	}
 
-	function delete(&$ATMdb) {
+	function delete(&$PDOdb) {
 		global $conf;
 		
 		//on supprime le champs que si il est par défault.
 		if (! $this->supprimable){
-			parent::delete($ATMdb);	
+			parent::delete($PDOdb);	
 			return true;
 		}
 		else {return false;}

@@ -369,8 +369,10 @@ class TAssetOF extends TObjetStd{
     }
     
 	//Finalise un OF => incrémention/décrémentation du stock
-	function closeOF(&$PDOdb, $conf = null)
+	function closeOF(&$PDOdb)
 	{
+	    global $langs, $conf;
+        
 	    $this->status = "CLOSE";
         
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
@@ -391,8 +393,13 @@ class TAssetOF extends TObjetStd{
 			
 			if($AssetOFLine->type == "TO_MAKE")
 			{
-				$objAsset = $AssetOFLine->makeAsset($PDOdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number);
-				TAsset::set_element_element($AssetOFLine->getId(), 'TAssetOFLine', $objAsset->getId(), 'TAsset');
+				if($AssetOFLine->makeAsset($PDOdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number)) {
+				    $AssetOFLine->destockAsset($PDOdb, -$AssetOFLine->qty); // On stock les nouveaux équipements
+				}
+                else{
+                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
+                }
+				
 			} 
 			else 
 			{
@@ -1322,35 +1329,47 @@ class TAssetOFLine extends TObjetStd{
     }
 	
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty, $idAsset = 0, $lot_number = '')
+	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty_to_make, $idAsset = 0, $lot_number = '')
 	{
-	    // TODO devrait être multiple !!!
-	    
-	    
-		global $user,$conf;
+	   global $user,$conf;
 		include_once 'asset.class.php';
 
-		$TAsset = new TAsset;
-		$TAsset->fk_soc = '';
-		$TAsset->fk_product = $fk_product;
-		$TAsset->entity = $user->entity;
-		$TAsset->lot_number = $lot_number;
-		$TAsset->fk_asset_type = $TAsset->get_asset_type($PDOdb,$fk_product);
-		$TAsset->load_liste_type_asset($PDOdb);
-		$TAsset->load_asset_type($PDOdb);
+        $assetType = new TAsset_type;
+        if($assetType->load_by_fk_product($PDOdb, $fk_product)) {
+            $contenance_max = $assetType;
+            $nb_asset_to_create = ceil($qty_to_make / $contenance_max);
+            
+            for($i=0;$i<$nb_asset_to_create;$i++) {
+                
+                $TAsset = new TAsset;
+                $TAsset->fk_soc = 0;
+                $TAsset->fk_product = $fk_product;
+                $TAsset->entity = $user->entity;
+                $TAsset->fk_asset_type = $assetType->getId();
+                $TAsset->load_asset_type($PDOdb);
+                
+                if($conf->global->USE_LOT_IN_OF)
+                {
+                    $TAsset->lot_number = $this->lot_number;
+                }
+                else{
+                    $TAsset->lot_number = $lot_number;
+                }
+                 
+                if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
+                else $fk_entrepot = $TAsset->fk_entrepot;
+                    
+                $TAsset->save($PDOdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
+                
+                TAsset::set_element_element($this->getId(), 'TAssetOFLine', $TAsset->getId(), 'TAsset');
+            }
+            
+            return true;
+        }
+        else{
+            return false;
+        }
 		
-		if($conf->global->USE_LOT_IN_OF)
-		{
-			$TAsset->lot_number = $this->lot_number;
-		}
-		
-		if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
-		else $fk_entrepot = $TAsset->fk_entrepot;
-			
-		$TAsset->save($PDOdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock	
-		$TAsset->save($PDOdb, $user, 'Création via Ordre de Fabrication n°'.$AssetOf->numero." - Equipement : ".$TAsset->serial_number, $qty, false, 0, false, $fk_entrepot);
-
-		return $TAsset;
 	}
 	
 	function getWorkstationsPDF(&$db)
@@ -1379,11 +1398,18 @@ class TAssetOFLine extends TObjetStd{
 		$this->loadFournisseurPrice($PDOdb);
 	}
 	
-	function delete(&$db)
+	function delete(&$PDOdb)
 	{
-		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
-		$db->Execute($sql);
-		parent::delete($db);
+	    
+        $this->destockAsset($PDOdb, -$this->qty_stock); // On restock les produits utilisé
+               
+	    // TODO dbdelete()
+        $sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
+        $PDOdb->Execute($sql);
+        $sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "TAssetOFLine" AND targettype = "TAsset"';
+        $PDOdb->Execute($sql);
+
+		parent::delete($PDOdb);
 	}
 	
 	function set_workstations(&$PDOdb, $Tworkstations)
@@ -1394,6 +1420,7 @@ class TAssetOFLine extends TObjetStd{
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 		$PDOdb->Execute($sql);
 		
+        //TODO fonction add_element()
 		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (';
 		$sql.= 'fk_source, sourcetype, fk_target, targettype';
 		$sql.= ') VALUES ';
