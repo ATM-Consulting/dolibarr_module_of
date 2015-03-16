@@ -134,7 +134,44 @@
 				_liste($ATMdb);
 				
 				break;
+				
+			case 'editTask':
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+				_fiche($ATMdb, $ws, 'view', 1);
+				
+				break;
+					
+			case 'editTaskConfirm':
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+								
+				$k=$ws->addChild($PDOdb,'TAssetWorkstationTask', __get('id_task', 0, 'int'));
+				$ws->TAssetWorkstationTask[$k]->fk_workstation = $ws->getId();
+				$ws->TAssetWorkstationTask[$k]->libelle = __get('libelle');
+				$ws->TAssetWorkstationTask[$k]->description = __get('description');
+				
+				if ($ws->TAssetWorkstationTask[$k]->save($ATMdb)) setEventMessage($langs->trans('AssetMsgSaveTask'));
+				else setEventMessage($langs->trans('AssetErrSaveTask'));
+				
+				_fiche($ATMdb, $ws, 'view');
+				
+				break;
 			
+			case 'deleteTask':
+				$ws=new TAssetWorkstation;
+				$ws->load($ATMdb, __get('id',0,'integer'));
+				
+				if ($ws->removeChild('TAssetWorkstationTask', __get('id_task',0,'integer'))) 
+				{
+					$ws->save($ATMdb);
+					setEventMessage($langs->trans('AssetMsgDeleteTask'));
+				}
+				else setEventMessage($langs->trans('AssetErrDeleteTask'));
+				
+				_fiche($ATMdb, $ws, 'view');
+				
+				break;
 			
 		}
 		
@@ -216,7 +253,7 @@ function _liste_link(&$ATMdb, $fk_product) {
 }
 
 
-function _fiche(&$ATMdb, &$ws, $mode='view') {
+function _fiche(&$ATMdb, &$ws, $mode='view', $editTask=false) {
 	global $db;
 
 	$TBS=new TTemplateTBS;
@@ -239,16 +276,68 @@ function _fiche(&$ATMdb, &$ws, $mode='view') {
 		,'id'=>$ws->getId()
 	);
 	
-	print $TBS->render('./tpl/workstation.tpl.php',array(),array(
+	$TListTask = _liste_task($ws);
+	$TFormTask = _fiche_task($ATMdb, $editTask);
+	
+	print $TBS->render('./tpl/workstation.tpl.php',array(
+			'wst'=>$TListTask
+		)
+		,array(
 			'ws'=>$TForm
+			,'formTask'=>$TFormTask
 			,'view'=>array(
 				'mode'=>$mode
+				,'editTask'=>$editTask
+				,'endForm'=>$form->end_form()
+				,'actionForm'=>dol_buildpath('custom/asset/workstation.php', 1)
 			)
 		)
 		
 	);
 	
-	$form->end();
+	//$form->end();
+}
+
+function _liste_task($ws)
+{
+	$res = array();
+	
+	foreach ($ws->TAssetWorkstationTask as $task)
+	{
+		$res[] = array(
+			'id'=>$task->getId()
+			,'libelle'=>$task->libelle
+			,'description'=>$task->description
+			,'action'=>'<a href="?id='.$ws->getId().'&action=editTask&id_task='.$task->getId().'">'.img_picto('Modifier', 'edit.png').'</a>&nbsp;&nbsp;<a onclick=\'if (!confirm("Confirmez-vous la suppression ?")) return false;\' href="?id='.$ws->getId().'&action=deleteTask&id_task='.$task->getId().'">'.img_picto('Supprimer', 'delete.png').'</a>'
+		);
+	}
+	
+	return $res;
+}
+
+function _fiche_task(&$PDOdb, $editTask)
+{
+	$res = array();
+	
+	if (!$editTask) return $res;
+	
+	$id_task = __get('id_task', 0, 'int');
+	$res['id_task'] = $id_task;
+	
+	if ($id_task > 0)
+	{
+		$task = new TAssetWorkstationTask;
+		$task->load($PDOdb, $id_task);
+		$res['libelle'] = $task->libelle;
+		$res['description'] = $task->description;
+	}
+	else 
+	{
+		$res['libelle'] = '';
+		$res['description'] = '';
+	}
+	
+	return $res;
 }
 
 function _liste(&$ATMdb) {

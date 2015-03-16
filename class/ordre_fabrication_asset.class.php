@@ -1619,6 +1619,8 @@ class TAssetWorkstation extends TObjetStd{
 		$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
 		
 	    $this->start();
+		
+		$this->setChild('TAssetWorkstationTask','fk_workstation');
 	}
 	
 	function save(&$PDOdb) {
@@ -1644,6 +1646,23 @@ class TAssetWorkstation extends TObjetStd{
 		
 		return $TWorkstation;
 	}
+	
+}
+
+
+class TAssetWorkstationTask extends TObjetStd
+{
+	function __construct()
+	{
+		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_task');
+		$this->TChamps = array(); 	  
+		$this->add_champs('fk_workstation','type=entier;index;');
+		$this->add_champs('libelle','type=chaine;');
+		$this->add_champs('description','type=text;');
+		
+	    $this->start();
+	}
+
 	
 }
 

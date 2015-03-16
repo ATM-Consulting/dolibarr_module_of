@@ -96,3 +96,7 @@ CreateAssetFromProductDescListProduct=La liste contient uniquement les produits 
 CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.
 CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement" => "Liste des Lots" => "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
 
+AssetMsgSaveTask=Tâche enregistrée
+AssetErrSaveTask=Erreur lors de l'enregistrement
+AssetMsgDeleteTask=Tâche supprimée
+AssetErrDeleteTask=Erreur lors de la suppression
