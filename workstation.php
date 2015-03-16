@@ -254,7 +254,7 @@ function _liste_link(&$ATMdb, $fk_product) {
 
 
 function _fiche(&$ATMdb, &$ws, $mode='view', $editTask=false) {
-	global $db;
+	global $db,$conf;
 
 	$TBS=new TTemplateTBS;
 	
@@ -278,7 +278,7 @@ function _fiche(&$ATMdb, &$ws, $mode='view', $editTask=false) {
 	
 	$TListTask = _liste_task($ws);
 	$TFormTask = _fiche_task($ATMdb, $editTask);
-	
+
 	print $TBS->render('./tpl/workstation.tpl.php',array(
 			'wst'=>$TListTask
 		)
@@ -287,6 +287,7 @@ function _fiche(&$ATMdb, &$ws, $mode='view', $editTask=false) {
 			,'formTask'=>$TFormTask
 			,'view'=>array(
 				'mode'=>$mode
+				,'conf_defined_task'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
 				,'editTask'=>$editTask
 				,'endForm'=>$form->end_form()
 				,'actionForm'=>dol_buildpath('custom/asset/workstation.php', 1)
