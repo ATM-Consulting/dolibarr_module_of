@@ -87,13 +87,20 @@
 	print '</td></tr>';
 	
 	print '<tr class="pair">';
+	print '<td>'.$langs->trans("AssetDefinedTaskByWorkstation").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_DEFINED_TASK_BY_WORKSTATION');
+	print '</td></tr>';
+	
+	print '<tr>';
 	print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
 	print '</td></tr>';	
 	
-	print '<tr>';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("AssetUseControl").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';

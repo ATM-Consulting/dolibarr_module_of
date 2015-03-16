@@ -1494,12 +1494,13 @@ class TAssetWorkstationOF extends TObjetStd{
 	    $this->start();
 		
 		$this->ws = new TAssetWorkstation;
-		
+		$this->users = array();
+		$this->tasks = array();
 	}
 	
 	function delete(&$db)
 	{
-		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND targettype = "user"';
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND (targettype = "user" OR targettype = "task")';
 		$db->Execute($sql);
 		
 		parent::delete($db);
@@ -1555,19 +1556,86 @@ class TAssetWorkstationOF extends TObjetStd{
 		return $res;
 	}
 
-	function getUsersPDF(&$db, &$PDOdb)
+	function getUsersPDF(&$PDOdb)
 	{
 		$res = '';
-		$ids_user = $this->get_users($PDOdb);
+		if(count($this->users) <= 0) return '-';
 		
-		if(count($ids_user) <= 0) return $res;
+		$sql = 'SELECT lastname, firstname FROM '.MAIN_DB_PREFIX.'user WHERE rowid IN ('.implode(',', $this->users).')';
+		$PDOdb->Execute($sql);
 		
-		$sql = 'SELECT lastname, firstname FROM '.MAIN_DB_PREFIX.'user WHERE rowid IN ('.implode(',', $ids_user).')';
-		$resql = $db->query($sql);
-		
-		while ($r = $db->fetch_object($resql)) 
+		while ($PDOdb->Get_line()) 
 		{
-			$res .= $r->lastname.' '.$r->firstname.', ';
+			$res .= $PDOdb->Get_Field('lastname').' '.$PDOdb->Get_field('Firstname').', ';
+		}
+		
+		$res = rtrim($res, ', ');
+		
+		return $res;
+	}
+	
+	function set_tasks($PDOdb, $Ttask)
+	{
+		if (empty($Ttask)) return false;
+		
+		$this->tasks = array();
+		
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND targettype = "task"';
+		$PDOdb->Execute($sql);
+		
+		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (';
+		$sql.= 'fk_source, sourcetype, fk_target, targettype';
+		$sql.= ') VALUES ';
+		
+		$save = false;
+		foreach ($Ttask as $id_task) 
+		{
+			if ($id_task <= 0) continue;
+				
+			$this->tasks[] = $id_task;
+			$save = true;
+			
+			$sql.= '(';
+			$sql.= (int) $this->rowid.',';
+			$sql.= $PDOdb->quote('tassetworkstationof').',';
+			$sql.= (int) $id_task.',';
+			$sql.= $PDOdb->quote('task');
+			$sql.= '),';
+		}
+		
+		if ($save)
+		{
+			$sql = rtrim($sql, ',');
+			$PDOdb->Execute($sql);
+		}
+	}
+	
+	function get_tasks(&$PDOdb)
+	{		
+		$res = array();
+		
+		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
+		$sql.= ' AND sourcetype = "tassetworkstationof" AND targettype = "task"';
+		
+		$PDOdb->Execute($sql);
+		while ($PDOdb->Get_line()) $res[] = $PDOdb->Get_field('fk_target');
+		
+		return $res;
+	}
+
+
+	function getTasksPDF(&$PDOdb)
+	{
+		$res = '';
+		if(count($this->tasks) <= 0) return '-';
+		
+		$sql = 'SELECT libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE rowid IN ('.implode(',', $this->tasks).')';
+		$PDOdb->Execute($sql);
+		
+		while ($PDOdb->Get_line()) 
+		{
+			$res .= $PDOdb->Get_Field('libelle').', ';
 		}
 		
 		$res = rtrim($res, ', ');
@@ -1579,6 +1647,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	{	
 		parent::load($PDOdb,$id);
 		$this->users = $this->get_users($PDOdb);
+		$this->tasks = $this->get_tasks($PDOdb);
 		
 		if($this->fk_asset_workstation >0)
 		{
@@ -1597,6 +1666,22 @@ class TAssetWorkstationOF extends TObjetStd{
 		while ($r = $db->fetch_object($resql)) 
 		{
 			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->lastname.' '.$r->firstname, $name, $r->fk_user, (in_array($r->fk_user, $this->users) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before').'</p>';
+		}
+		
+		return $res;
+	}
+	
+	function visu_checkbox_task(&$db, &$form, $name)
+	{
+		$include = array();
+		
+		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $this->fk_asset_workstation;
+		$resql = $db->query($sql);
+
+		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
+		while ($r = $db->fetch_object($resql)) 
+		{			 
+			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->tasks)), 'style="vertical-align:text-bottom;"', '', '', 'case_before').'</p>';
 		}
 		
 		return $res;

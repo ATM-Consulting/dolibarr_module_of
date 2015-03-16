@@ -102,15 +102,25 @@ function _action() {
 			if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) 
 				{
+					//Association des utilisateurs à un poste de travail
 					if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
 					{
 						$assetOf->TAssetWorkstationOF[$k]->set_users($PDOdb, $row['fk_user']);
 						unset($row['fk_user']);
 					}
 					
+					//Association des taches à une poste de travail
+					if (!empty($conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION))
+					{
+						$assetOf->TAssetWorkstationOF[$k]->set_tasks($PDOdb, $row['fk_task']);
+						unset($row['fk_task']);
+					}
+					
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 				}
 			}
+
+			
 			
 			$assetOf->entity = $conf->entity;
 
@@ -263,6 +273,7 @@ function generateODTOF(&$PDOdb) {
 	$TNeeded = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit nécessaires
 	$TWorkstations = array(); // Tableau envoyé à la fonction render contenant les informations concernant les stations de travail
 	$TWorkstationUser = array(); // Tableau de liaison entre les postes et les utilisateurs
+	$TWorkstationTask = array(); // Tableau de liaison entre les postes et les tâches
 	$TAssetWorkstation = array(); // Tableau de liaison entre les composants et les postes de travails
 	$TControl = array(); // Tableau de liaison entre l'OF et les controles associés
 	
@@ -355,7 +366,15 @@ function generateODTOF(&$PDOdb) {
 		{
 			$TWorkstationUser[] = array(
 				'workstation'=>utf8_decode($v->ws->libelle)
-				,'users'=>utf8_decode($v->getUsersPDF($db,$PDOdb))
+				,'users'=>utf8_decode($v->getUsersPDF($PDOdb))
+			);
+		}
+		
+		if (!empty($conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION))
+		{
+			$TWorkstationTask[] = array(
+				'workstation'=>utf8_decode($v->ws->libelle)
+				,'tasks'=>utf8_decode($v->getTasksPDF($PDOdb))
 			);
 		}
 
@@ -394,6 +413,7 @@ function generateODTOF(&$PDOdb) {
 			,'lignesWorkstation'=>$TWorkstations
 			,'lignesAssetWorkstations'=>$TAssetWorkstation
 			,'lignesUser'=>$TWorkstationUser
+			,'lignesTask'=>$TWorkstationTask
 			,'lignesControl'=>$TControl
 		)
 		,array(
@@ -407,6 +427,7 @@ function generateODTOF(&$PDOdb) {
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
 			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
+			,'defined_task'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
 			,'use_control'=>(int) $conf->global->ASSET_USE_CONTROL
 		)
 		,array()
@@ -648,6 +669,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		$TWorkstation[]=array(
 			'libelle'=>'<a href="workstation.php?action=view&id='.$ws->rowid.'">'.$ws->libelle.'</a>'
 			,'fk_user' => $TAssetWorkstationOF->visu_checkbox_user($db, $form, $ws->fk_usergroup, 'TAssetWorkstationOF['.$k.'][fk_user][]')
+			,'fk_task' => $TAssetWorkstationOF->visu_checkbox_task($db, $form, 'TAssetWorkstationOF['.$k.'][fk_task][]')
 			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
 			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
 			,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
@@ -712,6 +734,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
+				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
 				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 				,'hasChildren' => (int) !empty($Tid)
 			)
