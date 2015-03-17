@@ -121,18 +121,11 @@ function _action() {
 			}
 
 			
-			
 			$assetOf->entity = $conf->entity;
 
 			//Permet de mettre à jour le lot de l'OF parent
 			if (!empty($assetOf->fk_assetOf_parent)) $assetOf->update_parent = true;
 			$assetOf->save($PDOdb);
-			
-			//Si on créé un OF il faut recharger la page pour avoir le bon rendu
-			if ($action == 'create') header('Location: '.$_SERVER["PHP_SELF"].'?id='.$assetOf->getId());
-			
-			//Si on viens d'un produit alors je recharge les enfants
-			if ($fk_product > 0) $assetOf->loadChild($PDOdb);
 			
 			_fiche($PDOdb,$assetOf, $mode);
 
@@ -663,8 +656,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
 	
 	$TWorkstation=array();
-	foreach($assetOf->TAssetWorkstationOF as $k=>$TAssetWorkstationOF) {
-		$ws = & $TAssetWorkstationOF->ws;
+	foreach($assetOf->TAssetWorkstationOF as $k => $TAssetWorkstationOF) {
+		$ws = &$TAssetWorkstationOF->ws;
 		
 		$TWorkstation[]=array(
 			'libelle'=>'<a href="workstation.php?action=view&id='.$ws->rowid.'">'.$ws->libelle.'</a>'

@@ -21,8 +21,6 @@ class TAssetOF extends TObjetStd{
 			,'CLOSE'=>'Terminé'
 		);
 		
-	
-	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
     	$this->TChamps = array(); 	  
@@ -72,7 +70,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function save(&$PDOdb) {
-		global $conf;
+		global $user,$langs,$conf;
 
 		$this->set_temps_fabrication();
 		$this->entity = $conf->entity;
@@ -94,6 +92,15 @@ class TAssetOF extends TObjetStd{
 		parent::save($PDOdb);
 
         $this->getNumero($PDOdb, true);
+		
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_OF_SAVE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
 	}
 	
     function getNumero(&$PDOdb, $save=false) {
@@ -165,10 +172,20 @@ class TAssetOF extends TObjetStd{
 		return true;
 	}
 	
-	function delLine(&$PDOdb,$iline){
+	function delLine(&$PDOdb,$iline)
+	{
+		global $user,$langs,$conf;
 		
 		$this->TAssetOFLine[$iline]->to_delete=true;
-
+		
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_OF_DEL_LINE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
@@ -301,7 +318,7 @@ class TAssetOF extends TObjetStd{
 
 	//Ajoute une ligne de produit à l'OF
 	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
-		global $user, $conf;
+		global $user,$langs,$conf;
 		
 		$k = $this->addChild($PDOdb, 'TAssetOFLine');
 		
@@ -314,14 +331,20 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
-		
 		$TAssetOFLine->lot_number = $lot_number;
 		
         $TAssetOFLine->initConditionnement($PDOdb);
         
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
-        
+        // Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_OF_ADD_LINE',$TAssetOFLine,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
         
 		if($type=='TO_MAKE') {
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine);
@@ -349,11 +372,16 @@ class TAssetOF extends TObjetStd{
 		
 		if($resql) {
 			while($res = $db->fetch_object($resql)) {
+				$ws = new TAssetWorkstation;
+				$ws->load($PDOdb, $res->fk_asset_workstation);
 				$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 				$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $res->fk_asset_workstation;
 				$this->TAssetWorkstationOF[$k]->nb_hour = $res->nb_hour;
+				$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+				$this->TAssetWorkstationOF[$k]->ws = $ws;
 			}
 		}
+		
 	}
 	
     function launchOF(&$PDOdb) {
@@ -501,12 +529,22 @@ class TAssetOF extends TObjetStd{
 		$this->addElementElement($PDOdb,$com);
 	}
 
-	function delete(&$PDOdb){
+	function delete(&$PDOdb)
+	{
+		global $user,$langs,$conf;
+		
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_OF_DELETE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
 		
 		parent::delete($PDOdb);
 		
 		$this->delElementElement($PDOdb);
-		
 	}
 
 	function addElementElement(&$PDOdb,&$commandeFourn){
@@ -1049,7 +1087,9 @@ class TAssetOFLine extends TObjetStd{
 		
 		$this->TType=array('NEEDED','TO_MAKE');
 		
+		$this->errors = array();
 		$this->TFournisseurPrice=array();
+		$this->workstations=array();
 		
 	    $this->start();
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
@@ -1340,7 +1380,17 @@ class TAssetOFLine extends TObjetStd{
 	
 	function delete(&$PDOdb)
 	{
-	    
+		global $user,$lands,$conf;
+		
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_LINE_OF_DELETE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
+		
         $this->destockAsset($PDOdb, -$this->qty_stock); // On restock les produits utilisé
                
 	    // TODO dbdelete()
@@ -1356,7 +1406,6 @@ class TAssetOFLine extends TObjetStd{
 	{
 		if (empty($Tworkstations)) return false;
 	
-		$this->workstations = array();
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 		$PDOdb->Execute($sql);
 		
@@ -1446,10 +1495,10 @@ class TAssetOFLine extends TObjetStd{
 
 	}
 	
-	function save(&$PDOdb) {
+	function save(&$PDOdb) 
+	{
+		global $user,$lands,$conf;
 		
-		global $conf;
-
 		$this->entity = $conf->entity;
 		
         if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile 
@@ -1458,6 +1507,14 @@ class TAssetOFLine extends TObjetStd{
         
 		parent::save($PDOdb);
 
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_LINE_OF_SAVE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
 	}
 	
 }
@@ -1818,7 +1875,41 @@ class TAssetOFControl extends TObjetStd
 		$this->add_champs('fk_assetOf,fk_control','type=entier;');
 		$this->add_champs('response','type=chaine;');
 		
+		$this->errors = array();
+		
 	    $this->start();		
+	}
+	
+	function save(&$PDOdb)
+	{
+		global $user,$langs,$conf;
+		
+		parent::save($PDOdb);
+		
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_OF_CONTROL_SAVE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
+	}
+	
+	function delete(&$PDOdb)
+	{
+		global $user,$langs,$conf;
+		
+		// Appel des triggers
+		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
+		$interface = new Interfaces($this->db);
+		$result = $interface->run_triggers('ASSET_OF_CONTROL_DELETE',$this,$user,$langs,$conf);
+		if ($result < 0)
+		{
+			$this->errors[] = $interface->errors;
+		}
+		
+		parent::delete($PDOdb);
 	}
 	
 }
