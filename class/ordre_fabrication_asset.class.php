@@ -1712,38 +1712,6 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 	}
 	
-	function visu_checkbox_user(&$db, &$form, $group, $name)
-	{
-		$include = array();
-		
-		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) WHERE uu.fk_usergroup = '.(int) $group;
-		$resql = $db->query($sql);
-		
-		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
-		while ($r = $db->fetch_object($resql)) 
-		{
-			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->lastname.' '.$r->firstname, $name, $r->fk_user, (in_array($r->fk_user, $this->users) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before').'</p>';
-		}
-		
-		return $res;
-	}
-	
-	function visu_checkbox_task(&$db, &$form, $name)
-	{
-		$include = array();
-		
-		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $this->fk_asset_workstation;
-		$resql = $db->query($sql);
-
-		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
-		while ($r = $db->fetch_object($resql)) 
-		{			 
-			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->tasks)), 'style="vertical-align:text-bottom;"', '', '', 'case_before').'</p>';
-		}
-		
-		return $res;
-	}
-	
 }
 
 
