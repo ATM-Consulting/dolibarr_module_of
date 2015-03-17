@@ -366,7 +366,7 @@ function _liste(&$ATMdb) {
 	print $l->render($ATMdb, $sql,array(
 	
 		'link'=>array(
-			'libelle'=>'<a href="?action=view&id=@id@">@val@</a>'
+			'libelle'=>'<a href="?action=view&id=@id@">'.img_picto('','object_generic.png', '', 0).'@val@</a>'
 		)
 		,'title'=>array(
 			'nb_hour_prepare'=>"Nombre d'heure de preparation",
@@ -385,7 +385,9 @@ function _liste(&$ATMdb) {
 			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('Workstation')." à afficher"
 			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
-	
+		,'hide'=>array(
+			'id'
+		)
 	));
 	
 }

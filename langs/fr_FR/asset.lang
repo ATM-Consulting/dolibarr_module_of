@@ -66,14 +66,12 @@ AssetAddControlEvent=Ajout du contrôle enregistré
 AssetSaveControlEvent=Modifications du contrôle enregistrées
 AssetDeleteControlEvent=Suppression du contrôle enregistrée
 AssetListControl=Liste des contrôles
-AssetAddValueMultiple=Ajouter une valeur
 AssetAddControlValue=Ajouter une valeur pour un choix multiple
 AssetSaveControlValueEvent=Valeur enregistrée
 ListControlMultiple=Liste des valeurs
 AssetDeleteControlValueEvent=Suppression de la valeur enregistrée
 AssetEmptyControlMultiple=Aucune valeur à afficher
 AssetCreateControlMultiple=Créer une valeur
-AssetListValueMultiple=Liste des valeurs
 
 #Configuration
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
@@ -100,3 +98,8 @@ AssetMsgSaveTask=Tâche enregistrée
 AssetErrSaveTask=Erreur lors de l'enregistrement
 AssetMsgDeleteTask=Tâche supprimée
 AssetErrDeleteTask=Erreur lors de la suppression
+AssetMsgSaveControlValue=Valeur enregistrée
+AssetErrSaveControlValue=Erreur lors de l'enregistrement
+AssetMsgDeleteControlValue=Valeur supprimée
+AssetErrDeleteControlValue=Erreur lors de la suppression
+AssetListWorkstation=Liste des postes de travails

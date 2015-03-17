@@ -287,6 +287,19 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);
 		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetListWorkstation'),
+					'mainmenu'=>'newworkstation',
+					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/asset/workstation.php',
+					'position'=>201,
+					'enabled'=>'$user->rights->asset->of->lire',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);
+		$r++;
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
@@ -294,7 +307,7 @@ class modAsset extends DolibarrModules
 					'mainmenu'=>'newworkstation',
 					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/asset/workstation.php?action=new',
-					'position'=>201,
+					'position'=>202,
 					'enabled'=>'$user->rights->asset->of->lire',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
@@ -392,31 +405,6 @@ class modAsset extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetListValueMultiple'),
-					'mainmenu'=>'assetControlList',
-					'leftmenu'=>'assetNewControl',
-					'url'=>'/asset/list_control_multiple.php',
-					'position'=>305,
-					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetAddValueMultiple'),
-					'mainmenu'=>'assetControlList',
-					'leftmenu'=>'assetNewControl',
-					'url'=>'/asset/control.php?action=addValue',
-					'position'=>306,
-					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
 		
 		
 		

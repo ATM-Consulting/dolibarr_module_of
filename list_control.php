@@ -30,7 +30,7 @@
 	
 		$sql = 'SELECT rowid as id, libelle, type, question, "" as action FROM '.MAIN_DB_PREFIX.'asset_control';
 		
-		$THide = array('rowid');
+		$THide = array('id');
 	
 		$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 	
@@ -42,7 +42,7 @@
 			)
 			,'subQuery'=>array()
 			,'link'=>array(
-				'libelle'=>'<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id=@id@">@val@</a>'
+				'libelle'=>'<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id=@id@">'.img_picto('','object_generic.png', '', 0).'@val@</a>'
 				,'question'=>'<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id=@id@">@val@</a>'
 				,'action'=>'<a title="Modifier" href="control.php?id=@id@&action=edit">'.img_picto('','edit.png', '', 0).'</a>&nbsp;&nbsp;&nbsp;<a title="Supprimer" onclick="if (!window.confirm(\'Confirmez-vous la suppression ?\')) return false;" href="control.php?id=@id@&action=delete">'.img_picto('','delete.png', '', 0)."</a>"
 			)

@@ -61,49 +61,44 @@
 			
 			break;
 			
-		case 'addValue':
-			$controlMultiple=new TAssetControlMultiple;
-			$controlMultiple->fk_control = __get('fk_control', 0);
-			
-			_ficheMultiple($ATMdb, $controlMultiple, 'edit');
-			
-			break;
-			
 		case 'editValue':
-			$idm = __get('idm', 0);
-			if ($idm <= 0) header('Location: '.DOL_MAIN_URL_ROOT.'/custom/asset/control.php?action=addValue');
+			$control=new TAssetControl;
+			$control->load($ATMdb, $id);
 			
-			$controlMultiple=new TAssetControlMultiple;
-			$controlMultiple->load($ATMdb, $idm);
-			
-			_ficheMultiple($ATMdb, $controlMultiple, 'edit');	
-					
+			_fiche($ATMdb, $control, 'view', 1);	
 			
 			break;
 			
-		case 'saveValue':
-			$idm = __get('idm', 0);
-			$controlMultiple=new TAssetControlMultiple;
-			$controlMultiple->load($ATMdb, $idm);
-			$controlMultiple->set_values($_REQUEST);
-			$controlMultiple->save($ATMdb);
-		
-			setEventMessage($langs->trans('AssetSaveControlValueEvent'));
+		case 'editValueConfirm':
+			$control=new TAssetControl;
+			$control->load($ATMdb, $id);
+								
+			$k=$control->addChild($PDOdb,'TAssetControlMultiple', __get('id_value', 0, 'int'));
+			$control->TAssetControlMultiple[$k]->fk_control = $control->getId();
+			$control->TAssetControlMultiple[$k]->value = __get('value');
+				
+			if ($control->TAssetControlMultiple[$k]->save($ATMdb)) setEventMessage($langs->trans('AssetMsgSaveControlValue'));
+			else setEventMessage($langs->trans('AssetErrSaveControlValue'));
+			
+			_fiche($ATMdb, $control, 'view');
+			
+			break;
+			
+		case 'deleteValue':
+			$control=new TAssetControl;
+			$control->load($ATMdb, $id);
+			
+			if ($control->removeChild('TAssetControlMultiple', __get('id_value',0,'integer'))) 
+			{
+				$control->save($ATMdb);
+				setEventMessage($langs->trans('AssetMsgDeleteControlValue'));
+			}
+			else setEventMessage($langs->trans('AssetErrDeleteControlValue'));
+			
+			_fiche($ATMdb, $control, 'view');
+			
+			break;
 
-			_ficheMultiple($ATMdb, $controlMultiple, 'view');
-		
-			break;
-
-		case 'deleteValue':	
-			$idm = __get('idm', 0);			
-			$controlMultiple=new TAssetControlMultiple;
-			$controlMultiple->load($ATMdb, $idm);
-			$controlMultiple->delete($ATMdb);
-			
-			$_SESSION['AssetMsg'] = 'AssetDeleteControlValueEvent';
-			header('Location: '.DOL_MAIN_URL_ROOT.'/custom/asset/list_control_multiple.php');
-			
-			break;
 			
 		default:
 			if ($id <= 0) header('Location: '.DOL_MAIN_URL_ROOT.'/custom/asset/list_control.php');
@@ -117,20 +112,14 @@
 	}
 	
 
-function _fiche(&$ATMdb, &$control, $mode='view') {
+function _fiche(&$ATMdb, &$control, $mode='view', $editValue=false) {
 	global $db,$langs;
 
 	llxHeader('',$langs->trans('AssetAddControl'),'','');
 	$TBS=new TTemplateTBS;
 	
-	$form=new TFormCore('auto', 'formC', 'post', true);
-	
+	$form=new TFormCore('auto', '', 'post', true);
 	$form->Set_typeaff($mode);
-	
-	echo $form->hidden('action','save');
-	echo $form->hidden('id',$control->getId());
-	
-	$formDoli=new Form($db);
 	
 	$TForm=array(
 		'id'=>$control->getId()
@@ -139,49 +128,69 @@ function _fiche(&$ATMdb, &$control, $mode='view') {
 		,'question'=>$form->texte('', 'question', $control->question,120,255)
 	);
 	
-	print $TBS->render('./tpl/control.tpl.php', array(), array(
+	$TFormVal = _fiche_value($ATMdb, $editValue);
+	$TVal = _liste_valeur($ATMdb, $control->getId(), $control->type);
+	
+	print $TBS->render('./tpl/control.tpl.php', 
+		array(
+			'TVal'=>$TVal
+		)
+		,array(
 			'co'=>$TForm
+			,'FormVal'=>$TFormVal
 			,'view'=>array(
 				'mode'=>$mode
+				,'editValue'=>$editValue
+				,'type'=>$control->type
+				,'url'=>dol_buildpath('custom/asset/control.php', 1)
 			)
 		)
 	);
-	
-	$form->end();
 	
 	llxFooter();
 }
 
-function _ficheMultiple(&$ATMdb, &$controlMultiple, $mode='view') {
-	global $db,$langs;
+function _fiche_value(&$PDOdb, $editValue)
+{
+	$res = array();
+	
+	if (!$editValue) return $res;
+	
+	$id_value = __get('id_value', 0, 'int');
+	$res['id_value'] = $id_value;
+	
+	if ($id_value > 0)
+	{
+		$val = new TAssetControlMultiple;
+		$val->load($PDOdb, $id_value);
+		$res['value'] = $val->value;
+	}
+	else 
+	{
+		$res['value'] = '';
+	}
+	
+	return $res;
+}
 
-	llxHeader('',$langs->trans('AssetAddControlValue'),'','');
-	$TBS=new TTemplateTBS;
+function _liste_valeur(&$PDOdb, $fk_control, $type)
+{
+	$res = array();
 	
-	$form=new TFormCore('auto', 'formCM', 'post', true);
+	if ($type != 'checkboxmultiple') return $res;
 	
-	$form->Set_typeaff($mode);
+	$sql = 'SELECT rowid, value 
+			FROM '.MAIN_DB_PREFIX.'asset_control_multiple cm
+			WHERE cm.fk_control = '.(int) $fk_control;
 	
-	echo $form->hidden('action','saveValue');
-	echo $form->hidden('idm',$controlMultiple->getId());
-	
-	$formDoli=new Form($db);
-	
-	$TForm=array(
-		'idm'=>$controlMultiple->getId()
-		,'fk_control'=>$controlMultiple->visu_select_control($ATMdb, $form, 'fk_control')
-		,'value'=>$form->texte('', 'value', $controlMultiple->value, 120, 255)
-	);
-	
-	print $TBS->render('./tpl/controlMultiple.tpl.php', array(), array(
-			'com'=>$TForm
-			,'view'=>array(
-				'mode'=>$mode
-			)
-		)
-	);
-	
-	$form->end();
-	
-	llxFooter();
+	$PDOdb->Execute($sql);
+	while ($PDOdb->Get_line())
+	{
+		$res[] = array(
+			'value' => $PDOdb->Get_field('value')
+			,'action' => '<a title="Modifier" href="?id='.(int) $fk_control.'&action=editValue&id_value='.(int)$PDOdb->Get_field('rowid').'">'.img_picto('','edit.png', '', 0).'</a>&nbsp;&nbsp;&nbsp;<a title="Supprimer" onclick="if (!window.confirm(\'Confirmez-vous la suppression ?\')) return false;" href="?id='.(int) $fk_control.'&action=deleteValue&id_value='.(int)$PDOdb->Get_field('rowid').'">'.img_picto('','delete.png', '', 0).'</a>'
+		);
+	}
+
+	return $res;
 }

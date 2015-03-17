@@ -21,7 +21,7 @@
 [onshow;block=begin;when [view.conf_defined_task]==1]
 	[onshow;block=begin;when [view.editTask]=='1']
 		<div style="margin-top:15px;">
-			<form action="[view.actionForm;strconv=no]" type="POST">
+			<form action="[view.actionForm;strconv=no]" method="POST">
 				<input type="hidden" name="action" value="editTaskConfirm" />
 				<input type="hidden" name="id" value="[ws.id]" />
 				<input type="hidden" name="id_task" value="[formTask.id_task;noerr]" />
