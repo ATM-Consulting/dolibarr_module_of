@@ -41,7 +41,7 @@ AssetNewProductionOrder=Nouvel ordre de Fabrication
 ListAssetLot=Liste des lots d'équipement
 AssetLotDeleted=Lot supprimé
 AssetInLot=Equipements du lot
-OFAssetLotEmpty=Erreur de saisie sur les lots
+OFAssetLotEmpty=Aucun lot saisie pour le produit : %s (%s)
 OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
 
 

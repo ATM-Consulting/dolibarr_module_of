@@ -384,10 +384,12 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
-    function launchOF(&$PDOdb) {
+    function launchOF(&$PDOdb) 
+    {
         global $conf;
       
         $qtyIsValid = $this->checkQtyAsset($PDOdb, $conf);
+		
         if ($qtyIsValid)
         {
             $this->status = 'OPEN';
@@ -444,23 +446,25 @@ class TAssetOF extends TObjetStd{
         return true;
 	}
 	
-	function openOF(&$PDOdb){
+	function openOF(&$PDOdb)
+	{
 		global $db, $user, $conf;
+		
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		dol_include_once("fourn/class/fournisseur.product.class.php");
 		dol_include_once("fourn/class/fournisseur.commande.class.php");
 		
-        
-        if($this->launchOF($PDOdb)) {
-            foreach($this->TAssetOFLine as $AssetOFLine){
-    
-                if($AssetOFLine->type == 'NEEDED'){
+		
+        if($this->launchOF($PDOdb)) 
+        {
+            foreach($this->TAssetOFLine as $AssetOFLine)
+            {
+                if($AssetOFLine->type == 'NEEDED')
+                {
                     $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
                 }
-    
             }
-            
-        } 
+        }
         
 	}
 	
@@ -860,46 +864,20 @@ class TAssetOF extends TObjetStd{
 
 	function checkLotIsFill()
 	{
+		global $langs,$db;
+		
 		$fill = true;
 		foreach ($this->TAssetOFLine as $OFLine)
 		{
-			if ($OFLine->type == 'TO_MAKE') 
+			if (empty($OFLine->lot_number)) 
 			{
-				if (empty($OFLine->lot_number)) 
-				{
-					$fill = false;
-					break;
-				}
-				
-				if ($OFLine->fk_product_fournisseur_price <= 0) $fill = $this->checkChildrenLotIsFill($OFLine);
+				$product = new Product($db);
+				$product->fetch($OFLine->fk_product);
+				$this->errors[] = $langs->trans('OFAssetLotEmpty', $product->label, $product->getNomUrl());
+				$fill = false;
 			}
 		}
 			
-		return $fill;
-	}
-
-	function checkChildrenLotIsFill($line)
-	{
-		global $db;
-		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-		
-		$fill = true;
-		$product = new Product($db);
-		$children = $product->getChildsArbo($line->fk_product);
-		
-		foreach ($this->TAssetOFLine as $OFLine)
-		{
-			if ($OFLine->type == 'NEEDED' && isset($children[$OFLine->fk_product]))
-			{
-				if (empty($OFLine->lot_number)) 
-				{
-					$fill = false;
-					break;
-				}
-			}
-		}
-		
-		
 		return $fill;
 	}
 	
@@ -1078,7 +1056,7 @@ class TAssetOFLine extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price','type=entier;index;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
 		
@@ -1102,28 +1080,31 @@ class TAssetOFLine extends TObjetStd{
         
         $sens = ($qty_to_destock>0) ? -1 : 1;        
         $qty_to_destock_rest =  abs($qty_to_destock);
-                
-        
-        if($conf->global->USE_LOT_IN_OF) {
+
+		$fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		
+        if($conf->global->USE_LOT_IN_OF) 
+        {
             $asset=new TAsset;
-            $asset->addStockMouvementDolibarr($this->fk_product,$qty_to_destock,'Utilisation via Ordre de Fabrication n°'.$this->numero, false, 0,$conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+            $asset->addStockMouvementDolibarr($this->fk_product,$qty_to_destock,'Utilisation via Ordre de Fabrication n°'.$this->numero, false, 0, $fk_entrepot);
             
             return true;    
-        };
+        }
         
         $TAsset = $this->getAssetLinked($PDOdb);
-                
-        
-        foreach($TAsset as $asset) {
-            
+
+        foreach($TAsset as $asset) 
+        {
              $qty_asset_to_destock = $asset->contenancereel_value;
-             if($qty_to_destock_rest - $qty_asset_to_destock<0) {
+			 
+             if($qty_to_destock_rest - $qty_asset_to_destock<0) 
+             {
                  $qty_asset_to_destock = $qty_to_destock_rest;
              }
             
              $asset->save($PDOdb,$user
                      ,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number
-                     ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED);
+                     ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot);
             
             $qty_to_destock_rest-= $qty_asset_to_destock;
             
@@ -1517,6 +1498,34 @@ class TAssetOFLine extends TObjetStd{
 		}
 	}
 	
+	function getLibelleEntrepot(&$PDOdb, $withStock=true)
+	{
+		$res = false;
+		
+		if (!$this->fk_entrepot) return 'Aucun entrepôt séléctionné';
+		
+		$sql = 'SELECT e.label, "" AS reel FROM '.MAIN_DB_PREFIX.'entrepot e WHERE rowid = '.(int) $this->fk_entrepot;
+		if ($withStock) 
+		{
+			$sql = 'SELECT e.label, ps.reel FROM '.MAIN_DB_PREFIX.'entrepot e
+					LEFT JOIN '.MAIN_DB_PREFIX.'product_stock ps ON (ps.fk_entrepot = e.rowid AND ps.fk_product = '.(int) $this->fk_product.')
+					WHERE e.rowid = '.(int) $this->fk_entrepot.'';
+		} 
+		else
+		{
+			$sql = 'SELECT e.label FROM '.MAIN_DB_PREFIX.'entrepot e WHERE rowid = '.(int) $this->fk_entrepot;
+		}
+		
+		$PDOdb->Execute($sql);
+		while ($PDOdb->Get_line())
+		{
+			$res = $PDOdb->Get_field('label');
+			if ($withStock) $res .= ' (Stock: '.$PDOdb->Get_field('reel').')';
+		}
+		
+		if ($res) return $res;
+		else return 'Aucun entrepôt séléctionné';
+	}
 }
 /*
  * Link to product

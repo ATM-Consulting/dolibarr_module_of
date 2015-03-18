@@ -217,9 +217,9 @@ class TAsset extends TObjetStd{
 		//TODO MAJ garantie client et garantie fournisseur
 	}
 	
-	function addStockMouvement(&$PDOdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
-		
-		if(!$destock_dolibarr_only) 
+	function addStockMouvement(&$PDOdb,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0)
+	{	
+		if (!$destock_dolibarr_only) 
 		{
 			$stock = new TAssetStock;
 			$stock->mouvement_stock($PDOdb, $user, $this->rowid, $qty, $description, $this->rowid);
@@ -228,7 +228,8 @@ class TAsset extends TObjetStd{
 		$this->addStockMouvementDolibarr($this->fk_product,$qty,$description, $destock_dolibarr_only, $fk_prod_to_destock,$fk_entrepot);
 	}
 	
-	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0){
+	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0)
+	{
 		global $db, $user,$conf;
 		//echo ' ** 1 ** ';
 		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
@@ -250,8 +251,8 @@ class TAsset extends TObjetStd{
 		$fk_product = $destock_dolibarr_only ? $fk_prod_to_destock : $fk_product;
 		
 		//Dans le cas d'une gestion de stock quantitative, on divise la quantité destocké par la contenance total de l'équipement
-		if($this->gestion_stock === 'QUANTITY' && $this->assetType->measuring_units != 'unit'){
-			
+		if($this->gestion_stock === 'QUANTITY' && $this->assetType->measuring_units != 'unit')
+		{
 			$product = new Product($db);
 			$product->fetch($fk_product);
 			
@@ -266,8 +267,8 @@ class TAsset extends TObjetStd{
 			$qty = round($qty,5);
 		}
 		
-		if($fk_entrepot > 0){
-			
+		if($fk_entrepot > 0)
+		{			
 			//TODO finaliser cette partie spécifique
 			//Si on destocke l'intégralité de notre équipement dès le premier mouvement
 			/*if($this->destock_dolibarr_on_first_mvt && $this->contenancereel_value == $this->contenance_value){
@@ -564,8 +565,8 @@ class TAssetStock extends TObjetStd{
 	}
 	
 	//Création d'une nouvelle entrée en stock
-	function mouvement_stock(&$PDOdb,$user,$fk_asset,$qty,$type,$id_source){
-		
+	function mouvement_stock(&$PDOdb,$user,$fk_asset,$qty,$type,$id_source)
+	{	
 		$asset = new TAsset;
 		$asset->load($PDOdb, $fk_asset);
 

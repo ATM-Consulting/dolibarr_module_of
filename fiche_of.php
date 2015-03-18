@@ -10,6 +10,7 @@ include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
 include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+include_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -142,12 +143,11 @@ function _action() {
 			if (!empty($conf->global->USE_LOT_IN_OF)) {
 				if (!$assetOf->checkLotIsFill())
 				{
-					setEventMessage($langs->trans('OFAssetLotEmpty'), 'errors');
 					_fiche($PDOdb,$assetOf, 'view');
 					break;
 				}
 			}
-					
+			
 			$assetOf->status = 'VALID';
 
 			if(!empty($_REQUEST['TAssetOFLine'])) {
@@ -155,6 +155,7 @@ function _action() {
 					$assetOf->TAssetOFLine[$k]->set_values($row);
 				}
 			}
+			
 			$assetOf->createOfAndCommandesFourn($PDOdb);
 			$assetOf->unsetChildDeleted = true;
 			
@@ -441,6 +442,8 @@ function generateODTOF(&$PDOdb) {
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs;
 
+	$formProduct = new FormProduct($db);
+
     $PDOdb=new TPDOdb;
 	$TRes = array();
 	foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
@@ -473,6 +476,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 				,'workstations'=>$TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
+				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && $of->status == 'DRAFT' && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			);
 		}
 		elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
@@ -488,8 +492,10 @@ function _fiche_ligne(&$form, &$of, $type){
 				$label = "";
 
 				//Si on a un prix fournisseur pour le produit
-				if($objPrice->price > 0){
-					$label .= floatval($objPrice->price).' '.$conf->currency;
+				if($objPrice->price > 0)
+				{
+					$unit = $objPrice->quantity == 1 ? 'Unité' : 'Unités';
+					$label .= floatval($objPrice->price).' '.$conf->currency.' - '.$objPrice->quantity.' '.$unit.' -';
 				}
 				
 				//Affiche le nom du fournisseur
@@ -520,7 +526,7 @@ function _fiche_ligne(&$form, &$of, $type){
 											);
 
 			}
-	
+
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
@@ -529,8 +535,9 @@ function _fiche_ligne(&$form, &$of, $type){
 				        .$product->stock_reel._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label 
-				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )
+				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
+				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && $of->status == 'DRAFT' && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			);
 		}
 	}
@@ -729,12 +736,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
 				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
+				,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
 				,'hasChildren' => (int) !empty($Tid)
 			)
 		)
 	);
 	
-	echo $form->end_form();
+	echo $form->end_form();	
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }

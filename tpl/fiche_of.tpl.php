@@ -129,6 +129,9 @@
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
 										<td width="20%">Poste</td>
 									[onshow;block=end]
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">Entrepôt</td>
+									[onshow;block=end]
 									<td class="draftedit" style="width:20px;">Action</td>
 									
 								</tr>
@@ -144,6 +147,9 @@
 									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
 										<td width="20%">[TNeeded.workstations;strconv=no]</td>
+									[onshow;block=end]
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">[TNeeded.fk_entrepot;strconv=no]</td>
 									[onshow;block=end]
 									<td align='center' class="draftedit">[TNeeded.delete;strconv=no]</td>
 									
@@ -161,6 +167,9 @@
 									<td>Produit</td>
 									<td>Quantité à produire</td>
 									<td>Fournisseur</td>
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">Entrepôt</td>
+									[onshow;block=end]
 									<td class="draftedit" style="width:20px;">Action</td>
 									
 								</tr>
@@ -171,8 +180,10 @@
 									[onshow;block=end]
 									<td>[TTomake.libelle;block=tr;strconv=no]</td>
 									<td>[TTomake.qty;strconv=no]</td>
-									<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
-									
+									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
+									[onshow;block=end]
 									<td align='center' class="draftedit">[TTomake.delete;strconv=no]</td>
 									
 								</tr>
