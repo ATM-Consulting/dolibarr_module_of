@@ -48,28 +48,28 @@
 	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
-	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE');
+	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
 	print '<tr>';
 	print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
-	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL');
+	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
 	print '<tr class="pair">';
 	print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
-	print ajax_constantonoff('CREATE_CHILDREN_OF');
+	print ajax_constantonoff('CREATE_CHILDREN_OF', array('alert' => array('method'=>'fnHideOPCAAdrr' ,'del' => array('content'=>$langs->trans('AssetOFConfirmChangeState'), 'title'=>$langs->trans('AssetOFConfirmChangeStateTitle'))), 'del' => array('CREATE_CHILDREN_OF_COMPOSANT', 'CREATE_OF_ON_ORDER_VALIDATE', 'DELETE_OF_ON_ORDER_CANCEL')));
 	print '</td></tr>';	
 	
 	print '<tr>';
 	print '<td>'.$langs->trans("CreateAssetChildrenOFWithComposant").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
-	print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT');
+	print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
 	print '<tr class="pair">';
@@ -122,24 +122,45 @@ function showParameters(&$form) {
 	
 	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-<?php echo $typeDoc ?>" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
-		<table width="100%" class="noborder" style="background-color: #fff;">
+		<table width="100%" class="noborder">
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
 			</tr>
 			
-			<tr class="impair">
-				<td><?php echo $langs->trans('UseDefinedWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_DEFAULT_WAREHOUSE'); ?></td>
+			<tr class="pair">
+				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
 			</tr> 
 			
-			<tr>
+			<tr id="USE_DEFAULT_WAREHOUSE">
+				<td><?php echo $langs->trans('UseDefinedWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_DEFAULT_WAREHOUSE', array('showhide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'), 'hide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'))); ?></td>
+			</tr> 
+			
+			<tr id="WAREHOUSE_TO_MAKE" class="pair" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
 			
-			<tr class="impair">
+			<tr id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr> 
 			
 		</table>
+		
+		<script type="text/javascript">
+			$(function() {
+				$('#set_ASSET_MANUAL_WAREHOUSE').click(function() {
+					if ($('#del_ASSET_USE_DEFAULT_WAREHOUSE').css('display') != 'none') {
+						$('#del_ASSET_USE_DEFAULT_WAREHOUSE').click();
+					}
+				});
+				
+				$('#set_ASSET_USE_DEFAULT_WAREHOUSE').click(function() {
+					if ($('#del_ASSET_MANUAL_WAREHOUSE').css('display') != 'none') {
+						$('#del_ASSET_MANUAL_WAREHOUSE').click();
+					}
+				});
+			});
+		</script>
+		
 		<p align="right">	
 			<input class="button" type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" /> 
 		</p>
@@ -153,5 +174,3 @@ function showParameters(&$form) {
 	<br /><br />
 	<?php
 }
-	
-	//$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';

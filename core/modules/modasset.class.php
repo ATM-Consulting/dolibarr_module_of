@@ -108,7 +108,7 @@ class modAsset extends DolibarrModules
 			,array('TEMPLATE_OF','chaine','templateOF.odt',"Template à utiliser",1)
 			//Pour afficher la sélection d'un équipement dans une liste déroulante lors de l'ajout d'une ligne de commande
 			,array('USE_ASSET_IN_ORDER','chaine',0,'Pour afficher la sélection d\'un équipement dans une liste déroulante lors de l\'ajout d\'une ligne de commande',1)
-			,array('ASSET_MANUAL_WAREHOUSE', 'chaine',0,'Définir manuellement les entrepôts sur l\'OF',1)
+			,array('ASSET_MANUAL_WAREHOUSE', 'chaine',0,'Ventiller manuellement les entrepôts sur l\'OF',1)
 			,array('ASSET_USE_DEFAULT_WAREHOUSE',0,'Précise si le comportement du destockage/stockage doit prendre l\'entrepôt de la configuration ou celui défini sur chaque équipement',1)
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits à fabriquer)',1)
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits nécessaires)',1)
