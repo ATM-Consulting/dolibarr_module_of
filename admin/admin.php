@@ -90,7 +90,7 @@
 	print '<td>'.$langs->trans("AssetDefinedTaskByWorkstation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_DEFINED_TASK_BY_WORKSTATION');
+	print ajax_constantonoff('ASSET_DEFINED_OPERATION_BY_WORKSTATION');
 	print '</td></tr>';
 	
 	print '<tr>';

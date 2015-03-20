@@ -287,7 +287,7 @@ function _fiche(&$ATMdb, &$ws, $mode='view', $editTask=false) {
 			,'formTask'=>$TFormTask
 			,'view'=>array(
 				'mode'=>$mode
-				,'conf_defined_task'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
+				,'conf_defined_task'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 				,'editTask'=>$editTask
 				,'endForm'=>$form->end_form()
 				,'actionForm'=>dol_buildpath('custom/asset/workstation.php', 1)
