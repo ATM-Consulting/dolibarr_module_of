@@ -111,7 +111,7 @@ function _action() {
 					}
 					
 					//Association des taches à une poste de travail
-					if (!empty($conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION))
+					if (!empty($conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION))
 					{
 						$assetOf->TAssetWorkstationOF[$k]->set_tasks($PDOdb, $row['fk_task']);
 						unset($row['fk_task']);
@@ -364,7 +364,7 @@ function generateODTOF(&$PDOdb) {
 			);
 		}
 		
-		if (!empty($conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION))
+		if (!empty($conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION))
 		{
 			$TWorkstationTask[] = array(
 				'workstation'=>utf8_decode($v->ws->libelle)
@@ -421,7 +421,7 @@ function generateODTOF(&$PDOdb) {
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
 			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
-			,'defined_task'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
+			,'defined_task'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 			,'use_control'=>(int) $conf->global->ASSET_USE_CONTROL
 		)
 		,array()
@@ -734,7 +734,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
-				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_TASK_BY_WORKSTATION
+				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 				,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
 				,'hasChildren' => (int) !empty($Tid)
