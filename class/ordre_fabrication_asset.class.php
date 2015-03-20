@@ -272,6 +272,7 @@ class TAssetOF extends TObjetStd{
 		else {
 			$k=$this->addChild($PDOdb,'TAssetOF');
 			$this->TAssetOF[$k]->status = "DRAFT";
+			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed));
