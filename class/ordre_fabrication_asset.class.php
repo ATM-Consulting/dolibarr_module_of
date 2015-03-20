@@ -262,7 +262,7 @@ class TAssetOF extends TObjetStd{
 	 * Crée une OF si produit composé pas en stock
 	 */
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed) {
-		global $conf;
+		global $conf,$db;
 //var_dump('createOFifneeded',$fk_product, $qty_needed);
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
 
@@ -275,6 +275,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed));
+			$this->TAssetOF[$k]->addWorkstation($PDOdb, $db, $fk_product);
 			
 			return $k;
 		}
