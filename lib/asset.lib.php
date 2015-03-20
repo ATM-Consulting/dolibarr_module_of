@@ -66,3 +66,27 @@
 		return $res;
 	}
 	
+	function visu_project_task(&$db, $fk_project_task, $mode, $name)
+	{
+		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+		
+		$projectTask = new Task($db);
+		$projectTask->fetch($fk_project_task);
+		
+		$link = '<a href="'.DOL_URL_ROOT.'/projet/tasks/task.php?id='.$fk_project_task.'">'.img_picto('', 'object_projecttask.png').$projectTask->ref.'</a>';
+		
+		if ($projectTask->progress == 0) $imgStatus = img_picto('En attente', 'statut0.png');
+		elseif ($projectTask->progress < 100) $imgStatus = img_picto('En cours', 'statut3.png');
+		else $imgStatus = img_picto('Terminée', 'statut4.png');
+		
+		if ($mode == 'edit')
+		{
+			$formother = new FormOther($db);
+			return $link.' - '.$formother->select_percent($projectTask->progress, $name).' '.$imgStatus;	
+		}
+		else {
+			return $link.' - '.$projectTask->progress.' % '.$imgStatus;
+		}
+		
+	}

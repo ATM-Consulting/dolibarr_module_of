@@ -14,7 +14,7 @@ $get = __get('get','emprunt');
 
 traite_get($PDOdb, $get);
 
-function traite_get(&$PDOdb, $case) {
+function traite_get(&$PDOdb, $case) {	
 	switch (strtolower($case)) {
         case 'autocomplete':
             __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product')));
@@ -53,8 +53,7 @@ function traite_get(&$PDOdb, $case) {
 	}
 }
 
-function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) {
-	
+function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) {	
 	$of=new TAssetOF;
 	$of->load($PDOdb, $id_assetOf);
 	
@@ -63,9 +62,8 @@ function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour
 	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
 	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour;
 	$of->save($PDOdb);
-	
-	
 }
+
 function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of) 
 {
 	$of=new TAssetOF;
@@ -124,8 +122,8 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$lot_number=0, $t
 	return $TResult;
 }
 
-function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = ''){
-	
+function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = '')
+{	
 	global $db;
 	
 	$TassetOF = new TAssetOF;

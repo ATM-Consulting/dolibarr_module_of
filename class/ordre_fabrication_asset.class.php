@@ -1554,7 +1554,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_assetOf, fk_asset_workstation','type=entier;index;');
+		$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task','type=entier;index;');
 		$this->add_champs('nb_hour,nb_hour_real','type=float;'); // nombre d'heure associé au poste de charge sur un OF
 		
 	    $this->start();
@@ -1564,12 +1564,92 @@ class TAssetWorkstationOF extends TObjetStd{
 		$this->tasks = array();
 	}
 	
-	function delete(&$db)
-	{
-		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND (targettype = "user" OR targettype = "task")';
-		$db->Execute($sql);
+	function load(&$PDOdb, $id) 
+	{	
+		parent::load($PDOdb,$id);
+		$this->users = $this->get_users($PDOdb);
+		$this->tasks = $this->get_tasks($PDOdb);
 		
-		parent::delete($db);
+		if($this->fk_asset_workstation >0)
+		{
+			$this->ws->load($PDOdb, $this->fk_asset_workstation);
+		}
+	}
+	
+	function save(&$PDOdb)
+	{
+	 	global $db,$conf,$user;
+
+		if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
+		{
+			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
+			
+			$OF = new TAssetOF;
+			$OF->load($PDOdb, $this->fk_assetOf);
+			
+			if ($OF->fk_project > 0 && $this->fk_project_task == 0)
+			{
+				//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
+				if (!$user->id)	$user->id = GETPOST('user_id');
+				
+				//Nom du poste pour le nom de la tâche
+				$ws = new TAssetWorkstation;
+				$ws->load($PDOdb, $this->fk_asset_workstation);
+				
+				$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
+				$modTask = new $class_mod;
+				
+				$projectTask = new Task($db);
+				$projectTask->fk_project = $OF->fk_project;
+				$projectTask->ref = $modTask->getNextValue(0, $projectTask);
+				$projectTask->label = $ws->libelle;
+				$projectTask->fk_task_parent = 0;
+				$projectTask->date_start = $OF->date_lancement;
+				
+				$projectTask->create($user);
+				
+				$this->fk_project_task = $projectTask->id;
+			}
+			elseif ($OF->fk_project > 0 && $this->fk_project_task > 0)
+			{
+				$projectTask = new Task($db);
+				$projectTask->fetch($this->fk_project_task);
+				
+				//TODO mettre à jour la charge de travail prévue (convertir en secondes avec des heures de type 3.5 qui vos 3h30)
+			}
+			else 
+			{
+				//Aucun projet séléctionné pour l'OF
+			}
+			
+		}
+		
+	
+		parent::save($PDOdb);
+	}
+	
+	function delete(&$PDOdb)
+	{
+		global $db,$user,$conf;
+		
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND (targettype = "user" OR targettype = "task")';
+		$PDOdb->Execute($sql);
+		
+		if ($this->fk_project_task > 0)
+		{
+			require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
+			
+			if (!$user->id) $user->id = GETPOST('user_id');
+			
+			$projectTask = new Task($db);
+			$projectTask->fetch($this->fk_project_task);
+			$projectTask->delete($user);
+		}
+		
+		parent::delete($PDOdb);
 	}
 	
 	function set_users(&$PDOdb, $Tusers)
@@ -1709,16 +1789,17 @@ class TAssetWorkstationOF extends TObjetStd{
 		return $res;
 	}
 	
-	function load(&$PDOdb, $id) 
-	{	
-		parent::load($PDOdb,$id);
-		$this->users = $this->get_users($PDOdb);
-		$this->tasks = $this->get_tasks($PDOdb);
+	function set_project_task(&$PDOdb, $progress)
+	{
+		global $db;
 		
-		if($this->fk_asset_workstation >0)
-		{
-			$this->ws->load($PDOdb, $this->fk_asset_workstation);
-		}
+		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+		
+		$projectTask = new Task($db);
+		$projectTask->fetch($this->fk_project_task);
+		
+		$projectTask->progress = $progress;
+		$projectTask->update($db);
 	}
 	
 }

@@ -110,11 +110,18 @@ function _action() {
 						unset($row['fk_user']);
 					}
 					
-					//Association des taches à une poste de travail
+					//Association des opérations à une poste de travail (mode opératoire)
 					if (!empty($conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION))
 					{
 						$assetOf->TAssetWorkstationOF[$k]->set_tasks($PDOdb, $row['fk_task']);
 						unset($row['fk_task']);
+					}
+					
+					//Maj de la progression de la tâche projet
+					if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
+					{
+						$assetOf->TAssetWorkstationOF[$k]->set_project_task($PDOdb, $row['progress']);
+						unset($row['progress']);
 					}
 					
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
@@ -577,7 +584,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED') 
 }
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
-	global $langs,$db,$conf;
+	global $langs,$db,$conf,$user;
 	/***************************************************
 	* PAGE
 	*
@@ -623,7 +630,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
 	
-	$doliform = new Form($db);
+	$doliform = new Form($db);    
 	
 	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
 	
@@ -669,6 +676,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		$TWorkstation[]=array(
 			'libelle'=>'<a href="workstation.php?action=view&id='.$ws->rowid.'">'.$ws->libelle.'</a>'
 			,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
+			,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
 			,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
 			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
 			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
@@ -714,6 +722,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
 				
 				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_project'=>(!empty($conf->global->ASSET_USE_PROJECT_TASK)) ? $form->select_projects(-1, $assetOf->fk_project, 'fk_project') : ''
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				
@@ -733,11 +742,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
+				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 				,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
 				,'hasChildren' => (int) !empty($Tid)
+				,'user_id'=>$user->id
 			)
 		)
 	);

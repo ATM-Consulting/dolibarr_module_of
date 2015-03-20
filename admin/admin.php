@@ -79,28 +79,35 @@
 	print ajax_constantonoff('USE_LOT_IN_OF');
 	print '</td></tr>';	
 	
-	print '<tr>';
+	print '<tr class="">';
+	print '<td>'.$langs->trans("UseProjectTask").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
+	print '</td></tr>';	
+	
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("AssetDefinedUserByWorkstation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_DEFINED_USER_BY_WORKSTATION');
 	print '</td></tr>';
 	
-	print '<tr class="pair">';
+	print '<tr class="">';
 	print '<td>'.$langs->trans("AssetDefinedTaskByWorkstation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_DEFINED_OPERATION_BY_WORKSTATION');
 	print '</td></tr>';
 	
-	print '<tr>';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	print '<tr class="">';
 	print '<td>'.$langs->trans("AssetUseControl").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';

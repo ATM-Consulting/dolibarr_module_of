@@ -33,6 +33,7 @@
 				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr] - [assetOf.statut_commande;strconv=no;magnet=tr]</td></tr>
 				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no;magnet=tr]</td></tr>
+				<tr><td>Projet</td><td>[assetOf.fk_project;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
@@ -70,6 +71,9 @@
 						[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
 							<th>Utilisateur associé</th>
 						[onshow;block=end]
+						[onshow;block=begin;when [view.use_project_task]=='1']
+							<th>Tâche</th>
+						[onshow;block=end]
 						[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 							<th>Tâche associé</th>
 						[onshow;block=end]
@@ -81,6 +85,9 @@
 						<td>[workstation.libelle;strconv=no;block=tr]</td>
 						[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
 							<td align='center'>[workstation.fk_user;strconv=no]</td>
+						[onshow;block=end]
+						[onshow;block=begin;when [view.use_project_task]=='1']
+							<td align='center'>[workstation.fk_project_task;strconv=no]</td>
 						[onshow;block=end]
 						[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 							<td align='center'>[workstation.fk_task;strconv=no]</td>
@@ -384,7 +391,7 @@
 							var fk_product = $('#fk_product').val();
 							
 							$.ajax({
-								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type
+								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type+"&user_id=[view.user_id]"
 							})
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";
@@ -415,7 +422,7 @@
 							var fk_asset_workstation = $('#fk_asset_workstation').val();
 							
 							$.ajax({
-								url : "script/interface.php?get=addofworkstation&id_assetOf="+idassetOf+"&fk_asset_workstation="+fk_asset_workstation
+								url : "script/interface.php?get=addofworkstation&id_assetOf="+idassetOf+"&fk_asset_workstation="+fk_asset_workstation+"&user_id=[view.user_id]"
 							})
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";
@@ -521,9 +528,9 @@
 		
 		function deleteWS(id_assetOf,idWS) {
 			$.ajax(
-				{url : "script/interface.php?get=deleteofworkstation&id_assetOf=[assetOf.id]&fk_asset_workstation_of="+idWS }
+				{url : "script/interface.php?get=deleteofworkstation&id_assetOf=[assetOf.id]&fk_asset_workstation_of="+idWS+"&user_id=[view.user_id]" }
 			).done(function(){
-				refreshTab(id_assetOf) ;
+				refreshTab(id_assetOf, 'edit') ;
 			});
 			
 		}
