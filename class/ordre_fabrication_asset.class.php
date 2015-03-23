@@ -70,7 +70,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function save(&$PDOdb) {
-		global $user,$langs,$conf;
+		global $user,$langs,$conf, $db;
 
 		$this->set_temps_fabrication();
 		$this->entity = $conf->entity;
@@ -95,7 +95,7 @@ class TAssetOF extends TObjetStd{
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_SAVE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -174,13 +174,13 @@ class TAssetOF extends TObjetStd{
 	
 	function delLine(&$PDOdb,$iline)
 	{
-		global $user,$langs,$conf;
+		global $user,$langs,$conf,$db;
 		
 		$this->TAssetOFLine[$iline]->to_delete=true;
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_DEL_LINE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -320,7 +320,7 @@ class TAssetOF extends TObjetStd{
 
 	//Ajoute une ligne de produit à l'OF
 	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
-		global $user,$langs,$conf;
+		global $user,$langs,$conf,$db;
 		
 		$k = $this->addChild($PDOdb, 'TAssetOFLine');
 		
@@ -341,7 +341,7 @@ class TAssetOF extends TObjetStd{
 		
         // Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_ADD_LINE',$TAssetOFLine,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -537,11 +537,11 @@ class TAssetOF extends TObjetStd{
 
 	function delete(&$PDOdb)
 	{
-		global $user,$langs,$conf;
+		global $user,$langs,$conf,$db;
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_DELETE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -1363,11 +1363,11 @@ class TAssetOFLine extends TObjetStd{
 	
 	function delete(&$PDOdb)
 	{
-		global $user,$lands,$conf;
+		global $user,$lands,$conf,$db;
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_LINE_OF_DELETE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -1480,7 +1480,7 @@ class TAssetOFLine extends TObjetStd{
 	
 	function save(&$PDOdb) 
 	{
-		global $user,$lands,$conf;
+		global $user,$lands,$conf,$db;
 		
 		$this->entity = $conf->entity;
 		
@@ -1492,7 +1492,7 @@ class TAssetOFLine extends TObjetStd{
 
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_LINE_OF_SAVE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -1942,13 +1942,13 @@ class TAssetOFControl extends TObjetStd
 	
 	function save(&$PDOdb)
 	{
-		global $user,$langs,$conf;
+		global $user,$langs,$conf,$db;
 		
 		parent::save($PDOdb);
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_CONTROL_SAVE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
@@ -1958,11 +1958,11 @@ class TAssetOFControl extends TObjetStd
 	
 	function delete(&$PDOdb)
 	{
-		global $user,$langs,$conf;
+		global $user,$langs,$conf,$db;
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-		$interface = new Interfaces($this->db);
+		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_CONTROL_DELETE',$this,$user,$langs,$conf);
 		if ($result < 0)
 		{
