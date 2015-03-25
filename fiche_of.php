@@ -117,13 +117,6 @@ function _action() {
 						unset($row['fk_task']);
 					}
 					
-					//Maj de la progression de la tâche projet
-					if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
-					{
-						$assetOf->TAssetWorkstationOF[$k]->set_project_task($PDOdb, $row['progress']);
-						unset($row['progress']);
-					}
-					
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 				}
 			}

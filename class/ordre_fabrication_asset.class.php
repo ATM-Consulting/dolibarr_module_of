@@ -1363,7 +1363,7 @@ class TAssetOFLine extends TObjetStd{
 	
 	function delete(&$PDOdb)
 	{
-		global $user,$lands,$conf,$db;
+		global $user,$langs,$conf,$db;
 		
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
@@ -1480,7 +1480,7 @@ class TAssetOFLine extends TObjetStd{
 	
 	function save(&$PDOdb) 
 	{
-		global $user,$lands,$conf,$db;
+		global $user,$langs,$conf,$db;
 		
 		$this->entity = $conf->entity;
 		
@@ -1595,7 +1595,6 @@ class TAssetWorkstationOF extends TObjetStd{
 				//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
 				if (!$user->id)	$user->id = GETPOST('user_id');
 				
-				//Nom du poste pour le nom de la tâche
 				$ws = new TAssetWorkstation;
 				$ws->load($PDOdb, $this->fk_asset_workstation);
 				
@@ -1608,6 +1607,8 @@ class TAssetWorkstationOF extends TObjetStd{
 				$projectTask->label = $ws->libelle;
 				$projectTask->fk_task_parent = 0;
 				$projectTask->date_start = $OF->date_lancement;
+				$projectTask->date_end = $OF->date_besoin;
+				$projectTask->planned_workload = $this->nb_hour*3600;
 				
 				$projectTask->create($user);
 				
@@ -1615,20 +1616,62 @@ class TAssetWorkstationOF extends TObjetStd{
 			}
 			elseif ($OF->fk_project > 0 && $this->fk_project_task > 0)
 			{
+				if (!$user->id)	$user->id = GETPOST('user_id');
+				
 				$projectTask = new Task($db);
 				$projectTask->fetch($this->fk_project_task);
+				$projectTask->fk_project = $OF->fk_project;
 				
-				//TODO mettre à jour la charge de travail prévue (convertir en secondes avec des heures de type 3.5 qui vos 3h30)
+				$projectTask->update($user);
+			}
+			elseif ($OF->fk_project == 0 && $this->fk_project_task > 0)
+			{
+				require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+				
+				if (!$user->id)	$user->id = GETPOST('user_id');
+				
+				$projectTask = new Task($db);
+				$projectTask->fetch($this->fk_project_task);
+				$projectTask->delete($user);
+				
+				$this->fk_project_task = 0;
 			}
 			else 
 			{
-				//Aucun projet séléctionné pour l'OF
+				//Rien à faire
 			}
 			
 		}
 		
-	
 		parent::save($PDOdb);
+	}
+
+	function set_values($Tab)
+	{
+		global $db,$user;
+		
+		if ($this->fk_project_task)
+		{
+			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+			
+			$projectTask = new Task($db);
+			$projectTask->fetch($this->fk_project_task);
+			
+			if (isset($Tab['nb_hour']))
+			{
+				$projectTask->planned_workload = Tools::string2num($Tab['nb_hour'])*3600;
+			}
+			
+			if (isset($Tab['progress']))
+			{
+				$projectTask->progress = $Tab['progress'];
+				unset($Tab['progress']);
+			}
+			
+			$projectTask->update($user);
+		}
+		
+		parent::set_values($Tab);
 	}
 	
 	function delete(&$PDOdb)
@@ -1722,6 +1765,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		return $res;
 	}
 	
+	//Mode opératoire et non tâche projet
 	function set_tasks($PDOdb, $Ttask)
 	{
 		if (empty($Ttask)) return false;

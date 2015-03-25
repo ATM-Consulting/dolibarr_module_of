@@ -328,34 +328,38 @@
 									}
 								});
 								
-									$("#"+id_form).submit(function() {
-										var targetForm = this;
-										
-										if ($(this).attr('rel') == 'noajax') return true;
-										
-										var oldInputAction = $(targetForm).children('input[name=action]').val();
-										$(targetForm).children('input[name=action]').val('save');
-										$.ajax({
-											url: $(targetForm).attr('action'),
-											data: $(targetForm).serialize(),
-											type: 'POST',
-											async: false,
-											success: function () {
-												$(targetForm).css('border' , '5px solid green');
-												
-												$(targetForm).animate({ "border": "5px solid green" }, 'slow');
-												$(targetForm).animate({ "border": "0px" }, 'slow');
-																							
-												$.jnotify('Modifications enregistr&eacute;es', "ok");
-											},
-											error: function () {
-												$.jnotify('Une erreur c\'est produite', "error");
-											}
-										});
+								$("#"+id_form).submit(function() {
+									var targetForm = this;
 									
-										$(targetForm).children('input[name=action]').val(oldInputAction);
-										return false;
+									if ($(this).attr('rel') == 'noajax') return true;
+									
+									var oldInputAction = $(targetForm).children('input[name=action]').val();
+									//Soumission du formulaire en ajax, je force manuellement l'action à save pour le bouton Enregistrer
+									$(targetForm).children('input[name=action]').val('save');
+									$.ajax({
+										url: $(targetForm).attr('action'),
+										data: $(targetForm).serialize(),
+										type: 'POST',
+										async: false,
+										success: function () {
+											$(targetForm).css('border' , '5px solid green');
+											
+											$(targetForm).animate({ "border": "5px solid green" }, 'slow');
+											$(targetForm).animate({ "border": "0px" }, 'slow');
+																						
+											$.jnotify('Modifications enregistr&eacute;es', "ok");
+											
+											//Maj de l'affichage du formulaire en question
+											refreshTab($(targetForm).children('input[name=id]').val(), 'edit');									     	
+										},
+										error: function () {
+											$.jnotify('Une erreur c\'est produite', "error");
+										}
 									});
+								
+									$(targetForm).children('input[name=action]').val(oldInputAction);
+									return false;
+								});
 							});
 							
 						}
@@ -495,7 +499,8 @@
 		function refreshTab(id, action) {
 			if (typeof(action) == 'undefined') action = 'view';
 			
-			$.get("fiche_of.php?action="+action+"&id="+id , function(data) {		     	
+			$.get("fiche_of.php?action="+action+"&id="+id , function(data) {	
+					    	
 		     	$('div.OFMaster[assetof_id='+id+'] table.needed').replaceWith(  $(data).find('div.OFMaster[assetof_id='+id+'] table.needed') );
 		     	$('div.OFMaster[assetof_id='+id+'] table.tomake').replaceWith(  $(data).find('div.OFMaster[assetof_id='+id+'] table.tomake') );
 		     	$('div.OFMaster[assetof_id='+id+'] table.workstation').replaceWith(  $(data).find('div.OFMaster[assetof_id='+id+'] table.workstation') );

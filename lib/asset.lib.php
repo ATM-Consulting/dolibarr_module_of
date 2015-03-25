@@ -68,6 +68,8 @@
 	
 	function visu_project_task(&$db, $fk_project_task, $mode, $name)
 	{
+		if (!$fk_project_task) return ' - ';
+			
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 		
