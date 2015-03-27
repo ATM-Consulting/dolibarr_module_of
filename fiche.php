@@ -529,8 +529,9 @@ global $db;
 			else{
 				$soc->fetch($asset->fk_societe_localisation);
 			}
-				
-			return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$asset->fk_soc.'" style="font-weight:bold;">'.img_picto('','object_company.png', '', 0).' '.$soc->nom.'</a>';
+			
+			return $soc->getNomUrl(1);
+			
 		} else {
 			return 'Non défini';
 		}
