@@ -23,6 +23,13 @@
 			case 'add':
 				$fk_asset_workstation = __get('fk_asset_workstation',0,'int');
 				
+				if (!$fk_asset_workstation) 
+				{
+					setEventMessage('Aucun poste de travail séléctionné', 'errors');
+					_liste_link($ATMdb, $fk_product);
+					break;
+				}
+				
 				$wsp = new TAssetWorkstationProduct;
 				$wsp->fk_product = $fk_product;
 				$wsp->fk_asset_workstation = $fk_asset_workstation;
