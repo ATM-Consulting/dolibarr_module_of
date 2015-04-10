@@ -732,7 +732,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				'mode'=>$mode
 				,'status'=>$assetOf->status
 				,'select_product'=>$select_product
-				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
+				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
+				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
 				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
@@ -742,6 +743,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
 				,'hasChildren' => (int) !empty($Tid)
 				,'user_id'=>$user->id
+				,'workstation_module_activate'=>(int) $conf->workstation->enabled
 			)
 		)
 	);

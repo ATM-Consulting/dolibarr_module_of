@@ -59,49 +59,50 @@
 				
 			</table>
 			
-			<div class="of-details" style="margin-top: 25px;">
-				<div style="text-align: right;height:40px;" class="draftedit">
-					[onshow;block=begin;when [view.mode]!='view']
-						<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
-					[onshow;block=end]
+			[onshow;block=begin;when [view.workstation_module_activate]==1]
+				<div class="of-details" style="margin-top: 25px;">
+					<div style="text-align: right;height:40px;" class="draftedit">
+						[onshow;block=begin;when [view.mode]!='view']
+							<a href="#" class="butAction btnaddworkstation" id_assetOf="[assetOf.id]">Ajouter un poste</a>
+						[onshow;block=end]
+					</div>
+					<table width="100%" class="border workstation">
+						<tr style="background-color:#dedede;">
+							<th>Poste de travail</th>
+							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+								<th>Utilisateur associé</th>
+							[onshow;block=end]
+							[onshow;block=begin;when [view.use_project_task]=='1']
+								<th>Tâche</th>
+							[onshow;block=end]
+							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
+								<th>Tâche associé</th>
+							[onshow;block=end]
+							<th>Nb. heures prévues</th>
+							<th>Nb. heures réelles</th>
+							<th class="draftedit">Action</th>
+						</tr>
+						<tr id="WS[workstation.id]" style="background-color:#fff;">
+							<td>[workstation.libelle;strconv=no;block=tr]</td>
+							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+								<td align='center'>[workstation.fk_user;strconv=no]</td>
+							[onshow;block=end]
+							[onshow;block=begin;when [view.use_project_task]=='1']
+								<td align='center'>[workstation.fk_project_task;strconv=no]</td>
+							[onshow;block=end]
+							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
+								<td align='center'>[workstation.fk_task;strconv=no]</td>
+							[onshow;block=end]
+							<td align='center'>[workstation.nb_hour;strconv=no]</td>
+							<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
+							<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
+						</tr>
+						<tr>
+							<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
+						</tr>
+					</table>
 				</div>
-				<table width="100%" class="border workstation">
-					<tr style="background-color:#dedede;">
-						<th>Poste de travail</th>
-						[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-							<th>Utilisateur associé</th>
-						[onshow;block=end]
-						[onshow;block=begin;when [view.use_project_task]=='1']
-							<th>Tâche</th>
-						[onshow;block=end]
-						[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-							<th>Tâche associé</th>
-						[onshow;block=end]
-						<th>Nb. heures prévues</th>
-						<th>Nb. heures réelles</th>
-						<th class="draftedit">Action</th>
-					</tr>
-					<tr id="WS[workstation.id]" style="background-color:#fff;">
-						<td>[workstation.libelle;strconv=no;block=tr]</td>
-						[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-							<td align='center'>[workstation.fk_user;strconv=no]</td>
-						[onshow;block=end]
-						[onshow;block=begin;when [view.use_project_task]=='1']
-							<td align='center'>[workstation.fk_project_task;strconv=no]</td>
-						[onshow;block=end]
-						[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-							<td align='center'>[workstation.fk_task;strconv=no]</td>
-						[onshow;block=end]
-						<td align='center'>[workstation.nb_hour;strconv=no]</td>
-						<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
-						<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
-					</tr>
-					<tr>
-						<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
-					</tr>
-				</table>
-			</div>
-	
+			[onshow;block=end]
 	
 			<div class="of-details" style="margin-top: 25px;">
 				<table width="100%" class="border">
@@ -234,16 +235,18 @@
 			</tr>
 		</table>
 	</div>
-	<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">
-		<table>
-			<tr>
-				<td>Postes de travail : </td>
-				<td>
-					[view.select_workstation;strconv=no]
-				</td>
-			</tr>
-		</table>
-	</div>
+	[onshow;block=begin;when [view.workstation_module_activate]==1]
+		<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">
+			<table>
+				<tr>
+					<td>Postes de travail : </td>
+					<td>
+						[view.select_workstation;strconv=no]
+					</td>
+				</tr>
+			</table>
+		</div>
+	[onshow;block=end]
 </div>
 	
 	<div style="clear:both;"></div>

@@ -91,7 +91,7 @@ class modAsset extends DolibarrModules
 		$this->config_page_url = array("admin.php@asset");
 
 		// Dependencies
-		$this->depends = array('modSociete', 'modCommande', 'modProduct', 'modStock');	// List of modules id that must be enabled if this module is enabled
+		$this->depends = array('modSociete', 'modCommande', 'modProduct', 'modStock', 'modWorkstation');	// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->phpmin = array(5,3);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,5);	// Minimum version of Dolibarr required by module
@@ -124,7 +124,7 @@ class modAsset extends DolibarrModules
 
 		$this->tabs = array(
 			'product:+tabEquipement1:Asset:asset@asset:$user->rights->asset->all->lire:/asset/liste.php?fk_product=__ID__'
-			,'product:+tabOF1:WorkStation:asset@asset:$user->rights->asset->of->lire:/asset/workstation.php?fk_product=__ID__'
+			//,'product:+tabOF1:WorkStation:asset@asset:$user->rights->asset->of->lire:/asset/workstation.php?fk_product=__ID__'  //<= ne plus utiliser voir module workstation
 			,'product:+tabOF2:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_product=__ID__'
 			,'order:+tabOF3:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_commande=__ID__'
 			//,'product:+tabEquipement2:Ordre de Fabrication:@asset:/asset/liste_of.php?fk_product=__ID__'
@@ -275,8 +275,8 @@ class modAsset extends DolibarrModules
 		
 		$r++;
 		
-		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
+		//ASSET WORKSTATION - n'est plus utilisé
+		/*$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetWorkstation'),
 					'mainmenu'=>'asset',
@@ -284,19 +284,6 @@ class modAsset extends DolibarrModules
 					'url'=>'/asset/workstation.php',
 					'position'=>200,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);
-		$r++;
-		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetListWorkstation'),
-					'mainmenu'=>'newworkstation',
-					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/asset/workstation.php',
-					'position'=>201,
-					'enabled'=>'$user->rights->asset->of->lire',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);
@@ -313,7 +300,38 @@ class modAsset extends DolibarrModules
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);
+		$r++;*/
+		
+		
+		
+		//WORKSTATION module
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetWorkstation'),
+					'mainmenu'=>'asset',
+					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/workstation/workstation.php',
+					'position'=>201,
+					'enabled'=>'$conf->workstation->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->workstation->all->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);
 		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
+					'type'=>'left',			// This is a Top menu entry
+					'titre'=>$langs->trans('AssetNewWorkstation'),
+					'mainmenu'=>'newworkstation',
+					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/workstation/workstation.php?action=new',
+					'position'=>202,
+					'enabled'=>'$conf->workstation->enabled',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->workstation->all->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);
+		$r++;
+		/***/
+		
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry

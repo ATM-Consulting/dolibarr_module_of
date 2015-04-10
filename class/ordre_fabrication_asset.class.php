@@ -367,8 +367,10 @@ class TAssetOF extends TObjetStd{
 	 */
 	function addWorkStation($PDOdb, $db, $fk_product) 
 	{
-		$sql = "SELECT fk_asset_workstation, nb_hour";
-		$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+		//$sql = "SELECT fk_asset_workstation, nb_hour";
+		//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+		$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+		$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
 		$sql.= " WHERE fk_product = ".$fk_product;
 		$resql = $db->query($sql);
 		
@@ -1529,10 +1531,11 @@ class TAssetOFLine extends TObjetStd{
 		else return 'Aucun entrepôt séléctionné';
 	}
 }
+
 /*
  * Link to product
  */
-class TAssetWorkstationProduct extends TObjetStd{
+class TAssetWorkstationProduct extends TObjetStd {
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
@@ -1852,21 +1855,32 @@ class TAssetWorkstationOF extends TObjetStd{
 
 
 
-class TAssetWorkstation extends TObjetStd{
+require_once DOL_DOCUMENT_ROOT.'/custom/workstation/class/workstation.class.php';
+
+class TAssetWorkstation extends TWorkstation {
 /*
  * Atelier de fabrication d'équipement
  * */
 	
 	function __construct() {
-		$this->set_table(MAIN_DB_PREFIX.'asset_workstation');
-    	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_usergroup','type=entier;index;');
-		$this->add_champs('libelle','type=chaine;');
-		$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
+		//$this->set_table(MAIN_DB_PREFIX.'asset_workstation');
+    	//$this->TChamps = array(); 	 
+    	
+    	parent::__construct();
+    	 
+		//$this->add_champs('entity,fk_usergroup','type=entier;index;');
+		//$this->add_champs('libelle','type=chaine;');
+		//$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
 		
 	    $this->start();
 		
 		$this->setChild('TAssetWorkstationTask','fk_workstation');
+	}
+	
+	function load(&$PDOdb, $id)
+	{
+		parent::load($PDOdb, $id);
+		$this->libelle = $this->name;
 	}
 	
 	function save(&$PDOdb) {
