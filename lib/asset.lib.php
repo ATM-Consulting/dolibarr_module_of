@@ -48,12 +48,12 @@
 		return $res;
 	}
 
-	
-	function visu_checkbox_task(&$PDOdb, &$form, $fk_asset_workstation, $TTasks, $name, $status)
+	/*Mode opératoire*/
+	function visu_checkbox_task(&$PDOdb, &$form, $fk_workstation, $TTasks, $name, $status)
 	{
 		$include = array();
 		
-		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $fk_asset_workstation;
+		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $fk_workstation;
 		$PDOdb->Execute($sql);
 
 		//Cette input doit être présent que si je suis en brouillon, si l'OF est lancé la présence de cette input va réinitialiser à vide les associations précédentes

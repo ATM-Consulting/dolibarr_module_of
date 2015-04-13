@@ -1882,7 +1882,6 @@ class TAssetWorkstation extends TWorkstation {
 		
 	    $this->start();
 		
-		$this->setChild('TAssetWorkstationTask','fk_workstation');
 	}
 	
 	function load(&$PDOdb, $id)
@@ -1894,6 +1893,7 @@ class TAssetWorkstation extends TWorkstation {
 	function save(&$PDOdb) {
 		global $conf;
 		
+		$this->name = $this->libelle;
 		$this->entity = $conf->entity;
 		
 		parent::save($PDOdb);
