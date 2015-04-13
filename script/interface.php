@@ -132,7 +132,8 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 	$TassetOF->save($PDOdb);
 	
 	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
-	if($type == "TO_MAKE") {
+	if(!empty($conf->workstation->enabled) && $type == "TO_MAKE") 
+	{
 		//$sql = "SELECT fk_asset_workstation, nb_hour"; 
 		$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
 		//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
@@ -140,14 +141,12 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 		$sql.= " WHERE fk_product = ".$fk_product;
 		$resql = $db->query($sql);
 		
-		if($resql) {
-			
-			while($res = $db->fetch_object($resql)) {
-				
+		if($resql) 
+		{
+			while($res = $db->fetch_object($resql)) 
+			{
 				_addofworkstation($PDOdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
-
 			}
-			
 		}
 		
 	}

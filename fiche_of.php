@@ -267,7 +267,7 @@ function generateODTOF(&$PDOdb) {
 	$TNeeded = array(); // Tableau envoyé à la fonction render contenant les informations concernant les produit nécessaires
 	$TWorkstations = array(); // Tableau envoyé à la fonction render contenant les informations concernant les stations de travail
 	$TWorkstationUser = array(); // Tableau de liaison entre les postes et les utilisateurs
-	$TWorkstationTask = array(); // Tableau de liaison entre les postes et les tâches
+	$TWorkstationTask = array(); // Tableau de liaison entre les postes et les tâches 'mode opératoire'
 	$TAssetWorkstation = array(); // Tableau de liaison entre les composants et les postes de travails
 	$TControl = array(); // Tableau de liaison entre l'OF et les controles associés
 	
@@ -351,7 +351,8 @@ function generateODTOF(&$PDOdb) {
 		
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
-			,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
+			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
+			,'nb_hour_max' => utf8_decode($v->ws->nb_hour_capacity)
 			,'nb_hour_real' => utf8_decode($v->nb_hour_real)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 		);
@@ -694,7 +695,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
 		$hasParent = true;
 	}
-	
+
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded

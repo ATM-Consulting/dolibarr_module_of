@@ -367,22 +367,29 @@ class TAssetOF extends TObjetStd{
 	 */
 	function addWorkStation($PDOdb, $db, $fk_product) 
 	{
-		//$sql = "SELECT fk_asset_workstation, nb_hour";
-		//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
-		$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-		$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-		$sql.= " WHERE fk_product = ".$fk_product;
-		$resql = $db->query($sql);
+		global $conf;
 		
-		if($resql) {
-			while($res = $db->fetch_object($resql)) {
-				$ws = new TAssetWorkstation;
-				$ws->load($PDOdb, $res->fk_asset_workstation);
-				$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
-				$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $res->fk_asset_workstation;
-				$this->TAssetWorkstationOF[$k]->nb_hour = $res->nb_hour;
-				$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
-				$this->TAssetWorkstationOF[$k]->ws = $ws;
+		if (!empty($conf->workstation->enabled))
+		{
+			//$sql = "SELECT fk_asset_workstation, nb_hour";
+			//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+			$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+			$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
+			$sql.= " WHERE fk_product = ".$fk_product;
+			$resql = $db->query($sql);
+			
+			if($resql) 
+			{
+				while($res = $db->fetch_object($resql)) 
+				{
+					$ws = new TAssetWorkstation;
+					$ws->load($PDOdb, $res->fk_asset_workstation);
+					$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+					$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $res->fk_asset_workstation;
+					$this->TAssetWorkstationOF[$k]->nb_hour = $res->nb_hour;
+					$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+					$this->TAssetWorkstationOF[$k]->ws = $ws;
+				}
 			}
 		}
 		
@@ -1343,7 +1350,8 @@ class TAssetOFLine extends TObjetStd{
 		if (count($this->workstations) <= 0)
 			return $res;
 		
-		$sql = 'SELECT libelle FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid IN ('.implode(',', $this->workstations).')';
+		//$sql = 'SELECT libelle FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid IN ('.implode(',', $this->workstations).')';
+		$sql = 'SELECT name as libelle FROM '.MAIN_DB_PREFIX.'workstation WHERE rowid IN ('.implode(',', $this->workstations).')';
 		$resql = $db->query($sql);
 		
 		while ($r = $db->fetch_object($resql)) 
