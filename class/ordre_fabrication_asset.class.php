@@ -439,7 +439,7 @@ class TAssetOF extends TObjetStd{
 			if($AssetOFLine->type == "TO_MAKE")
 			{
 				if($AssetOFLine->makeAsset($PDOdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty, 0, $AssetOFLine->lot_number)) {
-				    $AssetOFLine->destockAsset($PDOdb, -$AssetOFLine->qty); // On stock les nouveaux équipements
+				   $AssetOFLine->destockAsset($PDOdb, -$AssetOFLine->qty); // On stock les nouveaux équipements
 				}
                 else{
                    setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
@@ -448,7 +448,8 @@ class TAssetOF extends TObjetStd{
 			} 
 			else 
 			{
-                $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+				//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty);
 			}
 		}
 
@@ -472,7 +473,8 @@ class TAssetOF extends TObjetStd{
             {
                 if($AssetOFLine->type == 'NEEDED')
                 {
-                    $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
+                    //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+                    $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty);
                 }
             }
         }
@@ -686,7 +688,7 @@ class TAssetOF extends TObjetStd{
 						}
 
 					} 
-					else { // Fournisseur interne (Bourguignon)
+					else { // Fournisseur interne (Bourguignon) [PH - 14/04/15 - FIXME c'est pas que pour bourguignon ?]
 					
 						if($ofLigne->fk_product_fournisseur_price == -1) { // Sortie de stock, kill OF enfants
 							
@@ -704,7 +706,8 @@ class TAssetOF extends TObjetStd{
 
 						}
 						elseif($ofLigne->fk_product_fournisseur_price == -2){ // Fabrication interne
-							$prod = new Product($db);
+							//[PH] FIXME - pourquoi on destock maintenant ? On valide tt juste l'OF 
+							/*$prod = new Product($db);
 							$prod->fetch($ofLigne->fk_product);
 							$prod->load_stock();
 							
@@ -713,12 +716,12 @@ class TAssetOF extends TObjetStd{
 							// On récupère son stock
 							foreach($prod->stock_warehouse as $stock) {
 								$stockProd += $stock->real;
-							}	
+							}
 							
 							// S'il y a sufisemment de stock, on destocke
 							if($stockProd >= $ofLigne->qty_needed) {
 								$assetOF->openOF($PDOdb);
-							}
+							}*/
 													
 						}
 						
@@ -929,8 +932,7 @@ class TAssetOF extends TObjetStd{
 		$qtyIsValid = true;
 		foreach($this->TAssetOFLine as $TAssetOFLine)
 		{
-			$qtyIsValid = $qtyIsValid & $TAssetOFLine->setAsset($PDOdb,$this, false);
-			
+			$qtyIsValid &= $TAssetOFLine->setAsset($PDOdb,$this, false);
 		}
 		
 		return $qtyIsValid;
@@ -1084,7 +1086,8 @@ class TAssetOFLine extends TObjetStd{
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
 	}
 	
-    function destockAsset(&$PDOdb, $qty_to_destock) {
+    function destockAsset(&$PDOdb, $qty_to_destock) 
+    {
         global $conf;
         
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout 
@@ -1094,12 +1097,19 @@ class TAssetOFLine extends TObjetStd{
 
 		$fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 		
+		$OF = new TAssetOF;
+		$OF->load($PDOdb, $this->fk_assetOf);
+		
         if($conf->global->USE_LOT_IN_OF) 
         {
             $asset=new TAsset;
-            $asset->addStockMouvementDolibarr($this->fk_product,$qty_to_destock,'Utilisation via Ordre de Fabrication n°'.$this->numero, false, 0, $fk_entrepot);
+            //$asset->addStockMouvementDolibarr($this->fk_product,$qty_to_destock,'Utilisation via Ordre de Fabrication n°'.$OF->numero, false, 0, $fk_entrepot);
             
-            return true;    
+            
+            //$asset->contenancereel_value -= $qty_to_destock_rest;
+			//TODO Manque le destockage de $asset->contenancereel_value
+			
+            //return true;
         }
         
         $TAsset = $this->getAssetLinked($PDOdb);
@@ -1114,7 +1124,7 @@ class TAssetOFLine extends TObjetStd{
              }
             
              $asset->save($PDOdb,$user
-                     ,'Utilisation via Ordre de Fabrication n°'.$this->numero.' - Equipement : '.$asset->serial_number
+                     ,'Utilisation via Ordre de Fabrication n°'.$OF->numero.' - Equipement : '.$asset->serial_number
                      ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot);
             
             $qty_to_destock_rest-= $qty_asset_to_destock;
@@ -1124,7 +1134,7 @@ class TAssetOFLine extends TObjetStd{
         
         $this->qty_stock += -$sens * $qty_to_destock;
         
-        $this->save($PDOdb);
+        return $this->save($PDOdb);
     }
     
 	//Affecte les équipements à la ligne de l'OF
@@ -1175,57 +1185,24 @@ class TAssetOFLine extends TObjetStd{
 			$nbAssetFound = count($Tab);
 			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
 			$qty_needed = $this->qty;
-			$break=false;
 			
-           
             if ($nbAssetFound == 0) {
                 $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
                 $no_error = false;                 
             }
-            else {
-               
-               foreach($Tab as $row) {
-            
-                    $asset=new TAsset;
-                    $asset->load($PDOdb, $row->rowid);
-                    
-                    // Si j'ai assez de contenu dans mon équipement
-                    if ($asset->contenancereel_value - $qty_needed >= 0)
-                    {
-                        $qty_to_destock = $qty_needed;
-                        $break = true;
-                    }
-                    else 
-                    {
-                        // sinon si cumulable
-                        $qty_to_destock = $asset->contenancereel_value;
-                        $qty_needed -= $asset->contenancereel_value;
-                    }
-                        
-                    if($forReal) {
-                        $this->addAssetLink($asset);
-                    
-                        if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
-                        else $fk_entrepot = $asset->fk_entrepot;
-                        
-                        $asset->status = 'indisponible';
-                        //On affiche aussi l'ID de l'équipement dans la description pcq le serial_number peut être vide
-                        //$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
-                        $asset->save($PDOdb,$user);
-                    }
-                
-                    if ($break) break;
-                }
-                    
-    
+            else 
+            {
+            	//On fait un 1er tour pour vérifier la qté
+        		$qtyIsEnough = $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal, false);
+            	   
+				if (!$qtyIsEnough) $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+				else $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal);
+				
+				$no_error = $qtyIsEnough;
             }
 			
-			
-            
 		}
-
-        
-
+		
         //TODO on créé un équipement si non trouver, voir pour réintégrer ce comportement sur paramétrage 
 		/*
 		$this->fk_asset = $idAsset;
@@ -1234,6 +1211,58 @@ class TAssetOFLine extends TObjetStd{
         if(!$no_error) return false;
         else return true;
 	}
+
+	/*
+	 * 
+	 * Return true si la quantité d'équipement est suffisante
+	 */
+	function checkAddAssetLink(&$PDOdb, $Tab, $qty_needed, $forReal, $addLink=true)
+	{
+		$break = false;
+		
+		foreach($Tab as $row) 
+	   	{
+    	 	$asset=new TAsset;
+         	$asset->load($PDOdb, $row->rowid);
+	        
+			//Contient la liste des asset
+			$TAsset = $asset->getAssetLinked($PDOdb);
+			
+	         // Si j'ai assez de contenu dans mon équipement
+	         if ($asset->contenancereel_value - $qty_needed >= 0)
+	         {
+	             $qty_to_destock = $qty_needed;
+	             $break = true;
+	         }
+	         else 
+	         {
+	             // sinon si cumulable
+	             $qty_to_destock = $asset->contenancereel_value;
+	             $qty_needed -= $asset->contenancereel_value;
+	         }
+	          
+		     if($forReal && $addLink) {
+		         $this->addAssetLink($asset);
+		    
+		         if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		         else $fk_entrepot = $asset->fk_entrepot;
+		        
+				 //il faut aussi destocker la contenance
+				 //$asset->contenancereel_value -= $qty_to_destock;
+				
+		         $asset->status = 'indisponible';
+		         //On affiche aussi l'ID de l'équipement dans la description pcq le serial_number peut être vide
+		         //$asset->save($PDOdb,$user,'Utilisation via Ordre de Fabrication n°'.$AssetOf->numero.' - Equipement : '.$asset->getId().' - '.$asset->serial_number, -$qty_to_destock, false, 0, false, $fk_entrepot);
+		         $asset->save($PDOdb,$user);
+		     }
+	    
+	         if ($break) break;
+		}
+
+		return $break;
+	}
+
+
     function getAssetLinkedLinks(&$PDOdb, $r='<br />', $sep='<br />') {
         
         $TAsset = $this->getAssetLinked($PDOdb);
@@ -1261,11 +1290,11 @@ class TAssetOFLine extends TObjetStd{
         return $Tab;
     }
 
-    function addAssetLink(&$asset) {
-        
+    function addAssetLink(&$asset) 
+    {
         TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
-        
     }
+	
 	function initConditionnement(&$PDOdb) {
 	    
         $assetType = new TAsset_type; 
@@ -1285,21 +1314,40 @@ class TAssetOFLine extends TObjetStd{
 	//Utilise l'équipement affecté à la ligne de l'OF
 	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty_to_make, $idAsset = 0, $lot_number = '')
 	{
-	   global $user,$conf;
+	   	global $user,$conf;
        
-        if($conf->global->USE_LOT_IN_OF) return true;
+	   	//INFO : si on utilise pas les lots on a pas besoin de créer des équipements => on gère uniquement des mvt de stock
+        if(!$conf->global->USE_LOT_IN_OF) return true;
        
 		include_once 'asset.class.php';
 
         $assetType = new TAsset_type;
-        if($assetType->load_by_fk_product($PDOdb, $fk_product)) {
-            $contenance_max = $assetType;
+        if($assetType->load_by_fk_product($PDOdb, $fk_product)) 
+        {
+        	/* On fabrique de la contenance et non pas une quantité de produit au sens strict
+        	 * Si on fabrique un produit au sens strict, le type d'équipement de ce produit aura une contenance max à 1, donc ça marche pareil
+        	 * En revanche, on a un sac de sable à moitier vide, s'il est réutilisable on va le remplir puis en créer si besoin
+        	 * 
+			 * A penser :	   [1] [2] [3]
+			 * Périsable :		1	0	1
+			 * Réutilisable :	0	1	1
+			 * 
+			 * [1] => on crée de nouveaux équipements
+			 * [2] => on réutilise
+			 * [3] => si la qté de l'équipement courant = 0 alors on réutilise
+			 * 
+			 * Dans le process de la validation de la production, les TO_MAKE doivent pré-séléctionner les équipements possibles à la réutilisation
+			 * Quand on "Termine" l'OF il faudra prendre la liste des équipements liés pour les remplir puis en créer si nécessaire
+			 */
+			 
+            $contenance_max = $assetType->contenance_value;
             $nb_asset_to_create = ceil($qty_to_make / $contenance_max);
             
+			//Qté restante a fabriquer
             $qty_to_make_rest = $qty_to_make;
             
-            for($i=0;$i<$nb_asset_to_create;$i++) {
-                
+            for($i=0; $i<$nb_asset_to_create; $i++) 
+            {
                 $TAsset = new TAsset;
                 $TAsset->fk_soc = 0;
                 $TAsset->fk_product = $fk_product;
@@ -1318,14 +1366,7 @@ class TAssetOFLine extends TObjetStd{
 
                 
                 $TAsset->contenancereel_value = $qty_to_make_asset;
-                
-                if($conf->global->USE_LOT_IN_OF)
-                {
-                    $TAsset->lot_number = $this->lot_number;
-                }
-                else{
-                    $TAsset->lot_number = $lot_number;
-                }
+                $TAsset->lot_number = $lot_number;
                  
                 if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
                 else $fk_entrepot = $TAsset->fk_entrepot;
@@ -1335,7 +1376,7 @@ class TAssetOFLine extends TObjetStd{
                 $this->addAssetLink($TAsset);
                 
             }
-            
+
             return true;
         }
         else{

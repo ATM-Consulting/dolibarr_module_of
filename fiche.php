@@ -186,6 +186,15 @@ function _action() {
 				<?
 				
 				break;
+				
+			case 'view':
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load_asset_type($PDOdb);
+				$asset->load_liste_type_asset($PDOdb);
+				
+				_fiche($asset, 'view');
+				break;
 		}
 		
 	}
@@ -374,12 +383,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	}
 	else{
 		$tpl_fiche = "fiche.tpl.php";
-	}	
-
-	if($conf->clinomadic->enabled){
-		
 	}
-	
     
     $fk_product = (int)GETPOST('fk_product');
     if(!$fk_product) $fk_product=$asset->fk_product;
@@ -459,13 +463,14 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
 
-function _fiche_visu_produit(&$asset, $mode,$type='') {
-global $db, $conf, $langs;
+function _fiche_visu_produit(&$asset, $mode,$type='') 
+{
+	global $db, $conf, $langs;
 	
 	dol_include_once('/product/class/html.formproduct.class.php');
 	
 	if(($mode=='edit' || $mode=='new') && $type == "") {
-		ob_start();	
+		ob_start();
 		$html=new Form($db);
 		print $html->textwithpicto($html->select_produits((!empty($_REQUEST['fk_product']))? $_REQUEST['fk_product'] :$asset->fk_product,'fk_product','',$conf->product->limit_size,0,-1,2,'',3,array()), $langs->trans('CreateAssetFromProductDescListProduct'), 1, 'help', '', 0, 3);
 		
@@ -565,8 +570,9 @@ global $db;
 	}
 }
 
-function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) {
-global $db;
+function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3) 
+{
+	global $db;
 	
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
@@ -574,52 +580,45 @@ global $db;
 	$ATMdb = new TPDOdb;
 	$objType = new TAsset_type;
 	$objType->load($ATMdb, $asset->fk_asset_type);
-	
-	if($mode=='edit') {
-		ob_start();	
-		
+
+	if($mode=='edit')
+	{
 		$html=new FormProduct($db);
 
-		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
-			echo "unité(s)";
+		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit')
+		{
+			return custom_load_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name); // <= maintenant même pour unit
+			//return "unité(s)"; <= avant
 		}
-		else{
-			echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
+		else
+		{
+			return custom_load_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $asset->$name : $asset->assetType->$name);
 			//($asset->$name != "")? $asset->$name : $defaut
 		}
-
-		
-		return ob_get_clean();
-		
 	}
-	elseif($mode=='new'){
-		ob_start();	
-		
+	elseif($mode=='new')
+	{		
 		$html=new FormProduct($db);
 		
 		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
-			echo "unité(s)";
+			return custom_load_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
+			//return "unité(s)";
 		}
-		else{
-			echo $html->select_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
+		else
+		{
+			return custom_load_measuring_units($name, $asset->assetType->measuring_units, ($asset->getId()) ? $defaut : $asset->assetType->$name);
 			//($asset->$name != "")? $asset->$name : $defaut
 		}
-
-		
-		return ob_get_clean();
 	}
-	else{
-		ob_start();
-		
+	else
+	{
 		if($asset->gestion_stock == 'UNIT' || $asset->assetType->measuring_units == 'unit'){
-			echo "unité(s)";
+			return "unité(s)";
 		}
-		else{
-			echo measuring_units_string($asset->$name, $asset->assetType->measuring_units);
+		else
+		{
+			return measuring_units_string($asset->$name, $asset->assetType->measuring_units);
 		}
-
-		
-		return ob_get_clean();
 	}
 }
 

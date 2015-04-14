@@ -101,6 +101,11 @@ function _liste($id_entity) {
 	if(dolibarr_get_const($db, "ASSET_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY e.rowid DESC";
 	
 	$THide = array('fk_soc','fk_product');
+	if (empty($conf->global->USE_LOT_IN_OF))
+	{
+		$THide[] = 'lot_number';
+	}
+	
 	if(isset($_REQUEST['fk_product'])) {
 		$THide[] = 'Produit,ID';
 	}
@@ -133,7 +138,8 @@ function _liste($id_entity) {
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+			'ID'=>'<a href="'.dol_buildpath('asset/fiche.php?id=@val@&action=view', 2).'">@val@</a>'
+			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
 			,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 		)

@@ -17,7 +17,7 @@ traite_get($PDOdb, $get);
 function traite_get(&$PDOdb, $case) {	
 	switch (strtolower($case)) {
         case 'autocomplete':
-            __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product')));
+            __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product'),GETPOST('type_product')));
             break;
         case 'autocomplete-serial':
             __out(_autocompleteSerial($PDOdb,GETPOST('lot_number')));
@@ -74,8 +74,9 @@ function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of)
 
 function _autocompleteSerial(&$PDOdb, $lot='') {
         
-    $sql = 'SELECT DISTINCT(a.serial_number) ';
-    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE 1 ';
+    //$sql = 'SELECT DISTINCT(a.serial_number) ';
+    $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
+    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE a.contenancereel_value > 0 ';
     
     if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote($lot.'%').' ';
     
@@ -84,7 +85,12 @@ function _autocompleteSerial(&$PDOdb, $lot='') {
     $PDOdb->Execute($sql);
     while ($PDOdb->Get_line()) 
     {
-        $TResult[] = $PDOdb->Get_field('serial_number');
+    	$serial = $PDOdb->Get_field('serial_number');
+		
+		/* Merci de conserver les crochets autour de l'ID et de le laisser en début de chaine
+		 * je m'en sert pour matcher côté js pour retrouver facilement l'ID dans la chaîne pour le lien d'ajout
+		 */
+        $TResult[] = '['.$PDOdb->Get_field('rowid').'] Numéro : '.($serial ? $serial : '(vide)').', contenance actuelle : '.$PDOdb->Get_field('contenancereel_value');
     }
     
     $PDOdb->close();
@@ -92,7 +98,7 @@ function _autocompleteSerial(&$PDOdb, $lot='') {
     
 }
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$lot_number=0, $table='assetlot')
+function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table='assetlot')
 {
 	$value = trim($value);
 	
@@ -101,14 +107,15 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$lot_number=0, $t
 	
 	if($fk_product)
 	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.($type_product == 'NEEDED' ? 'AND a.contenancereel_value > 0' : '').') ';
+		//var_dump($sql);
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
 	
 	if (!empty($value)) $sql .= 'WHERE al.'.$fieldcode.' LIKE '.$PDOdb->quote($value.'%').' ';
 	
-	if (!empty($value) && $fk_product) $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
-	elseif ($fk_product) $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';
+	if (!empty($value) && $fk_product && $type_product == 'NEEDED') $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
+	elseif ($fk_product && $type_product == 'NEEDED') $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';
 	
 	$sql .= 'ORDER BY al.'.$fieldcode;
 //		print $sql;
@@ -124,7 +131,7 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$lot_number=0, $t
 
 function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = '')
 {	
-	global $db;
+	global $db,$conf;
 	
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($PDOdb, $id_assetOf);

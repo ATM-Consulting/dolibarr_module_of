@@ -80,6 +80,12 @@ class TAsset extends TObjetStd{
         return TRequeteCore::_get_id_by_sql($PDOdb, $sql, 'fk_target');
         
     }
+	
+	public static function del_element_element(&$PDOdb, $fk_source, $fk_target, $targetType)
+	{
+		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $fk_source.' AND fk_target = '.(int) $fk_target.' AND sourcetype="TAssetOFLine" AND targettype = '.$PDOdb->quote($targetType);
+		return $PDOdb->Execute($sql); 
+	}
 
 	function reinit() {
 		$this->rowid = 0;
@@ -176,7 +182,6 @@ class TAsset extends TObjetStd{
 		
 		if(!$destock_dolibarr_only) 
 		{
-		  
 			if(empty($this->serial_number))
 			{
 				$this->serial_number = $this->getNextValue($PDOdb);
@@ -231,8 +236,7 @@ class TAsset extends TObjetStd{
 	function addStockMouvementDolibarr($fk_product,$qty,$description, $destock_dolibarr_only = false, $fk_prod_to_destock=0,$fk_entrepot=0)
 	{
 		global $db, $user,$conf;
-		//echo ' ** 1 ** ';
-		// Mouvement de stock standard Dolibarr, attention Entrepôt 1 mis en dur
+
 		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 
@@ -266,7 +270,7 @@ class TAsset extends TObjetStd{
 			$qty = $qty / ($qty_product * pow(10,$unite));
 			$qty = round($qty,5);
 		}
-		
+				
 		if($fk_entrepot > 0)
 		{			
 			//TODO finaliser cette partie spécifique
@@ -281,6 +285,7 @@ class TAsset extends TObjetStd{
 				} else {
 					$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, 0, $description);
 				}
+				
 			//}
 		}
 	}
@@ -594,6 +599,7 @@ class TAssetStock extends TObjetStd{
 }
 
 class TAsset_type extends TObjetStd {
+	
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'asset_type');
 		parent::add_champs('libelle,code,reutilisable,masque,gestion_stock,measuring_units','type=chaine;');
@@ -611,7 +617,6 @@ class TAsset_type extends TObjetStd {
 				'QUANTITY'=>'Quantitative'
 			);
 	}
-	
 	
 	function load_by_code(&$PDOdb, $code){
 		$sqlReq="SELECT rowid FROM ".MAIN_DB_PREFIX."asset_type WHERE code='".$code."'";
@@ -640,15 +645,12 @@ class TAsset_type extends TObjetStd {
     
 	public static function getIsCumulate(&$PDOdb, $fk_product)
 	{
-		
 		$assetType = new TAsset_type;
 		if($assetType->load_by_fk_product($PDOdb, $fk_product)) {
 		  return (int) $assetType->cumulate;    
 		}
         
-        
-        return false;   
-        		
+        return false;   	
 	}
     
 	function getDefaultContenance($fk_product=0) {
@@ -778,6 +780,8 @@ class TAsset_type extends TObjetStd {
 		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
 		
 		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
+		
+		if ($this->gestion_stock == 'UNIT') $this->measuring_units = 'unit';
 		
 		parent::save($db);
 		

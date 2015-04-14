@@ -204,7 +204,12 @@
 			[onshow;block=begin;when [view.mode]=='view']
 				<div class="tabsAction notinparentview buttonsAction">
 					
-					<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="if(confirm('Supprimer cet Ordre de Fabrication?'))document.location.href='?action=delete&id=[assetOf.id]'">
+					[onshow;block=begin;when [view.status]=='CLOSE']
+						<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">Supprimer</a>
+					[onshow;block=end]
+					[onshow;block=begin;when [view.status]!='CLOSE']
+						<a onclick="if(confirm('Supprimer cet Ordre de Fabrication?')) return true;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
+					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
 					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
 					
@@ -479,20 +484,43 @@
 			
 			[onshow;block=begin;when [view.use_lot_in_of]==1]
 				$(".TAssetOFLineLot").each(function(){
-					fk_product = $(this).attr('fk_product');
+					var fk_product = $(this).attr('fk_product');
+					var type = $(this).attr('type_product');
 					$(this).autocomplete({
-						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product,
+						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product+"&type_product="+type,
 						minLength : 1
+					}).change(function() {
+						var inputTarget = $(this).parent().next().find('input[rel=add-asset]');
+						$(inputTarget).autocomplete({
+							source: "script/interface.php?get=autocomplete-serial&json=1&lot_number="+$('input[rel=lot-'+$(inputTarget).attr('fk-asset-of-line')+']').val()
+							,minLength: 1
+							,select: function(event, ui) {
+								var value = ui.item.value;
+							}
+						});
 					});
 				})
 				
 				$('input[rel=add-asset]').each(function(){
 				    
 				    var idline = $(this).attr('fk-asset-of-line');
-                    lot = $('input[rel=lot-'+idline+']').val();
+                    var lot = $('input[rel=lot-'+idline+']').val();
                     $(this).autocomplete({
-                        source: "script/interface.php?get=autocomplete-serial&json=1&lot_number="+lot,
-                        minLength : 1
+                        source: "script/interface.php?get=autocomplete-serial&json=1&lot_number="+lot
+                        ,minLength : 1
+                        ,select: function(event, ui) {
+							var value = ui.item.value;
+							var res = value.match(/^\[[0-9]*\]/g);
+							
+							if (res.length){
+								res = res[0].substr(1, res[0].length-2);
+							} else {
+								res = 0;
+							}
+							
+							var href = $(this).parent().children('a').attr('base-href');
+							$(this).parent().children('a').attr('href', href+res)
+						}
                     });
                 })
 				
