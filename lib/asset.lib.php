@@ -35,14 +35,22 @@
 	{
 		$include = array();
 		
-		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) WHERE uu.fk_usergroup = '.(int) $group;
+		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user 
+		  FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) 
+		  WHERE uu.fk_usergroup = '.(int) $group;
 		$PDOdb->Execute($sql);
 		
 		//Cette input doit être présent que si je suis en brouillon, si l'OF est lancé la présence de cette input va réinitialiser à vide les associations précédentes
-		if ($status == 'DRAFT' && $form->type_aff == 'edit') $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
+		if ($status == 'DRAFT' && $form->type_aff == 'edit') {
+		    $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
+        }
+            
 		while ($PDOdb->Get_line()) 
 		{
-			if ($status == 'DRAFT' || (in_array($PDOdb->Get_field('fk_user'), $TUsers))) $res .= '<p style="margin:4px 0">'.$form->checkbox1($PDOdb->Get_field('lastname').' '.$PDOdb->Get_field('firstname'), $name, $PDOdb->Get_field('fk_user'), (in_array($PDOdb->Get_field('fk_user'), $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_before').'</p>';
+			if ($status == 'DRAFT' || (in_array($PDOdb->Get_field('fk_user'), $TUsers))) {
+			    $res .= '<p style="margin:4px 0">'
+			                 .$form->checkbox1($PDOdb->Get_field('lastname').' '.$PDOdb->Get_field('firstname'), $name, $PDOdb->Get_field('fk_user'), (in_array($PDOdb->Get_field('fk_user'), $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_before').'</p>';
+            }
 		}
 		
 		return $res;
@@ -149,7 +157,7 @@
 	 *	@param	int		$show_empty		Add an empty line
 	 *	@return string         		    select or options if OK, void if KO
 	 */
-	function custom_select_projects($socid=-1, $selected='', $htmlname='projectid', $maxlength=25, $option_only=0, $show_empty=1)
+	function custom_select_projects($socid=-1, $selected='', $htmlname='projectid', $type_aff = 'view', $maxlength=25, $option_only=0, $show_empty=1)
 	{
 		global $user,$conf,$langs,$db;
 	
@@ -157,7 +165,7 @@
 	
 		$out='';
 	
-		if ($this->type_aff == 'view')
+		if ($type_aff == 'view')
 		{
 			if ($selected > 0)
 			{
@@ -191,7 +199,7 @@
 		if ($socid > 0)  $sql.= " AND (p.fk_soc=".$socid." OR p.fk_soc IS NULL)";
 		$sql.= " ORDER BY p.ref ASC";
 	
-		dol_syslog(get_class($this)."::select_projects sql=".$sql,LOG_DEBUG);
+	
 		$resql=$db->query($sql);
 		if ($resql)
 		{

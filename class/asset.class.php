@@ -669,8 +669,8 @@ class TAsset_type extends TObjetStd {
             $product->fetch($fk_product);
              
             if($unite=='size') $contenance = $product->length; 
-            else $contenance = $product->{$unite}; // TODO prendre en compte l'unité car j'ai la flemme
-            
+            elseif(isset($product->{$unite})) $contenance = $product->{$unite}; // TODO prendre en compte l'unité car j'ai la flemme
+            else $contenance = 0;
         }
         
         if(empty($contenance)) $contenance = $this->contenancereel_value;

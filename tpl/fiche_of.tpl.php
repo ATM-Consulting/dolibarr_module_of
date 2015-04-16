@@ -85,7 +85,7 @@
 						<tr id="WS[workstation.id]" style="background-color:#fff;">
 							<td>[workstation.libelle;strconv=no;block=tr]</td>
 							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-								<td align='center'>[workstation.fk_user;strconv=no]</td>
+								<td align="left">[workstation.fk_user;strconv=no]</td>
 							[onshow;block=end]
 							[onshow;block=begin;when [view.use_project_task]=='1']
 								<td align='center'>[workstation.fk_project_task;strconv=no]</td>
