@@ -32,7 +32,7 @@ class TAssetOF extends TObjetStd{
 		
 		$this->start();
 		
-		$this->workstations=array();
+		$this->TWorkstation=array();
 		$this->status='DRAFT';
 		
 		$this->setChild('TAssetOFLine','fk_assetOf');
@@ -1080,7 +1080,7 @@ class TAssetOFLine extends TObjetStd{
 		
 		$this->errors = array();
 		$this->TFournisseurPrice=array();
-		$this->workstations=array();
+		$this->TWorkstation=array();
 		
 	    $this->start();
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
@@ -1385,29 +1385,22 @@ class TAssetOFLine extends TObjetStd{
 		
 	}
 	
-	function getWorkstationsPDF(&$db)
+	function getWorkstationsPDF(&$db) //TODO AA c'est quoi ce nom de fonction de merde ?!
 	{
-		$res = '';
-		if (count($this->workstations) <= 0)
-			return $res;
 		
-		//$sql = 'SELECT libelle FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid IN ('.implode(',', $this->workstations).')';
-		$sql = 'SELECT name as libelle FROM '.MAIN_DB_PREFIX.'workstation WHERE rowid IN ('.implode(',', $this->workstations).')';
-		$resql = $db->query($sql);
-		
-		while ($r = $db->fetch_object($resql)) 
-		{
-			$res .= $r->libelle.', ';
-		}
-		
-		$res = rtrim($res, ', ');
-		
-		return $res;
+		$r='';
+			
+        foreach($this->TWorkstation as &$w) {
+            if(!empty($r)) $r.=', ';
+            $r.=$w->name;
+        }    
+            
+		return $r;
 	}
 	
 	function load(&$PDOdb, $id) {
 		parent::load($PDOdb, $id);
-		$this->workstations = $this->get_workstations($PDOdb);
+		$this->load_workstations($PDOdb);
 		
 		$this->loadFournisseurPrice($PDOdb);
 	}
@@ -1436,7 +1429,7 @@ class TAssetOFLine extends TObjetStd{
 		parent::delete($PDOdb);
 	}
 	
-	function set_workstations(&$PDOdb, $Tworkstations)
+	function set_workstations(&$PDOdb, $TWorkstations)
 	{
 		if (empty($Tworkstations)) return false;
 	
@@ -1449,11 +1442,11 @@ class TAssetOFLine extends TObjetStd{
 		$sql.= ') VALUES ';
 		
 		$save = false;
-		foreach ($Tworkstations as $id_workstation) 
+		foreach ($TWorkstations as $id_workstation) 
 		{
 			if ($id_workstation <= 0) continue;
 			
-			$this->workstations[] = $id_workstation;
+			$this->TWorkstation[] = $id_workstation;
 			$save = true;
 			
 			$sql.= '(';
@@ -1471,18 +1464,24 @@ class TAssetOFLine extends TObjetStd{
 		}
 	}
 	
-	function get_workstations(&$PDOdb)
-	{		
-		$res = array();
-		
+	function load_workstations(&$PDOdb)
+	{
+	    
+        $this->TWorkstation=array();
+        		
 		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
 		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
 		$sql.= ' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 		
-		$PDOdb->Execute($sql);
-		while ($PDOdb->Get_line()) $res[] = $PDOdb->Get_field('fk_target');
+		$Tab = $PDOdb->ExecuteAsArray($sql);
+		foreach($Tab as $row) {
+		    $w=new TWorkstation;
+            $w->load($PDOdb, $row->fk_target);
+            
+		    $this->TWorkstation[] = $w; 
+        }
 		
-		return $res;
+		return $this->TWorkstation;
 	}	
 	
 	function visu_checkbox_workstation(&$db, &$of, &$form, $name)
@@ -1495,7 +1494,7 @@ class TAssetOFLine extends TObjetStd{
 		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
 		while ($r = $db->fetch_object($resql)) 
 		{
-			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->workstations) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before') . '</p>';
+			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->TWorkstation) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before') . '</p>';
 		}
 		
 		return $res;
