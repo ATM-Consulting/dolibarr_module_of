@@ -82,6 +82,11 @@ function _liste($id_entity) {
 	
 	if($conf->clinomadic->enabled && isset($_REQUEST['pret']) && $_REQUEST['pret'] == 1 ){
 		$sql .= " WHERE etat = 2"; //prêté
+		$sql = "SELECT e.rowid as 'ID', e.serial_number, p.rowid as 'fk_product', p.label, s.rowid as 'fk_soc', s.nom,
+				e.date_deb_pret as 'Date debut pret', e.date_fin_pret as 'Date fin pret'
+				FROM ((llx_asset e LEFT OUTER JOIN llx_product p ON (e.fk_product=p.rowid))
+				LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe s ON (e.fk_societe_localisation=s.rowid))
+				WHERE etat = 2";
 	}
 	else{
 		$sql .= " WHERE 1";
@@ -145,7 +150,7 @@ function _liste($id_entity) {
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
-		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date')
+		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date','Date fin pret'=>'date','Date debut pret'=>'date')
 		,'liste'=>array(
 			'titre'=> ($conf->clinomadic->enabled && isset($_REQUEST['pret']) && $_REQUEST['pret'] == 1 ) ?  'Liste des '.$langs->trans('Asset').' prêté' : 'Liste des '.$langs->trans('Asset')
 			,'image'=>img_picto('','title.png', '', 0)

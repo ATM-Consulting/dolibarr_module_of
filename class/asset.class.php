@@ -432,7 +432,8 @@ class TAsset extends TObjetStd{
 	function retour_pret(&$PDOdb,$fk_entrepot){
 		
 		//On remet en stock l'équipement
-		$this->addStockMouvement($PDOdb, 1, "Retour de prêt",false,0,$fk_entrepot);
+		$this->addStockMouvement($PDOdb, 1, "Retour de prêt : ".$this->serial_number,false,0,$fk_entrepot);
+		$this->fk_societe_localisation = 8767;
 
 		//Réinitialisation des dates de pret et du statut
 		$this->etat = 0;
