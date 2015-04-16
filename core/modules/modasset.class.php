@@ -61,7 +61,7 @@ class modAsset extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Gestion des &eacute;quipements";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '2.0';
+		$this->version = '2.1';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -510,8 +510,10 @@ class modAsset extends DolibarrModules
 		$param = array('options'=>array("asset_type:libelle:rowid"=>""));
 		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'sellist', 0, 255, 'product',0,0,'',$param);
 
-		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
-		file_get_contents($url);
+        define('INC_FROM_DOLIBARR',true);
+        dol_include_once('/asset/config.php');
+		dol_include_once("/asset/script/create-maj-base.php");
+		
 
 		//Permet d'activer la gestion des produit virtuel
 		dolibarr_set_const($db, "PRODUIT_SOUSPRODUITS", 1);

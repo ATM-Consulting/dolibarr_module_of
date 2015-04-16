@@ -3,14 +3,21 @@
  * Script créant et vérifiant que les champs requis s'ajoutent bien
  * 
  */
- 	define('INC_FROM_CRON_SCRIPT', true);
-	
-	require('../config.php');
-	require('../class/asset.class.php');
-	require('../class/ordre_fabrication_asset.class.php');
+    if(!defined('INC_FROM_DOLIBARR')) {
+        define('INC_FROM_CRON_SCRIPT', true);
+        require('../config.php');
+        $ATMdb=new TPDOdb;
+        $ATMdb->debug=true;
+    }
+    else{
+        $ATMdb=new TPDOdb;
+        
+    }
+    
+	dol_include_once('/asset/class/asset.class.php');
+	dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
 
-	$ATMdb=new TPDOdb;
-	$ATMdb->debug=true;
+	
 	
 	$o=new TAsset_type;
 	$o->init_db_by_vars($ATMdb);
