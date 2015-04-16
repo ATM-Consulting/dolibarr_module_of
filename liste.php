@@ -4,11 +4,30 @@
 	
 	if(!$user->rights->asset->all->lire) accessforbidden();
 	
-	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
-	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	dol_include_once("/core/class/html.formother.class.php");
+	dol_include_once("/core/lib/company.lib.php");
+	dol_include_once('/core/lib/product.lib.php');
+    dol_include_once('/product/class/product.class.php');
 	
 	_liste($user->entity);
+
+function get_measuring_units_string($fk_asset,$unite){
+            
+        $PDOdb = new TPDOdb;    
+        
+        $asset = new TAsset;
+        $asset->load($PDOdb, $fk_asset,false);
+        $asset->assetType->load($PDOdb, $asset->fk_asset_type,false);
+        
+        if($asset->gestion_stock != 'UNIT'){
+            return measuring_units_string($unite,$asset->assetType->measuring_units);
+        }
+        else{
+            return 'unité(s)';
+        }
+        
+        $PDOdb->close();
+}
 
 function _liste($id_entity) {
 	global $langs,$db,$user,$ASSET_LINK_ON_FIELD,$conf;
@@ -117,23 +136,7 @@ function _liste($id_entity) {
 	
 	//echo $sql;
 	
-	function get_measuring_units_string($fk_asset,$unite){
-			
-		$PDOdb = new TPDOdb;	
-		
-		$asset = new TAsset;
-		$asset->load($PDOdb, $fk_asset,false);
-		$asset->assetType->load($PDOdb, $asset->fk_asset_type,false);
-		
-		if($asset->gestion_stock != 'UNIT'){
-			return measuring_units_string($unite,$asset->assetType->measuring_units);
-		}
-		else{
-			return 'unité(s)';
-		}
-		
-		$PDOdb->close();
-	}
+	
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	
@@ -146,7 +149,6 @@ function _liste($id_entity) {
 			'ID'=>'<a href="'.dol_buildpath('asset/fiche.php?id=@val@&action=view', 2).'">@val@</a>'
 			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
-			,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -175,6 +177,7 @@ function _liste($id_entity) {
 		)
 		,'eval'=>array(
 			'unite'=>'get_measuring_units_string(@ID@,"@unite@")'
+			,'label'=>'_get_product_link(@fk_product@, "@val@")'
 		)
 	));
 
@@ -188,5 +191,15 @@ function _liste($id_entity) {
 
 	llxFooter('$Date: 2011/07/31 23:19:25 $ - $Revision: 1.152 $');
 
+}
+
+function _get_product_link($fk_product, $label) {
+    global $db;
+    $p=new Product($db);
+    $p->fetch($fk_product);
+    $p->ref.=' '.$label;
+    
+    return $p->getNomUrl(1);
+    
 }
 ?>
