@@ -49,7 +49,7 @@
 		{
 			if ($status == 'DRAFT' || (in_array($PDOdb->Get_field('fk_user'), $TUsers))) {
 			    $res .= '<p style="margin:4px 0">'
-			                 .$form->checkbox1($PDOdb->Get_field('lastname').' '.$PDOdb->Get_field('firstname'), $name, $PDOdb->Get_field('fk_user'), (in_array($PDOdb->Get_field('fk_user'), $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_before').'</p>';
+			                 .$form->checkbox1($PDOdb->Get_field('lastname').' '.$PDOdb->Get_field('firstname'), $name, $PDOdb->Get_field('fk_user'), (in_array($PDOdb->Get_field('fk_user'), $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_after', array('no'=>'', 'yes'=>img_picto('', 'tick.png'))).'</p>';
             }
 		}
 		

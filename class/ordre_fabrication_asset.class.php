@@ -263,8 +263,8 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed) {
 		global $conf,$db;
-//var_dump('createOFifneeded',$fk_product, $qty_needed);
-		$reste = $this->getProductStock($fk_product)-$qty_needed;
+
+		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
 			return null;
@@ -285,15 +285,24 @@ class TAssetOF extends TObjetStd{
 	/*
 	 * retourne le stock restant du produit
 	 */
-	function getProductStock($fk_product) {
+	static function getProductStock($fk_product, $fk_warehouse=0, $include_draft_of=true) {
 		global $db;
-		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		dol_include_once('/product/class/product.class.php');
 		
 		$product = new Product($db);
 		$product->fetch($fk_product);
 		$product->load_stock();
 		
-		return $product->stock_reel;
+        if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
+        else $stock =$product->stock_reel;
+        
+        if($include_draft_of) {
+            /* destocke également tous les OF en brouillon */
+            
+        }
+        
+
+		return $stock;
 	}
 	
 	/*function createCommandeFournisseur($type='externe'){

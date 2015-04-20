@@ -516,7 +516,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
-				            .$product->stock_reel._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
+				            .TAssetOF::getProductStock($product->id)._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 				,'qty_used'=>(($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
