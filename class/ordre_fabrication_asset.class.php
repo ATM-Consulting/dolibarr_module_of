@@ -1488,13 +1488,14 @@ class TAssetOFLine extends TObjetStd{
 	{
 		$include = array();
 		
-		$sql = 'SELECT libelle, rowid FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid IN (SELECT fk_asset_workstation FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_assetOf = '.(int) $of->rowid.')';
+		$sql = 'SELECT libelle, rowid FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid 
+		IN (SELECT fk_asset_workstation FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_assetOf = '.(int) $of->rowid.')';
 		$resql = $db->query($sql);
 		
 		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
 		while ($r = $db->fetch_object($resql)) 
 		{
-			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->TWorkstation) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before') . '</p>';
+			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->TWorkstation) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before' , array('no'=>'', 'yes'=>img_picto('', 'tick.png')) ) . '</p>';
 		}
 		
 		return $res;

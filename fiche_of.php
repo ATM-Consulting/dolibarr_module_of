@@ -594,6 +594,10 @@ function _fiche_ligne(&$form, &$of, $type){
 
 function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED') 
 {
+    global $conf;
+    
+    if(!$conf->global->USE_LOT_IN_OF) return '';
+    
     $TAsset = $assetOFLine->getAssetLinked($PDOdb);
     
     $r='<div>';
