@@ -1671,6 +1671,9 @@ class TAssetWorkstationOF extends TObjetStd{
 				$projectTask->date_end = $OF->date_besoin;
 				$projectTask->planned_workload = $this->nb_hour*3600;
 				
+                $projectTask->array_options['options_grid_use']=1;
+                $projectTask->array_options['options_fk_workstation']=$ws->getId();
+                
 				$projectTask->create($user);
 				
 				$this->fk_project_task = $projectTask->id;
