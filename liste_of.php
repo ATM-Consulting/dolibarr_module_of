@@ -271,7 +271,7 @@ function get_format_libelle_produit($fk_product = null) {
 		$product = new Product($db);
 		$product->fetch($fk_product);
 	
-		return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=' . $fk_product . '">' . img_picto('','object_product.png','',0) . ' ' . htmlentities($product->label) . '</a>';
+		return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=' . $fk_product . '">' . img_picto('','object_product.png','',0) . ' ' . htmlentities(utf8_decode($product->label)) . '</a>';
 	} else {
 		return 'Produit non défini.';
 	}
