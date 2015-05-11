@@ -7,6 +7,7 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	
 	_liste($user->entity);
 
@@ -168,7 +169,8 @@ function _liste($id_entity) {
 			,'label'=>array('recherche'=>true, 'table'=>'')
 		)
 		,'eval'=>array(
-			'unite'=>'get_measuring_units_string(@ID@,"@unite@")'
+			'unite'=>'get_measuring_units_string(@ID@,"@unite@")',
+			'label' => 'get_format_libelle_produit(@fk_product@)'
 		)
 	));
 
@@ -182,5 +184,14 @@ function _liste($id_entity) {
 
 	llxFooter('$Date: 2011/07/31 23:19:25 $ - $Revision: 1.152 $');
 
+}
+
+function get_format_libelle_produit($fk_product) {
+	global $db;
+	
+	$product = new Product($db);
+	$product->fetch($fk_product);
+	
+	return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=' . $fk_product . '">' . img_picto('','object_product.png','',0) . ' ' . htmlentities($product->label) . '</a>';
 }
 ?>
