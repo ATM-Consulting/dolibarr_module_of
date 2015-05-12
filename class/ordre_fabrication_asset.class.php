@@ -1235,7 +1235,7 @@ class TAssetOFLine extends TObjetStd{
          	$asset->load($PDOdb, $row->rowid);
 	        
 			//Contient la liste des asset
-			$TAsset = $asset->getAssetLinked($PDOdb);
+			$TAsset = $this->getAssetLinked($PDOdb);
 			
 	         // Si j'ai assez de contenu dans mon équipement
 	         if ($asset->contenancereel_value - $qty_needed >= 0)
