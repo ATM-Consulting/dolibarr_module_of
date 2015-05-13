@@ -13,11 +13,12 @@ class ActionsAsset
     	global $langs, $db, $conf, $user;
 
 		// Constante PRODUIT_SOUSPRODUITS passée à 0 pour ne pas déstocker les sous produits lors de la validation de l'expédition
-		if(in_array('expeditioncard',explode(':',$parameters['context'])) && $action === "confirm_valid") {
+		/*if(in_array('expeditioncard',explode(':',$parameters['context'])) && $action === "confirm_valid") {
 			
 			$conf->global->PRODUIT_SOUSPRODUITS = 0;
 			
-		}
+		}*/
+		// --> Maintenant Géré grâce à la constante INDEPENDANT_SUBPRODUCT_STOCK que j'ai rajoutée sur notre Dolibarr
 		
         if($action == "validmodasset"){
         	//print_r($object);exit;
