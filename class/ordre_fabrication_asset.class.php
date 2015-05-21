@@ -32,6 +32,7 @@ class TAssetOF extends TObjetStd{
 		$this->add_champs('date_besoin,date_lancement','type=date;');
 		$this->add_champs('note','type=text;');
 		
+		$this->_init_vars();
 		$this->start();
 		
 		$this->workstations=array();
@@ -1120,7 +1121,9 @@ class TAssetOFLine extends TObjetStd{
 		
 		$this->TFournisseurPrice=array();
 		
+		$this->_init_vars();
 	    $this->start();
+		
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
 	}
 	
