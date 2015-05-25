@@ -25,7 +25,7 @@ class TAssetOF extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
-    	$this->TChamps = array(); 	  
+    	
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande','type=entier;index;');
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
@@ -1109,7 +1109,7 @@ class TAssetOFLine extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
-    	$this->TChamps = array(); 	  
+    	
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock','type=float;');
 		$this->add_champs('type,lot_number','type=chaine;');
@@ -1527,9 +1527,10 @@ class TAssetWorkstationProduct extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_product');
-    	$this->TChamps = array(); 	  
-		$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
+    	$this->add_champs('fk_product, fk_asset_workstation','type=entier;index;');
 		$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour,rang','type=float;'); // nombre d'heure associé au poste de charge et au produit
+		
+		$this->_init_vars();
 		
 		$this->start();
 		
@@ -1546,9 +1547,10 @@ class TAssetWorkstationOF extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
-    	$this->TChamps = array(); 	  
-		$this->add_champs('fk_assetOf, fk_asset_workstation','type=entier;index;');
+    	$this->add_champs('fk_assetOf, fk_asset_workstation','type=entier;index;');
 		$this->add_champs('nb_hour,nb_hour_real','type=float;'); // nombre d'heure associé au poste de charge sur un OF
+	
+	    $this->_init_vars();
 		
 	    $this->start();
 		
@@ -1672,10 +1674,11 @@ class TAssetWorkstation extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation');
-    	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_usergroup','type=entier;index;');
+    	$this->add_champs('entity,fk_usergroup','type=entier;index;');
 		$this->add_champs('libelle','type=chaine;');
 		$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
+		
+		 $this->_init_vars();
 		
 	    $this->start();
 	}
@@ -1720,9 +1723,10 @@ class TAssetControl extends TObjetStd
 	function __construct() 
 	{
 		$this->set_table(MAIN_DB_PREFIX.'asset_control');
-    	$this->TChamps = array(); 	  
-		$this->add_champs('libelle,type,question','type=chaine;');
+    	$this->add_champs('libelle,type,question','type=chaine;');
 		
+        $this->_init_vars();
+        
 	    $this->start();
 		
 		$this->setChild('TAssetControlMultiple','fk_control');
@@ -1736,9 +1740,10 @@ class TAssetControlMultiple extends TObjetStd
 	function __construct() 
 	{
 		$this->set_table(MAIN_DB_PREFIX.'asset_control_multiple');
-    	$this->TChamps = array(); 	  
-		$this->add_champs('fk_control','type=entier;index;');
+    	$this->add_champs('fk_control','type=entier;index;');
 		$this->add_champs('value','type=chaine;');
+	
+	   $this->_init_vars();
 		
 	    $this->start();
 		
@@ -1769,10 +1774,12 @@ class TAssetOFControl extends TObjetStd
 	function __construct() 
 	{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_control');
-    	$this->TChamps = array(); 	  
+    	 	  
 		$this->add_champs('fk_assetOf,fk_control','type=entier;');
 		$this->add_champs('response','type=chaine;');
 		
+        $this->_init_vars();
+        
 	    $this->start();		
 	}
 	
