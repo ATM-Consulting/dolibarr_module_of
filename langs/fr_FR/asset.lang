@@ -24,6 +24,7 @@ AssetToComplete=A completer
 AssetLotsList=Liste des Lots
 AssetLoaned=Prêté
 AssetDescDLUO=Date Limite d'Utilisation Optimale
+ImpossibleToCreateAsset=Impossible de créer l'équipement
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
