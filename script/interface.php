@@ -102,8 +102,8 @@ function _autocomplete(&$ATMdb,$fieldcode,$value,$fk_product=0)
 	return $TResult;
 }
 
-function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = ''){
-	
+function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = '')
+{
 	global $db;
 	
 	$TassetOF = new TAssetOF;
@@ -112,20 +112,20 @@ function _addofproduct(&$ATMdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 	$TassetOF->save($ATMdb);
 	
 	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
-	if($type == "TO_MAKE") {
+	if($type == "TO_MAKE") 
+	{
 		$sql = "SELECT fk_asset_workstation, nb_hour";
 		$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
 		$sql.= " WHERE fk_product = ".$fk_product;
 		$resql = $db->query($sql);
 		
-		if($resql) {
-			
-			while($res = $db->fetch_object($resql)) {
-				
+		if($resql) 
+		{
+			while($res = $db->fetch_object($resql)) 
+			{
 				_addofworkstation($ATMdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
-
 			}
-			
+
 		}
 		
 	}
@@ -146,7 +146,8 @@ function _deletelineof(&$ATMdb,$idLine,$type){
 	return $id_of_deleted;
 }
 
-function _addlines(&$ATMdb,$idLine,$qty){
+function _addlines(&$ATMdb,$idLine,$qty)
+{
 	global $db, $conf;
 	
 	dol_include_once('product/class/product.class.php');
@@ -188,13 +189,13 @@ function _updateToMake($TAssetOFChildId = array(), &$ATMdb, &$db, &$conf, $fk_pr
 			//Si le produit TO_MAKE de cette OF correspond au notre, on maj sa qté ainsi que ces needed et on stop le traitement pcq pas besoin d'aller plus loin
 			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
 			{
-				$TIdLineModified[] = $TAssetOF->rowid;
+				$TIdLineModified[] = $TAssetOF->getId();
 				$line->qty = $qty;
 				$line->save($ATMdb);
 				
 				_updateNeeded($TAssetOF, $ATMdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF);
 				
-                return true; // on a trouvé la ligne consernée
+                return true; // on a trouvé la ligne concernée
 			}
 		}
 		
@@ -216,17 +217,47 @@ function _measuringUnits($type, $name)
 	else return array($html->load_measuring_units($name, $type, 0));
 }
 
+function _getArbo(&$PDOdb, $fk_product)
+{
+	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	
+	$TRes = array();
+	
+	$TNomen = TNomenclature::get($PDOdb, $fk_product);
+	if (count($TNomen) > 0)
+	{
+		foreach ($TNomen[0]->TNomenclatureDet as $key => $TNomenclatureDet)
+		{
+			$TRes[$TNomenclatureDet->fk_product] = array(
+				0 => $TNomenclatureDet->fk_product
+				,1 => $TNomenclatureDet->qty
+				,'childs' => _getArbo($PDOdb, $TNomenclatureDet->fk_product)
+			);
+		}
+	}
+	
+	return $TRes;
+}
+
+// TODO quand on utilise le module nomenclature la mise à jour des qté ne fonctionne pas terrible s'il y a plusieurs sous OF avec des sous enfants
 function _updateNeeded($TAssetOF, &$ATMdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
 {
-	$prod = new Product($db);
-	$prod->fetch($fk_product);
-	$TComposition = $prod->getChildsArbo($prod->id);
+	if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE))
+	{
+		$TComposition = _getArbo($ATMdb, $fk_product);
+	}
+	else
+	{
+		$prod = new Product($db);
+		$prod->fetch($fk_product);
+		$TComposition = $prod->getChildsArbo($prod->id);
+	}
 	
 	if (empty($TComposition)) return;
 	
 	$TAssetOFChildId = array();
 	$TAssetOF->getListeOFEnfants($ATMdb, $TAssetOFChildId, $TAssetOF->rowid, false); //Récupération des OF enfants direct - les sous-enfants ne sont pas récupérés
-	
+
 	//Boucle sur les lignes de l'OF courant
 	foreach ($TAssetOF->TAssetOFLine as $line) 
 	{

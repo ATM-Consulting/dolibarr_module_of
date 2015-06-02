@@ -173,43 +173,67 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
-	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0){
-		
+	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0)
+	{
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make);
 		/*echo "<pre>";
 		print_r($Tab);
 		echo "</pre>";*/
 		
-		foreach($Tab as $prod) {
-			
+		foreach($Tab as $prod) 
+		{
 			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
-			
 		}
 		
 		return true;
 	}
 	
 	//Retourne les produits NEEDED de l'OF concernant le produit $id_produit
-	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make){
-		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-		global $db;	
+	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make, $fk_nomenclature=0)
+	{
+		global $db,$conf;
 		
 		$Tab=array();
+
+		if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE) )
+		{
+			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			
+			$TNomen = TNomenclature::get($PDOdb, $id_product);
+			if (count($TNomen) > 0)
+			{
+				foreach ($TNomen[0]->TNomenclatureDet as $key => $TNomenclatureDet)
+				{
+					$TRes[] = array(
+						0 => $TNomenclatureDet->fk_product
+						,1 => $TNomenclatureDet->qty
+					);
+				}
+				
+				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, $quantite_to_make);
+			}
+			
+		}
+		else 
+		{
+			include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
-		$product = new Product($db);
-		$product->fetch($id_product);
-		$TRes = $product->getChildsArbo($product->id);
-//		var_dump($TRes);
-		$this->getProductComposition_arrayMerge($PDOdb,$Tab, $TRes, $quantite_to_make);
+			$product = new Product($db);
+			$product->fetch($id_product);
+			$TRes = $product->getChildsArbo($product->id);
+			// var_dump($TRes);
+			$this->getProductComposition_arrayMerge($PDOdb,$Tab, $TRes, $quantite_to_make);
+		}
 		
 		return $Tab;
 	}
 	
-	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) {
+	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) 
+	{
 		global $conf;
 		//TODO c'est de la merde à refaire
-		foreach($TRes as $row) {
-			
+		foreach($TRes as $row) 
+		{	
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1];
@@ -298,10 +322,10 @@ class TAssetOF extends TObjetStd{
 		
 		return 1;
 	}*/
-	
 
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
+	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='')
+	{
 		global $user, $conf;
 		
 		$k = $this->addChild($PDOdb, 'TAssetOFLine');
@@ -1515,7 +1539,7 @@ class TAssetOFLine extends TObjetStd{
 
 		$this->entity = $conf->entity;
 		
-		parent::save($db);
+		return parent::save($db);
 
 	}
 	
