@@ -173,9 +173,9 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
-	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0)
+	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0)
 	{
-		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make);
+		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature);
 		/*echo "<pre>";
 		print_r($Tab);
 		echo "</pre>";*/
@@ -200,9 +200,13 @@ class TAssetOF extends TObjetStd{
 			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 			
 			$TNomen = TNomenclature::get($PDOdb, $id_product);
-			if (count($TNomen) > 0)
+			
+			$TNomen = new TNomenclature;
+			$res = $TNomen->load($PDOdb, $fk_nomenclature);
+			
+			if ($res)
 			{
-				foreach ($TNomen[0]->TNomenclatureDet as $key => $TNomenclatureDet)
+				foreach ($TNomen->TNomenclatureDet as $key => $TNomenclatureDet)
 				{
 					$TRes[] = array(
 						0 => $TNomenclatureDet->fk_product
@@ -324,7 +328,7 @@ class TAssetOF extends TObjetStd{
 	}*/
 
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='')
+	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0)
 	{
 		global $user, $conf;
 		
@@ -339,13 +343,15 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
+		$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
 		
 		$TAssetOFLine->lot_number = $lot_number;
 		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
 		if($type=='TO_MAKE') {
-			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine);
+			if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE)) $this->addProductComposition($PDOdb,$fk_product, 1,$idAssetOFLine,$fk_nomenclature);
+			else $this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 	}
 	
@@ -1134,7 +1140,7 @@ class TAssetOFLine extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
     	
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price','type=entier;index;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_nomenclature','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock','type=float;');
 		$this->add_champs('type,lot_number','type=chaine;');
 		

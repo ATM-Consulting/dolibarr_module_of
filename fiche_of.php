@@ -657,6 +657,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 			,'view'=>array(
 				'mode'=>$mode
 				,'status'=>$assetOf->status
+				,'ASSET_USE_MOD_NOMENCLATURE'=>$conf->global->ASSET_USE_MOD_NOMENCLATURE
 				,'select_product'=>$select_product
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1)			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')

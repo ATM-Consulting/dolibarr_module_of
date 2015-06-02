@@ -213,6 +213,16 @@
 					[view.select_product;strconv=no]
 				</td>
 			</tr>
+			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+				<tr id="tr_select_nomenclature" style="display:none;">
+					<td style="width:80px;">Nomenclature : </td>
+					<td><select name="fk_nomenclature"></select></td>
+				</tr>
+			[onshow;block=end]
+			<tr id="tr_select_nomenclature" style="display:none;">
+				<td style="width:80px;">Quantité : </td>
+				<td><input type='text' size='4' value='1' name='default_qty_to_make' /></td>
+			</tr>
 		</table>
 	</div>
 	<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">
@@ -249,6 +259,37 @@
 				refreshDisplay();
 			}
 			
+			/* Couplage avec nomenclature */
+			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+				$('#fk_product').change(function() {
+					var selectTarget = $("select[name=fk_nomenclature]");
+					
+					$.ajax({
+						url: "script/interface.php?get=getNomenclatures&fk_product="+$(this).val()
+						,async: false
+						,type: 'POST'
+						,dataType: 'json'
+						,success: function(data) {
+							$(selectTarget).empty();
+							
+							if (data.length > 0)
+							{
+								for (var i in data)
+								{
+									$(selectTarget).append($("<option value='"+data[i].rowid+"'>"+ (data[i].title == '' ? '(sans titre)' : data[i].title) +"</option>"));
+								}
+								$('#tr_select_nomenclature').show();
+							}
+							else
+							{
+								$('#tr_select_nomenclature').hide();
+							}
+							
+							//console.log(data);
+						}
+					});
+				});
+			[onshow;block=end]
 		});
 		
 		function getChild() {
@@ -370,9 +411,16 @@
 						},				
 						"Ajouter": function(){
 							var fk_product = $('#fk_product').val();
+							var params = '';
 							
+							[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+								params += '&fk_nomenclature='+$('select[name=fk_nomenclature]').val();
+							[onshow;block=end]
+							
+							params += '&default_qty_to_make='+$('input[name=default_qty_to_make]').val();
+								
 							$.ajax({
-								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type
+								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type+params
 							})
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";
