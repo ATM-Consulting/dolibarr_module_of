@@ -1673,6 +1673,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				
                 $projectTask->array_options['options_grid_use']=1;
                 $projectTask->array_options['options_fk_workstation']=$ws->getId();
+				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
                 
 				$projectTask->create($user);
 				
