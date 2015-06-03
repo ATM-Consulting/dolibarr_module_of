@@ -349,9 +349,9 @@ class TAssetOF extends TObjetStd{
 		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
-		if($type=='TO_MAKE') {
-			if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE)) $this->addProductComposition($PDOdb,$fk_product, 1,$idAssetOFLine,$fk_nomenclature);
-			else $this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
+		if($type=='TO_MAKE') 
+		{
+			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 	}
 	

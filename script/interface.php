@@ -246,13 +246,21 @@ function _getArbo(&$PDOdb, &$TAssetOFLine, $fk_product, $fk_nomenclature)
 		$TCompare[$line->fk_product] = $line; // Ceci me permet de récupérer le fk_nomenclature associé à la ligne de l'OF 
 	}
 	
-	$TNomen = new TNomenclature;
-	$res = $TNomen->load($PDOdb, $fk_nomenclature);
-	if ($res)
+	if ($fk_nomenclature)
+	{
+		$TNomen = new TNomenclature;
+		$TNomen->load($PDOdb, $fk_nomenclature);
+	}
+	else 
+	{
+		$TNomen = TNomenclature::getDefaultNomenclature($PDOdb, $fk_product);
+	}
+	
+	if (!empty($TNomen))
 	{
 		foreach ($TNomen->TNomenclatureDet as $key => $TNomenclatureDet)
 		{
-			
+			//Vérification que le produit de la nomenclature est bien dans la liste des lignes de l'OF
 			if (isset($TCompare[$TNomenclatureDet->fk_product]))
 			{
 				$TRes[$TNomenclatureDet->fk_product] = array(

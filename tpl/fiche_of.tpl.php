@@ -219,7 +219,7 @@
 					<td><select name="fk_nomenclature"></select></td>
 				</tr>
 			[onshow;block=end]
-			<tr id="tr_select_nomenclature" style="display:none;">
+			<tr>
 				<td style="width:80px;">Quantité : </td>
 				<td><input type='text' size='4' value='1' name='default_qty_to_make' /></td>
 			</tr>
@@ -265,9 +265,13 @@
 					var selectTarget = $("select[name=fk_nomenclature]");
 					
 					$.ajax({
-						url: "script/interface.php?get=getNomenclatures&fk_product="+$(this).val()
+						url: "script/interface.php?"
 						,async: false
-						,type: 'POST'
+						,type: 'GET'
+						,data:{
+							get: 'getNomenclatures'
+							,fk_product: $(this).val()
+						}
 						,dataType: 'json'
 						,success: function(data) {
 							$(selectTarget).empty();
@@ -276,16 +280,20 @@
 							{
 								for (var i in data)
 								{
-									$(selectTarget).append($("<option value='"+data[i].rowid+"'>"+ (data[i].title == '' ? '(sans titre)' : data[i].title) +"</option>"));
+									$(selectTarget).append($("<option qty_reference='"+data[i].qty_reference+"' "+(data[i].is_default ? 'selected="selected"' : '')+" value='"+data[i].rowid+"'>"+ (data[i].title == '' ? '(sans titre)' : data[i].title) +"</option>"));
 								}
+								
+								var qty = $(selectTarget).children('option:selected').attr('qty_reference');
+								$('input[name=default_qty_to_make]').attr('value', qty);
+								
 								$('#tr_select_nomenclature').show();
 							}
 							else
 							{
+								$('input[name=default_qty_to_make]').attr('value', 1);
 								$('#tr_select_nomenclature').hide();
 							}
 							
-							//console.log(data);
 						}
 					});
 				});
