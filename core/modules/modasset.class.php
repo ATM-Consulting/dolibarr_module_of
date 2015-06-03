@@ -501,6 +501,9 @@ class modAsset extends DolibarrModules
 		
 		$param = array('options'=>array("asset_type:libelle:rowid"=>""));
 		$res = $extrafields->addExtraField('type_asset', 'Type Equipement', 'sellist', 0, 255, 'product',0,0,'',$param);
+		
+		$extrafields=new ExtraFields($this->db);
+		$res = $extrafields->addExtraField('fk_of', 'Ordre de Fabrication', 'int', 0, '', 'projet_task');
 
 		$url =dol_buildpath("/asset/script/create-maj-base.php",2);
 		file_get_contents($url);
