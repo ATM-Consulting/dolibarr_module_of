@@ -28,3 +28,36 @@ function assetPrepareHead(&$asset,$type='type-asset') {
 			break;
 	}
 }
+
+function _getArrayNomenclature(&$PDOdb, &$TAssetOFLine)
+{
+	global $conf;
+	
+	$TRes = array();
+	
+	if (empty($conf->global->ASSET_USE_MOD_NOMENCLATURE)) return $TRes;
+	
+	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	
+	$TNomen = TNomenclature::get($PDOdb, $TAssetOFLine->fk_product);
+	foreach ($TNomen as $TNomenclature) 
+	{
+		$TRes[$TNomenclature->getId()] = !empty($TNomenclature->title) ? $TNomenclature->title : '(sans titre)';
+	}
+	
+	return $TRes;
+}
+
+function  _getTitleNomenclature(&$PDOdb, $fk_nomenclature)
+{
+	global $conf;
+	
+	if (empty($conf->global->ASSET_USE_MOD_NOMENCLATURE)) return '';
+	
+	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	
+	$TNomen = new TNomenclature;
+	$TNomen->load($PDOdb, $fk_nomenclature);
+	
+	return ($TNomen ? $TNomen->title : '');
+}

@@ -81,14 +81,16 @@ function _action() {
 				$assetOf->addWorkstation($PDOdb, $db, $fk_product);
 			}
 
-			if(!empty($_REQUEST['TAssetOFLine'])) {
-				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+			if(!empty($_REQUEST['TAssetOFLine'])) 
+			{
+				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) 
+				{
 					if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 					
 					if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 					{
 						$assetOf->TAssetOFLine[$k]->set_workstations($PDOdb, $row['fk_workstation']);
-						unset($row['fk_workstation']);	
+						unset($row['fk_workstation']);
 					}
 
 					$assetOf->TAssetOFLine[$k]->set_values($row);
@@ -433,6 +435,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				            .$product->stock_reel.$TAssetOFLine->getAssetLinkedLinks($ATMdb)
+				,'nomenclature'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($ATMdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($ATMdb, $TAssetOFLine->fk_nomenclature)
 				,'qty_needed'=>$TAssetOFLine->qty_needed
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty
 				,'qty_used'=>($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used
@@ -492,6 +495,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : ".$product->stock_reel.$TAssetOFLine->getAssetLinkedLinks($ATMdb)
+				,'nomenclature'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($ATMdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($ATMdb, $TAssetOFLine->fk_nomenclature)
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','') : $TAssetOFLine->qty 
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price )

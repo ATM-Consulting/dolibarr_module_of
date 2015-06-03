@@ -175,11 +175,9 @@ class TAssetOF extends TObjetStd{
 	//Ajout d'un produit TO_MAKE à l'OF
 	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0)
 	{
-		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature);
-		/*echo "<pre>";
-		print_r($Tab);
-		echo "</pre>";*/
+		global $conf;
 		
+		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature);
 		foreach($Tab as $prod) 
 		{
 			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
@@ -199,12 +197,18 @@ class TAssetOF extends TObjetStd{
 		{
 			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 			
-			$TNomen = TNomenclature::get($PDOdb, $id_product);
+			//$TNomen = TNomenclature::get($PDOdb, $id_product);
+			if ($fk_nomenclature)
+			{
+				$TNomen = new TNomenclature;
+				$TNomen->load($PDOdb, $fk_nomenclature);
+			}
+			else 
+			{
+				$TNomen = TNomenclature::getDefaultNomenclature($PDOdb, $id_product);
+			}
 			
-			$TNomen = new TNomenclature;
-			$res = $TNomen->load($PDOdb, $fk_nomenclature);
-			
-			if ($res)
+			if (!empty($TNomen))
 			{
 				foreach ($TNomen->TNomenclatureDet as $key => $TNomenclatureDet)
 				{
@@ -237,7 +241,7 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 		//TODO c'est de la merde à refaire
 		foreach($TRes as $row) 
-		{	
+		{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1];
@@ -248,13 +252,13 @@ class TAssetOF extends TObjetStd{
 			else {
 				$Tab[$prod->fk_product]=$prod;	
 			}
-			
+
 			if (!empty($conf->global->CREATE_CHILDREN_OF))
 			{
 				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
 				{
 					if(!$createOF) {
-						$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
+						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty * $qty_parent);
 					}
 				}
 				
@@ -266,6 +270,7 @@ class TAssetOF extends TObjetStd{
 				}
 				
 			}
+			
 		}
 		
 	} 
@@ -273,9 +278,10 @@ class TAssetOF extends TObjetStd{
 	/*
 	 * Crée une OF si produit composé pas en stock
 	 */
-	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed) {
+	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed) 
+	{
 		global $conf;
-//var_dump('createOFifneeded',$fk_product, $qty_needed);
+		//var_dump('createOFifneeded',$fk_product, $qty_needed);
 		$reste = $this->getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
@@ -335,6 +341,7 @@ class TAssetOF extends TObjetStd{
 		$k = $this->addChild($PDOdb, 'TAssetOFLine');
 		
 		$TAssetOFLine = &$this->TAssetOFLine[$k];
+		
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
 		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
@@ -343,6 +350,14 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
+		
+		if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE) && !$fk_nomenclature)
+		{
+			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
+			if ($TNomen) $fk_nomenclature = $TNomen->getId();
+		}
+		
 		$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
 		
 		$TAssetOFLine->lot_number = $lot_number;
@@ -1547,6 +1562,24 @@ class TAssetOFLine extends TObjetStd{
 		
 		return parent::save($db);
 
+	}
+	
+	/*
+	 * 
+	 * $this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_nomenclature','type=entier;index;');
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock','type=float;');
+		$this->add_champs('type,lot_number','type=chaine;');
+	 */
+	function set_values($row)
+	{
+		global $conf;
+		
+		if ($conf->global->ASSET_USE_MOD_NOMENCLATURE && $this->fk_nomenclature != $row['fk_nomenclature'])
+		{
+			//
+		}
+		
+		parent::set_values($row);
 	}
 	
 }

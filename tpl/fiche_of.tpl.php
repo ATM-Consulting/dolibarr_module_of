@@ -121,6 +121,9 @@
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
 									<td>Produit</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>Nomenclature</td>
+									[onshow;block=end]
 									<td>Quantité nécessaire</td>
 									<td>Quantité réelle</td>
 									<td class="nodraft">Quantité utilisée</td>
@@ -137,6 +140,9 @@
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
 									<td>[TNeeded.libelle;block=tr;strconv=no]</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>[TNeeded.nomenclature;block=tr;strconv=no]</td>
+									[onshow;block=end]
 									<td>[TNeeded.qty_needed]</td>
 									<td>[TNeeded.qty;strconv=no]</td>
 									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
@@ -158,6 +164,9 @@
 										<td>Lot</td>
 									[onshow;block=end]
 									<td>Produit</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>Nomenclature</td>
+									[onshow;block=end]
 									<td>Quantité à produire</td>
 									<td>Fournisseur</td>
 									<td class="draftedit" style="width:20px;">Action</td>
@@ -169,6 +178,9 @@
 										<td>[TTomake.lot_number;strconv=no]</td>
 									[onshow;block=end]
 									<td>[TTomake.libelle;block=tr;strconv=no]</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>[TTomake.nomenclature;block=tr;strconv=no]</td>
+									[onshow;block=end]
 									<td>[TTomake.qty;strconv=no]</td>
 									<td>[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									
@@ -215,7 +227,7 @@
 			</tr>
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 				<tr id="tr_select_nomenclature" style="display:none;">
-					<td style="width:80px;">Nomenclature : </td>
+					<td style="width:80px;" title="Nomenclature">Nomen. : </td>
 					<td><select name="fk_nomenclature"></select></td>
 				</tr>
 			[onshow;block=end]
