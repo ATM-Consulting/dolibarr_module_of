@@ -461,8 +461,8 @@ class TAssetOF extends TObjetStd{
 				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty);
 			}
 		}
-
-        $this->save($PDOdb);
+	
+		$this->save($PDOdb);
 
         return true;
 	}
@@ -483,7 +483,7 @@ class TAssetOF extends TObjetStd{
                 if($AssetOFLine->type == 'NEEDED')
                 {
                     //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-                    $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty);
+                    $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty - $AssetOFLine->qty_stock);
                 }
             }
         }
@@ -1102,7 +1102,7 @@ class TAssetOFLine extends TObjetStd{
         
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout 
         
-        $sens = ($qty_to_destock>0) ? -1 : 1;        
+        $sens = ($qty_to_destock>0) ? -1 : 1;
         $qty_to_destock_rest =  abs($qty_to_destock);
 
 		$fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
@@ -1110,39 +1110,41 @@ class TAssetOFLine extends TObjetStd{
 		$OF = new TAssetOF;
 		$OF->load($PDOdb, $this->fk_assetOf);
 		
-        if($conf->global->USE_LOT_IN_OF) 
+        if(!$conf->global->USE_LOT_IN_OF) 
         {
             $asset=new TAsset;
-            //$asset->addStockMouvementDolibarr($this->fk_product,$qty_to_destock,'Utilisation via Ordre de Fabrication n°'.$OF->numero, false, 0, $fk_entrepot);
-            
-            
+			
+			$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,'Utilisation via Ordre de Fabrication n°'.$OF->numero, false, 0, $fk_entrepot);
+	
             //$asset->contenancereel_value -= $qty_to_destock_rest;
 			//TODO Manque le destockage de $asset->contenancereel_value
 			
-            //return true;
         }
-        
-        $TAsset = $this->getAssetLinked($PDOdb);
+		else 
+		{
+			$TAsset = $this->getAssetLinked($PDOdb);
 
-        foreach($TAsset as $asset) 
-        {
-             $qty_asset_to_destock = $asset->contenancereel_value;
-			 
-             if($qty_to_destock_rest - $qty_asset_to_destock<0) 
-             {
-                 $qty_asset_to_destock = $qty_to_destock_rest;
-             }
-            
-             $asset->save($PDOdb,$user
-                     ,'Utilisation via Ordre de Fabrication n°'.$OF->numero.' - Equipement : '.$asset->serial_number
-                     ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot);
-            
-            $qty_to_destock_rest-= $qty_asset_to_destock;
-            
-            if($qty_to_destock_rest<=0)break;
-        }
+	        foreach($TAsset as $asset) 
+	        {
+	             $qty_asset_to_destock = $asset->contenancereel_value;
+				 
+	             if($qty_to_destock_rest - $qty_asset_to_destock<0) 
+	             {
+	                 $qty_asset_to_destock = $qty_to_destock_rest;
+	             }
+	            
+	             $asset->save($PDOdb,$user
+	                     ,'Utilisation via Ordre de Fabrication n°'.$OF->numero.' - Equipement : '.$asset->serial_number
+	                     ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot);
+	            
+	            $qty_to_destock_rest-= $qty_asset_to_destock;
+	            
+	            if($qty_to_destock_rest<=0)break;
+	        }
+        	
+		}
         
-        $this->qty_stock += -$sens * $qty_to_destock;
+    	$this->qty_stock += -$sens * $qty_to_destock;
         
         return $this->save($PDOdb);
     }
@@ -1428,7 +1430,8 @@ class TAssetOFLine extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 		
-        $this->destockAsset($PDOdb, -$this->qty_stock); // On restock les produits utilisé
+		$sens = $this->type == 'NEEDED' ? -1 : 1;
+		$this->destockAsset($PDOdb, $sens * $this->qty_stock); // On restock les produits utilisé
                
 	    // TODO dbdelete()
         $sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
@@ -1674,6 +1677,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				
                 $projectTask->array_options['options_grid_use']=1;
                 $projectTask->array_options['options_fk_workstation']=$ws->getId();
+				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
                 
 				$projectTask->create($user);
 				
