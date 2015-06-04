@@ -24,9 +24,14 @@
 
 	dol_include_once('/abricot/inc.core.php');
 	
-	global $db;
-	
 	dol_include_once('/core/lib/admin.lib.php');
 	
+    if(!defined('INC_FROM_CRON_SCRIPT') && !defined('INC_FROM_DOLIBARR')) {
+        
+        if(!class_exists('modAsset')) dol_include_once('/asset/core/modules/modasset.class.php');
+        Tools::checkVersion($db, 'modAsset');
+                
+    }
+    
 	// Pour afficher la sélection d'un équipement par produit lors de l'ajout des lignes d'une commande
 	//dolibarr_set_const($db, 'USE_ASSET_IN_ORDER', 1);
