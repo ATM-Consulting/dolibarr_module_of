@@ -2,6 +2,7 @@
 	require('config.php');
 	require('./class/asset.class.php');
 	require('./class/ordre_fabrication_asset.class.php');
+	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	
 	if(!$user->rights->asset->all->lire) accessforbidden();
 	if(!$user->rights->asset->of->lire) accessforbidden();
@@ -121,7 +122,9 @@ function _liste() {
 	//if(isset($_REQUEST['fk_product'])){$sql.=" AND e.fk_product=".$_REQUEST['fk_product']; $fk_product=$_REQUEST['fk_product'];}
 	
 	$sql.=" GROUP BY ofe.rowid ";
+	
 	if(dolibarr_get_const($db, "ASSET_OF_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY ofe.rowid DESC";
+	else $sql .= " ORDER BY ofe.date_cre DESC";
 	
 	/*if(isset($_REQUEST['fk_product'])) {
 		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		
@@ -173,6 +176,8 @@ function _liste() {
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
 			,'status'=>'TAssetOF::status(@val@)'
+			,'product' => 'get_format_libelle_produit(@fk_product@)'
+			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 		)
 	));
 	
@@ -257,4 +262,26 @@ function _liste() {
 	$ATMdb->close();
 
 	llxFooter('');
+}
+
+function get_format_libelle_produit($fk_product = null) {
+	global $db;
+
+	if (!empty($fk_product)) {
+		$product = new Product($db);
+		$product->fetch($fk_product);
+	
+		return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=' . $fk_product . '">' . img_picto('','object_product.png','',0) . ' ' . htmlentities(utf8_decode($product->label)) . '</a>';
+	} else {
+		return 'Produit non défini.';
+	}
+}
+
+function get_format_libelle_societe($fk_soc) {
+	global $db;
+	
+	$societe = new Societe($db);
+	$societe->fetch($fk_soc);
+	
+	return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=' . $fk_soc . '">'.img_picto('','object_company.png','',0).' ' . $societe->name . '</a>';
 }

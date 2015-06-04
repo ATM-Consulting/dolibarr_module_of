@@ -7,7 +7,7 @@
 	dol_include_once("/core/class/html.formother.class.php");
 	dol_include_once("/core/lib/company.lib.php");
 	dol_include_once('/core/lib/product.lib.php');
-    dol_include_once('/product/class/product.class.php');
+	dol_include_once('/product/class/product.class.php');
 	
 	_liste($user->entity);
 
@@ -149,6 +149,7 @@ function _liste($id_entity) {
 			'ID'=>'<a href="'.dol_buildpath('asset/fiche.php?id=@val@&action=view', 2).'">@val@</a>'
 			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 			,'serial_number'=>'<a href="fiche.php?id=@ID@">@val@</a>'
+			,'label'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -193,13 +194,18 @@ function _liste($id_entity) {
 
 }
 
-function _get_product_link($fk_product, $label) {
+function _get_product_link($fk_product = null, $label) {
     global $db;
-    $p=new Product($db);
-    $p->fetch($fk_product);
-    $p->ref.=' '.$label;
-    
-    return $p->getNomUrl(1);
-    
+
+    if (!empty($fk_product)) {
+	    $p=new Product($db);
+	    $p->fetch($fk_product);
+	    $p->ref.=' '.$label;
+	    
+	    return $p->getNomUrl(1);
+    }
+    else {
+	    return 'Produit non défini.';
+    }
 }
 ?>

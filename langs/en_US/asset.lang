@@ -21,6 +21,7 @@ AssetCreateType=Création type d'équipement
 AssetToComplete=A completer
 AssetLotsList=Liste des Lots
 AssetLoaned=Prêté
+ImpossibleToCreateAsset=Unable to create asset
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication

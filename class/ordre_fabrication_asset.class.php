@@ -23,7 +23,7 @@ class TAssetOF extends TObjetStd{
 		
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
-    	$this->TChamps = array(); 	  
+	  
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project','type=entier;index;');
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
@@ -716,7 +716,7 @@ class TAssetOF extends TObjetStd{
 						}
 						elseif($ofLigne->fk_product_fournisseur_price == -2){ // Fabrication interne
 							//[PH] FIXME - pourquoi on destock maintenant ? On valide tt juste l'OF 
-							/*$prod = new Product($db);
+							$prod = new Product($db);
 							$prod->fetch($ofLigne->fk_product);
 							$prod->load_stock();
 							
@@ -729,8 +729,9 @@ class TAssetOF extends TObjetStd{
 							
 							// S'il y a sufisemment de stock, on destocke
 							if($stockProd >= $ofLigne->qty_needed) {
-								$assetOF->openOF($PDOdb);
-							}*/
+								//$assetOF->openOF($PDOdb);
+								$assetOF->status = 'VALID';
+							}
 													
 						}
 						
