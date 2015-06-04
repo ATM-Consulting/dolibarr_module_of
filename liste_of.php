@@ -282,6 +282,7 @@ function get_format_libelle_societe($fk_soc) {
 	
 	$societe = new Societe($db);
 	$societe->fetch($fk_soc);
-	
-	return '<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=' . $fk_soc . '">'.img_picto('','object_company.png','',0).' ' . $societe->name . '</a>';
+	$url = $societe->getNomUrl(1);
+    
+	return $url;
 }
