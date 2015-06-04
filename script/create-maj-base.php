@@ -17,7 +17,8 @@
 	dol_include_once('/asset/class/asset.class.php');
 	dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
 
-	
+    if(!class_exists('modAsset')) dol_include_once('/asset/core/modules/modasset.class.php');
+    Tools::setVersion($db, 'modAsset');
 	
 	$o=new TAsset_type;
 	$o->init_db_by_vars($ATMdb);
