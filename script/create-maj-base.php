@@ -13,7 +13,9 @@
         $ATMdb=new TPDOdb;
         
     }
-    
+	
+	global $db;
+	
 	dol_include_once('/asset/class/asset.class.php');
 	dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
 
