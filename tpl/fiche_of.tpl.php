@@ -208,7 +208,7 @@
 						<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">Supprimer</a>
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]!='CLOSE']
-						<a onclick="if(confirm('Supprimer cet Ordre de Fabrication?')) return true;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
+						<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
 					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
 					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>

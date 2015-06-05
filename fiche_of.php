@@ -197,11 +197,9 @@ function _action() {
 			//$PDOdb->db->debug=true;
 			$assetOf->delete($PDOdb);
 			
-			?>
-			<script language="javascript">
-				document.location.href="<?php echo dol_buildpath('/asset/liste_of.php',1); ?>?delete_ok=1";					
-			</script>
-			<?
+			
+			header('Location: '.dol_buildpath('/asset/liste_of.php?delete_ok=1',1));
+			exit;
 			
 			break;
 

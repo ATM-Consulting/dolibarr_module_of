@@ -174,19 +174,19 @@ class TAsset extends TObjetStd{
 		if($this->getId()>0) parent::load($PDOdb, $this->getId());
 	}
 	
-	function save(&$PDOdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0) 
+	function save(&$PDOdb, $user='', $description = "Modification manuelle", $qty=0, $destock_dolibarr_only = false, $fk_prod_to_destock=0, $no_destock_dolibarr = false,$fk_entrepot=0,$add_only_qty_to_contenancereel=false) 
 	{
 		global $conf;
-				
+
 		if (!$fk_entrepot) $fk_entrepot = $this->fk_entrepot;
 		
 		if(!$destock_dolibarr_only) 
 		{
 			if(empty($this->serial_number))
 			{
-				$this->serial_number = $this->getNextValue($PDOdb);
+				$this->serial_number = $this->getNextValue($PDOdb); // TODO à vérifier car il semblerait que le mask se génère tjr comme s'il été le 1er (mask : P01-{00000})
 			}
-			  
+			
             parent::save($PDOdb);
 			
 			$this->save_link($PDOdb);
@@ -200,7 +200,8 @@ class TAsset extends TObjetStd{
 			} 
 			else if(!empty($qty)) 
 			{
-				$this->contenancereel_value = $this->contenancereel_value + $qty;
+				if ($add_only_qty_to_contenancereel) $this->contenancereel_value = $qty;
+				else $this->contenancereel_value = $this->contenancereel_value + $qty;
 				parent::save($PDOdb);
 			}
 		}
@@ -215,7 +216,9 @@ class TAsset extends TObjetStd{
 		if($conf->clinomadic->enabled){ //TODO Et des triggers ! NON
 			$this->updateGaranties();
 		}
+		
 	}
+
 
 	function updateGaranties(){
 		

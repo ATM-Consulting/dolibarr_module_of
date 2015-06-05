@@ -133,6 +133,8 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 {	
 	global $db,$conf;
 	
+	if (!$fk_product) return;
+	
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($PDOdb, $id_assetOf);
 	$TassetOF->addLine($PDOdb, $fk_product, $type,$qty,0, $lot_number);
