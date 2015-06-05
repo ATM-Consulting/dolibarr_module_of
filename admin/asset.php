@@ -75,7 +75,7 @@ print_fiche_titre('Gestion des équipements',$linkback,'setup');
 		<tr class="impair">
 			<td valign="top">Module développé par </td>
 			<td align="center">
-				<img src="<?=DOL_URL_ROOT?>/custom/asset/img/logo2-w-small.png" align="absmiddle"/>
+				<img src="<?php echo DOL_URL_ROOT; ?>/custom/asset/img/logo2-w-small.png" align="absmiddle"/>
 				
 			</td>
 			

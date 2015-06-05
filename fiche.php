@@ -136,7 +136,7 @@ function _action() {
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?=$asset->rowid?>";					
+					document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?php echo $asset->rowid?>";					
 				</script>
 				<?
 				
@@ -181,7 +181,7 @@ function _action() {
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste.php?delete_ok=1";					
+					document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/liste.php?delete_ok=1";					
 				</script>
 				<?
 				
@@ -209,7 +209,7 @@ function _action() {
 	else{
 		?>
 		<script language="javascript">
-			document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste.php";					
+			document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/liste.php";					
 		</script>
 		<?
 	}
@@ -342,8 +342,8 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			//Autocompletion
 			if($field->type != combo && $field->type != liste){
 				?>
-				$("#<?=$field->code; ?>").autocomplete({
-					source: "script/interface.php?get=autocomplete&json=1&fieldcode=<?=$field->code; ?>",
+				$("#<?php echo $field->code; ?>").autocomplete({
+					source: "script/interface.php?get=autocomplete&json=1&fieldcode=<?php echo $field->code; ?>",
 					minLength : 1
 				});
 				
@@ -363,8 +363,8 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 		$chaineval = substr($chaineval, 0,-5);
 		$chaineid = substr($chaineid, 0,-2);
 		?>
-			$('<?=$chaineid; ?>').bind("keyup change", function(e) {
-				$('#libelle').val(<?=$chaineval; ?>);
+			$('<?php echo $chaineid; ?>').bind("keyup change", function(e) {
+				$('#libelle').val(<?php echo $chaineval; ?>);
 			});
 		});
 	</script>

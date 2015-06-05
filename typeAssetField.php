@@ -135,7 +135,7 @@ function _liste(&$ATMdb, &$asset) {
 		
 	));
 	
-	?><div style="text-align: right;"><a class='butAction' href="?action=add"><?= $langs->trans('AssetAddType') ;?></a></div><?php
+	?><div style="text-align: right;"><a class='butAction' href="?action=add"><?php echo $langs->trans('AssetAddType') ;?></a></div><?php
 	
 	llxFooter();
 }	

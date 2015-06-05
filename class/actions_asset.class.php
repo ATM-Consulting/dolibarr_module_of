@@ -209,7 +209,7 @@ class ActionsAsset
 		        	?> 
 					<script type="text/javascript">
 						$(document).ready(function(){
-							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - <?= $langs->trans('Asset'); ?> : <?= $link; ?>');
+							$('#row-<?php echo $line->rowid; ?>').children().eq(0).append(' - <?php echo $langs->trans('Asset'); ?> : <?php echo $link; ?>');
 						});
 					</script>
 					<?php
@@ -248,18 +248,18 @@ class ActionsAsset
 			<script type="text/javascript">
 			$(document).ready(function(){
 				$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-				$('#product_desc').before('<div><span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
+				$('#product_desc').before('<div><span id="span_lot"> <?php echo $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"></select></div>');
 				$('#lotAff').change(function(){
 					$('#lot').val( $('#lotAff option:selected').val() );
 				});
 				$('#product_id').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
+						,url: "<?php echo dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
 						,dataType: "json"
 						,data: {
 							fk_product: $('#product_id').val(),
-							fk_soc : <?=$object->socid; ?>
+							fk_soc : <?php echo $object->socid; ?>
 							}
 						},"json").then(function(select){
 							if(select.length > 0){
@@ -271,7 +271,7 @@ class ActionsAsset
 									else
 										$('#lotAff').prepend('<option value="'+option.flacon+'">'+option.flaconAff+'</option>');
 								})
-								$('#lotAff').prepend('<option value="0">S&eacute;le ctionnez un <?= $langs->trans('Asset'); ?></option>');
+								$('#lotAff').prepend('<option value="0">S&eacute;le ctionnez un <?php echo $langs->trans('Asset'); ?></option>');
 							}
 						});
 				});
@@ -306,15 +306,15 @@ class ActionsAsset
 	        	?> 
 				<script type="text/javascript">
 					$('#addproduct').append('<input id="lot" type="hidden" value="0" name="lot" size="3">');
-					$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?= $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?=$langs->trans('Asset');?></option></select>');
+					$('#idprod').parent().parent().find(" > span:last").after('<span id="span_lot"> <?php echo $langs->trans('Asset'); ?> : </span><select id="lotAff" name="lotAff" class="flat"><option value="0" selected="selected">S&eacute;lectionnez un <?php echo $langs->trans('Asset');?></option></select>');
 					$('#idprod').change( function(){
 						$.ajax({
 							type: "POST"
-							,url: "<?= dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
+							,url: "<?php echo dol_buildpath('/asset/script/ajax.liste_asset.php', 1) ?>"
 							,dataType: "json"
 							,data: {
 								fk_product: $('#idprod').val(),
-								fk_soc : <?= $object->socid; ?>
+								fk_soc : <?php echo $object->socid; ?>
 								}
 							},"json").then(function(select){
 								if(select.length > 0){
@@ -328,11 +328,11 @@ class ActionsAsset
 											$('#lotAff').prepend('<option value="'+option.flacon+'" selected="selected">'+option.flaconAff+'</option>');
 										}
 									})
-									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?php echo $langs->trans('Asset'); ?></option>');
 								}
 								else{
 									$('#lotAff').empty();
-									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?= $langs->trans('Asset'); ?></option>');
+									$('#lotAff').prepend('<option value="0" selected="selected">S&eacute;lectionnez un <?php echo $langs->trans('Asset'); ?></option>');
 								}
 							});
 					});

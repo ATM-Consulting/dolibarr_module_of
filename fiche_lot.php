@@ -45,7 +45,7 @@ function _action() {
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/fiche_lot.php?id=<?=$assetlot->rowid?>";					
+					document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/fiche_lot.php?id=<?php echo $assetlot->rowid?>";					
 				</script>
 				<?
 				
@@ -58,7 +58,7 @@ function _action() {
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste_lot.php?delete_ok=1";					
+					document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/liste_lot.php?delete_ok=1";					
 				</script>
 				<?
 				
@@ -75,7 +75,7 @@ function _action() {
 	else{
 		?>
 		<script language="javascript">
-			document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste_lot.php";					
+			document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/liste_lot.php";					
 		</script>
 		<?
 	}

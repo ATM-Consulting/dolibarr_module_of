@@ -32,7 +32,7 @@ function _liste() {
 	
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
-		<br><div class="error"><?= $langs->trans('AssetLotDeleted'); ?></div><br>
+		<br><div class="error"><?php echo  $langs->trans('AssetLotDeleted'); ?></div><br>
 		<?
 	}
 	

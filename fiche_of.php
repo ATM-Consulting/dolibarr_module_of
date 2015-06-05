@@ -199,7 +199,7 @@ function _action() {
 			
 			?>
 			<script language="javascript">
-				document.location.href="<?=dol_buildpath('/asset/liste_of.php',1); ?>?delete_ok=1";					
+				document.location.href="<?php echo dol_buildpath('/asset/liste_of.php',1); ?>?delete_ok=1";					
 			</script>
 			<?
 			
@@ -651,7 +651,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 		}
 		
 	</style>
-		<div class="OFContent" rel="<?=$assetOf->getId() ?>">	<?php
+		<div class="OFContent" rel="<?php echo $assetOf->getId() ?>">	<?php
 	
 	$TPrixFournisseurs = array();
 	
