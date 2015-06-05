@@ -130,6 +130,9 @@
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
 									<td>Produit</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>Nomenclature</td>
+									[onshow;block=end]
 									<td>Quantité nécessaire</td>
 									<td>Quantité réelle</td>
 									<td class="nodraft">Quantité utilisée</td>
@@ -149,6 +152,9 @@
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
 									<td>[TNeeded.libelle;block=tr;strconv=no]</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>[TNeeded.nomenclature;block=tr;strconv=no]</td>
+									[onshow;block=end]
 									<td>[TNeeded.qty_needed]</td>
 									<td>[TNeeded.qty;strconv=no]</td>
 									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
@@ -173,6 +179,9 @@
 										<td>Lot</td>
 									[onshow;block=end]
 									<td>Produit</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>Nomenclature</td>
+									[onshow;block=end]
 									<td>Quantité à produire</td>
 									<td>Fournisseur</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
@@ -187,6 +196,9 @@
 										<td>[TTomake.lot_number;strconv=no]</td>
 									[onshow;block=end]
 									<td>[TTomake.libelle;block=tr;strconv=no]</td>
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<td>[TTomake.nomenclature;block=tr;strconv=no]</td>
+									[onshow;block=end]
 									<td>[TTomake.qty;strconv=no]</td>
 									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
@@ -238,6 +250,16 @@
 					[view.select_product;strconv=no]
 				</td>
 			</tr>
+			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+				<tr id="tr_select_nomenclature" style="display:none;">
+					<td style="width:80px;" title="Nomenclature">Nomen. : </td>
+					<td><select name="fk_nomenclature"></select></td>
+				</tr>
+			[onshow;block=end]
+			<tr>
+				<td style="width:80px;">Quantité : </td>
+				<td><input type='text' size='4' value='1' name='default_qty_to_make' /></td>
+			</tr>
 		</table>
 	</div>
 	[onshow;block=begin;when [view.workstation_module_activate]==1]
@@ -276,6 +298,45 @@
 				refreshDisplay();
 			}
 			
+			/* Couplage avec nomenclature */
+			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+				$('#fk_product').change(function() {
+					var selectTarget = $("select[name=fk_nomenclature]");
+					
+					$.ajax({
+						url: "script/interface.php?"
+						,async: false
+						,type: 'GET'
+						,data:{
+							get: 'getNomenclatures'
+							,fk_product: $(this).val()
+						}
+						,dataType: 'json'
+						,success: function(data) {
+							$(selectTarget).empty();
+							
+							if (data.length > 0)
+							{
+								for (var i in data)
+								{
+									$(selectTarget).append($("<option qty_reference='"+data[i].qty_reference+"' "+(data[i].is_default ? 'selected="selected"' : '')+" value='"+data[i].rowid+"'>"+ (data[i].title == '' ? '(sans titre)' : data[i].title) +"</option>"));
+								}
+								
+								var qty = $(selectTarget).children('option:selected').attr('qty_reference');
+								$('input[name=default_qty_to_make]').attr('value', qty);
+								
+								$('#tr_select_nomenclature').show();
+							}
+							else
+							{
+								$('input[name=default_qty_to_make]').attr('value', 1);
+								$('#tr_select_nomenclature').hide();
+							}
+							
+						}
+					});
+				});
+			[onshow;block=end]
 		});
 		
 		function getChild() {
@@ -401,9 +462,16 @@
 						},				
 						"Ajouter": function(){
 							var fk_product = $('#fk_product').val();
+							var params = '';
 							
+							[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+								params += '&fk_nomenclature='+$('select[name=fk_nomenclature]').val();
+							[onshow;block=end]
+							
+							params += '&default_qty_to_make='+$('input[name=default_qty_to_make]').val();
+								
 							$.ajax({
-								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type+"&user_id=[view.user_id]"
+								url : "script/interface.php?get=addofproduct&id_assetOf="+idassetOf+"&fk_product="+fk_product+"&type="+type+"&user_id=[view.user_id]"+params
 							})
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";

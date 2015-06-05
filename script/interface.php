@@ -23,8 +23,7 @@ function traite_get(&$PDOdb, $case) {
             __out(_autocompleteSerial($PDOdb,GETPOST('lot_number')));
             break;
 		case 'addofproduct':
-			__out(_addofproduct($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type')));
-
+			__out(_addofproduct($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
 			break;
 		case 'deletelineof':
 			__out(_deletelineof($PDOdb,GETPOST('idLine'),GETPOST('type')), 'json');
@@ -50,10 +49,26 @@ function traite_get(&$PDOdb, $case) {
 			
 			__out($Tid);
 			break;
+		case 'getnomenclatures':
+			__out(_getNomenclatures($PDOdb, GETPOST('fk_product')), 'json');
+			break;
 	}
 }
 
-function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) {	
+
+function _getNomenclatures(&$PDOdb, $fk_product)
+{
+	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	
+	$TRes = array();
+	
+	$TNomenclature = TNomenclature::get($PDOdb, $fk_product);
+	
+	return $TNomenclature;
+}
+
+function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) 
+{
 	$of=new TAssetOF;
 	$of->load($PDOdb, $id_assetOf);
 	
@@ -137,7 +152,7 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 	
 	$TassetOF = new TAssetOF;
 	$TassetOF->load($PDOdb, $id_assetOf);
-	$TassetOF->addLine($PDOdb, $fk_product, $type,$qty,0, $lot_number);
+	$TassetOF->addLine($PDOdb, $fk_product, $type,$qty,0, $lot_number, GETPOST('fk_nomenclature', 'int'));
 	$TassetOF->save($PDOdb);
 	
 	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
@@ -156,6 +171,7 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 			{
 				_addofworkstation($PDOdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
 			}
+
 		}
 		
 	}
@@ -176,7 +192,8 @@ function _deletelineof(&$PDOdb,$idLine,$type){
 	return $id_of_deleted;
 }
 
-function _addlines(&$PDOdb,$idLine,$qty){
+function _addlines(&$PDOdb,$idLine,$qty)
+{
 	global $db, $conf;
 	
 	dol_include_once('product/class/product.class.php');
@@ -197,8 +214,8 @@ function _addlines(&$PDOdb,$idLine,$qty){
 	//Id des nouveaux OF créés
 	$TNewIdAssetOF = array();
 	
- 	_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified, $TNewIdAssetOF);
-	
+ 	_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified, $TNewIdAssetOF, $TAssetOFLine);
+
 	return array($TIdLineModified, $TNewIdAssetOF);
 }
 
@@ -218,13 +235,13 @@ function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_pr
 			//Si le produit TO_MAKE de cette OF correspond au notre, on maj sa qté ainsi que ces needed et on stop le traitement pcq pas besoin d'aller plus loin
 			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
 			{
-				$TIdLineModified[] = $TAssetOF->rowid;
+				$TIdLineModified[] = $TAssetOF->getId();
 				$line->qty = $qty;
 				$line->save($PDOdb);
-				
-				_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF);
-				
-                return true; // on a trouvé la ligne consernée
+
+				_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF, $line);
+
+                return true; // on a trouvé la ligne concernée
 			}
 		}
 		
@@ -246,17 +263,71 @@ function _measuringUnits($type, $name)
 	else return array($html->load_measuring_units($name, $type, 0));
 }
 
-function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
+function _getArbo(&$PDOdb, &$TAssetOFLine, $fk_product, $fk_nomenclature)
 {
-	$prod = new Product($db);
-	$prod->fetch($fk_product);
-	$TComposition = $prod->getChildsArbo($prod->id);
+	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	
+	$TRes = array();
+	
+	//$TNomen = TNomenclature::get($PDOdb, $fk_product);
+	
+	
+	$TCompare = array();
+	foreach ($TAssetOFLine->TAssetOFLine as $line)
+	{	// TODO manque encore les sous-sous-enfants
+		$TCompare[$line->fk_product] = $line; // Ceci me permet de récupérer le fk_nomenclature associé à la ligne de l'OF 
+	}
+	
+	if ($fk_nomenclature)
+	{
+		$TNomen = new TNomenclature;
+		$TNomen->load($PDOdb, $fk_nomenclature);
+	}
+	else 
+	{
+		$TNomen = TNomenclature::getDefaultNomenclature($PDOdb, $fk_product);
+	}
+	
+	if (!empty($TNomen))
+	{
+		foreach ($TNomen->TNomenclatureDet as $key => $TNomenclatureDet)
+		{
+			//Vérification que le produit de la nomenclature est bien dans la liste des lignes de l'OF
+			if (isset($TCompare[$TNomenclatureDet->fk_product]))
+			{
+				$TRes[$TNomenclatureDet->fk_product] = array(
+					0 => $TNomenclatureDet->fk_product
+					,1 => $TNomenclatureDet->qty
+					,'childs' => _getArbo($PDOdb, $TCompare[$TNomenclatureDet->fk_product], $TNomenclatureDet->fk_product, $TCompare[$TNomenclatureDet->fk_product]->fk_nomenclature)
+				);
+			}
+			
+		}
+	}
+	
+	return $TRes;
+}
+
+// TODO quand on utilise le module nomenclature la mise à jour des qté ne fonctionne pas terrible s'il y a plusieurs sous OF avec des sous enfants
+function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF, &$TAssetOFLine)
+{
+	if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE))
+	{
+		//Récupération de l'arborescence
+		$TComposition = _getArbo($PDOdb, $TAssetOFLine, $fk_product, $TAssetOFLine->fk_nomenclature);
+	}
+	else
+	{
+		$prod = new Product($db);
+		$prod->fetch($fk_product);
+		$TComposition = $prod->getChildsArbo($prod->id);
+	}
 	
 	if (empty($TComposition)) return;
 	
 	$TAssetOFChildId = array();
 	$TAssetOF->getListeOFEnfants($PDOdb, $TAssetOFChildId, $TAssetOF->rowid, false); //Récupération des OF enfants direct - les sous-enfants ne sont pas récupérés
-	
+
 	//Boucle sur les lignes de l'OF courant
 	foreach ($TAssetOF->TAssetOFLine as $line) 
 	{
@@ -274,8 +345,8 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
   				
   				if (!empty($conf->global->CREATE_CHILDREN_OF)) 
   				{
-                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty);
-					
+                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty, $line->fk_nomenclature);
+
 					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
 						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty);
 						$TAssetOF->save($PDOdb);

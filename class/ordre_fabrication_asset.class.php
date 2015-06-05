@@ -189,43 +189,75 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Ajout d'un produit TO_MAKE à l'OF
-	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0){
+	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0)
+	{
+		global $conf;
 		
-		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make);
-		/*echo "<pre>";
-		print_r($Tab);
-		echo "</pre>";*/
-		
-		foreach($Tab as $prod) {
-			
+		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature);
+		foreach($Tab as $prod) 
+		{
 			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
-			
 		}
 		
 		return true;
 	}
 	
 	//Retourne les produits NEEDED de l'OF concernant le produit $id_produit
-	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make){
-		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-		global $db;	
+	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make, $fk_nomenclature=0)
+	{
+		global $db,$conf;
 		
 		$Tab=array();
+
+		if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE) )
+		{
+			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			
+			//$TNomen = TNomenclature::get($PDOdb, $id_product);
+			if ($fk_nomenclature)
+			{
+				$TNomen = new TNomenclature;
+				$TNomen->load($PDOdb, $fk_nomenclature);
+			}
+			else 
+			{
+				$TNomen = TNomenclature::getDefaultNomenclature($PDOdb, $id_product);
+			}
+			
+			if (!empty($TNomen))
+			{
+				foreach ($TNomen->TNomenclatureDet as $key => $TNomenclatureDet)
+				{
+					$TRes[] = array(
+						0 => $TNomenclatureDet->fk_product
+						,1 => $TNomenclatureDet->qty
+					);
+				}
+				
+				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, $quantite_to_make);
+			}
+			
+		}
+		else 
+		{
+			include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		
-		$product = new Product($db);
-		$product->fetch($id_product);
-		$TRes = $product->getChildsArbo($product->id);
-//		var_dump($TRes);
-		$this->getProductComposition_arrayMerge($PDOdb,$Tab, $TRes, $quantite_to_make);
+			$product = new Product($db);
+			$product->fetch($id_product);
+			$TRes = $product->getChildsArbo($product->id);
+			// var_dump($TRes);
+			$this->getProductComposition_arrayMerge($PDOdb,$Tab, $TRes, $quantite_to_make);
+		}
 		
 		return $Tab;
 	}
 	
-	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) {
+	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) 
+	{
 		global $conf;
 		//TODO c'est de la merde à refaire
-		foreach($TRes as $row) {
-			
+		foreach($TRes as $row) 
+		{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1];
@@ -236,13 +268,13 @@ class TAssetOF extends TObjetStd{
 			else {
 				$Tab[$prod->fk_product]=$prod;	
 			}
-			
+
 			if (!empty($conf->global->CREATE_CHILDREN_OF))
 			{
 				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
 				{
 					if(!$createOF) {
-						$this->getProductComposition_arrayMerge($Tab, $row['childs'], $prod->qty * $qty_parent);
+						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty * $qty_parent);
 					}
 				}
 				
@@ -254,6 +286,7 @@ class TAssetOF extends TObjetStd{
 				}
 				
 			}
+			
 		}
 		
 	} 
@@ -265,6 +298,7 @@ class TAssetOF extends TObjetStd{
 		global $conf,$db;
 
 		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
+
 
 		if($reste>=0) {
 			return null;
@@ -325,15 +359,16 @@ class TAssetOF extends TObjetStd{
 		
 		return 1;
 	}*/
-	
 
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number=''){
+	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0)
+	{
 		global $user,$langs,$conf,$db;
 		
 		$k = $this->addChild($PDOdb, 'TAssetOFLine');
 		
 		$TAssetOFLine = &$this->TAssetOFLine[$k];
+		
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
 		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
@@ -342,10 +377,18 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
+		
+		if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE) && !$fk_nomenclature)
+		{
+			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
+			if ($TNomen) $fk_nomenclature = $TNomen->getId();
+		}
+		
+		$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
 		$TAssetOFLine->lot_number = $lot_number;
 		
         $TAssetOFLine->initConditionnement($PDOdb);
-        
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
         // Appel des triggers
@@ -357,14 +400,16 @@ class TAssetOF extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
         
-		if($type=='TO_MAKE') {
-			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine);
+		if($type=='TO_MAKE') 
+		{
+			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 	}
 	
-	function updateLines(&$PDOdb,$TQty){
-		
-		foreach($this->TAssetOFLine as $TAssetOFLine){
+	function updateLines(&$PDOdb,$TQty)
+	{
+		foreach($this->TAssetOFLine as $TAssetOFLine)
+		{
 			$TAssetOFLine->qty_used = $TQty[$TAssetOFLine->getId()];
 			$TAssetOFLine->save($PDOdb);
 		}
@@ -1078,11 +1123,12 @@ class TAssetOFLine extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
+
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot','type=entier;index;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
-		
+
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
 		
@@ -1591,8 +1637,6 @@ class TAssetOFLine extends TObjetStd{
         if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile 
             $this->initConditionnement($PDOdb);
         }
-        
-		parent::save($PDOdb);
 
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
@@ -1602,6 +1646,8 @@ class TAssetOFLine extends TObjetStd{
 		{
 			$this->errors[] = $interface->errors;
 		}
+		
+		return parent::save($PDOdb);
 	}
 	
 	function getLibelleEntrepot(&$PDOdb, $withStock=true)
@@ -1632,6 +1678,19 @@ class TAssetOFLine extends TObjetStd{
 		if ($res) return $res;
 		else return 'Aucun entrepôt séléctionné';
 	}
+	
+	function set_values($row)
+	{
+		global $conf;
+		
+		if ($conf->global->ASSET_USE_MOD_NOMENCLATURE && $this->fk_nomenclature != $row['fk_nomenclature'])
+		{
+			//
+		}
+		
+		parent::set_values($row);
+	}
+	
 }
 
 /*
