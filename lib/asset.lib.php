@@ -280,7 +280,7 @@
 	}
 
 
-function _getArrayNomenclature(&$PDOdb, &$TAssetOFLine)
+function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 {
 	global $conf;
 	
@@ -290,7 +290,9 @@ function _getArrayNomenclature(&$PDOdb, &$TAssetOFLine)
 	
 	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 	
-	$TNomen = TNomenclature::get($PDOdb, $TAssetOFLine->fk_product);
+	$fk_product = $TAssetOFLine->fk_product ? $TAssetOFLine->fk_product : $fk_product;
+	
+	$TNomen = TNomenclature::get($PDOdb, $fk_product);
 	foreach ($TNomen as $TNomenclature) 
 	{
 		$TRes[$TNomenclature->getId()] = !empty($TNomenclature->title) ? $TNomenclature->title : '(sans titre)';

@@ -50,8 +50,9 @@ function _action() {
 			$assetOf->set_values($_REQUEST);
 
 			$fk_product = __get('fk_product',0,'int');
+			$fk_nomenclature = __get('fk_nomenclature',0,'int');
 
-			_fiche($PDOdb, $assetOf,'edit', $fk_product);
+			_fiche($PDOdb, $assetOf,'edit', $fk_product, $fk_nomenclature);
 
 			break;
 
@@ -77,8 +78,9 @@ function _action() {
 			$assetOf->set_values($_REQUEST);
 			
 			$fk_product = __get('fk_product_to_add',0);
+			$fk_nomenclature = __get('fk_nomenclature',0);
 			if($fk_product > 0) {
-				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE');	
+				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE',1,0,'',$fk_nomenclature);	
 				$assetOf->addWorkstation($PDOdb, $db, $fk_product);
 			}
 
@@ -629,7 +631,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
         
 }
 
-function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
+function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenclature=0) {
 	global $langs,$db,$conf,$user;
 	/***************************************************
 	* PAGE
@@ -778,6 +780,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0) {
 				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
 				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
+				,'fk_nomenclature'=>$fk_nomenclature
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
 				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
 			)

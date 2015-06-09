@@ -254,7 +254,27 @@ function _liste() {
 	} else {
 		
 		echo '<div class="tabsAction">';
-		echo '<a class="butAction" href="fiche_of.php?action=new'.((isset($_REQUEST['fk_product'])) ? '&fk_product='.$_REQUEST['fk_product'] : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
+		
+		if ($conf->global->ASSET_USE_MOD_NOMENCLATURE)
+		{
+			dol_include_once('/core/class/html.form.class.php');
+			dol_include_once('/asset/lib/asset.lib.php');
+			$doliForm = new Form($db);
+			echo $doliForm->selectarray('fk_nomenclature', _getArrayNomenclature($ATMdb, false, $_REQUEST['fk_product']));
+			
+			echo '<script type="text/javascript">
+				$(function() {
+					$("#bt_createOf").click(function() {
+						var fk_nomenclature = $("select[name=fk_nomenclature]").val();
+						var href = $(this).attr("href") + "&fk_nomenclature=" + fk_nomenclature;
+						$(this).attr("href", href);
+					});
+				});
+			</script>';
+			
+		}
+		
+		echo '<a id="bt_createOf" class="butAction" href="fiche_of.php?action=new'.((isset($_REQUEST['fk_product'])) ? '&fk_product='.$_REQUEST['fk_product'] : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
 		echo '</div>';
 
 	}

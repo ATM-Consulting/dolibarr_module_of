@@ -22,7 +22,8 @@
 					<input type="hidden" name="action" value="terminer">
 				[onshow;block=end]
 				
-				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">		
+				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">	
+				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">		
 				<input type="hidden" value="[assetOf.id]" name="id">
 				
 			<table width="100%" class="border">
