@@ -286,7 +286,7 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 	
 	$TRes = array();
 	
-	if (empty($conf->global->ASSET_USE_MOD_NOMENCLATURE)) return $TRes;
+	if (!$conf->nomenclature->enabled) return $TRes;
 	
 	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 	
@@ -305,7 +305,7 @@ function  _getTitleNomenclature(&$PDOdb, $fk_nomenclature)
 {
 	global $conf;
 	
-	if (empty($conf->global->ASSET_USE_MOD_NOMENCLATURE)) return '';
+	if (!$conf->nomenclature->enabled) return '';
 	
 	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 	

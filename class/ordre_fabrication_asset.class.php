@@ -209,7 +209,7 @@ class TAssetOF extends TObjetStd{
 		
 		$Tab=array();
 
-		if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE) )
+		if ($conf->nomenclature->enabled)
 		{
 			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 			
@@ -226,9 +226,7 @@ class TAssetOF extends TObjetStd{
 			
 			if (!empty($TNomen))
 			{
-				
-				$Tres = $TNomen->getDetails($quantite_to_make);
-
+				$TRes = $TNomen->getDetails($quantite_to_make);
 				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1);
 			}
 			
@@ -373,7 +371,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty = $quantite;
 		$TAssetOFLine->qty_used = $quantite;
 		
-		if (!empty($conf->global->ASSET_USE_MOD_NOMENCLATURE) && !$fk_nomenclature)
+		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
 			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
 			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
@@ -1678,7 +1676,7 @@ class TAssetOFLine extends TObjetStd{
 	{
 		global $conf;
 		
-		if ($conf->global->ASSET_USE_MOD_NOMENCLATURE && $this->fk_nomenclature != $row['fk_nomenclature'])
+		if ($conf->nomenclature->enabled && $this->fk_nomenclature != $row['fk_nomenclature'])
 		{
 			//
 		}

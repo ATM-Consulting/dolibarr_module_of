@@ -787,7 +787,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'view'=>array(
 				'mode'=>$mode
 				,'status'=>$assetOf->status
-				,'ASSET_USE_MOD_NOMENCLATURE'=>$conf->global->ASSET_USE_MOD_NOMENCLATURE
+				,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
 				,'select_product'=>$select_product
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
 				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation			
