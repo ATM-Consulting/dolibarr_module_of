@@ -20,6 +20,8 @@ $langs->Load("companies");
 $langs->Load("other");
 $langs->Load("asset@asset");
 
+$hookmanager->initHooks(array('assetcard'));
+
 // Get parameters
 _action();
 
@@ -138,7 +140,7 @@ function _action() {
 				<script language="javascript">
 					document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/fiche.php?id=<?php echo $asset->rowid?>";					
 				</script>
-				<?
+				<?php
 				
 				break;
 				
@@ -211,7 +213,7 @@ function _action() {
 		<script language="javascript">
 			document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/liste.php";					
 		</script>
-		<?
+		<?php
 	}
 
 
@@ -220,7 +222,7 @@ function _action() {
 }
 
 function _fiche(&$asset, $mode='edit') {
-global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
+global $langs,$db,$conf, $ASSET_LINK_ON_FIELD, $hookmanager;
 /***************************************************
 * PAGE
 *
@@ -394,7 +396,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 		$product->fetch($fk_product);
 		$product->fetch_optionals($product->id);
 	}
-	
+		
 	print $TBS->render('tpl/'.$tpl_fiche
 		,array(
 			'assetField'=>$TFields
@@ -456,6 +458,9 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD;
 			)
 		)
 	);
+	
+	$parameters = array('id'=>$asset->getId());
+	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$asset,$mode);    // Note that $action and $object may have been modified by hook
 	
 	echo $form->end_form();
 	// End of page
