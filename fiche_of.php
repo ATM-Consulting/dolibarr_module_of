@@ -610,7 +610,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     {
     	$url = dol_buildpath('asset/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 2);
 		// Pour le moment au limite au besoin, la création reste en dure, à voir
-		$r.=$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 10,255,' title="Ajouter un équipement" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
+		$r.=$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 10,255,' title="Ajouter un équipement" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
 			.'<a href="" base-href="'.$url.'">'.img_right('lier').'</a>'
 			.'<br/>';
     }

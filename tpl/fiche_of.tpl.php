@@ -571,11 +571,11 @@
 				})
 				
 				$('input[rel=add-asset]').each(function(){
-				    
+				    var fk_product = $(this).attr('fk_product');
 				    var idline = $(this).attr('fk-asset-of-line');
                     var lot = $('input[rel=lot-'+idline+']').val();
                     $(this).autocomplete({
-                        source: "script/interface.php?get=autocomplete-serial&json=1&lot_number="+lot
+                        source: "script/interface.php?get=autocomplete-serial&json=1&lot_number="+lot+"&fk_product="+fk_product
                         ,minLength : 1
                         ,select: function(event, ui) {
 							var value = ui.item.value;
