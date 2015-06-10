@@ -255,7 +255,7 @@ function _liste() {
 		
 		echo '<div class="tabsAction">';
 		
-		if ($conf->global->ASSET_USE_MOD_NOMENCLATURE)
+		if ($conf->global->ASSET_USE_MOD_NOMENCLATURE && !empty($_REQUEST['fk_product']))
 		{
 			dol_include_once('/core/class/html.form.class.php');
 			dol_include_once('/asset/lib/asset.lib.php');

@@ -1186,7 +1186,7 @@ class TAssetOFLine extends TObjetStd{
 		
 		$OF = new TAssetOF;
 		$OF->load($PDOdb, $this->fk_assetOf);
-		//var_dump($conf->global->USE_LOT_IN_OF);exit;
+
         if(!$conf->global->USE_LOT_IN_OF) 
         {
             $asset=new TAsset;
@@ -1515,9 +1515,7 @@ class TAssetOFLine extends TObjetStd{
 		{
 			$sens = $this->type == 'NEEDED' ? -1 : 1;
 			$this->destockAsset($PDOdb, $sens * $this->qty_stock); // On restock les produits utilisé
-		} 
-		
-		
+		}
                
 	    // TODO dbdelete()
         $sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
@@ -1525,6 +1523,13 @@ class TAssetOFLine extends TObjetStd{
         $sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "TAssetOFLine" AND targettype = "TAsset"';
         $PDOdb->Execute($sql);
 
+		/* Evite le restockage en double 
+		 * Si mon OF a 1 TO_MAKE qui a besoin de 2 NEEDED
+		 * le fait de delete l'OF on va donc delete chacun de ses enfants TAssetOFLine
+		 * seulement un objet TAssetOFLine de type TO_MAKE a aussi des enfants TAssetOFLine
+		 */ 
+		if ($this->type == 'TO_MAKE') $this->withChild = false;
+		
 		parent::delete($PDOdb);
 	}
 	
