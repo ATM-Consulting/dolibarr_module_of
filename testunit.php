@@ -41,6 +41,7 @@
    print _num()."Création d'un type d'asset...";
    $typeAsset = new TAsset_type;
    $typeAsset->libelle='TEST ASSET TYPE';
+   $typeAsset->masque = 'EQTEST{000}';
    $id_asset_type_test = $typeAsset->save($PDOdb);
    if($id_asset_type_test>0) {
        print $id_asset_type_test.'...';
@@ -70,13 +71,28 @@
        print $id_asset_test.'...';
    }
    
-   
    if($asset->serial_number!='') {
+       var_dump($asset->serial_number);
        exit ('pas de type défini sur le produit, anormal si la réf sort à non vide');
    }
    else{
       _ok();
    }
+   
+   print _num()."Liaison à un type d'équipement...";
+   
+   $asset->fk_asset_type = $id_asset_type_test;
+   $asset->load_asset_type($PDOdb);
+   $asset->save($PDOdb);   
+   
+   if($asset->serial_number=='') {
+       var_dump($asset->assetType->masque);
+       exit ('Code vide anormal');
+   }
+   else{
+      _ok();
+   }
+   
    
    print _num()."Suppression de l'asset de test..."; 
    $asset->delete($PDOdb);
