@@ -90,6 +90,7 @@
        exit ('Code vide anormal');
    }
    else{
+      echo $asset->serial_number.'...';
       _ok();
    }
    
