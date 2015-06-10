@@ -561,7 +561,7 @@
 					}).change(function() {
 						var inputTarget = $(this).parent().next().find('input[rel=add-asset]');
 						$(inputTarget).autocomplete({
-							source: "script/interface.php?get=autocomplete-serial&json=1&lot_number="+$('input[rel=lot-'+$(inputTarget).attr('fk-asset-of-line')+']').val()
+							source: "script/interface.php?get=autocomplete-serial&json=1&fk_product="+fk_product+"&lot_number="+$('input[rel=lot-'+$(inputTarget).attr('fk-asset-of-line')+']').val()
 							,minLength: 1
 							,select: function(event, ui) {
 								var value = ui.item.value;

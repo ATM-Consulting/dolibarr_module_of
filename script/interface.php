@@ -20,7 +20,7 @@ function traite_get(&$PDOdb, $case) {
             __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product'),GETPOST('type_product')));
             break;
         case 'autocomplete-serial':
-            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number')));
+            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number'), GETPOST('fk_product')));
             break;
 		case 'addofproduct':
 			__out(_addofproduct($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
@@ -87,13 +87,14 @@ function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of)
 	$of->save($PDOdb);	
 }
 
-function _autocompleteSerial(&$PDOdb, $lot='') {
+function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
         
     //$sql = 'SELECT DISTINCT(a.serial_number) ';
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
     $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE a.contenancereel_value > 0 ';
-    
-    if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote($lot.'%').' ';
+	
+    if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product;
+    if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
     
     $sql .= 'ORDER BY a.serial_number';
 //      print $sql;
