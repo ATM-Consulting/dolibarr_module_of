@@ -42,6 +42,9 @@ class TAsset extends TObjetStd{
 		$this->TField=array();
 		$this->assetType=new TAsset_type;
 		$this->TType = array();
+        
+        $this->old_contenancereel = 0;
+        $this->old_contenancereel_units = 0;
 	}
 
 	function set_values($request)
@@ -187,7 +190,7 @@ class TAsset extends TObjetStd{
 				$this->serial_number = $this->getNextValue($PDOdb); // TODO à vérifier car il semblerait que le mask se génère tjr comme s'il été le 1er (mask : P01-{00000})
 			}
 			
-            parent::save($PDOdb);
+            $idasset = parent::save($PDOdb);
 			
 			$this->save_link($PDOdb);
 			$this->addLotNumber($PDOdb);
@@ -202,7 +205,7 @@ class TAsset extends TObjetStd{
 			{
 				if ($add_only_qty_to_contenancereel) $this->contenancereel_value = $qty;
 				else $this->contenancereel_value = $this->contenancereel_value + $qty;
-				parent::save($PDOdb);
+				$idasset = parent::save($PDOdb);
 			}
 		}
 		
@@ -213,10 +216,11 @@ class TAsset extends TObjetStd{
 		}
 		
 		//Spécifique Nomadic
-		if($conf->clinomadic->enabled){ //TODO Et des triggers ! NON
+		if(@$conf->clinomadic->enabled){ //TODO Et des triggers ! NON
 			$this->updateGaranties();
 		}
-		
+	
+        return 	$idasset;
 	}
 
 
