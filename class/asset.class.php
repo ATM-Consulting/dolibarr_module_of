@@ -787,16 +787,16 @@ class TAsset_type extends TObjetStd {
 		$this->entity = $conf->entity;
 		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
 		
-		$this->code = TAsset_type::code_format(empty($this->code) ? $this->libelle : $this->code);
-		
 		if ($this->gestion_stock == 'UNIT') $this->measuring_units = 'unit';
 		
-		parent::save($db);
+		$res = parent::save($db);
 		
 		foreach($this->TField as $field) {
 			$field->fk_asset_type = $this->getId();
 			$field->save($db);
 		}
+        
+        return $res;
 		
 	}	
 	
