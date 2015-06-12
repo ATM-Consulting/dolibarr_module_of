@@ -511,7 +511,7 @@ function _fiche_ligne(&$form, &$of, $type){
         else{
             $conditionnement_label=$conditionnement_label_edit='';
         }
-        
+		
         if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
@@ -519,7 +519,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				            .TAssetOF::getProductStock($product->id)._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
-				,'nomenclature'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
+				,'nomenclature'=>($of->status=='DRAFT' && !$TAssetOFLine->nomenclature_valide) ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 				,'qty_used'=>(($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
@@ -530,7 +530,6 @@ function _fiche_ligne(&$form, &$of, $type){
 			);
 		}
 		elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
-		
 			if(empty($TAssetOFLine->TFournisseurPrice)) {
 				
 				$TAssetOFLine->loadFournisseurPrice($PDOdb);
@@ -577,13 +576,33 @@ function _fiche_ligne(&$form, &$of, $type){
 
 			}
 
+			if ($conf->nomenclature->enabled) {
+				if ($of->status == 'DRAFT' && !$TAssetOFLine->nomenclature_valide) {
+					$nomenclature = $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature);
+					
+					$action = GETPOST('action');
+					
+					if ($action == 'edit') {
+						$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">Valider</a>';
+					}
+				} else {
+					$nomenclature = _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature);
+				}
+				
+				$picture = ($TAssetOFLine->nomenclature_valide ? 'ok.png' : 'no.png');
+					
+				$nomenclature .= ' <img src="img/' . $picture . '" style="padding-left: 2px; vertical-align: middle;" />';
+			}
+			
+			//($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
+			
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="TO_MAKE" fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				        .$product->stock_reel._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
-		        ,'nomenclature'=>($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
+		        ,'nomenclature'=>$nomenclature
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label 
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price, 1, '', 'style="max-width:250px;"')
@@ -749,7 +768,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
 		$hasParent = true;
 	}
-    
+
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded

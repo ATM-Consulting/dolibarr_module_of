@@ -337,6 +337,7 @@
 						}
 					});
 				});
+				
 			[onshow;block=end]
 		});
 		
@@ -485,7 +486,31 @@
 				});
 				
 			});
+			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']	
+			$('.valider_nomenclature').unbind().click(function() {
+					var id_assetOF = $(this).data('id_of');
+					
+					var select = $(this).parent().children('select');
+					var qty = $(this).parent().next().children('input[type="text"]');
+
+					$.ajax({
+						url: "script/interface.php"
+						,type: 'GET'
+						,data:{
+							get: 'validernomenclature'
+							,id_assetOF: id_assetOF
+							,fk_product: $(this).data('product')
+							,fk_of_line: $(this).data('of_line')
+							,fk_nomenclature: select.val()
+							,qty: qty.val()
+						}
+					}).done(function(data){
+						//$('.OFMaster').html(data);
+						refreshTab(id_assetOF, '[view.mode]');
+					});
+				});
 			
+			[onshow;block=end]
 			$(".btnaddworkstation" ).unbind().click(function() {
 				var from = $(this);
 				$( "#dialog-workstation" ).dialog({

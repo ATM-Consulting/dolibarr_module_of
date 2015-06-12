@@ -193,7 +193,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $conf;
 		
-		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature);
+		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
 		foreach($Tab as $prod) 
 		{
 			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
@@ -203,7 +203,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Retourne les produits NEEDED de l'OF concernant le produit $id_produit
-	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make, $fk_nomenclature=0)
+	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make, $fk_nomenclature=0, $fk_assetOf_line_parent=0)
 	{
 		global $db,$conf;
 		
@@ -227,7 +227,7 @@ class TAssetOF extends TObjetStd{
 			if (!empty($TNomen))
 			{
 				$TRes = $TNomen->getDetails($quantite_to_make);
-				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1);
+				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
 			}
 			
 		}
@@ -245,7 +245,7 @@ class TAssetOF extends TObjetStd{
 		return $Tab;
 	}
 	
-	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) 
+	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true, $fk_assetOf_line_parent = 0) 
 	{
 		global $conf;
 		//TODO c'est de la merde à refaire
@@ -274,7 +274,7 @@ class TAssetOF extends TObjetStd{
 				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 				{
 					if($createOF) {
-						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty * $qty_parent);
+						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty * $qty_parent, $fk_assetOf_line_parent);
 					}
 				}
 				
@@ -287,7 +287,7 @@ class TAssetOF extends TObjetStd{
 	/*
 	 * Crée une OF si produit composé pas en stock
 	 */
-	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed) {
+	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
 		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
@@ -302,7 +302,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
-			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed));
+			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed), $fk_assetOfLine_parent);
 			$this->TAssetOF[$k]->addWorkstation($PDOdb, $db, $fk_product);
 			
 			return $k;
@@ -373,7 +373,7 @@ class TAssetOF extends TObjetStd{
 		
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
-			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			dol_include_once('/nomenclature/class/nomenclature.class.php');
 			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
 			if ($TNomen) $fk_nomenclature = $TNomen->getId();
 		}
@@ -382,6 +382,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->lot_number = $lot_number;
 		
         $TAssetOFLine->initConditionnement($PDOdb);
+		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
         // Appel des triggers
@@ -393,10 +394,10 @@ class TAssetOF extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
         
-		if($type=='TO_MAKE') 
+		/*if($type=='TO_MAKE') 
 		{
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
-		}
+		}*/
 	}
 	
 	function updateLines(&$PDOdb,$TQty)
@@ -1118,7 +1119,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
 
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature','type=entier;index;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
 
