@@ -9,7 +9,10 @@
 </style>		
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
 		<form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
-				[onshow;block=begin;when [view.status]=='CLOSE']
+				<input type="hidden" value="save" name="action">
+				<!-- 
+					Jusqu'a preuve du contraire :/
+					[onshow;block=begin;when [view.status]=='CLOSE']
 					<input type="hidden" name="action" value="save">
 				[onshow;block=end]
 				[onshow;block=begin;when [view.status]=='DRAFT']
@@ -21,7 +24,7 @@
 				[onshow;block=begin;when [view.status]=='OPEN']
 					<input type="hidden" name="action" value="terminer">
 				[onshow;block=end]
-				
+				-->
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">	
 				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">		
 				<input type="hidden" value="[assetOf.id]" name="id">
