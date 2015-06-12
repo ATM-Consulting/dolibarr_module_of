@@ -145,7 +145,7 @@ function _liste() {
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
 			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
-			,'product'=>'<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+			
 			,'client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
@@ -177,7 +177,7 @@ function _liste() {
 			'ordre'=>'TAssetOF::ordre(@val@)'
 			,'status'=>'TAssetOF::status(@val@)'
 			,'product' => 'get_format_libelle_produit(@fk_product@)'
-			,'client' => 'get_format_libelle_societe(@fk_soc@)'
+			,'client' => 'get_format_libelle_societe(@fk_soc@)'  
 		)
 	));
 	
@@ -291,7 +291,9 @@ function get_format_libelle_produit($fk_product = null) {
 		$product = new Product($db);
 		$product->fetch($fk_product);
 	
-		return '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id=' . $fk_product . '">' . img_picto('','object_product.png','',0) . ' ' . htmlentities(utf8_decode($product->label)) . '</a>';
+		$product->ref.=' '.$product->label;
+	
+		return  $product->getNomUrl(1);
 	} else {
 		return 'Produit non défini.';
 	}

@@ -309,6 +309,26 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
+	static function getProductNeededQty($fk_product, $include_draft_of=true) {
+		
+		global $db;
+		
+		$sql = "SELECT SUM(qty_needed) as qty 
+				FROM ".MAIN_DB_PREFIX."assetOf_line l 
+					LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON(l.fk_assetOf = of.rowid)
+			WHERE fk_product=".$fk_product."
+			AND type='NEEDED' AND of.status IN (".($include_draft_of ? "'DRAFT',": '')."'VALID')	
+			";
+		
+		$res = $db->query($sql);
+		
+		$obj = $db->fetch_object($res);
+		
+		return (int)$obj->qty;
+		
+		
+	}
+	
 	/*
 	 * retourne le stock restant du produit
 	 */
@@ -323,12 +343,10 @@ class TAssetOF extends TObjetStd{
         if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
         else $stock =$product->stock_reel;
         
-        if($include_draft_of) {
-            /* destocke également tous les OF en brouillon */
-            
-        }
+      /*  $of_qty = self::getProductNeededQty($fk_product, $include_draft_of);
         
-
+		$stock-= $of_qty;
+*/
 		return $stock;
 	}
 	
