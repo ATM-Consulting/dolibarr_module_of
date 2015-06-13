@@ -221,6 +221,8 @@ class TAssetOF extends TObjetStd{
 				
 				if (!empty($TNomen))
 				{
+					
+					
 					$TRes = $TNomen->getDetails($quantite_to_make);
 					$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
 				}
@@ -405,6 +407,10 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->lot_number = $lot_number;
 		
         $TAssetOFLine->initConditionnement($PDOdb);
+		
+		if($fk_nomenclature>0) {
+			$TAssetOFLine->nomenclature_valide = true;
+		}
 		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
