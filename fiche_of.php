@@ -81,7 +81,6 @@ function _action() {
 			$fk_nomenclature = __get('fk_nomenclature',0);
 			if($fk_product > 0) {
 				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE',1,0,'',$fk_nomenclature);	
-				$assetOf->addWorkstation($PDOdb, $db, $fk_product);
 			}
 
 			if(!empty($_REQUEST['TAssetOFLine'])) 

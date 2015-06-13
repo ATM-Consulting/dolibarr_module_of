@@ -301,7 +301,6 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed), $fk_assetOfLine_parent);
-			$this->TAssetOF[$k]->addWorkstation($PDOdb, $db, $fk_product);
 			
 			return $k;
 		}
@@ -409,6 +408,8 @@ class TAssetOF extends TObjetStd{
 		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
+		$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
+		
         // Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
 		$interface = new Interfaces($db);
@@ -437,22 +438,45 @@ class TAssetOF extends TObjetStd{
 	 * Fonction qui permet de mettre à jour les postes de travail liais à un produit
 	 * pour la création d'un OF depuis une fiche produit
 	 */
-	function addWorkStation($PDOdb, $db, $fk_product) 
+	function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0) 
 	{
 		global $conf;
 		
 		if (!empty($conf->workstation->enabled))
 		{
-			//$sql = "SELECT fk_asset_workstation, nb_hour";
-			//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
-			$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-			$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-			$sql.= " WHERE fk_product = ".$fk_product;
-			$resql = $db->query($sql);
-			
-			if($resql) 
-			{
-				while($res = $db->fetch_object($resql)) 
+			if($conf->nomenclature->enabled) {
+				
+				if($fk_nomenclature>0) {
+					dol_include_once('/nomenclature/class/nomenclature.class.php');
+					
+					$n=new TNomenclature;
+					if($n->load($PDOdb, $fk_nomenclature, true)) {
+							
+						foreach($n->TNomenclatureWorkstation as &$nws) {
+							
+							$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+							$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
+							$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour;
+							$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
+							$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
+							$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+							$this->TAssetWorkstationOF[$k]->ws = $nws->ws;
+							
+							
+						}		
+						
+					}
+					
+				}
+				
+			}
+			else {
+				$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+				$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
+				$sql.= " WHERE fk_product = ".$fk_product;
+				$PDOdb->Execute($sql);
+				
+				while($res = $PDOdb->Get_line()) 
 				{
 					$ws = new TAssetWorkstation;
 					$ws->load($PDOdb, $res->fk_asset_workstation);
@@ -462,7 +486,9 @@ class TAssetOF extends TObjetStd{
 					$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
 					$this->TAssetWorkstationOF[$k]->ws = $ws;
 				}
+				
 			}
+		
 		}
 		
 	}
