@@ -211,24 +211,22 @@ class TAssetOF extends TObjetStd{
 
 		if ($conf->nomenclature->enabled)
 		{
-			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			dol_include_once('/nomenclature/class/nomenclature.class.php');
 			
 			//$TNomen = TNomenclature::get($PDOdb, $id_product);
 			if ($fk_nomenclature)
 			{
 				$TNomen = new TNomenclature;
 				$TNomen->load($PDOdb, $fk_nomenclature);
-			}
-			else 
-			{
-				$TNomen = TNomenclature::getDefaultNomenclature($PDOdb, $id_product, $quantite_to_make);
+				
+				if (!empty($TNomen))
+				{
+					$TRes = $TNomen->getDetails($quantite_to_make);
+					$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
+				}
 			}
 			
-			if (!empty($TNomen))
-			{
-				$TRes = $TNomen->getDetails($quantite_to_make);
-				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
-			}
+			
 			
 		}
 		else 
@@ -392,11 +390,15 @@ class TAssetOF extends TObjetStd{
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
+			
 			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
-			if ($TNomen) $fk_nomenclature = $TNomen->getId();
+			if($TNomen!== false) $TAssetOFLine->fk_nomenclature = $TNomen->getId();
+		}
+		else{
+			$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
 		}
 		
-		$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
+		
 		$TAssetOFLine->lot_number = $lot_number;
 		
         $TAssetOFLine->initConditionnement($PDOdb);
@@ -412,10 +414,10 @@ class TAssetOF extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
         
-		/*if($type=='TO_MAKE') 
+		if($type=='TO_MAKE') 
 		{
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
-		}*/
+		}
 	}
 	
 	function updateLines(&$PDOdb,$TQty)
