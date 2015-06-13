@@ -392,8 +392,11 @@ class TAssetOF extends TObjetStd{
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 			
-			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
-			if($TNomen!== false) $TAssetOFLine->fk_nomenclature = $TNomen->getId();
+			$TNomen = TNomenclature::get($PDOdb,  $fk_product);
+			if(count($TNomen) == 1) {
+				$TAssetOFLine->fk_nomenclature = $TNomen[0]->getId();
+				$fk_nomenclature = $TAssetOFLine->fk_nomenclature ;
+			}
 		}
 		else{
 			$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
