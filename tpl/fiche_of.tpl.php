@@ -10,21 +10,6 @@
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
 		<form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
 				<input type="hidden" value="save" name="action">
-				<!-- 
-					Jusqu'a preuve du contraire :/
-					[onshow;block=begin;when [view.status]=='CLOSE']
-					<input type="hidden" name="action" value="save">
-				[onshow;block=end]
-				[onshow;block=begin;when [view.status]=='DRAFT']
-					<input type="hidden" name="action" value="[assetOf.id;noerr;if [val]!=0;then 'valider';else 'create']">
-				[onshow;block=end]
-				[onshow;block=begin;when [view.status]=='VALID']
-					<input type="hidden" name="action" value="lancer">
-				[onshow;block=end]
-				[onshow;block=begin;when [view.status]=='OPEN']
-					<input type="hidden" name="action" value="terminer">
-				[onshow;block=end]
-				-->
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">	
 				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">		
 				<input type="hidden" value="[assetOf.id]" name="id">
@@ -45,14 +30,16 @@
 				<tr><td>Statut</td><td>[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
 					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
 						<span class="viewmode notinparentview">
+							
+				
 						[onshow;block=begin;when [view.status]=='DRAFT']
-							, passer à l'état :<input type="button" onclick="if (confirm('Valider cet Ordre de Fabrication ?')) { submitForm([assetOf.id]); }" class="butAction" name="valider" value="Valider">
+							, passer à l'état :<input type="button" onclick="if (confirm('Valider cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'valider'); }" class="butAction" name="valider" value="Valider">
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]=='VALID']
-							, passer à l'état :<input type="button" onclick="if (confirm('Lancer cet Ordre de Fabrication ?')) { submitForm([assetOf.id]); }" class="butAction" name="lancer" value="Production en cours">
+							, passer à l'état :<input type="button" onclick="if (confirm('Lancer cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'lancer'); }" class="butAction" name="lancer" value="Production en cours">
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]=='OPEN']
-							, passer à l'état :<input type="button" onclick="if (confirm('Terminer cet Ordre de Fabrication ?')) { submitForm([assetOf.id]); }" class="butAction" name="terminer" value="Terminer">
+							, passer à l'état :<input type="button" onclick="if (confirm('Terminer cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'terminer'); }" class="butAction" name="terminer" value="Terminer">
 							<!-- <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication ?');" class="butAction">Terminer</a> -->
 						[onshow;block=end]
 					[onshow;block=end]
@@ -134,9 +121,7 @@
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
 									<td>Produit</td>
-									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
-										<td>Nomenclature</td>
-									[onshow;block=end]
+									
 									<td>Quantité nécessaire</td>
 									<td>Quantité réelle</td>
 									<td class="nodraft">Quantité utilisée</td>
@@ -156,9 +141,7 @@
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
 									<td>[TNeeded.libelle;block=tr;strconv=no]</td>
-									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
-										<td>[TNeeded.nomenclature;block=tr;strconv=no]</td>
-									[onshow;block=end]
+									
 									<td>[TNeeded.qty_needed]</td>
 									<td>[TNeeded.qty;strconv=no]</td>
 									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
@@ -445,7 +428,12 @@
 		
 		}
 
-		function submitForm(assetOFId) {
+		function submitForm(assetOFId, saveType) {
+			
+			if(saveType!=null) {
+				$('#formOF'+assetOFId+' input[name=action]').val(saveType);
+			}
+			
 			$('#formOF'+assetOFId).attr('rel', 'noajax').submit();	
 		}
 

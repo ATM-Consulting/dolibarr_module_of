@@ -259,8 +259,10 @@ function _liste() {
 		{
 			dol_include_once('/core/class/html.form.class.php');
 			dol_include_once('/asset/lib/asset.lib.php');
+			dol_include_once('/nomenclature/class/nomenclature.class.php');
+			
 			$doliForm = new Form($db);
-			echo $doliForm->selectarray('fk_nomenclature', _getArrayNomenclature($ATMdb, false, $_REQUEST['fk_product']));
+			echo $doliForm->selectarray('fk_nomenclature', TNomenclature::get($ATMdb, $_REQUEST['fk_product'], true));
 			
 			echo '<script type="text/javascript">
 				$(function() {
