@@ -1,17 +1,17 @@
 <?php
 
 require('config.php');
-require('./class/asset.class.php');
-require('./class/ordre_fabrication_asset.class.php');
-require('./lib/asset.lib.php');
-require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
-include_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
-
+dol_include_once('/asset/class/asset.class.php');
+dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
+dol_include_once('/asset/lib/asset.lib.php');
+dol_include_once('/core/lib/ajax.lib.php');
+dol_include_once('/core/lib/product.lib.php');
+dol_include_once('/core/lib/admin.lib.php');
+dol_include_once('/product/class/product.class.php');
+dol_include_once('/commande/class/commande.class.php');
+dol_include_once('/fourn/class/fournisseur.commande.class.php');
+dol_include_once('/product/class/html.formproduct.class.php');
+dol_include_once('/core/lib/date.lib.php');
 
 if(!$user->rights->asset->all->lire) accessforbidden();
 if(!$user->rights->asset->of->write) accessforbidden();
@@ -518,7 +518,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				            .TAssetOF::getProductStock($product->id)._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
-				,'nomenclature'=>($of->status=='DRAFT' && !$TAssetOFLine->nomenclature_valide) ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
+				
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 				,'qty_used'=>(($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
@@ -576,21 +576,34 @@ function _fiche_ligne(&$form, &$of, $type){
 			}
 
 			if ($conf->nomenclature->enabled) {
+				dol_include_once('/nomenclature/class/nomenclature.class.php');
+				
 				if ($of->status == 'DRAFT' && !$TAssetOFLine->nomenclature_valide) {
-					$nomenclature = $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature);
+					$TNomenclature = TNomenclature::get($PDOdb, $TAssetOFLine->fk_product, true);
 					
-					$action = GETPOST('action');
+					if(count($TNomenclature) > 0 ) {
+						$nomenclature = '<div>'.$form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', $TNomenclature, $TAssetOFLine->fk_nomenclature);
 					
-					if ($action == 'edit') {
-						$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">Valider</a>';
+						$action = GETPOST('action');
+					
+						if ($action == 'edit') {
+							$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">Valider</a>';
+						}
+						$nomenclature.='</div>';
 					}
+					else{
+						$nomenclature='';
+					}
+					
 				} else {
-					$nomenclature = _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature);
+					$n=new TNomenclature;
+					$n->load($PDOdb, $TAssetOFLine->fk_nomenclature);
+					$nomenclature = '<div>' .(String) $n;
+					$picture = ($TAssetOFLine->nomenclature_valide ? 'ok.png' : 'no.png');
+					$nomenclature .= ' <img src="img/' . $picture . '" style="padding-left: 2px; vertical-align: middle;" /></div>';
 				}
 				
-				$picture = ($TAssetOFLine->nomenclature_valide ? 'ok.png' : 'no.png');
-					
-				$nomenclature .= ' <img src="img/' . $picture . '" style="padding-left: 2px; vertical-align: middle;" />';
+				
 			}
 			
 			//($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
@@ -686,11 +699,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		<?php
 		foreach($assetOf->errors as $error){
 			echo $error."<br>";
+			setEventMessage($error,'errors');
 		}
 		$assetOf->errors = array();
 		?>
 		</div><br>
 		<?php
+		
+		
 	}	
 	
 	$form=new TFormCore();
@@ -736,7 +752,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
 	
 	$TWorkstation=array();
-	foreach($assetOf->TAssetWorkstationOF as $k => $TAssetWorkstationOF) {
+	foreach($assetOf->TAssetWorkstationOF as $k => &$TAssetWorkstationOF) {
 		$ws = &$TAssetWorkstationOF->ws;
 		
 		$TWorkstation[]=array(
@@ -744,8 +760,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
 			,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
 			,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
-			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : $TAssetWorkstationOF->nb_hour  
-			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : $TAssetWorkstationOF->nb_hour_real
+			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : convertSecondToTime( $TAssetWorkstationOF->nb_hour * 3600 )  
+			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600)
 			,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 			,'id'=>$ws->getId()
 		);

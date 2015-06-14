@@ -166,9 +166,6 @@
 										<td>Lot</td>
 									[onshow;block=end]
 									<td>Produit</td>
-									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
-										<td>Nomenclature</td>
-									[onshow;block=end]
 									<td>Quantité à produire</td>
 									<td>Fournisseur</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
@@ -182,10 +179,12 @@
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[TTomake.lot_number;strconv=no]</td>
 									[onshow;block=end]
-									<td>[TTomake.libelle;block=tr;strconv=no]</td>
+									<td>[TTomake.libelle;block=tr;strconv=no]
 									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
-										<td>[TTomake.nomenclature;block=tr;strconv=no]</td>
+										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
 									[onshow;block=end]
+										
+									</td>
 									<td>[TTomake.qty;strconv=no]</td>
 									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']

@@ -300,17 +300,3 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 	
 	return $TRes;
 }
-
-function  _getTitleNomenclature(&$PDOdb, $fk_nomenclature)
-{
-	global $conf;
-	
-	if (!$conf->nomenclature->enabled) return '';
-	
-	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
-	
-	$TNomen = new TNomenclature;
-	$TNomen->load($PDOdb, $fk_nomenclature);
-	
-	return ($TNomen ? $TNomen->title : '');
-}

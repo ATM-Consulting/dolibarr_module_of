@@ -467,7 +467,7 @@ class TAssetOF extends TObjetStd{
 							$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
 							$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
 							$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
-							$this->TAssetWorkstationOF[$k]->ws = $nws->ws;
+							$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
 							
 							
 						}		
