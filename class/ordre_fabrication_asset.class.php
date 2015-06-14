@@ -308,7 +308,7 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
-	static function getProductNeededQty($fk_product, $include_draft_of=true, $date='') {
+	static function getProductNeededQty($fk_product, $include_draft_of=true, $include_of_from_order = false, $date='') {
 		
 		global $db;
 		
@@ -319,6 +319,7 @@ class TAssetOF extends TObjetStd{
 			AND type='NEEDED' AND of.status IN (".($include_draft_of ? "'DRAFT',": '')."'VALID')	
 			";
 		if(!empty($date))$sql.=" AND of.date_besoin<='".$date."'";
+		if(!$include_of_from_order) $sql.=" AND of.fk_commande = 0 ";
 		
 		$res = $db->query($sql);
 		
