@@ -268,8 +268,25 @@
 			if (empty($option_only)) {
 				$out.= '</select>';
 			}
-	
+
+			if(is_file(dol_buildpath('/projet/ajax/projects.php'))) {
+			
+				// Autocomplétion
+				if(isset($selected)) {
+					
+					$p = new Project($db);
+					$p->fetch($selected);
+					$selected_value = $p->ref;
+					
+				}
+				
+				print ajax_autocompleter($selected, $htmlname, DOL_URL_ROOT.'/projet/ajax/projects.php', $urloption, 1);
+				$out =  '<input type="text" size="20" name="search_'.$htmlname.'" id="search_'.$htmlname.'" value="'.$selected_value.'"'.$placeholder.' />';
+				
+			}
+			
 			$db->free($resql);
+			
 			return $out;
 		}
 		else
