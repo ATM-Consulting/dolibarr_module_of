@@ -590,7 +590,7 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		//Création association element_element entre la commande fournisseur et l'OF
-		$this->addElementElement($PDOdb,$com);
+		$this->addElementElement($PDOdb,$com,$ofLigne);
 	}
 
 	function delete(&$PDOdb)
@@ -611,14 +611,15 @@ class TAssetOF extends TObjetStd{
 		$this->delElementElement($PDOdb);
 	}
 
-	function addElementElement(&$PDOdb,&$commandeFourn){
+	function addElementElement(&$PDOdb,&$commandeFourn,&$ofLigne){
 		
 		$TIdCommandeFourn = $this->getElementElement($PDOdb);
 
 		if(!in_array($commandeFourn->id, $TIdCommandeFourn)){
-				
-			$PDOdb->Execute("INSERT INTO ".MAIN_DB_PREFIX."element_element (fk_source,fk_target,sourcetype,targettype) 
-								VALUES (".$this->getId().",".$commandeFourn->id.",'ordre_fabrication','order_supplier')");
+			$sql = "REPLACE INTO ".MAIN_DB_PREFIX."element_element (fk_source,fk_target,sourcetype,targettype) 
+					VALUES (".$ofLigne->fk_assetOf.",".$commandeFourn->id.",'ordre_fabrication','order_supplier')";
+			
+			$PDOdb->Execute($sql);
 		}
 		
 	}
