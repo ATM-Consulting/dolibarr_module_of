@@ -3,6 +3,7 @@
 	require('./class/asset.class.php');
 	require('./class/ordre_fabrication_asset.class.php');
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	dol_include_once('/commande/class/commande.class.php');
 	
 	if(!$user->rights->asset->all->lire) accessforbidden();
 	if(!$user->rights->asset->of->lire) accessforbidden();
@@ -34,7 +35,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
  * Créé des Of depuis un tableau de product
  */	
  
-	global $langs;
+	global $db, $langs;
 
 	if(!empty($TProduct)) {
 			
@@ -43,6 +44,13 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 
 					$assetOf = new TAssetOF;
 					$assetOf->fk_commande = $fk_commande;
+					
+					if($assetOf->fk_commande > 0) {
+						$com = new Commande($db);
+						$com->fetch($assetOf->fk_commande);
+						$assetOf->fk_project = $com->fk_project;
+					}
+					
 					$assetOf->fk_soc = $fk_soc;
 					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_product]);
 					$assetOf->save($ATMdb);
