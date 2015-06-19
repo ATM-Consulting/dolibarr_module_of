@@ -461,14 +461,17 @@ class TAssetOF extends TObjetStd{
 							
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 							
-							$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
-							$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
-							$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour;
-							$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
-							$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
-							$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
-							$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
+							if($nws->nb_hour_manufacture > 0) {
 							
+								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
+								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour;
+								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
+								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
+								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
+							
+							}
 							
 						}		
 						
