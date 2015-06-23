@@ -584,9 +584,7 @@ function _fiche_ligne(&$form, &$of, $type){
 					if(count($TNomenclature) > 0 ) {
 						$nomenclature = '<div>'.$form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', $TNomenclature, $TAssetOFLine->fk_nomenclature);
 					
-						$action = GETPOST('action');
-					
-						if ($action == 'edit') {
+						if ($form->type_aff=='edit') {
 							$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">Valider</a>';
 						}
 						$nomenclature.='</div>';

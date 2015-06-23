@@ -275,9 +275,12 @@ function _liste() {
 			
 			echo '<script type="text/javascript">
 				$(function() {
+				    var url_create_of = $("#bt_createOf").attr("href");
+                    $("#bt_createOf").attr("href","#");  
+                        
 					$("#bt_createOf").click(function() {
 						var fk_nomenclature = $("select[name=fk_nomenclature]").val();
-						var href = $(this).attr("href") + "&fk_nomenclature=" + fk_nomenclature;
+						var href = url_create_of + "&fk_nomenclature=" + fk_nomenclature;
 						$(this).attr("href", href);
 					});
 				});
