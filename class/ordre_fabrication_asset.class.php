@@ -415,9 +415,7 @@ class TAssetOF extends TObjetStd{
 		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
-		$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
-		
-        // Appel des triggers
+		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
 		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_ADD_LINE',$TAssetOFLine,$user,$langs,$conf);
@@ -428,6 +426,7 @@ class TAssetOF extends TObjetStd{
         
 		if($type=='TO_MAKE') 
 		{
+			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 	}
