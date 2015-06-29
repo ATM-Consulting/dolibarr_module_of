@@ -1838,9 +1838,18 @@ class TAssetWorkstationOF extends TObjetStd{
                 $projectTask->array_options['options_fk_workstation']=$ws->getId();
 				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
                 
-				$projectTask->create($user);
+				$res = $projectTask->create($user);
+                if($res<0) {
+                    var_dump($projectTask);
+                    
+                    exit('ErrorCreateTaskWS') ;
+                }
+                else{
+                    $this->fk_project_task = $projectTask->id;    
+                }
+                
 				
-				$this->fk_project_task = $projectTask->id;
+				
 			}
 			elseif ($OF->fk_project > 0 && $this->fk_project_task > 0)
 			{
@@ -2114,22 +2123,6 @@ class TAssetWorkstation extends TWorkstation {
 		$this->entity = $conf->entity;
 		
 		parent::save($PDOdb);
-	}
-	
-	static function getWorstations(&$PDOdb) 
-	{
-		global $conf;
-		
-		$TWorkstation=array();
-		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
-		
-		$PDOdb->Execute($sql);
-		while($PDOdb->Get_line())
-		{
-			$TWorkstation[$PDOdb->Get_field('rowid')]=$PDOdb->Get_field('libelle');
-		}
-		
-		return $TWorkstation;
 	}
 	
 }
