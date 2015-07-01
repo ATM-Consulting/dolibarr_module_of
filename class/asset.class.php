@@ -297,16 +297,30 @@ class TAsset extends TObjetStd{
 		}
 	}
 	
-	function delete(&$db) {
-		parent::delete($db);
+	function delete(&$PDOdb, $update_stock=false) 
+	{
+		if ($update_stock)
+		{
+			$this->destockDolibarr($PDOdb);
+		}
+		
+		parent::delete($PDOdb);
 		$nb=count($this->TLink);
 		for($i=0;$i<$nb;$i++) {
-			$this->TLink[$i]->delete($db);	
+			$this->TLink[$i]->delete($PDOdb);	
 		}
 		$nb=count($this->TStock);
 		for($i=0;$i<$nb;$i++) {
-			$this->TStock[$i]->delete($db);	
+			$this->TStock[$i]->delete($PDOdb);	
 		}
+	}
+	
+	function destockDolibarr(&$PDOdb)
+	{
+		global $db;
+		
+		//Fonction save fait le taf pour les mvts de stock dolibarr
+		$this->save($PDOdb, $user, 'Suppression équipement', -$this->contenancereel_value, false, $this->fk_product, false, $this->fk_entrepot);
 	}
 	
 	function load_link(&$db) {
