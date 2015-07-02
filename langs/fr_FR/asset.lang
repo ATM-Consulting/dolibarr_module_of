@@ -37,6 +37,7 @@ workstation=poste de travail
 ListOrderProducts=Liste des produits de la commande
 AssetProductionOrder=Ordre de Fabrication
 AssetNewProductionOrder=Nouvel ordre de Fabrication
+OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
