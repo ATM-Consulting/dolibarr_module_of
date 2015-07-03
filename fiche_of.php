@@ -21,6 +21,8 @@ $langs->load("other");
 $langs->load("orders");
 $langs->load("asset@asset");
 
+$hookmanager->initHooks(array('ofcard'));
+
 // Get parameters
 _action();
 
@@ -661,12 +663,15 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 }
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenclature=0) {
-	global $langs,$db,$conf,$user;
+	global $langs,$db,$conf,$user,$hookmanager;
 	/***************************************************
 	* PAGE
 	*
 	* Put here all code to build page
 	****************************************************/
+	
+	$parameters = array('id'=>$assetOf->getId());
+	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 	
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
@@ -781,7 +786,10 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
 		$hasParent = true;
 	}
-
+	
+	$parameters = array('id'=>$assetOf->getId());
+	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
