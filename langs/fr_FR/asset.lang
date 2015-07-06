@@ -92,6 +92,7 @@ AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composi
 AssetUseControl=Permet de définir des contrôles à appliquer lors du processus de l'OF
 AssetDefinedTaskByWorkstation=Permet de définir un protocole opératoire pour chaque poste de travail
 UseProjectTask=Chaque poste de travail associé à un OF créera une tâche au projet associé
+AssetAutoCreateProjectOnOF=Créer et associer automatiquement un projet à l'OF si aucun n'est associé (le projet portera le nom de la commande à partir de laquelle provient l'OF)
 
 CreateAssetFromProductDescListProduct=La liste contient uniquement les produits avec un état "En vente"
 CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.
