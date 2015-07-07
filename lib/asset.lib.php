@@ -172,7 +172,8 @@
 				$project = new Project($db);
 				$project->fetch($selected);
 				
-				return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
+				//return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
+				return $project->getNomUrl(1).' - '.dol_trunc($project->title,$maxlength);
 			}
 			else 
 			{
