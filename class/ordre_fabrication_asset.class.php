@@ -943,6 +943,18 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
+	function getLineProductToMake() {
+		
+		if(!empty($this->TAssetOFLine)) {
+			foreach ($this->TAssetOFLine as $line) {
+				if($line->type === 'TO_MAKE') return $line;
+			}
+		}
+		
+		return 0;
+		
+	}
+	
 	/*
 	 * Permet de supprimer le/les OF enfants
 	 * return 0 si aucun OF
@@ -1870,6 +1882,12 @@ class TAssetWorkstationOF extends TObjetStd{
                 $projectTask->array_options['options_grid_use']=1;
                 $projectTask->array_options['options_fk_workstation']=$ws->getId();
 				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
+				
+				$p = new Product($db);
+				$line_product_to_make = $OF->getLineProductToMake();
+				if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
+					$projectTask->array_options['options_ref_produit_to_make_concerne']=$p->ref;
+				}
                 
 				$res = $projectTask->create($user);
                 if($res<0) {
