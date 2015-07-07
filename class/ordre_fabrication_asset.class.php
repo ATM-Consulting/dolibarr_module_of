@@ -230,7 +230,7 @@ class TAssetOF extends TObjetStd{
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
 		foreach($Tab as $prod) 
 		{
-			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
+			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent);
 		}
 		
 		return true;
@@ -256,8 +256,8 @@ class TAssetOF extends TObjetStd{
 				if (!empty($TNomen))
 				{
 					
-					
 					$TRes = $TNomen->getDetails($quantite_to_make);
+					
 					$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
 				}
 			}
@@ -287,10 +287,10 @@ class TAssetOF extends TObjetStd{
 		{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
-			$prod->qty = $row[1];
+			$prod->qty = $row[1] * $qty_parent;
 
 			if(isset($Tab[$prod->fk_product])) {
-				$Tab[$prod->fk_product]->qty += $prod->qty * $qty_parent;
+				$Tab[$prod->fk_product]->qty += $prod->qty;
 			}
 			else {
 				$Tab[$prod->fk_product]=$prod;	
@@ -301,14 +301,14 @@ class TAssetOF extends TObjetStd{
 				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
 				{
 					if(!$createOF) {
-						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty * $qty_parent);
+						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty);
 					}
 				}
 				
 				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 				{
 					if($createOF) {
-						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty * $qty_parent, $fk_assetOf_line_parent);
+						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $fk_assetOf_line_parent);
 					}
 				}
 				
