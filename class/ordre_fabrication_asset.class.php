@@ -55,6 +55,38 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 	
+	function create_new_project() {
+		
+		global $db, $user;
+		
+		dol_include_once('/projet/class/project.class.php');
+		
+		// On crée un projet
+		$project = new Project($db);
+		
+		$project->ref = TAssetWorkstationOF::get_next_ref_project();
+	
+		// On récupère le fk_commande associé
+		if($_REQUEST['action'] === 'createOFCommande') $fk_commande = $_REQUEST['fk_commande'];
+		else $fk_commande = $this->fk_commande;
+		
+		if(!empty($fk_commande)) {
+			
+			dol_include_once('/commande/class/commande.class.php');
+			$commande = new Commande($db);
+			$commande->fetch($fk_commande);
+			
+			// On nomme le projet avec la ref de la commande d'origine
+			if(!empty($commande->ref)) $project->title.= 'Commande client '.$commande->ref;
+			$this->fk_project = $project->create($user);
+			
+			// On associe la commande au projet
+			$project->update_element('commande', $fk_commande);
+			
+		}
+		
+	}
+	
 	function set_temps_fabrication() {
 		$this->temps_estime_fabrication=0;
 		$this->temps_reel_fabrication=0;	
@@ -88,6 +120,8 @@ class TAssetOF extends TObjetStd{
 				unset($this->TAssetOFLine[$k]);
 			}
 		}
+		
+		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
 		parent::save($PDOdb);
 
@@ -1880,6 +1914,38 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 		
 		parent::save($PDOdb);
+	}
+
+	static function get_next_ref_project() {
+		
+		global $conf;
+		
+		// Récupération de la référence suivante en fonction du masque (std dolibarr)
+	    $defaultref='';
+	    $modele = empty($conf->global->PROJECT_ADDON)?'mod_project_simple':$conf->global->PROJECT_ADDON;
+	    // Search template files
+	    $file=''; $classname=''; $filefound=0;
+	    $dirmodels=array_merge(array('/'),(array) $conf->modules_parts['models']);
+	    foreach($dirmodels as $reldir)
+	    {
+	    	$file=dol_buildpath($reldir."core/modules/project/".$modele.'.php',0);
+	    	if (file_exists($file))
+	    	{
+	    		$filefound=1;
+	    		$classname = $modele;
+	    		break;
+	    	}
+	    }
+	    if ($filefound)
+	    {
+		    $result=dol_include_once($reldir."core/modules/project/".$modele.'.php');
+		    $modProject = new $classname;
+	
+		    $defaultref = $modProject->getNextValue($thirdparty,$object);
+	    }
+		
+		return $defaultref;
+		
 	}
 
 	function set_values($Tab)
