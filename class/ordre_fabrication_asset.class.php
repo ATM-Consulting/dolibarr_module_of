@@ -1850,14 +1850,14 @@ class TAssetWorkstationOF extends TObjetStd{
 	function save(&$PDOdb)
 	{
 	 	global $db,$conf,$user;
+		
+		$OF = new TAssetOF;
+		$OF->load($PDOdb, $this->fk_assetOf);
 
-		if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
+		if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $OF->status === 'VALID')
 		{
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
-			
-			$OF = new TAssetOF;
-			$OF->load($PDOdb, $this->fk_assetOf);
 			
 			if ($OF->fk_project > 0 && $this->fk_project_task == 0)
 			{
@@ -1927,6 +1927,20 @@ class TAssetWorkstationOF extends TObjetStd{
 			else 
 			{
 				//Rien à faire
+			}
+			
+			// Association des utilisateurs aux tâches du projet
+			$TUsers = $this->get_users($PDOdb);
+			if(!empty($TUsers)) {
+				dol_include_once('/projet/class/project.class.php');
+				foreach ($TUsers as $id_user_associated_on_task) {
+					$p = new Project($db);
+					if($p->fetch($projectTask->fk_project) > 0) {
+						$p->add_contact($id_user_associated_on_task, 160, 'internal');
+						$projectTask->add_contact($id_user_associated_on_task, 180, 'internal');
+					}
+					
+				}
 			}
 			
 		}
