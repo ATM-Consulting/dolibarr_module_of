@@ -1886,7 +1886,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				$p = new Product($db);
 				$line_product_to_make = $OF->getLineProductToMake();
 				if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
-					$projectTask->array_options['options_ref_produit_to_make_concerne']=$p->ref;
+					$projectTask->array_options['options_fk_product']=$p->id;
 				}
                 
 				$res = $projectTask->create($user);
