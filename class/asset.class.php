@@ -409,7 +409,7 @@ class TAsset extends TObjetStd{
 	}
 	
 	private function _get_stock_id(&$db) {
-		$db->Execute("SELECT rowid FROM ".$this->get_table()."_stock WHERE fk_asset=".$this->rowid." ORDER BY date_cre DESC");
+		$db->Execute("SELECT rowid FROM ".$this->get_table()."_stock WHERE fk_asset=".$this->rowid." ORDER BY date_cre DESC, rowid DESC");
 		$Tab=array();
 		while($db->Get_line()) {
 			$Tab[]=$db->Get_field('rowid');
