@@ -13,7 +13,8 @@
 			case 'asset':
 				return array(
 						array(DOL_URL_ROOT.'/custom/asset/fiche.php?id='.$asset->getId(), 'Fiche','fiche'),
-						array(DOL_URL_ROOT.'/custom/asset/fiche.php?action=traceability&id='.$asset->getId(), 'Traçabilité','traceability')
+						array(DOL_URL_ROOT.'/custom/asset/fiche.php?action=traceability&id='.$asset->getId(), 'Traçabilité','traceability'),
+						array(DOL_URL_ROOT.'/custom/asset/fiche.php?action=object_linked&id='.$asset->getId(), 'Objets référents','object_linked')
 					);
 				break;
 			case 'assetOF':

@@ -206,6 +206,14 @@ function _action() {
 				
 				_traceability($PDOdb,$asset);
 				break;
+			case 'object_linked':
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load_asset_type($PDOdb);
+				$asset->load_liste_type_asset($PDOdb);
+				
+				_object_linked($PDOdb,$asset);
+				break;
 		}
 		
 	}
@@ -643,27 +651,134 @@ function _traceability(&$PDOdb,&$asset){
 	llxHeader('',$langs->trans('Asset'),'','');
 	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'traceability', $langs->trans('Asset'));
 	
-	$asset->_getTraceability($PDOdb);
+	$assetLot = new TAssetLot;
+	$assetLot->loadBy($PDOdb, $asset->lot_numer, 'lot_numer');
+	
+	$assetLot->getTraceability();
 	
 	//Diagramme de traçabilité
-	_diagrammeTraceability($asset);
-	
-	//Liste des expéditions liés à l'équipement
-	_listeTraceability($asset,'expedition');
-	
-	//Liste des commandes fournisseurs liés à l'équipement
-	_listeTraceability($asset,'commande_fournisseur');
-	
-	//Liste des commandes clients liés à l'équipement
-	_listeTraceability($asset,'commande');
-	
-	//Liste des OF liés à l'équipement
-	_listeTraceability($asset,'of');
+	_diagrammeTraceability($assetLot);
+
 }
 
-function _listeTraceability(&$asset,$type){
+function _diagrammeTraceability(&$asset){
 	
-	$listeview = new TListviewTBS($asset->getId());
+}
+
+function _object_linked(&$PDOdb,&$asset){
+	global $db,$conf,$langs;
+
+	llxHeader('',$langs->trans('Asset'),'','');
+	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'object_linked', $langs->trans('Asset'));
+	
+	$assetLot = new TAssetLot;
+	$assetLot->loadBy($PDOdb, $asset->lot_number, 'lot_number');
+	
+	$assetLot->getTraceabilityObjectLinked($PDOdb,$asset->getId());
+	
+	//pre($asset->TTraceability,true);
+	//Liste des expéditions liés à l'équipement
+	_listeTraceabilityExpedition($PDOdb,$assetLot);
+	
+	//Liste des commandes fournisseurs liés à l'équipement
+	_listeTraceabilityCommandeFournisseur($PDOdb,$assetLot);
+	
+	//Liste des commandes clients liés à l'équipement
+	_listeTraceabilityCommande($PDOdb,$assetLot);
+	
+	//Liste des OF liés à l'équipement
+	_listeTraceabilityOf($PDOdb,$assetLot);
+}
+
+function _listeTraceabilityExpedition(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['expedition']
+		,array(
+			'liste'=>array(
+					'titre' => "Expéditions"
+			),
+			'title'=>array(
+				'ref' => 'Référence',
+				'societe' => 'Société',
+				'ref_fourn' => 'Référence fournisseur',
+				'date_commande' => 'Date commande',
+				'total_ht' => 'Total HT',
+				'date_livraison' => 'Date de livraison',
+				'status' => 'Statut',
+			)
+		)
+	);
+}
+
+function _listeTraceabilityCommandeFournisseur(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['commande_fournisseur']
+		,array(
+			'liste'=>array(
+				'titre' => "Commandes Fournisseurs"
+			),
+			'title'=>array(
+				'ref' => 'Référence',
+				'societe' => 'Société',
+				'ref_fourn' => 'Référence fournisseur',
+				'date_commande' => 'Date commande',
+				'total_ht' => 'Total HT',
+				'date_livraison' => 'Date de livraison',
+				'status' => 'Statut',
+			)
+		)
+	);
+}
+
+function _listeTraceabilityCommande(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['commande']
+		,array(
+			'liste'=>array(
+				'titre' => "Commandes client"
+			),
+			'title'=>array(
+				'ref' => 'Référence',
+				'societe' => 'Société',
+				'ref_client' => 'Référence client',
+				'date_commande' => 'Date commande',
+				'total_ht' => 'Total HT',
+				'date_livraison' => 'Date de livraison',
+				'status' => 'Statut',
+			)
+		)
+	);
+}
+
+function _listeTraceabilityOf(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	//pre($asset->TTraceability['of'],true);
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['of']
+		,array(
+			'liste'=>array(
+				'titre' => "Ordre de Fabrication",
+			),
+			'title'=>array(
+					'ref' => 'Référence',
+					'societe' => 'Société',
+					'produit_tomake' => 'Produits à créer',
+					'produit_needed' => 'Produits nécessaire',
+					'priorite' => 'Priorité',
+					'date_lancement' => 'Date de lancement',
+					'date_besoin' => 'Date du besoin',
+					'status' => 'Statut',
+				)
+			)
+	);
 }
 
 ?>
