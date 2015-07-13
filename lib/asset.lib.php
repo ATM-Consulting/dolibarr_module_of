@@ -25,7 +25,9 @@
 				break;
 			case 'assetlot':
 				return array(
-						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?id='.$asset->getId(), 'Fiche','fiche')
+						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?id='.$asset->getId(), 'Fiche','fiche'),
+						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?action=traceability&id='.$asset->getId(), 'Traçabilité','traceability'),
+						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?action=object_linked&id='.$asset->getId(), 'Objets référents','object_linked')
 					);
 				break;
 		}
