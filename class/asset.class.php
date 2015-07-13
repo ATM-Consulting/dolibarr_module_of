@@ -1103,4 +1103,8 @@ class TAssetLot extends TObjetStd{
 		
 		//pre($this->TTraceability['of'],true);exit;
 	}
+
+	function getTraceability($type='FROM',$assetid=0){
+		
+	}
 }

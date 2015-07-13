@@ -209,24 +209,31 @@ function _liste_asset(&$PDOdb,&$assetlot){
 
 }
 
-function _traceability(&$PDOdb,&$asset){
+function _traceability(&$PDOdb,&$assetlot){
 	global $db,$conf,$langs;
 
-	llxHeader('',$langs->trans('Asset'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'traceability', $langs->trans('Asset'));
+	llxHeader('',$langs->trans('AssetLot'),'','');
+	print dol_get_fiche_head(assetPrepareHead( $assetlot, 'assetlot') , 'traceability', $langs->trans('AssetLot'));
 	
-	$assetLot = new TAssetLot;
-	$assetLot->loadBy($PDOdb, $asset->lot_numer, 'lot_numer');
-	
-	$assetLot->getTraceability();
-	
-	//Diagramme de traçabilité
-	_diagrammeTraceability($assetLot);
+	?>
+	<table>
+		<tr>
+			<td>
+				<?php
+					//Diagramme de traçabilité lié à la création
+					$assetlot->getTraceability('FROM');
+				?>
+			</td>
+			<td>
+				<?php
+					//Diagramme de traçabilité lié à l'utilisation
+					$assetlot->getTraceability('TO');
+				?>
+			</td>
+		</tr>
+	</table>
+	<?php
 
-}
-
-function _diagrammeTraceability(&$asset){
-	
 }
 
 function _object_linked(&$PDOdb,&$assetlot){

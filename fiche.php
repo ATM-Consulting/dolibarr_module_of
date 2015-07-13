@@ -654,15 +654,25 @@ function _traceability(&$PDOdb,&$asset){
 	$assetLot = new TAssetLot;
 	$assetLot->loadBy($PDOdb, $asset->lot_numer, 'lot_numer');
 	
-	$assetLot->getTraceability();
-	
-	//Diagramme de traçabilité
-	_diagrammeTraceability($assetLot);
+	?>
+	<table>
+		<tr>
+			<td>
+				<?php
+					//Diagramme de traçabilité lié à la création
+					$assetLot->getTraceability('FROM',$asset->getId());
+				?>
+			</td>
+			<td>
+				<?php
+					//Diagramme de traçabilité lié à l'utilisation
+					$assetLot->getTraceability('TO',$asset->getId());
+				?>
+			</td>
+		</tr>
+	</table>
+	<?php
 
-}
-
-function _diagrammeTraceability(&$asset){
-	
 }
 
 function _object_linked(&$PDOdb,&$asset){
