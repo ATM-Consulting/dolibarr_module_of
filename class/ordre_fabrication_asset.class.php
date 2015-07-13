@@ -494,7 +494,7 @@ class TAssetOF extends TObjetStd{
 							
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 							
-							if($nws->nb_hour_manufacture > 0) {
+							if(($nws->nb_hour_manufacture > 0) || $conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF) {
 							
 								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;

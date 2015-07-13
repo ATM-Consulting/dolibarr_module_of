@@ -50,6 +50,7 @@ OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande four
 # POSTE DE TRAVAIL
 AssetWorkstation=Poste de travail
 AssetNewWorkstation=Nouveau poste de travail
+AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
 
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement
