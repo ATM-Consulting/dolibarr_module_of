@@ -42,6 +42,7 @@ class TAsset extends TObjetStd{
 		$this->TField=array();
 		$this->assetType=new TAsset_type;
 		$this->TType = array();
+		$this->TTraceability = array();
         
         $this->old_contenancereel = 0;
         $this->old_contenancereel_units = 0;
@@ -462,6 +463,144 @@ class TAsset extends TObjetStd{
 		$this->set_date('date_fin_pret', '');
 		
 		$this->save($PDOdb);
+	}
+	
+	/*
+	 *  Traçabilité
+	 *  Récupération en cascade de tous les documents liés à l'équipement
+	 */
+	function _getTraceability(&$PDOdb){
+
+		_getTraceabilityExpedition($PDOdb);
+
+		_getTraceabilityCommandeFournisseur($PDOdb);
+
+		_getTraceabilityCommande($PDOdb);
+
+		_getTraceabilityOF($PDOdb);
+	}
+	
+	function _getTraceabilityExpedition(&$PDOdb){
+		global $db;
+		
+		//Liste des expéditions liés à l'équipement
+		$sql = "SELECT DISTINCT(e.rowid) 
+				FROM ".MAIN_DB_PREFIX."expedition as e
+					LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid)
+					LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
+				WHERE eda.fk_asset = ".$this->getId();
+
+		$PDOdb->Execute($sql);
+		$societe = new Societe($db);
+		$expedition = new Expedition($db);
+		
+		while($PDOdb->Get_line()){
+			
+			$expedition->fetch($PDOdb->Get_field('rowid'));
+			$societe->fetch($expedition->socid);
+
+			$this->TTraceability['expedition'][$expedition->id]['ref'] = $expedition->getNomUrl(1);
+			$this->TTraceability['expedition'][$expedition->id]['societe'] = $societe->getNomUrl(1);
+			$this->TTraceability['expedition'][$expedition->id]['date_livraison'] = dol_prnt_date($db->jdate($expedition->date_expedition),"day");
+			$this->TTraceability['expedition'][$expedition->id]['status'] = $expedition->LibStatut($expedition->fk_statut,5);
+		}
+	}
+	
+	function _getTraceabilityCommandeFournisseur(&$PDOdb){
+		global $db;
+			
+		//Liste des commandes fournisseurs liés à l'équipement
+		$sql = "SELECT DISTINCT(cf.rowid) 
+				FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
+					LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
+					LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
+				WHERE cfda.fk_asset = ".$this->getId();
+
+		$PDOdb->Execute($sql);
+		
+		$commandeFournisseur = new CommandeFournisseur($db);
+		$societe = new Societe($db);
+
+		while($PDOdb->Get_line()){
+
+			$commandeFournisseur->fetch($PDOdb->Get_field('rowid'));
+			$societe->fetch($commandeFournisseur->socid);
+
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['ref'] = $commandeFournisseur->getNomUrl(1);
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['ref_fourn'] = $commandeFournisseur->ref_supplier;
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['societe'] = $societe->getNomUrl(1);
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['date_commande'] = dol_print_date($db->jdate($commandeFournisseur->date_commande),"day");
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['total_ttc'] = $commandeFournisseur->total_ttc;
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['date_livraison'] = dol_print_date($db->jdate($commandeFournisseur->date_livraison),"day");
+			$this->TTraceability['commande_fournisseur'][$commandeFournisseur->id]['status'] = $commandeFournisseur->getLibStatut(3);
+		}
+	}
+	
+	function _getTraceabilityCommande(&$PDOdb){
+		global $db;
+			
+		//Liste des commandes clients liés à l'équipement
+		$sql = "SELECT DISTINCT(c.rowid) 
+				FROM ".MAIN_DB_PREFIX."commande as c
+					LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_source = c.rowid AND ee.sourcetype = 'commande' AND ee.targettype = 'shipping')
+				WHERE  ee.fk_target IN (".implode(',', array_keys($this->TTraceability['expedition'])).")";
+
+		$PDOdb->Execute($sql);
+		
+		$societe = new Societe($db);
+		$commande = new Commande($db);
+
+		while($PDOdb->Get_line()){
+
+			$commande->fetch($PDOdb->Get_field('rowid'));
+			$societe->fetch($commande->socid);
+			
+			$this->TTraceability['commande'][$commandeFournisseur->id]['ref'] = $commande->getNomUrl(1);
+			$this->TTraceability['commande'][$commandeFournisseur->id]['ref_client'] = $commande->ref_client;
+			$this->TTraceability['commande'][$commandeFournisseur->id]['societe'] = $societe->getNomUrl(1);
+			$this->TTraceability['commande'][$commandeFournisseur->id]['date_commande'] = dol_print_date($db->jdate($commande->date_commande),"day");
+			$this->TTraceability['commande'][$commandeFournisseur->id]['total_ht'] = $commande->total_ht;
+			$this->TTraceability['commande'][$commandeFournisseur->id]['date_livraison'] = dol_print_date($db->jdate($commande->date_livraison),"day");
+			$this->TTraceability['commande'][$commandeFournisseur->id]['status'] = $commande->getLibStatut(3);
+		}
+	}
+	
+	function _getTraceabilityOF(&$PDOdb){
+		global $db;
+		
+		//Liste des OF liés à l'équipement
+		$sql = "SELECT DISTINCT(of.rowid) 
+				FROM ".MAIN_DB_PREFIX."assetOf as of
+					LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
+				WHERE ofl.fk_asset = ".$this->getId().")";
+
+		$PDOdb->Execute($sql);
+		$Tids = $PDOdb->Get_All();
+		
+		$societe = new Societe($db);
+		$assetof = new TAssetOF;
+		$product = new Product($db);
+		
+		foreach($Tids as $id){
+			
+			$assetof->load($PDOdb,$id);
+			$societe->fetch($assetof->fk_soc);
+			foreach($assetof->TAssetOFLine as $key=>$TAssetOFLine){
+				if($TAssetOFLine->type == 'TO_MAKE'){
+					$product->fetch($TAssetOFLine->fk_product);
+					$produits .= $product->getNomUrl(1)." ";
+				}
+			}
+			
+			$this->TTraceability['of'][$assetof->getId()]['ref'] = '<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).$assetof->numero.'</a>';
+			$this->TTraceability['of'][$assetof->getId()]['societe'] = $societe->getNomUrl(1);
+			$this->TTraceability['of'][$assetof->getId()]['produit'] = $produits;
+			$this->TTraceability['of'][$assetof->getId()]['priorite'] = $assetof->TOrdre[$assetof->ordre];
+			$this->TTraceability['of'][$assetof->getId()]['date_lancement'] = $assetof->date_lancement;
+			$this->TTraceability['of'][$assetof->getId()]['date_besoin'] = $assetof->date_besoin;
+			$this->TTraceability['of'][$assetof->getId()]['status'] = $assetof->TStatus[$assetof->status];
+
+		}
 	}
 }
 

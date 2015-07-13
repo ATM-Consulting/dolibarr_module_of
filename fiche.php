@@ -197,6 +197,15 @@ function _action() {
 				
 				_fiche($asset, 'view');
 				break;
+				
+			case 'traceability':
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load_asset_type($PDOdb);
+				$asset->load_liste_type_asset($PDOdb);
+				
+				_traceability($PDOdb,$asset);
+				break;
 		}
 		
 	}
@@ -626,6 +635,35 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3)
 			return measuring_units_string($asset->$name, $asset->assetType->measuring_units);
 		}
 	}
+}
+
+function _traceability(&$PDOdb,&$asset){
+	global $db,$conf,$langs;
+
+	llxHeader('',$langs->trans('Asset'),'','');
+	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'traceability', $langs->trans('Asset'));
+	
+	$asset->_getTraceability($PDOdb);
+	
+	//Diagramme de traçabilité
+	_diagrammeTraceability($asset);
+	
+	//Liste des expéditions liés à l'équipement
+	_listeTraceability($asset,'expedition');
+	
+	//Liste des commandes fournisseurs liés à l'équipement
+	_listeTraceability($asset,'commande_fournisseur');
+	
+	//Liste des commandes clients liés à l'équipement
+	_listeTraceability($asset,'commande');
+	
+	//Liste des OF liés à l'équipement
+	_listeTraceability($asset,'of');
+}
+
+function _listeTraceability(&$asset,$type){
+	
+	$listeview = new TListviewTBS($asset->getId());
 }
 
 ?>
