@@ -437,17 +437,11 @@ function generateODTOF(&$PDOdb) {
 	}
 	
 	$refcmd = '';
-	$TIdCommandeFourn = array();
-	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
-	
-	foreach ($TIdCommandeFourn as $id)
-	{
+	if(!empty($assetOf->fk_commande)) {
 		$cmd = new Commande($db);
-		$cmd->fetch($id);
-		$refcmd .= $cmd->ref.', ';
+		$cmd->fetch($assetOf->fk_commande);
+		$refcmd = $cmd->ref;
 	}
-	
-	$refcmd = rtrim($refcmd, ', ');
 	
 	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
