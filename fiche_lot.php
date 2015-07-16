@@ -221,13 +221,13 @@ function _traceability(&$PDOdb,&$assetlot){
 			<td>
 				<?php
 					//Diagramme de traçabilité lié à la création
-					$assetlot->getTraceability('FROM');
+					$assetlot->getTraceability($PDOdb,'FROM');
 				?>
 			</td>
 			<td>
 				<?php
 					//Diagramme de traçabilité lié à l'utilisation
-					$assetlot->getTraceability('TO');
+					$assetlot->getTraceability($PDOdb,'TO');
 				?>
 			</td>
 		</tr>
@@ -262,7 +262,7 @@ function _listeTraceabilityExpedition(&$PDOdb,&$assetLot){
 	
 	$listeview = new TListviewTBS($assetLot->getId());
 	
-	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['expedition']
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['expedition']
 		,array(
 			'liste'=>array(
 					'titre' => "Expéditions"
@@ -284,7 +284,7 @@ function _listeTraceabilityCommandeFournisseur(&$PDOdb,&$assetLot){
 	
 	$listeview = new TListviewTBS($assetLot->getId());
 	
-	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['commande_fournisseur']
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['commande_fournisseur']
 		,array(
 			'liste'=>array(
 				'titre' => "Commandes Fournisseurs"
@@ -306,7 +306,7 @@ function _listeTraceabilityCommande(&$PDOdb,&$assetLot){
 	
 	$listeview = new TListviewTBS($assetLot->getId());
 	
-	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['commande']
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['commande']
 		,array(
 			'liste'=>array(
 				'titre' => "Commandes client"
@@ -328,9 +328,9 @@ function _listeTraceabilityOf(&$PDOdb,&$assetLot){
 	
 	$listeview = new TListviewTBS($assetLot->getId());
 	
-	//pre($asset->TTraceability['of'],true);
+	//pre($asset->TTraceabilityObjectLinked['of'],true);
 	
-	print $listeview->renderArray($PDOdb,$assetLot->TTraceability['of']
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['of']
 		,array(
 			'liste'=>array(
 				'titre' => "Ordre de Fabrication",
