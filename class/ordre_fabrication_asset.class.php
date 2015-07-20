@@ -491,16 +491,20 @@ class TAssetOF extends TObjetStd{
 					
 					$n=new TNomenclature;
 					if($n->load($PDOdb, $fk_nomenclature, true)) {
-							
+						
+						$line_to_make = $this->getLineProductToMake();
+						if(!empty($line_to_make) && $line_to_make->qty_needed > 1) $qty_needed = $line_to_make->qty_needed;
+						else $qty_needed = 1;
+						
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 							
 							if(($nws->nb_hour_manufacture > 0) || $conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF) {
 							
 								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
-								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour;
-								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
-								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
+								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour*$qty_needed;
+								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare*$qty_needed;
+								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
 							
