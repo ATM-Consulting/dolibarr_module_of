@@ -652,7 +652,9 @@ function _traceability(&$PDOdb,&$asset){
 	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'traceability', $langs->trans('Asset'));
 	
 	$assetLot = new TAssetLot;
-	$assetLot->loadBy($PDOdb, $asset->lot_numer, 'lot_numer');
+	$assetLot->loadBy($PDOdb, $asset->lot_number, 'lot_number');
+	
+	//pre($assetLot,true);
 	
 	?>
 	<table>
@@ -660,13 +662,13 @@ function _traceability(&$PDOdb,&$asset){
 			<td>
 				<?php
 					//Diagramme de traçabilité lié à la création
-					$assetLot->getTraceability($PDOdb,'FROM',$asset->getId(),'asset');
+					$assetLot->getTraceability($PDOdb,'FROM',$assetLot->lot_number);
 				?>
 			</td>
 			<td>
 				<?php
 					//Diagramme de traçabilité lié à l'utilisation
-					$assetLot->getTraceability($PDOdb,'TO',$asset->getId(),'asset');
+					$assetLot->getTraceability($PDOdb,'TO',$assetLot->lot_number);
 				?>
 			</td>
 		</tr>

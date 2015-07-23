@@ -939,6 +939,7 @@ class TAssetLot extends TObjetStd{
 		
 		$this->TTraceabilityObjectLinked = array();
 		$this->TTraceability = array();
+		$this->TLotRecursive = array();
 	}
 	
 	/*
@@ -1110,10 +1111,13 @@ class TAssetLot extends TObjetStd{
 	function getTraceability(&$PDOdb,$type='FROM',$elementid=0,$element='lot'){
 		
 		$elementid = ($elementid) ? $elementid : $this->lot_number;
+		
+		//echo $type." ".$elementid." ".$element;
+		
 		$this->TTraceability = $this->traceabilityRecursive($PDOdb,$type,$elementid,$element);
 		
-		/*echo $type.'<br>';
-		pre($this->TTraceability,true);*/
+		//echo $type.'<br>';
+		pre($this->TTraceability,true);
 		$this->printTraceability();
 	}
 	
@@ -1124,22 +1128,22 @@ class TAssetLot extends TObjetStd{
 		dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
 		//echo $type.' '.$elementId.' '.$element.' '.$niveau.'<br>';
 		$TElement = array();
-
+		//pre($this->TLotRecursive,true);flush();
 		switch ($element) {
 			case 'lot':					
 					//On récupère tous les equipements liés au lot
 					$TAssetIds = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."asset",array('lot_number'=>$elementId));
-
-					$this->TTraceability[$type]['lot']['lotnumber'] = $this->lot_number;
 					
+					//pre($TAssetIds,true);
 					if(count($TAssetIds)){
 						foreach($TAssetIds as $idAsset){
 							$TElement['lot'][] = $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1);
 						}
 					}
+					//echo $elementId;exit;
 					
 					$TElement['lot']['base'] = array(
-							'lot_number'=>$this->lot_number
+							'lot_number'=>$elementId
 							,'niveau'=>$niveau
 						);
 						
@@ -1148,7 +1152,14 @@ class TAssetLot extends TObjetStd{
 				break;
 
 			case 'asset':
-				
+					
+					if(!in_array($elementId, $this->TLotRecursive)){
+						$this->TLotRecursive[] = $elementId;
+					}
+					else {
+						break;
+					}
+					
 					if($type = 'FROM'){
 						// 1 - asset créé à partir d'un OF
 						$sql = "SELECT of.rowid
@@ -1184,7 +1195,7 @@ class TAssetLot extends TObjetStd{
 
 								return $TElement['asset']['base'] = array(
 										'serial_number'=> $asset->serial_number
-										,'not_number'=> $asset->lot_number
+										//,'not_number'=> $asset->lot_number
 										,'niveau'=>$niveau
 									);
 							}
@@ -1211,7 +1222,7 @@ class TAssetLot extends TObjetStd{
 
 					return $TElement['asset']['base'] = array(
 							'serial_number'=> $asset->serial_number
-							,'not_number'=> $asset->lot_number
+							//,'not_number'=> $asset->lot_number
 							,'niveau'=>$niveau
 						);
 
