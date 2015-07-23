@@ -1107,51 +1107,192 @@ class TAssetLot extends TObjetStd{
 		//pre($this->TTraceabilityObjectLinked['of'],true);exit;
 	}
 
-	function getTraceability(&$PDOdb,$type='FROM',$assetid=0){
+	function getTraceability(&$PDOdb,$type='FROM',$elementid=0,$element='lot'){
 		
-		$this->traceabilityRecursive($PDOdb,$type,$assetid);
+		$elementid = ($elementid) ? $elementid : $this->lot_number;
+		$this->TTraceability = $this->traceabilityRecursive($PDOdb,$type,$elementid,$element);
 		
+		/*echo $type.'<br>';
+		pre($this->TTraceability,true);*/
 		$this->printTraceability();
 	}
 	
-	function traceabilityRecursive(&$PDOdb,$type,$assetid,$element='lot'){
-		
+	//type = FROM ou TO en fonction de son ORIGNE ou de son UTILISATION
+	function traceabilityRecursive(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
+		global $db;
+		//echo "bla<br>";flush();
+		dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
+		//echo $type.' '.$elementId.' '.$element.' '.$niveau.'<br>';
+		$TElement = array();
+
 		switch ($element) {
 			case 'lot':					
 					//On récupère tous les equipements liés au lot
-					$TAssetIds = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."asset",array('lot_number'=>$this->lot_number));
-					foreach($TAssetIds as $idAsset){
-						$this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset');
+					$TAssetIds = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."asset",array('lot_number'=>$elementId));
+
+					$this->TTraceability[$type]['lot']['lotnumber'] = $this->lot_number;
+					
+					if(count($TAssetIds)){
+						foreach($TAssetIds as $idAsset){
+							$TElement['lot'][] = $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1);
+						}
 					}
 					
-					//TODO stocker quelque part
+					$TElement['lot']['base'] = array(
+							'lot_number'=>$this->lot_number
+							,'niveau'=>$niveau
+						);
+						
+					return $TElement;
+
 				break;
 
 			case 'asset':
-					// 1 - asset créé à partir d'un OF
-					$sql = "SELECT of.rowid
-							FROM ".MAIN_DB_PREFIX."assetOf as of
-								LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
-							WHERE ofl.fk_asset = ".$assetid;
+				
+					if($type = 'FROM'){
+						// 1 - asset créé à partir d'un OF
+						$sql = "SELECT of.rowid
+								FROM ".MAIN_DB_PREFIX."assetOf as of
+									LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
+								WHERE ofl.fk_asset = ".$elementId;
+
+						if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
+						else $sql .= " AND ofl.type = 'NEEDED'";
+						
+						if($PDOdb->Execute($sql) && $type == 'FROM'){
+							while ($PDOdb->Get_line()) {
+								$TElement['asset'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'of',$niveau+1);
+							}
+						}
+						else{
+							// 2 - asset créé à partir d'une réception fournisseur
+							$sql = "SELECT cf.rowid
+									FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
+										LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
+										LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
+										LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
+									WHERE a.rowid = ".$elementId;
+
+							if($PDOdb->Execute($sql)){
+								while ($PDOdb->Get_line()) {
+									$TElement['asset'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'commande_fournisseur',$niveau+1);
+								}
+							}
+							else{
+								$asset = new TAsset;
+								$asset->load($PDOdb, $elementId);
+
+								return $TElement['asset']['base'] = array(
+										'serial_number'=> $asset->serial_number
+										,'not_number'=> $asset->lot_number
+										,'niveau'=>$niveau
+									);
+							}
+							
+						}
+					}
+					else if($type='TO'){
+						// 4 - asset envoyé via une expédition
+						$sql = "SELECT e.rowid
+								FROM ".MAIN_DB_PREFIX."epedition as e
+									LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid)
+									LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
+								WHERE eda.fk_asset = ".$elementId;
+
+						if($PDOdb->Execute($sql)){
+							while ($PDOdb->Get_line()) {
+								$TElement['asset'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'expedition',$niveau+1);
+							}
+						}
+					}
 					
-					if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
-					else $sql .= " AND ofl.type = 'NEEDED'";
-					// 2 - asset créé à partir d'une réception fournisseur
-					// 3 - asset envoyé via une expédition
-					// 4 - asset créé manuellement
+					$asset = new TAsset;
+					$asset->load($PDOdb, $elementId);
+
+					return $TElement['asset']['base'] = array(
+							'serial_number'=> $asset->serial_number
+							,'not_number'=> $asset->lot_number
+							,'niveau'=>$niveau
+						);
+
 				break;
 
 			case 'of':
 					//on récupère tous les lots d'équipement créé OU nécessaire présent dans l'OF en fonction de $type = FROM / TO
+					$sql = "SELECT l.lot_number
+							FROM ".MAIN_DB_PREFIX."assetlot as l
+								LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.lot_number = l.lot_number)
+								LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as aol ON (aol.fk_asset = a.rowid)
+								LEFT JOIN ".MAIN_DB_PREFIX."assetOf as ao ON (ao.rowid = aol.fk_assetOf)
+							WHERE ao.rowid = ".$elementId;
+
+					if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'";
+					else $sql .= " AND aol.type = 'NEEDED'";
+					//echo $sql;
+					if($PDOdb->Execute($sql) && $type == 'FROM'){
+						while ($PDOdb->Get_line()) {
+							$TElement['of'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('lot_number'),'lot',$niveau+1);
+						}
+					}
+					
+					$assetOf = new TAssetOF;
+					$assetOf->load($PDOdb, $elementId);
+					
+					return $TElement['of']['base'] = array(
+							'of' => $assetOf->numero
+							,'niveau'=>$niveau
+						);
 				break;
 
 			case 'expedition':
-					//on récupère les expéditions liées aux lots d'équipement --> si TO
+					//on récupère les commandes liées aux expéditions d'équipement --> si TO
+					if($type == 'TO'){
+						$sql = "SELECT ee.fk_source as rowid
+								FROM ".MAIN_DB_PREFIX."expedition as e ON (e.fk_expedition = e.rowid)
+									LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_target = e.rowid AND targettype = 'shipping' AND sourcetype = 'commande')
+								WHERE e.rowid = ".$elementId;
+
+						if($PDOdb->Execute($sql)){
+							while ($PDOdb->Get_line()) {
+								$TElement['expedition'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'commande',$niveau+1);
+							}
+						}
+						
+						$expedition = new Expedition($db);
+						$expedition->fetch($elementId);
+
+						return $TElement['expedition']['base'] = array(
+								'expedition' => $expedition->ref
+								,'niveau' => $niveau
+							);
+					}
+				break;
+			case 'commande':
+					//on récupère les commandes liées aux expéditions d'équipements --> si TO
+					if($type == 'TO'){
+						
+						$commande = new Commande($db);
+						$commande->fetch($elementId);
+
+						return $TElement['commande']['base'] = array(
+								'commande'=>$commande->ref
+								,'niveau'=>$niveau
+							);
+					}
 				break;
 
 			case 'commande_fournisseur':
-					//on récupère les commande fournisseur liées aux équipements --> si FROM
-					
+					//on récupère les équipements liés aux commandes fournisseur --> si FROM
+					if($type == 'FROM'){
+						
+						$commandeFourn = new CommandeFournisseur($db);
+						$commandeFourn->fetch($elementId);
+
+						return $TElement['commande_fournisseur']['base'] = array(
+								'commande_fournisseur'=>$commandeFourn->ref
+								,'niveau'=>$niveau
+							);
+					}
 				break;
 		}
 		

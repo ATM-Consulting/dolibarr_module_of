@@ -660,13 +660,13 @@ function _traceability(&$PDOdb,&$asset){
 			<td>
 				<?php
 					//Diagramme de traçabilité lié à la création
-					$assetLot->getTraceability($PDOdb,'FROM',$asset->getId());
+					$assetLot->getTraceability($PDOdb,'FROM',$asset->getId(),'asset');
 				?>
 			</td>
 			<td>
 				<?php
 					//Diagramme de traçabilité lié à l'utilisation
-					$assetLot->getTraceability($PDOdb,'TO',$asset->getId());
+					$assetLot->getTraceability($PDOdb,'TO',$asset->getId(),'asset');
 				?>
 			</td>
 		</tr>
