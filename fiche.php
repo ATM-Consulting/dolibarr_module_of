@@ -8,7 +8,6 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
-
 if(!$user->rights->asset->all->lire) accessforbidden();
 
 if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
@@ -246,7 +245,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD, $hookmanager;
 * Put here all code to build page
 ****************************************************/
 	
-	llxHeader('',$langs->trans('Asset'),'','');
+	llxHeader('',$langs->trans('Asset'));
 	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'fiche', $langs->trans('Asset'));
 	
 	if(isset($_REQUEST['error'])) {
@@ -657,19 +656,42 @@ function _traceability(&$PDOdb,&$asset){
 	//pre($assetLot,true);
 	
 	?>
+	<script type="text/javascript">
+		$(document).ready(function(){
+		    $("#ChartFrom ul:first").orgChart({container: $("#chart1")});
+		    $("#ChartTo ul:first").orgChart({container: $("#chart2")});
+		})
+   	</script>
+	<style>
+		.long-name {
+		    font-size: 12px;
+		}
+		div.orgChart div.node.level0,
+		div.orgChart div.node.level2 {
+		    background-color: rgb(244, 227, 116);
+		}
+	</style>
 	<table>
 		<tr>
 			<td>
-				<?php
-					//Diagramme de traçabilité lié à la création
-					$assetLot->getTraceability($PDOdb,'FROM',$assetLot->lot_number);
-				?>
+				<div id="ChartFrom">
+					<?php
+						//Diagramme de traçabilité lié à la création
+						$assetLot->getTraceability($PDOdb,'FROM',$assetLot->lot_number);
+					?>
+				</div>
+				<div id="chart1">
+				</div>
 			</td>
 			<td>
-				<?php
-					//Diagramme de traçabilité lié à l'utilisation
-					$assetLot->getTraceability($PDOdb,'TO',$assetLot->lot_number);
-				?>
+				<div id="ChartTo">
+					<?php
+						//Diagramme de traçabilité lié à l'utilisation
+						$assetLot->getTraceability($PDOdb,'TO',$assetLot->lot_number);
+					?>
+				</div>
+				<div id="chart2">
+				</div>
 			</td>
 		</tr>
 	</table>

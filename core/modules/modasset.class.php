@@ -77,6 +77,8 @@ class modAsset extends DolibarrModules
 		$this->module_parts = array(
 			'hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard','propalcard', 'expeditioncard')
 			,'triggers' => 1
+			,'js' => array('/asset/js/jquery.orgchart.min.js')
+			,'css' =>  array('/asset/css/jquery.orgchart.css')
 		);
 		
 		// Data directories to create when module is enabled.
