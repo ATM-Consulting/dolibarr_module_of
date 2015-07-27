@@ -660,6 +660,23 @@ function _traceability(&$PDOdb,&$asset){
 		$(document).ready(function(){
 		    $("#ChartFrom ul:first").orgChart({container: $("#chart1")});
 		    $("#ChartTo ul:first").orgChart({container: $("#chart2")});
+		    $(".node").each(function(){
+		    	if($(this).html().indexOf('OF') >= 0){
+		    		$(this).children().css('background-color','#fbcece');
+		    	}
+		    	if($(this).html().indexOf('EQUIPEMENT') >= 0){
+		    		$(this).children().css('background-color','white');
+		    	}
+		    	if($(this).html().indexOf('COMMANDE') >= 0){
+		    		$(this).children().css('background-color','#cefbce');
+		    	}
+		    	if($(this).html().indexOf('EXPEDITION') >= 0){
+		    		$(this).children().css('background-color','with');
+		    	}
+		    	if($(this).html().indexOf('COMMANDE FOURNISSEUR') >= 0){
+		    		$(this).children().css('background-color','#e0cefb');
+		    	}
+		    });
 		})
    	</script>
 	<style>
