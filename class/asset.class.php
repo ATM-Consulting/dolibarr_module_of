@@ -1278,8 +1278,8 @@ class TAssetLot extends TObjetStd{
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
 				WHERE ofl.fk_asset = ".$elementId;
 
-		/*if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
-		else $sql .= " AND ofl.type = 'NEEDED'";*/
+		if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
+		else $sql .= " AND ofl.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé
 		
 		$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 		
@@ -1377,8 +1377,8 @@ class TAssetLot extends TObjetStd{
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf as ao ON (ao.rowid = aol.fk_assetOf)
 				WHERE ao.rowid = ".$elementId;
 
-		/*if($type == 'FROM') $sql .= " AND aol.type = 'NEEDED'";
-		else $sql .= " AND aol.type = 'TO_MAKE'";*/
+		if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
+		else $sql .= " AND aol.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé
 		
 		//echo $sql;
 		$assetOf = new TAssetOF;
