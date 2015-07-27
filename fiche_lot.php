@@ -215,7 +215,7 @@ function _traceability(&$PDOdb,&$assetLot){
 	llxHeader('',$langs->trans('AssetLot'),'','');
 	print dol_get_fiche_head(assetPrepareHead( $assetLot, 'assetlot') , 'traceability', $langs->trans('AssetLot'));
 	
-	$assetLot->traCeability($PDOdb);
+	$assetLot->traceability($PDOdb);
 
 }
 

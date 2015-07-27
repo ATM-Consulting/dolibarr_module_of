@@ -1108,7 +1108,7 @@ class TAssetLot extends TObjetStd{
 		//pre($this->TTraceabilityObjectLinked['of'],true);exit;
 	}
 	
-	function traCeability(&$PDOdb){
+	function traceability(&$PDOdb){
 		
 	?>
 		<script type="text/javascript">
@@ -1161,7 +1161,6 @@ class TAssetLot extends TObjetStd{
 						<center><h1>Utilisation</h1></center>
 						<?php
 							//Diagramme de traçabilité lié à l'utilisation
-							$this->TLotRecursive = array();
 							$this->getTraceability($PDOdb,'TO',$this->lot_number);
 						?>
 					</div>
@@ -1176,7 +1175,7 @@ class TAssetLot extends TObjetStd{
 	function getTraceability(&$PDOdb,$type='FROM',$elementid=0,$element='lot'){
 		
 		$elementid = ($elementid) ? $elementid : $this->lot_number;
-		
+		$this->TLotRecursive = $this->TAssetRecursive = $this->TOfRecursive = $this->TExpRecursive = array();
 		$this->traceabilityRecursive($PDOdb,$type,$elementid,$element);
 		
 	}
@@ -1263,18 +1262,57 @@ class TAssetLot extends TObjetStd{
 	
 	function traceabilityRecursiveAsset(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
 		
+		if(!in_array($elementId, $this->TAssetRecursive)){
+			$this->TAssetRecursive[] = $elementId;
+		}
+		else {
+			return array();
+		}
+		
 		$asset = new TAsset;
 		$asset->load($PDOdb, $elementId);
-		
 			
-			// 1 - asset créé OU utilisé dans un OF
-			$sql = "SELECT of.rowid
-					FROM ".MAIN_DB_PREFIX."assetOf as of
-						LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
-					WHERE ofl.fk_asset = ".$elementId;
+		// 1 - asset créé OU utilisé dans un OF
+		$sql = "SELECT of.rowid
+				FROM ".MAIN_DB_PREFIX."assetOf as of
+					LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
+				WHERE ofl.fk_asset = ".$elementId;
 
-			if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
-			else $sql .= " AND ofl.type = 'NEEDED'";
+		/*if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
+		else $sql .= " AND ofl.type = 'NEEDED'";*/
+		
+		$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+		
+		if(!empty($TIds)){
+			?>
+			<ul>
+				<?php
+				foreach($TIds as $id){
+					
+					$assetOf = new TAssetOF;
+					$assetOf->load($PDOdb, $id);
+					
+					?>
+					<li><?php echo 'OF <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
+						<?php
+						$this->traceabilityRecursive($PDOdb,$type,$id,'of',$niveau+1);
+						?>
+					</li>
+					<?php
+				}
+				?>
+			</ul>
+			<?php
+		}
+		
+		if($type == 'FROM'){
+			// 2 - asset créé à partir d'une réception fournisseur
+			$sql = "SELECT cf.rowid
+					FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
+						LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
+						LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
+						LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
+					WHERE a.rowid = ".$elementId;
 			
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 			
@@ -1283,80 +1321,54 @@ class TAssetLot extends TObjetStd{
 				<ul>
 					<?php
 					foreach($TIds as $id){
+						$commandeFourn = new CommandeFournisseur($db);
+						$commandeFourn->fetch($elementId);
 						
-						$assetOf = new TAssetOF;
-						$assetOf->load($PDOdb, $id);
-						
-						?>
-						<li><?php echo 'OF <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
-							<?php
-							$this->traceabilityRecursive($PDOdb,$type,$id,'of',$niveau+1);
-							?>
-						</li>
-						<?php
+						?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
 					}
 					?>
 				</ul>
 				<?php
 			}
-			
-			if($type == 'FROM'){
-				// 2 - asset créé à partir d'une réception fournisseur
-				$sql = "SELECT cf.rowid
-						FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
-							LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
-							LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
-							LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
-						WHERE a.rowid = ".$elementId;
-				
-				$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-				
-				if(!empty($TIds)){
-					?>
-					<ul>
-						<?php
-						foreach($TIds as $id){
-							$commandeFourn = new CommandeFournisseur($db);
-							$commandeFourn->fetch($elementId);
-							
-							?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
-						}
-						?>
-					</ul>
-					<?php
-				}
-			}
-			else if($type='TO'){
-				// 4 - asset envoyé via une expédition
-				$sql = "SELECT e.rowid
-						FROM ".MAIN_DB_PREFIX."epedition as e
-							LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid)
-							LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
-						WHERE eda.fk_asset = ".$elementId;
+		}
+		else if($type='TO'){
+			// 4 - asset envoyé via une expédition
+			$sql = "SELECT e.rowid
+					FROM ".MAIN_DB_PREFIX."epedition as e
+						LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid)
+						LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
+					WHERE eda.fk_asset = ".$elementId;
 
-				$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-					
-				if(!empty($TIds)){
-					?>
-					<ul>
-						<?php
-						foreach($TIds as $id){
-							$expedition = new Expedition($db);
-							$expedition->fetch($elementId);
-							
-							?><li>
-								<?php echo 'EXPEDITION <br><a target="_blank" href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
-								<?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?>
-							</li><?php
-						}
-						?>
-					</ul>
+			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+				
+			if(!empty($TIds)){
+				?>
+				<ul>
 					<?php
-				}
+					foreach($TIds as $id){
+						$expedition = new Expedition($db);
+						$expedition->fetch($elementId);
+						
+						?><li>
+							<?php echo 'EXPEDITION <br><a target="_blank" href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
+							<?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?>
+						</li><?php
+					}
+					?>
+				</ul>
+				<?php
 			}
+		}
 	}
 
 	function traceabilityRecursiveOf(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
+		
+		if(!in_array($elementId, $this->TAssetRecursive)){
+			$this->TAssetRecursive[] = $elementId;
+		}
+		else {
+			return array();
+		}
 		
 		$sql = "SELECT l.lot_number
 				FROM ".MAIN_DB_PREFIX."assetlot as l
@@ -1365,8 +1377,8 @@ class TAssetLot extends TObjetStd{
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf as ao ON (ao.rowid = aol.fk_assetOf)
 				WHERE ao.rowid = ".$elementId;
 
-		if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'";
-		else $sql .= " AND aol.type = 'NEEDED'";
+		/*if($type == 'FROM') $sql .= " AND aol.type = 'NEEDED'";
+		else $sql .= " AND aol.type = 'TO_MAKE'";*/
 		
 		//echo $sql;
 		$assetOf = new TAssetOF;
@@ -1382,6 +1394,13 @@ class TAssetLot extends TObjetStd{
 	}
 	
 	function traceabilityRecursiveExpedition(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
+		
+		if(!in_array($elementId, $this->TExpRecursive)){
+			$this->TExpRecursive[] = $elementId;
+		}
+		else {
+			return array();
+		}
 		
 		if($type == 'TO'){
 			$sql = "SELECT ee.fk_source as rowid
