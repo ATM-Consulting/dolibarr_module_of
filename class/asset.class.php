@@ -1143,10 +1143,11 @@ class TAssetLot extends TObjetStd{
 			    background-color: rgb(244, 227, 116);
 			}
 		</style>
-		<table>
+		<table width="100%">
 			<tr>
-				<td>
+				<td valign="top" width="50%">
 					<div id="ChartFrom">
+						<center><h1>Provenance</h1></center>
 						<?php
 							//Diagramme de traçabilité lié à la création
 							$this->getTraceability($PDOdb,'FROM',$this->lot_number);
@@ -1155,8 +1156,9 @@ class TAssetLot extends TObjetStd{
 					<div id="chart1">
 					</div>
 				</td>
-				<td>
+				<td valign="top" width="50%">
 					<div id="ChartTo">
+						<center><h1>Utilisation</h1></center>
 						<?php
 							//Diagramme de traçabilité lié à l'utilisation
 							$this->TLotRecursive = array();
@@ -1264,15 +1266,48 @@ class TAssetLot extends TObjetStd{
 		$asset = new TAsset;
 		$asset->load($PDOdb, $elementId);
 		
-			if($type == 'FROM'){
-				// 1 - asset créé à partir d'un OF
-				$sql = "SELECT of.rowid
-						FROM ".MAIN_DB_PREFIX."assetOf as of
-							LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
-						WHERE ofl.fk_asset = ".$elementId;
+			
+			// 1 - asset créé OU utilisé dans un OF
+			$sql = "SELECT of.rowid
+					FROM ".MAIN_DB_PREFIX."assetOf as of
+						LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
+					WHERE ofl.fk_asset = ".$elementId;
 
-				if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
-				else $sql .= " AND ofl.type = 'NEEDED'";
+			if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
+			else $sql .= " AND ofl.type = 'NEEDED'";
+			
+			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+			
+			if(!empty($TIds)){
+				?>
+				<ul>
+					<?php
+					foreach($TIds as $id){
+						
+						$assetOf = new TAssetOF;
+						$assetOf->load($PDOdb, $id);
+						
+						?>
+						<li><?php echo 'OF <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
+							<?php
+							$this->traceabilityRecursive($PDOdb,$type,$id,'of',$niveau+1);
+							?>
+						</li>
+						<?php
+					}
+					?>
+				</ul>
+				<?php
+			}
+			
+			if($type == 'FROM'){
+				// 2 - asset créé à partir d'une réception fournisseur
+				$sql = "SELECT cf.rowid
+						FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
+							LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
+							LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
+							LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
+						WHERE a.rowid = ".$elementId;
 				
 				$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 				
@@ -1281,47 +1316,14 @@ class TAssetLot extends TObjetStd{
 					<ul>
 						<?php
 						foreach($TIds as $id){
+							$commandeFourn = new CommandeFournisseur($db);
+							$commandeFourn->fetch($elementId);
 							
-							$assetOf = new TAssetOF;
-							$assetOf->load($PDOdb, $id);
-							
-							?>
-							<li><?php echo 'OF <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
-								<?php
-								$this->traceabilityRecursive($PDOdb,$type,$id,'of',$niveau+1);
-								?>
-							</li>
-							<?php
+							?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
 						}
 						?>
 					</ul>
 					<?php
-				}
-				else{
-					// 2 - asset créé à partir d'une réception fournisseur
-					$sql = "SELECT cf.rowid
-							FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
-								LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
-								LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
-								LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
-							WHERE a.rowid = ".$elementId;
-					
-					$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-					
-					if(!empty($TIds)){
-						?>
-						<ul>
-							<?php
-							foreach($TIds as $id){
-								$commandeFourn = new CommandeFournisseur($db);
-								$commandeFourn->fetch($elementId);
-								
-								?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
-							}
-							?>
-						</ul>
-						<?php
-					}
 				}
 			}
 			else if($type='TO'){
