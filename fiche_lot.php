@@ -215,65 +215,7 @@ function _traceability(&$PDOdb,&$assetLot){
 	llxHeader('',$langs->trans('AssetLot'),'','');
 	print dol_get_fiche_head(assetPrepareHead( $assetLot, 'assetlot') , 'traceability', $langs->trans('AssetLot'));
 	
-	?>
-	<script type="text/javascript">
-		$(document).ready(function(){
-		    $("#ChartFrom ul:first").orgChart({container: $("#chart1")});
-		    $("#ChartTo ul:first").orgChart({container: $("#chart2")});
-		    $(".node").each(function(){
-		    	if($(this).html().indexOf('OF') >= 0){
-		    		$(this).children().css('background-color','#fbcece');
-		    	}
-		    	if($(this).html().indexOf('EQUIPEMENT') >= 0){
-		    		$(this).children().css('background-color','white');
-		    	}
-		    	if($(this).html().indexOf('COMMANDE') >= 0){
-		    		$(this).children().css('background-color','#cefbce');
-		    	}
-		    	if($(this).html().indexOf('EXPEDITION') >= 0){
-		    		$(this).children().css('background-color','with');
-		    	}
-		    	if($(this).html().indexOf('COMMANDE FOURNISSEUR') >= 0){
-		    		$(this).children().css('background-color','#e0cefb');
-		    	}
-		    });
-		})
-   	</script>
-	<style>
-		.long-name {
-		    font-size: 12px;
-		}
-		div.orgChart div.node.level0,
-		div.orgChart div.node.level2 {
-		    background-color: rgb(244, 227, 116);
-		}
-	</style>
-	<table>
-		<tr>
-			<td>
-				<div id="ChartFrom">
-					<?php
-						//Diagramme de traçabilité lié à la création
-						$assetLot->getTraceability($PDOdb,'FROM',$assetLot->lot_number);
-					?>
-				</div>
-				<div id="chart1">
-				</div>
-			</td>
-			<td>
-				<div id="ChartTo">
-					<?php
-						//Diagramme de traçabilité lié à l'utilisation
-						$assetLot->TLotRecursive = array();
-						$assetLot->getTraceability($PDOdb,'TO',$assetLot->lot_number);
-					?>
-				</div>
-				<div id="chart2">
-				</div>
-			</td>
-		</tr>
-	</table>
-	<?php
+	$assetLot->traCeability($PDOdb);
 
 }
 
