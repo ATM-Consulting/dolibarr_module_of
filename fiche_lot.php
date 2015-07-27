@@ -209,26 +209,50 @@ function _liste_asset(&$PDOdb,&$assetlot){
 
 }
 
-function _traceability(&$PDOdb,&$assetlot){
+function _traceability(&$PDOdb,&$assetLot){
 	global $db,$conf,$langs;
 
 	llxHeader('',$langs->trans('AssetLot'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $assetlot, 'assetlot') , 'traceability', $langs->trans('AssetLot'));
+	print dol_get_fiche_head(assetPrepareHead( $assetLot, 'assetlot') , 'traceability', $langs->trans('AssetLot'));
 	
 	?>
+	<script type="text/javascript">
+		$(document).ready(function(){
+		    $("#ChartFrom ul:first").orgChart({container: $("#chart1")});
+		    $("#ChartTo ul:first").orgChart({container: $("#chart2")});
+		})
+   	</script>
+	<style>
+		.long-name {
+		    font-size: 12px;
+		}
+		div.orgChart div.node.level0,
+		div.orgChart div.node.level2 {
+		    background-color: rgb(244, 227, 116);
+		}
+	</style>
 	<table>
 		<tr>
 			<td>
-				<?php
-					//Diagramme de traçabilité lié à la création
-					$assetlot->getTraceability($PDOdb,'FROM');
-				?>
+				<div id="ChartFrom">
+					<?php
+						//Diagramme de traçabilité lié à la création
+						$assetLot->getTraceability($PDOdb,'FROM',$assetLot->lot_number);
+					?>
+				</div>
+				<div id="chart1">
+				</div>
 			</td>
 			<td>
-				<?php
-					//Diagramme de traçabilité lié à l'utilisation
-					$assetlot->getTraceability($PDOdb,'TO');
-				?>
+				<div id="ChartTo">
+					<?php
+						//Diagramme de traçabilité lié à l'utilisation
+						$assetLot->TLotRecursive = array();
+						$assetLot->getTraceability($PDOdb,'TO',$assetLot->lot_number);
+					?>
+				</div>
+				<div id="chart2">
+				</div>
 			</td>
 		</tr>
 	</table>
