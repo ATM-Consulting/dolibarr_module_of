@@ -1377,8 +1377,8 @@ class TAssetLot extends TObjetStd{
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf as ao ON (ao.rowid = aol.fk_assetOf)
 				WHERE ao.rowid = ".$elementId;
 
-		if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
-		else $sql .= " AND aol.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé
+		/*if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
+		else $sql .= " AND aol.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé*/
 		
 		//echo $sql;
 		$assetOf = new TAssetOF;
