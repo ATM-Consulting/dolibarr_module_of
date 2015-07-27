@@ -1122,7 +1122,7 @@ class TAssetLot extends TObjetStd{
 
 		dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
 
-		$TElement = array();
+		//$TElement = array();
 
 		switch ($element) {
 			case 'lot':					
@@ -1159,62 +1159,80 @@ class TAssetLot extends TObjetStd{
 
 	function traceabilityRecursiveLot(&$PDOdb,$type,$elementId,$element='lot',$niveau=1){
 		
+		if(!in_array($elementId, $this->TLotRecursive)){
+			$this->TLotRecursive[] = $elementId;
+		}
+		else {
+			return array();
+		}
+		
 		$TAssetIds = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."asset",array('lot_number'=>$elementId));
+
+		$TAssetLot = new TAssetLot;
+		$TAssetLot->loadBy($PDOdb, $elementId, 'lot_number');
 		
-		?>
-		<ul style="display:none;">
-			<li>
-				<?php echo 'Lot : '.$elementId; ?>
-			
-		
-			<?php
-			if(count($TAssetIds)){
-				foreach($TAssetIds as $idAsset){
-					$TElement['lot'][] = $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1);
-				}
-			}
+		if(!empty($TAssetIds)){
 			?>
-			</li>
-		</ul>
-		<?php
-			
-		return $TElement;
+			<ul style='display: none'>
+				<li><?php echo 'LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
+					<ul><?php
+					foreach($TAssetIds as $idAsset){
+						
+						$asset = new TAsset;
+						$asset->load($PDOdb, $idAsset);
+						?>
+						<li>
+							<?php echo 'EQUIPEMENT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>'; ?>
+							<?php $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1); ?>
+						</li>
+						<?php
+					}
+		
+					?>
+					</ul>
+				</li>
+			</ul>
+			<?php
+		}
 	}
 	
 	function traceabilityRecursiveAsset(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
 		
-		if(!in_array($elementId, $this->TLotRecursive)){
-		$this->TLotRecursive[] = $elementId;
-		}
-		else {
-			return $TElement;
-		}
-		
 		$asset = new TAsset;
 		$asset->load($PDOdb, $elementId);
 		
-		?>
-		<ul style="display:none;">
-			<li>
-				<?php echo 'Equipement : '.$asset->serial_number; ?>
-			
-		
-			<?php
-		
-			if($type = 'FROM'){
+			if($type == 'FROM'){
 				// 1 - asset créé à partir d'un OF
 				$sql = "SELECT of.rowid
 						FROM ".MAIN_DB_PREFIX."assetOf as of
 							LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
 						WHERE ofl.fk_asset = ".$elementId;
 
-				/*if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
-				else $sql .= " AND ofl.type = 'NEEDED'";*/
+				if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'";
+				else $sql .= " AND ofl.type = 'NEEDED'";
 				
-				if($PDOdb->Execute($sql) && $type == 'FROM'){
-					while ($PDOdb->Get_line()) {
-						$TElement['asset'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'of',$niveau+1);
-					}
+				$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+				
+				if(!empty($TIds)){
+					?>
+					<ul>
+						<?php
+						foreach($TIds as $id){
+							
+							$assetOf = new TAssetOF;
+							$assetOf->load($PDOdb, $id);
+							
+							?>
+							<li><?php echo 'OF <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
+								<?php
+								$this->traceabilityRecursive($PDOdb,$type,$id,'of',$niveau+1);
+								?>
+							</li>
+							<?php
+						}
+						?>
+					</ul>
+					<?php
 				}
 				else{
 					// 2 - asset créé à partir d'une réception fournisseur
@@ -1224,16 +1242,23 @@ class TAssetLot extends TObjetStd{
 								LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
 								LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
 							WHERE a.rowid = ".$elementId;
-
-					if($PDOdb->Execute($sql)){
-						while ($PDOdb->Get_line()) {
-							$TElement['asset'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'commande_fournisseur',$niveau+1);
-						}
-					}
-					else{
-						return $TElement;
-					}
 					
+					$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+					
+					if(!empty($TIds)){
+						?>
+						<ul>
+							<?php
+							foreach($TIds as $id){
+								$commandeFourn = new CommandeFournisseur($db);
+								$commandeFourn->fetch($elementId);
+								
+								?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
+							}
+							?>
+						</ul>
+						<?php
+					}
 				}
 			}
 			else if($type='TO'){
@@ -1244,20 +1269,26 @@ class TAssetLot extends TObjetStd{
 							LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
 						WHERE eda.fk_asset = ".$elementId;
 
-				if($PDOdb->Execute($sql)){
-					while ($PDOdb->Get_line()) {
-						$TElement['asset'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'expedition',$niveau+1);
-					}
+				$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+					
+				if(!empty($TIds)){
+					?>
+					<ul>
+						<?php
+						foreach($TIds as $id){
+							$expedition = new Expedition($db);
+							$expedition->fetch($elementId);
+							
+							?><li>
+								<?php echo 'EXPEDITION <br><a target="_blank" href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
+								<?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?>
+							</li><?php
+						}
+						?>
+					</ul>
+					<?php
 				}
 			}
-		
-			?>
-			</li>
-		</ul>
-		
-		<?php
-		
-		return $TElement;
 	}
 
 	function traceabilityRecursiveOf(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
@@ -1269,31 +1300,20 @@ class TAssetLot extends TObjetStd{
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf as ao ON (ao.rowid = aol.fk_assetOf)
 				WHERE ao.rowid = ".$elementId;
 
-		/*if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'";
-		else $sql .= " AND aol.type = 'NEEDED'";*/
+		if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'";
+		else $sql .= " AND aol.type = 'NEEDED'";
+		
 		//echo $sql;
 		$assetOf = new TAssetOF;
 		$assetOf->load($PDOdb, $elementId);
-		
-		?>
-		<ul style="display:none;">
-			<li>
-				<?php echo 'OF : '.$assetOf->numero; ?>
-			
-		
-			<?php
-		
-			if($PDOdb->Execute($sql) && $type == 'FROM'){
-				while ($PDOdb->Get_line()) {
-					$TElement['of'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('lot_number'),'lot',$niveau+1);
-				}
+
+		$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql,'lot_number');
+
+		if(!empty($TIds) && $type == 'FROM'){
+			foreach($TIds as $id){
+					$this->traceabilityRecursive($PDOdb,$type,$id,'lot',$niveau+1);
 			}
-			?>
-			</li>	
-		</ul>
-		
-		<?php
-		return $TElement;
+		}
 	}
 	
 	function traceabilityRecursiveExpedition(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
@@ -1303,85 +1323,26 @@ class TAssetLot extends TObjetStd{
 					FROM ".MAIN_DB_PREFIX."expedition as e ON (e.fk_expedition = e.rowid)
 						LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_target = e.rowid AND targettype = 'shipping' AND sourcetype = 'commande')
 					WHERE e.rowid = ".$elementId;
-				
+
 			$expedition = new Expedition($db);
 			$expedition->fetch($elementId);
 
-			$TElement['expedition']['base'] = array(
-					'expedition' => $expedition->ref
-					,'niveau' => $niveau
-				);
-			
+			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+
+			if(!empty($TIds)){
 			?>
-			<ul style="display:none;">
-				<li>
-					<?php echo 'Expédition : '.$expedition->ref; ?>
-				
-			
+			<ul >
 				<?php
-			
-				if($PDOdb->Execute($sql)){
-					while ($PDOdb->Get_line()) {
-						$TElement['expedition'][] = $this->traceabilityRecursive($PDOdb,$type,$PDOdb->Get_field('rowid'),'commande',$niveau+1);
-					}
+				foreach($TIds as $id){
+					$commande = new Commande($db);
+					$commande->fetch($elementId);
+					
+					?><li><?php echo 'COMMANDE <br><a target="_blank" href="'.dol_buildpath('/commande/card.php?id='.$commande->id,2).'">'.$commande->ref.'</a>'; ?></li><?php
 				}
-				
-				$expedition = new Expedition($db);
-				$expedition->fetch($elementId);
-			
 				?>
-				</li>	
-			</ul>
-			
-			<?php
-			
-			return $TElement;
-		}
-	}
-	
-	function traceabilityRecursiveCommande(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
-		
-		if($type == 'TO'){
-			
-			$commande = new Commande($db);
-			$commande->fetch($elementId);
-			
-			?>
-			<ul style="display:none;">
-				<li>
-					<?php echo 'Commande : '.$commande->ref; ?>
-				</li>
 			</ul>
 			<?php
-			
-			return $TElement['commande']['base'] = array(
-					'commande'=>$commande->ref
-					,'niveau'=>$niveau
-				);
+			}
 		}
-		
-	}
-	
-	function traceabilityRecursiveCommandeFournisseur(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
-		
-		if($type == 'FROM'){
-						
-			$commandeFourn = new CommandeFournisseur($db);
-			$commandeFourn->fetch($elementId);
-				
-			?>
-			<ul style="display:none;">
-				<li>
-					<?php echo 'Commande Fournisseur : '.$commandeFourn->ref; ?>
-				</li>
-			</ul>
-			<?php
-			
-			return $TElement['commande_fournisseur']['base'] = array(
-					'commande_fournisseur'=>$commandeFourn->ref
-					,'niveau'=>$niveau
-				);
-		}
-		
 	}
 }

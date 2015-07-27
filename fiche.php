@@ -687,6 +687,7 @@ function _traceability(&$PDOdb,&$asset){
 				<div id="ChartTo">
 					<?php
 						//Diagramme de traçabilité lié à l'utilisation
+						$assetLot->TLotRecursive = array();
 						$assetLot->getTraceability($PDOdb,'TO',$assetLot->lot_number);
 					?>
 				</div>
