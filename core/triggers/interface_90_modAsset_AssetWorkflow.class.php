@@ -141,8 +141,8 @@ class InterfaceAssetWorkflow
 				
 				if($conf->climcneil->enabled){
 					define('INC_FROM_DOLIBARR',true);
-			    	dol_include_once("/custom/asset/config.php");
-					dol_include_once("/custom/asset/class/asset.class.php");
+			    	dol_include_once("/asset/config.php");
+					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
 					$ATMdb = new TPDOdb;
@@ -267,8 +267,8 @@ class InterfaceAssetWorkflow
 			
 				if($conf->climcneil->enabled){
 					define('INC_FROM_DOLIBARR',true);
-			    	dol_include_once("/custom/asset/config.php");
-					dol_include_once("/custom/asset/class/asset.class.php");
+			    	dol_include_once("/asset/config.php");
+					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
 					$ATMdb = new TPDOdb;
@@ -355,8 +355,8 @@ class InterfaceAssetWorkflow
 			
 				if($conf->climcneil->enabled){
 					define('INC_FROM_DOLIBARR',true);
-			    	dol_include_once("/custom/asset/config.php");
-					dol_include_once("/custom/asset/class/asset.class.php");
+			    	dol_include_once("/asset/config.php");
+					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
 					$ATMdb = new TPDOdb;
@@ -385,6 +385,33 @@ class InterfaceAssetWorkflow
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
         }
 
+		elseif($action==='TASK_TIMESPENT_CREATE') {
+			if($conf->workstation->enabled) {
+				define('INC_FROM_DOLIBARR',true);
+		    	dol_include_once("/asset/config.php");
+				dol_include_once("/asset/class/asset.class.php");
+				dol_include_once("/asset/class/ordre_fabrication_asset.class.php");
+					
+				$PDOdb=new TPDOdb;	
+					
+				$PDOdb->Execute("SELECT rowid 
+						FROM ".MAIN_DB_PREFIX."asset_workstation_of 
+						WHERE fk_project_task=".$object->id);	
+				if($obj = $PDOdb->Get_line()) {
+					
+					$wsof=new TAssetWorkstationOF;
+					$wsof->load($PDOdb, $obj->rowid);
+					$wsof->nb_hour_real = ($object->duration_effective + $object->timespent_duration) / 3600;
+					$wsof->save($PDOdb);
+					
+				}
+				
+				
+			}		
+				
+			
+		}
+		
 		return 0;
     }
 }

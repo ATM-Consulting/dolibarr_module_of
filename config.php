@@ -1,5 +1,5 @@
 <?php
-	require('config.default.php');
+	require(__DIR__.'/config.default.php');
 	
 	define('ASSET_FICHE_TPL','fiche.tpl.php');
 	//define('ASSET_LISTE_TYPE','latoxan');

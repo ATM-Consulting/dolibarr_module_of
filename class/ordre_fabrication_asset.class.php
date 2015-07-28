@@ -193,7 +193,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $conf;
 		
-		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature);
+		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
 		foreach($Tab as $prod) 
 		{
 			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
@@ -203,7 +203,7 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	//Retourne les produits NEEDED de l'OF concernant le produit $id_produit
-	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make, $fk_nomenclature=0)
+	function getProductComposition(&$PDOdb,$id_product, $quantite_to_make, $fk_nomenclature=0, $fk_assetOf_line_parent=0)
 	{
 		global $db,$conf;
 		
@@ -211,24 +211,24 @@ class TAssetOF extends TObjetStd{
 
 		if ($conf->nomenclature->enabled)
 		{
-			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+			dol_include_once('/nomenclature/class/nomenclature.class.php');
 			
 			//$TNomen = TNomenclature::get($PDOdb, $id_product);
 			if ($fk_nomenclature)
 			{
 				$TNomen = new TNomenclature;
 				$TNomen->load($PDOdb, $fk_nomenclature);
-			}
-			else 
-			{
-				$TNomen = TNomenclature::getDefaultNomenclature($PDOdb, $id_product, $quantite_to_make);
+				
+				if (!empty($TNomen))
+				{
+					
+					
+					$TRes = $TNomen->getDetails($quantite_to_make);
+					$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
+				}
 			}
 			
-			if (!empty($TNomen))
-			{
-				$TRes = $TNomen->getDetails($quantite_to_make);
-				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1);
-			}
+			
 			
 		}
 		else 
@@ -245,7 +245,7 @@ class TAssetOF extends TObjetStd{
 		return $Tab;
 	}
 	
-	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true) 
+	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true, $fk_assetOf_line_parent = 0) 
 	{
 		global $conf;
 		//TODO c'est de la merde à refaire
@@ -274,7 +274,7 @@ class TAssetOF extends TObjetStd{
 				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 				{
 					if($createOF) {
-						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty * $qty_parent);
+						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty * $qty_parent, $fk_assetOf_line_parent);
 					}
 				}
 				
@@ -287,7 +287,7 @@ class TAssetOF extends TObjetStd{
 	/*
 	 * Crée une OF si produit composé pas en stock
 	 */
-	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed) {
+	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
 		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
@@ -302,11 +302,32 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
-			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed));
-			$this->TAssetOF[$k]->addWorkstation($PDOdb, $db, $fk_product);
+			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed), $fk_assetOfLine_parent);
 			
 			return $k;
 		}
+	}
+	
+	static function getProductNeededQty($fk_product, $include_draft_of=true, $include_of_from_order = false, $date='') {
+		
+		global $db;
+		
+		$sql = "SELECT SUM(qty_needed) as qty 
+				FROM ".MAIN_DB_PREFIX."assetOf_line l 
+					LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON(l.fk_assetOf = of.rowid)
+			WHERE l.fk_product=".$fk_product."
+			AND type='NEEDED' AND of.status IN (".($include_draft_of ? "'DRAFT',": '')."'VALID')	
+			";
+		if(!empty($date))$sql.=" AND of.date_besoin<='".$date."'";
+		if(!$include_of_from_order) $sql.=" AND of.fk_commande = 0 ";
+		
+		$res = $db->query($sql);
+		
+		$obj = $db->fetch_object($res);
+		
+		return (int)$obj->qty;
+		
+		
 	}
 	
 	/*
@@ -323,12 +344,10 @@ class TAssetOF extends TObjetStd{
         if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
         else $stock =$product->stock_reel;
         
-        if($include_draft_of) {
-            /* destocke également tous les OF en brouillon */
-            
-        }
+      /*  $of_qty = self::getProductNeededQty($fk_product, $include_draft_of);
         
-
+		$stock-= $of_qty;
+*/
 		return $stock;
 	}
 	
@@ -373,18 +392,30 @@ class TAssetOF extends TObjetStd{
 		
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
-			include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
-			$TNomen = TNomenclature::getDefaultNomenclature($PDOdb,  $fk_product);
-			if ($TNomen) $fk_nomenclature = $TNomen->getId();
+			dol_include_once('/nomenclature/class/nomenclature.class.php');
+			
+			$TNomen = TNomenclature::get($PDOdb,  $fk_product);
+			if(count($TNomen) == 1) {
+				$TAssetOFLine->fk_nomenclature = $TNomen[0]->getId();
+				$fk_nomenclature = $TAssetOFLine->fk_nomenclature ;
+			}
+		}
+		else{
+			$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
 		}
 		
-		$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
+		
 		$TAssetOFLine->lot_number = $lot_number;
 		
         $TAssetOFLine->initConditionnement($PDOdb);
+		
+		if($fk_nomenclature>0) {
+			$TAssetOFLine->nomenclature_valide = true;
+		}
+		
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 		
-        // Appel des triggers
+		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
 		$interface = new Interfaces($db);
 		$result = $interface->run_triggers('ASSET_OF_ADD_LINE',$TAssetOFLine,$user,$langs,$conf);
@@ -395,6 +426,7 @@ class TAssetOF extends TObjetStd{
         
 		if($type=='TO_MAKE') 
 		{
+			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 	}
@@ -412,22 +444,48 @@ class TAssetOF extends TObjetStd{
 	 * Fonction qui permet de mettre à jour les postes de travail liais à un produit
 	 * pour la création d'un OF depuis une fiche produit
 	 */
-	function addWorkStation($PDOdb, $db, $fk_product) 
+	function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0) 
 	{
 		global $conf;
 		
 		if (!empty($conf->workstation->enabled))
 		{
-			//$sql = "SELECT fk_asset_workstation, nb_hour";
-			//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
-			$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-			$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-			$sql.= " WHERE fk_product = ".$fk_product;
-			$resql = $db->query($sql);
-			
-			if($resql) 
-			{
-				while($res = $db->fetch_object($resql)) 
+			if($conf->nomenclature->enabled) {
+				
+				if($fk_nomenclature>0) {
+					dol_include_once('/nomenclature/class/nomenclature.class.php');
+					
+					$n=new TNomenclature;
+					if($n->load($PDOdb, $fk_nomenclature, true)) {
+							
+						foreach($n->TNomenclatureWorkstation as &$nws) {
+							
+							if($nws->nb_hour_manufacture > 0) {
+							
+								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
+								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour;
+								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
+								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
+								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
+							
+							}
+							
+						}		
+						
+					}
+					
+				}
+				
+			}
+			else {
+				$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+				$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
+				$sql.= " WHERE fk_product = ".$fk_product;
+				$PDOdb->Execute($sql);
+				
+				while($res = $PDOdb->Get_line()) 
 				{
 					$ws = new TAssetWorkstation;
 					$ws->load($PDOdb, $res->fk_asset_workstation);
@@ -437,7 +495,9 @@ class TAssetOF extends TObjetStd{
 					$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
 					$this->TAssetWorkstationOF[$k]->ws = $ws;
 				}
+				
 			}
+		
 		}
 		
 	}
@@ -1119,7 +1179,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
 
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature','type=entier;index;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
 
@@ -1777,9 +1837,18 @@ class TAssetWorkstationOF extends TObjetStd{
                 $projectTask->array_options['options_fk_workstation']=$ws->getId();
 				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
                 
-				$projectTask->create($user);
+				$res = $projectTask->create($user);
+                if($res<0) {
+                    var_dump($projectTask);
+                    
+                    exit('ErrorCreateTaskWS') ;
+                }
+                else{
+                    $this->fk_project_task = $projectTask->id;    
+                }
+                
 				
-				$this->fk_project_task = $projectTask->id;
+				
 			}
 			elseif ($OF->fk_project > 0 && $this->fk_project_task > 0)
 			{
@@ -2053,22 +2122,6 @@ class TAssetWorkstation extends TWorkstation {
 		$this->entity = $conf->entity;
 		
 		parent::save($PDOdb);
-	}
-	
-	static function getWorstations(&$PDOdb) 
-	{
-		global $conf;
-		
-		$TWorkstation=array();
-		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
-		
-		$PDOdb->Execute($sql);
-		while($PDOdb->Get_line())
-		{
-			$TWorkstation[$PDOdb->Get_field('rowid')]=$PDOdb->Get_field('libelle');
-		}
-		
-		return $TWorkstation;
 	}
 	
 }

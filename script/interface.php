@@ -14,7 +14,7 @@ $get = __get('get','emprunt');
 
 traite_get($PDOdb, $get);
 
-function traite_get(&$PDOdb, $case) {	
+function traite_get(&$PDOdb, $case) {
 	switch (strtolower($case)) {
         case 'autocomplete':
             __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product'),GETPOST('type_product')));
@@ -52,9 +52,49 @@ function traite_get(&$PDOdb, $case) {
 		case 'getnomenclatures':
 			__out(_getNomenclatures($PDOdb, GETPOST('fk_product')), 'json');
 			break;
+		case 'validernomenclature':
+			__out(_validerNomenclature($PDOdb, GETPOST('id_assetOF'), GETPOST('fk_product'), GETPOST('fk_of_line'), GETPOST('fk_nomenclature'), GETPOST('qty')));
+			break;
 	}
 }
 
+function _validerNomenclature(&$PDOdb, $id_assetOF, $fk_product, $fk_of_line, $fk_nomenclature, $qty) {
+	// Récupération de l'OF
+	$of=new TAssetOF;
+	$of->load($PDOdb, $id_assetOF);
+
+	// Récupération de la ligne OF
+	$line = new TAssetOFLine;
+	$line->load($PDOdb, $fk_of_line);
+	
+	$line->qty = $qty;
+	$line->fk_nomenclature = $fk_nomenclature;
+	$line->nomenclature_valide = 1;
+	
+	$of->addProductComposition($PDOdb, $fk_product, $qty, $fk_of_line, $fk_nomenclature);
+	
+	if ($of->fk_assetOf_parent) {
+		_validerOFLigneParent($PDOdb, $of, $fk_nomenclature, $line);
+	}
+	
+	$of->save($PDOdb);
+	$line->save($PDOdb);
+}
+
+function _validerOFLigneParent(&$PDOdb, $of, $fk_nomenclature, &$line) {
+	$of_parent = new TAssetOF;
+	$of_parent->load($PDOdb, $of->fk_assetOf_parent);
+	
+	foreach ($of_parent->TAssetOFLine as $k => $line_asset) {
+		if ($of_parent->TAssetOFLine[$k]->getId() == $line->fk_assetOf_parent) {
+			$of_parent->TAssetOFLine[$k]->fk_nomenclature = $line->fk_nomenclature;
+			$of_parent->TAssetOFLine[$k]->nomenclature_valide = 1;
+			break;
+		}
+	}
+	
+	$of_parent->save($PDOdb);
+}
 
 function _getNomenclatures(&$PDOdb, $fk_product)
 {
@@ -328,7 +368,7 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
 	
 	$TAssetOFChildId = array();
 	$TAssetOF->getListeOFEnfants($PDOdb, $TAssetOFChildId, $TAssetOF->rowid, false); //Récupération des OF enfants direct - les sous-enfants ne sont pas récupérés
-
+	
 	//Boucle sur les lignes de l'OF courant
 	foreach ($TAssetOF->TAssetOFLine as $line) 
 	{
@@ -348,8 +388,8 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
   				{
                 	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty, $line->fk_nomenclature);
 
-					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
-						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty);
+					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {	
+						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty, $line->getId());
 						$TAssetOF->save($PDOdb);
 
 						if ($k !== null) $TNewIdAssetOF[] = $TAssetOF->TAssetOF[$k]->rowid;
