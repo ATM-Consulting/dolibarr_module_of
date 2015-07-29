@@ -1226,7 +1226,7 @@ class TAssetLot extends TObjetStd{
 		if(!in_array($elementId, $this->TLotRecursive)){
 			$this->TLotRecursive[] = $elementId;
 		}
-		else {
+		else if(count($this->TLotRecursive) < 1) {
 			return array();
 		}
 		
@@ -1235,27 +1235,25 @@ class TAssetLot extends TObjetStd{
 		$TAssetLot = new TAssetLot;
 		$TAssetLot->loadBy($PDOdb, $elementId, 'lot_number');
 		
+		//pre($TAssetIds,true);
 		if(!empty($TAssetIds)){
 			?>
-			<ul style='display: none'>
-				<li><?php echo 'LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
-					<ul><?php
-					foreach($TAssetIds as $idAsset){
-						
-						$asset = new TAsset;
-						$asset->load($PDOdb, $idAsset);
-						?>
-						<li>
-							<?php echo 'EQUIPEMENT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>'; ?>
-							<?php $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1); ?>
-						</li>
-						<?php
-					}
-		
+				<ul style='display: none'>><?php
+				foreach($TAssetIds as $idAsset){
+					
+					$asset = new TAsset;
+					$asset->load($PDOdb, $idAsset);
 					?>
-					</ul>
-				</li>
-			</ul>
+					<!-- <li style="visibility:hidden"> </li> -->
+					<li style="height: 85px;">
+						<?php echo 'EQUIPEMENT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>'.'<br>-----------------<br>LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
+						<?php $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1); ?>
+					</li>
+					<?php
+				}
+	
+				?>
+				</ul>
 			<?php
 		}
 	}
@@ -1370,7 +1368,7 @@ class TAssetLot extends TObjetStd{
 			return array();
 		}
 		
-		$sql = "SELECT l.lot_number
+		$sql = "SELECT a.lot_number
 				FROM ".MAIN_DB_PREFIX."assetlot as l
 					LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.lot_number = l.lot_number)
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as aol ON (aol.fk_asset = a.rowid)
