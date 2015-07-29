@@ -999,11 +999,11 @@ class TAssetLot extends TObjetStd{
 				FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf
 					LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd ON (cfd.fk_commande = cf.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_asset as cfda ON (cfda.fk_commandedet = cfd.rowid)
-					LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.rowid = cfda.fk_asset)
+					LEFT JOIN ".MAIN_DB_PREFIX."asset as a ON (a.serial_number = cfda.serial_number)
 					LEFT JOIN ".MAIN_DB_PREFIX."assetlot as al ON (al.lot_number = a.lot_number)";
 		if($assetid) $sql .= " WHERE a.rowid = ".$assetid;
 		else $sql .= " WHERE al.lot_number = '".$this->lot_number."'";
-		
+		//echo $sql;
 		$PDOdb->Execute($sql);
 		
 		$commandeFournisseur = new CommandeFournisseur($db);
@@ -1017,9 +1017,9 @@ class TAssetLot extends TObjetStd{
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['ref'] = $commandeFournisseur->getNomUrl(1);
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['ref_fourn'] = $commandeFournisseur->ref_supplier;
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['societe'] = $societe->getNomUrl(1);
-			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_commande'] = date('d/m/Y',$commandeFournisseur->date_commande);
+			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_commande'] = date('d/m/Y',strtotime($commandeFournisseur->date_commande));
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['total_ttc'] = $commandeFournisseur->total_ttc;
-			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_livraison'] = date('d/m/Y',$commandeFournisseur->date_livraison);
+			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_livraison'] = date('d/m/Y',strtotime($commandeFournisseur->date_livraison));
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['status'] = $commandeFournisseur->getLibStatut(3);
 		}
 	}
@@ -1237,8 +1237,9 @@ class TAssetLot extends TObjetStd{
 		
 		//pre($TAssetIds,true);
 		if(!empty($TAssetIds)){
+			
 			?>
-				<ul style='display: none'>><?php
+				<ul style='display: none'><?php
 				foreach($TAssetIds as $idAsset){
 					
 					$asset = new TAsset;
@@ -1259,6 +1260,8 @@ class TAssetLot extends TObjetStd{
 	}
 	
 	function traceabilityRecursiveAsset(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
+		global $db,$conf;
+		dol_include_once('/fourn/class/fournisseur.commande.class.php');
 		
 		if(!in_array($elementId, $this->TAssetRecursive)){
 			$this->TAssetRecursive[] = $elementId;
@@ -1320,7 +1323,7 @@ class TAssetLot extends TObjetStd{
 					<?php
 					foreach($TIds as $id){
 						$commandeFourn = new CommandeFournisseur($db);
-						$commandeFourn->fetch($elementId);
+						$commandeFourn->fetch($id);
 						
 						?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
 					}
@@ -1361,8 +1364,8 @@ class TAssetLot extends TObjetStd{
 
 	function traceabilityRecursiveOf(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
 		
-		if(!in_array($elementId, $this->TAssetRecursive)){
-			$this->TAssetRecursive[] = $elementId;
+		if(!in_array($elementId, $this->TOfRecursive)){
+			$this->TOfRecursive[] = $elementId;
 		}
 		else {
 			return array();
@@ -1378,7 +1381,7 @@ class TAssetLot extends TObjetStd{
 		/*
 		 * mise en commentaire car pour le cas des OF, on les veux tous, à chaque fois pour avoir une arbo plus complète
 		 * /
-		/*if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
+		if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
 		else $sql .= " AND aol.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé*/
 		
 		//echo $sql;
