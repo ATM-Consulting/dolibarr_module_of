@@ -37,6 +37,7 @@ workstation=poste de travail
 ListOrderProducts=Liste des produits de la commande
 AssetProductionOrder=Ordre de Fabrication
 AssetNewProductionOrder=Nouvel ordre de Fabrication
+OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
@@ -49,6 +50,7 @@ OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande four
 # POSTE DE TRAVAIL
 AssetWorkstation=Poste de travail
 AssetNewWorkstation=Nouveau poste de travail
+AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
 
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement
@@ -81,7 +83,7 @@ DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de
 UseDefinedWarehouse=Permet de définir des entrepôts par défaut pour le stockage/destockage des équipements
 ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt définit sur chaque équipement)
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
-CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants uniquement pour les produits hors stock nécessaires à la fabrication ayant des composants
+CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
 UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
@@ -91,6 +93,7 @@ AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composi
 AssetUseControl=Permet de définir des contrôles à appliquer lors du processus de l'OF
 AssetDefinedTaskByWorkstation=Permet de définir un protocole opératoire pour chaque poste de travail
 UseProjectTask=Chaque poste de travail associé à un OF créera une tâche au projet associé
+AssetAutoCreateProjectOnOF=Créer et associer automatiquement un projet à l'OF si aucun n'est associé (le projet portera le nom de la commande à partir de laquelle provient l'OF)
 
 CreateAssetFromProductDescListProduct=La liste contient uniquement les produits avec un état "En vente"
 CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.

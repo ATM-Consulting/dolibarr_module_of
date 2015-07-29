@@ -155,7 +155,7 @@ function _liste() {
 			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
 			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
 			
-			,'client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+			
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -316,9 +316,14 @@ function get_format_libelle_produit($fk_product = null) {
 function get_format_libelle_societe($fk_soc) {
 	global $db;
 	
-	$societe = new Societe($db);
-	$societe->fetch($fk_soc);
-	$url = $societe->getNomUrl(1);
+    if($fk_soc>0) {
+        $societe = new Societe($db);
+        $societe->fetch($fk_soc);
+        $url = $societe->getNomUrl(1);
+        
+        return $url;
+        
+    }
     
-	return $url;
+    return '';
 }

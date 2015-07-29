@@ -55,6 +55,38 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 	
+	function create_new_project() {
+		
+		global $db, $user;
+		
+		dol_include_once('/projet/class/project.class.php');
+		
+		// On crée un projet
+		$project = new Project($db);
+		
+		$project->ref = TAssetWorkstationOF::get_next_ref_project();
+	
+		// On récupère le fk_commande associé
+		if($_REQUEST['action'] === 'createOFCommande') $fk_commande = $_REQUEST['fk_commande'];
+		else $fk_commande = $this->fk_commande;
+		
+		if(!empty($fk_commande)) {
+			
+			dol_include_once('/commande/class/commande.class.php');
+			$commande = new Commande($db);
+			$commande->fetch($fk_commande);
+			
+			// On nomme le projet avec la ref de la commande d'origine
+			if(!empty($commande->ref)) $project->title.= 'Commande client '.$commande->ref;
+			$this->fk_project = $project->create($user);
+			
+			// On associe la commande au projet
+			$project->update_element('commande', $fk_commande);
+			
+		}
+		
+	}
+	
 	function set_temps_fabrication() {
 		$this->temps_estime_fabrication=0;
 		$this->temps_reel_fabrication=0;	
@@ -88,6 +120,8 @@ class TAssetOF extends TObjetStd{
 				unset($this->TAssetOFLine[$k]);
 			}
 		}
+		
+		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
 		parent::save($PDOdb);
 
@@ -196,7 +230,7 @@ class TAssetOF extends TObjetStd{
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
 		foreach($Tab as $prod) 
 		{
-			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty * $quantite_to_make,$fk_assetOf_line_parent);
+			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent);
 		}
 		
 		return true;
@@ -222,8 +256,8 @@ class TAssetOF extends TObjetStd{
 				if (!empty($TNomen))
 				{
 					
-					
 					$TRes = $TNomen->getDetails($quantite_to_make);
+					
 					$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
 				}
 			}
@@ -253,10 +287,10 @@ class TAssetOF extends TObjetStd{
 		{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
-			$prod->qty = $row[1];
+			$prod->qty = $row[1] * $qty_parent;
 
 			if(isset($Tab[$prod->fk_product])) {
-				$Tab[$prod->fk_product]->qty += $prod->qty * $qty_parent;
+				$Tab[$prod->fk_product]->qty += $prod->qty;
 			}
 			else {
 				$Tab[$prod->fk_product]=$prod;	
@@ -267,14 +301,14 @@ class TAssetOF extends TObjetStd{
 				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
 				{
 					if(!$createOF) {
-						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty * $qty_parent);
+						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty);
 					}
 				}
 				
 				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 				{
 					if($createOF) {
-						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty * $qty_parent, $fk_assetOf_line_parent);
+						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $fk_assetOf_line_parent);
 					}
 				}
 				
@@ -457,16 +491,20 @@ class TAssetOF extends TObjetStd{
 					
 					$n=new TNomenclature;
 					if($n->load($PDOdb, $fk_nomenclature, true)) {
-							
+						
+						$line_to_make = $this->getLineProductToMake();
+						if(!empty($line_to_make) && $line_to_make->qty_needed > 1) $qty_needed = $line_to_make->qty_needed;
+						else $qty_needed = 1;
+						
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 							
-							if($nws->nb_hour_manufacture > 0) {
+							if(($nws->nb_hour_manufacture > 0) || $conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF) {
 							
 								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
-								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour;
-								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare;
-								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture;
+								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour*$qty_needed;
+								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare*$qty_needed;
+								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
 							
@@ -906,6 +944,18 @@ class TAssetOF extends TObjetStd{
 
 			$res[] = array('id_assetOf' => $val->rowid, 'level' => $level);
 		}
+		
+	}
+	
+	function getLineProductToMake() {
+		
+		if(!empty($this->TAssetOFLine)) {
+			foreach ($this->TAssetOFLine as $line) {
+				if($line->type === 'TO_MAKE') return $line;
+			}
+		}
+		
+		return 0;
 		
 	}
 	
@@ -1804,14 +1854,14 @@ class TAssetWorkstationOF extends TObjetStd{
 	function save(&$PDOdb)
 	{
 	 	global $db,$conf,$user;
+		
+		$OF = new TAssetOF;
+		$OF->load($PDOdb, $this->fk_assetOf);
 
-		if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
+		if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $OF->status === 'VALID')
 		{
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
-			
-			$OF = new TAssetOF;
-			$OF->load($PDOdb, $this->fk_assetOf);
 			
 			if ($OF->fk_project > 0 && $this->fk_project_task == 0)
 			{
@@ -1836,10 +1886,25 @@ class TAssetWorkstationOF extends TObjetStd{
                 $projectTask->array_options['options_grid_use']=1;
                 $projectTask->array_options['options_fk_workstation']=$ws->getId();
 				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
-                
-				$projectTask->create($user);
 				
-				$this->fk_project_task = $projectTask->id;
+				$p = new Product($db);
+				$line_product_to_make = $OF->getLineProductToMake();
+				if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
+					$projectTask->array_options['options_fk_product']=$p->id;
+				}
+                
+				$res = $projectTask->create($user);
+                if($res<0) {
+                    var_dump($projectTask);
+                    
+                    exit('ErrorCreateTaskWS') ;
+                }
+                else{
+                    $this->fk_project_task = $projectTask->id;    
+                }
+                
+				
+				
 			}
 			elseif ($OF->fk_project > 0 && $this->fk_project_task > 0)
 			{
@@ -1868,9 +1933,55 @@ class TAssetWorkstationOF extends TObjetStd{
 				//Rien à faire
 			}
 			
+			// Association des utilisateurs aux tâches du projet
+			$TUsers = $this->get_users($PDOdb);
+			if(!empty($TUsers)) {
+				dol_include_once('/projet/class/project.class.php');
+				foreach ($TUsers as $id_user_associated_on_task) {
+					$p = new Project($db);
+					if($p->fetch($projectTask->fk_project) > 0) {
+						$p->add_contact($id_user_associated_on_task, 160, 'internal');
+						$projectTask->add_contact($id_user_associated_on_task, 180, 'internal');
+					}
+					
+				}
+			}
+			
 		}
 		
 		parent::save($PDOdb);
+	}
+
+	static function get_next_ref_project() {
+		
+		global $conf;
+		
+		// Récupération de la référence suivante en fonction du masque (std dolibarr)
+	    $defaultref='';
+	    $modele = empty($conf->global->PROJECT_ADDON)?'mod_project_simple':$conf->global->PROJECT_ADDON;
+	    // Search template files
+	    $file=''; $classname=''; $filefound=0;
+	    $dirmodels=array_merge(array('/'),(array) $conf->modules_parts['models']);
+	    foreach($dirmodels as $reldir)
+	    {
+	    	$file=dol_buildpath($reldir."core/modules/project/".$modele.'.php',0);
+	    	if (file_exists($file))
+	    	{
+	    		$filefound=1;
+	    		$classname = $modele;
+	    		break;
+	    	}
+	    }
+	    if ($filefound)
+	    {
+		    $result=dol_include_once($reldir."core/modules/project/".$modele.'.php');
+		    $modProject = new $classname;
+	
+		    $defaultref = $modProject->getNextValue($thirdparty,$object);
+	    }
+		
+		return $defaultref;
+		
 	}
 
 	function set_values($Tab)
@@ -2113,22 +2224,6 @@ class TAssetWorkstation extends TWorkstation {
 		$this->entity = $conf->entity;
 		
 		parent::save($PDOdb);
-	}
-	
-	static function getWorstations(&$PDOdb) 
-	{
-		global $conf;
-		
-		$TWorkstation=array();
-		$sql = "SELECT rowid, libelle FROM ".MAIN_DB_PREFIX."asset_workstation WHERE entity=".$conf->entity;
-		
-		$PDOdb->Execute($sql);
-		while($PDOdb->Get_line())
-		{
-			$TWorkstation[$PDOdb->Get_field('rowid')]=$PDOdb->Get_field('libelle');
-		}
-		
-		return $TWorkstation;
 	}
 	
 }

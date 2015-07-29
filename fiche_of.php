@@ -21,6 +21,8 @@ $langs->load("other");
 $langs->load("orders");
 $langs->load("asset@asset");
 
+$hookmanager->initHooks(array('ofcard'));
+
 // Get parameters
 _action();
 
@@ -533,7 +535,24 @@ function _fiche_ligne(&$form, &$of, $type){
 				
 				$TAssetOFLine->loadFournisseurPrice($PDOdb);
 			}
-		
+			
+			
+			
+			// Permet de sélectionner par défaut "(Fournisseur "Interne" => Fabrication interne)" si le produit TO_MAKE n'a pas de stock lorsqu'on est en mode edit et que la ligne TO_MAKE n'a pas encore de prix fournisseur enregistré
+			dol_include_once('/product/class/product.class.php');
+			$p = new Product($db);
+			$selected = 0;
+			
+			if($p->fetch($TAssetOFLine->fk_product)) {
+				$p->load_stock();
+				$p->stock_reel;
+				if($TAssetOFLine->type === 'TO_MAKE' && $p->stock_reel <= 0 && $_REQUEST['action'] === 'edit') $selected = -2;
+			}
+			// *************************************************************
+			
+			
+			
+			
 			$Tab=array();
 			foreach($TAssetOFLine->TFournisseurPrice as &$objPrice) {
 				
@@ -615,7 +634,7 @@ function _fiche_ligne(&$form, &$of, $type){
 		        ,'nomenclature'=>$nomenclature
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label 
-				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, $TAssetOFLine->fk_product_fournisseur_price, 1, '', 'style="max-width:250px;"')
+				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && $of->status == 'DRAFT' && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			);
@@ -661,12 +680,15 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 }
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenclature=0) {
-	global $langs,$db,$conf,$user;
+	global $langs,$db,$conf,$user,$hookmanager;
 	/***************************************************
 	* PAGE
 	*
 	* Put here all code to build page
 	****************************************************/
+	
+	$parameters = array('id'=>$assetOf->getId());
+	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 	
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
@@ -737,7 +759,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			$cmd = new CommandeFournisseur($db);
 			$cmd->fetch($idcommandeFourn);
 
-			$HtmlCmdFourn .= $cmd->getNomUrl(1)." ";
+			$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
 		}
 	}
 	
@@ -754,7 +776,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$ws = &$TAssetWorkstationOF->ws;
 		
 		$TWorkstation[]=array(
-			'libelle'=>'<a href="'.dol_buildpath('workstation/workstation.php?id='.$ws->rowid.'&action=view', 2).'">'.$ws->libelle.'</a>'
+			'libelle'=>'<a href="'.dol_buildpath('workstation/workstation.php?id='.$ws->rowid.'&action=view', 2).'">'.$ws->name.'</a>'
 			,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
 			,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
 			,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
@@ -781,7 +803,10 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
 		$hasParent = true;
 	}
-
+	
+	$parameters = array('id'=>$assetOf->getId());
+	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -794,7 +819,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
 				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
-				,'statut_commande'=> $commande->getLibStatut(0)
+				//,'statut_commande'=> $commande->getLibStatut(0)
 				,'commande_fournisseur'=>$HtmlCmdFourn
 				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
 				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)

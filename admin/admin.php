@@ -114,6 +114,20 @@
 	print ajax_constantonoff('ASSET_USE_CONTROL');
 	print '</td></tr>';	
 	
+	print '<tr class="">';
+	print '<td>'.$langs->trans("AssetAutoCreateProjectOnOF").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_AUTO_CREATE_PROJECT_ON_OF');
+	print '</td></tr>';	
+	
+	print '<tr class="">';
+	print '<td>'.$langs->trans("AssetAuthorizeAddWorkstationTime0OnOF").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF');
+	print '</td></tr>';	
+	
 	
 	print "</table>";
 	
