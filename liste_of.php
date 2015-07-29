@@ -49,6 +49,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 						$com = new Commande($db);
 						$com->fetch($assetOf->fk_commande);
 						$assetOf->fk_project = $com->fk_project;
+						if(!empty($com->date_livraison)) $assetOf->date_besoin = $com->date_livraison;
 					}
 					
 					$assetOf->fk_soc = $fk_soc;
@@ -168,7 +169,7 @@ function _liste() {
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
+			,'messa geNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
 			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
 		,'title'=>array(
@@ -267,14 +268,19 @@ function _liste() {
 		{
 			dol_include_once('/core/class/html.form.class.php');
 			dol_include_once('/asset/lib/asset.lib.php');
+			dol_include_once('/nomenclature/class/nomenclature.class.php');
+			
 			$doliForm = new Form($db);
-			echo $doliForm->selectarray('fk_nomenclature', _getArrayNomenclature($ATMdb, false, $_REQUEST['fk_product']));
+			echo $doliForm->selectarray('fk_nomenclature', TNomenclature::get($ATMdb, $_REQUEST['fk_product'], true));
 			
 			echo '<script type="text/javascript">
 				$(function() {
+				    var url_create_of = $("#bt_createOf").attr("href");
+                    		$("#bt_createOf").attr("href","#");  
+                        
 					$("#bt_createOf").click(function() {
 						var fk_nomenclature = $("select[name=fk_nomenclature]").val();
-						var href = $(this).attr("href") + "&fk_nomenclature=" + fk_nomenclature;
+						var href = url_create_of + "&fk_nomenclature=" + fk_nomenclature;
 						$(this).attr("href", href);
 					});
 				});
@@ -299,7 +305,9 @@ function get_format_libelle_produit($fk_product = null) {
 		$product = new Product($db);
 		$product->fetch($fk_product);
 	
-		return '<a href="'.DOL_URL_ROOT.'/product/card.php?id=' . $fk_product . '">' . img_picto('','object_product.png','',0) . ' ' . htmlentities(utf8_decode($product->label)) . '</a>';
+		$product->ref.=' '.$product->label;
+	
+		return  $product->getNomUrl(1);
 	} else {
 		return 'Produit non défini.';
 	}
@@ -308,9 +316,14 @@ function get_format_libelle_produit($fk_product = null) {
 function get_format_libelle_societe($fk_soc) {
 	global $db;
 	
+    if($fk_soc>0) {
 	$societe = new Societe($db);
 	$societe->fetch($fk_soc);
 	$url = $societe->getNomUrl(1);
-    
+	
 	return $url;
+	
+    }
+    
+    return '';
 }
