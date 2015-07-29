@@ -8,7 +8,6 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
-
 if(!$user->rights->asset->all->lire) accessforbidden();
 
 if(isset($conf->global->MAIN_MODULE_FINANCEMENT)) {
@@ -197,6 +196,23 @@ function _action() {
 				
 				_fiche($asset, 'view');
 				break;
+				
+			case 'traceability':
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load_asset_type($PDOdb);
+				$asset->load_liste_type_asset($PDOdb);
+				
+				_traceability($PDOdb,$asset);
+				break;
+			case 'object_linked':
+				$asset=new TAsset;
+				$asset->load($PDOdb, $_REQUEST['id']);
+				$asset->load_asset_type($PDOdb);
+				$asset->load_liste_type_asset($PDOdb);
+				
+				_object_linked($PDOdb,$asset);
+				break;
 		}
 		
 	}
@@ -229,7 +245,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD, $hookmanager;
 * Put here all code to build page
 ****************************************************/
 	
-	llxHeader('',$langs->trans('Asset'),'','');
+	llxHeader('',$langs->trans('Asset'));
 	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'fiche', $langs->trans('Asset'));
 	
 	if(isset($_REQUEST['error'])) {
@@ -626,6 +642,135 @@ function _fiche_visu_units(&$asset, $mode, $name,$defaut=-3)
 			return measuring_units_string($asset->$name, $asset->assetType->measuring_units);
 		}
 	}
+}
+
+function _traceability(&$PDOdb,&$asset){
+	global $db,$conf,$langs;
+
+	llxHeader('',$langs->trans('Asset'),'','');
+	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'traceability', $langs->trans('Asset'));
+	
+	$assetLot = new TAssetLot;
+	$assetLot->loadBy($PDOdb, $asset->lot_number, 'lot_number');
+	
+	//pre($assetLot,true);
+	$assetLot->traCeability($PDOdb);
+}
+
+function _object_linked(&$PDOdb,&$asset){
+	global $db,$conf,$langs;
+
+	llxHeader('',$langs->trans('Asset'),'','');
+	print dol_get_fiche_head(assetPrepareHead( $asset, 'asset') , 'object_linked', $langs->trans('Asset'));
+	
+	$assetLot = new TAssetLot;
+	$assetLot->loadBy($PDOdb, $asset->lot_number, 'lot_number');
+	
+	$assetLot->getTraceabilityObjectLinked($PDOdb,$asset->getId());
+	
+	//pre($asset->TTraceability,true);
+	//Liste des expéditions liés à l'équipement
+	_listeTraceabilityExpedition($PDOdb,$assetLot);
+	
+	//Liste des commandes fournisseurs liés à l'équipement
+	_listeTraceabilityCommandeFournisseur($PDOdb,$assetLot);
+	
+	//Liste des commandes clients liés à l'équipement
+	_listeTraceabilityCommande($PDOdb,$assetLot);
+	
+	//Liste des OF liés à l'équipement
+	_listeTraceabilityOf($PDOdb,$assetLot);
+}
+
+function _listeTraceabilityExpedition(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['expedition']
+		,array(
+			'liste'=>array(
+					'titre' => "Expéditions"
+			),
+			'title'=>array(
+				'ref' => 'Référence',
+				'societe' => 'Société',
+				'ref_fourn' => 'Référence fournisseur',
+				'date_commande' => 'Date commande',
+				'total_ht' => 'Total HT',
+				'date_livraison' => 'Date de livraison',
+				'status' => 'Statut',
+			)
+		)
+	);
+}
+
+function _listeTraceabilityCommandeFournisseur(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['commande_fournisseur']
+		,array(
+			'liste'=>array(
+				'titre' => "Commandes Fournisseurs"
+			),
+			'title'=>array(
+				'ref' => 'Référence',
+				'societe' => 'Société',
+				'ref_fourn' => 'Référence fournisseur',
+				'date_commande' => 'Date commande',
+				'total_ht' => 'Total HT',
+				'date_livraison' => 'Date de livraison',
+				'status' => 'Statut',
+			)
+		)
+	);
+}
+
+function _listeTraceabilityCommande(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['commande']
+		,array(
+			'liste'=>array(
+				'titre' => "Commandes client"
+			),
+			'title'=>array(
+				'ref' => 'Référence',
+				'societe' => 'Société',
+				'ref_client' => 'Référence client',
+				'date_commande' => 'Date commande',
+				'total_ht' => 'Total HT',
+				'date_livraison' => 'Date de livraison',
+				'status' => 'Statut',
+			)
+		)
+	);
+}
+
+function _listeTraceabilityOf(&$PDOdb,&$assetLot){
+	
+	$listeview = new TListviewTBS($assetLot->getId());
+	
+	//pre($asset->TTraceabilityObjectLinked['of'],true);
+	
+	print $listeview->renderArray($PDOdb,$assetLot->TTraceabilityObjectLinked['of']
+		,array(
+			'liste'=>array(
+				'titre' => "Ordre de Fabrication",
+			),
+			'title'=>array(
+					'ref' => 'Référence',
+					'societe' => 'Société',
+					'produit_tomake' => 'Produits à créer',
+					'produit_needed' => 'Produits nécessaire',
+					'priorite' => 'Priorité',
+					'date_lancement' => 'Date de lancement',
+					'date_besoin' => 'Date du besoin',
+					'status' => 'Statut',
+				)
+			)
+	);
 }
 
 ?>

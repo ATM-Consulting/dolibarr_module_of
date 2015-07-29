@@ -139,7 +139,7 @@ function _liste($id_entity) {
 	
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
-	
+
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'nbLine'=>$conf->liste_limit

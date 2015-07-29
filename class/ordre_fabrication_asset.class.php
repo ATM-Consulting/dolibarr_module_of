@@ -52,6 +52,11 @@ class TAssetOF extends TObjetStd{
 		
 		$res = parent::load($db,$id,true);
 		
+        
+        foreach($this->TAssetOFLine as &$line) {
+            $line->of_numero = $this->numero;
+        }
+        
 		return $res;
 	}
 	
@@ -1288,14 +1293,11 @@ class TAssetOFLine extends TObjetStd{
 
 		$fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 		
-		$OF = new TAssetOF;
-		$OF->load($PDOdb, $this->fk_assetOf);
-		//var_dump($conf->global->USE_LOT_IN_OF);exit;
+		
         if(!$conf->global->USE_LOT_IN_OF) 
         {
             $asset=new TAsset;
-			
-			$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,'Utilisation via Ordre de Fabrication n°'.$OF->numero, false, 0, $fk_entrepot);
+            $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,'Utilisation via Ordre de Fabrication n°'.$this->of_numero, false, 0, $fk_entrepot);
 	
             //$asset->contenancereel_value -= $qty_to_destock_rest;
 			//TODO Manque le destockage de $asset->contenancereel_value
@@ -1304,23 +1306,33 @@ class TAssetOFLine extends TObjetStd{
 		else 
 		{
 			$TAsset = $this->getAssetLinked($PDOdb);
-	        foreach($TAsset as $asset) 
-	        {
-	             $qty_asset_to_destock = $asset->contenancereel_value;
-				 
-	             if($qty_to_destock_rest - $qty_asset_to_destock <= 0) 
-	             {
-	                 $qty_asset_to_destock = $qty_to_destock_rest;
-	             }
-	         
-	             $asset->save($PDOdb,$user
-	                     ,'Utilisation via Ordre de Fabrication n°'.$OF->numero.' - Equipement : '.$asset->serial_number
-	                     ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
-	            
-	            $qty_to_destock_rest-= $qty_asset_to_destock;
-	            
-	            if($qty_to_destock_rest<=0)break;
-	        }
+            
+            if(empty($TAsset)) {
+                
+                $asset=new TAsset;
+                $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,'Utilisation via Ordre de Fabrication n°'.$this->of_numero, false, 0, $fk_entrepot);
+                
+            }
+            else{
+                foreach($TAsset as $asset) 
+                {
+                     $qty_asset_to_destock = $asset->contenancereel_value;
+                     
+                     if($qty_to_destock_rest - $qty_asset_to_destock <= 0) 
+                     {
+                         $qty_asset_to_destock = $qty_to_destock_rest;
+                     }
+                 
+                     $asset->save($PDOdb,$user
+                             ,'Utilisation via Ordre de Fabrication n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
+                             ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
+                    
+                    $qty_to_destock_rest-= $qty_asset_to_destock;
+                    
+                    if($qty_to_destock_rest<=0)break;
+                }
+                
+            }
         	
 		}
         
@@ -1696,7 +1708,7 @@ class TAssetOFLine extends TObjetStd{
 	{
 		$include = array();
 		
-		$sql = 'SELECT libelle, rowid FROM '.MAIN_DB_PREFIX.'asset_workstation WHERE rowid 
+		$sql = 'SELECT name AS libelle, rowid FROM '.MAIN_DB_PREFIX.'workstation WHERE rowid 
 		IN (SELECT fk_asset_workstation FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_assetOf = '.(int) $of->rowid.')';
 		$resql = $db->query($sql);
 		

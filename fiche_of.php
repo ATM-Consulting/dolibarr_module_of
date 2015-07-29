@@ -438,17 +438,11 @@ function generateODTOF(&$PDOdb) {
 	}
 	
 	$refcmd = '';
-	$TIdCommandeFourn = array();
-	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
-	
-	foreach ($TIdCommandeFourn as $id)
-	{
+	if(!empty($assetOf->fk_commande)) {
 		$cmd = new Commande($db);
-		$cmd->fetch($id);
-		$refcmd .= $cmd->ref.', ';
+		$cmd->fetch($assetOf->fk_commande);
+		$refcmd = $cmd->ref;
 	}
-	
-	$refcmd = rtrim($refcmd, ', ');
 	
 	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
@@ -525,7 +519,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 				,'qty_used'=>(($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
 				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-				,'workstations'=>$TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]')
+				,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && $of->status == 'DRAFT' && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			);

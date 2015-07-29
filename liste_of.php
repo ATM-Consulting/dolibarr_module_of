@@ -152,10 +152,10 @@ function _liste() {
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
+			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
 			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
-			
-			
+			,'product'=>'<a href="'.DOL_URL_ROOT.'/product/card.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+			,'client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -169,7 +169,7 @@ function _liste() {
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
+			,'messa geNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
 			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
 		,'title'=>array(
@@ -186,7 +186,7 @@ function _liste() {
 			'ordre'=>'TAssetOF::ordre(@val@)'
 			,'status'=>'TAssetOF::status(@val@)'
 			,'product' => 'get_format_libelle_produit(@fk_product@)'
-			,'client' => 'get_format_libelle_societe(@fk_soc@)'  
+			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 		)
 	));
 	
@@ -276,7 +276,7 @@ function _liste() {
 			echo '<script type="text/javascript">
 				$(function() {
 				    var url_create_of = $("#bt_createOf").attr("href");
-                    $("#bt_createOf").attr("href","#");  
+                    		$("#bt_createOf").attr("href","#");  
                         
 					$("#bt_createOf").click(function() {
 						var fk_nomenclature = $("select[name=fk_nomenclature]").val();
@@ -317,12 +317,12 @@ function get_format_libelle_societe($fk_soc) {
 	global $db;
 	
     if($fk_soc>0) {
-        $societe = new Societe($db);
-        $societe->fetch($fk_soc);
-        $url = $societe->getNomUrl(1);
-        
-        return $url;
-        
+	$societe = new Societe($db);
+	$societe->fetch($fk_soc);
+	$url = $societe->getNomUrl(1);
+	
+	return $url;
+	
     }
     
     return '';

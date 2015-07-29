@@ -197,7 +197,7 @@ class InterfaceAssetWorkflow
 						$prod->fetch($line->fk_product);
 						$prod->load_stock();
 						
-						if($prod->stock_reel < 1) {
+						if($prod->stock_reel < $line->qty) {
 						
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $_REQUEST['id'];
