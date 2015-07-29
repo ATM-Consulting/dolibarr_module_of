@@ -1376,7 +1376,10 @@ class TAssetLot extends TObjetStd{
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as aol ON (aol.fk_asset = a.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf as ao ON (ao.rowid = aol.fk_assetOf)
 				WHERE ao.rowid = ".$elementId;
-
+		
+		/*
+		 * mise en commentaire car pour le cas des OF, on les veux tous, à chaque fois pour avoir une arbo plus complète
+		 * /
 		/*if($type == 'FROM') $sql .= " AND aol.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
 		else $sql .= " AND aol.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé*/
 		
