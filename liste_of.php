@@ -132,8 +132,9 @@ function _liste() {
 	
 	$sql.=" GROUP BY ofe.rowid ";
 	
-	if(dolibarr_get_const($db, "ASSET_OF_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY ofe.rowid DESC";
-	else $sql .= " ORDER BY ofe.date_cre DESC";
+	// TODO je me rappelle plus pourquoi j'ai fait cette merde mais ça fait planter le tri, donc à virer. 
+	/*if(dolibarr_get_const($db, "ASSET_OF_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY ofe.rowid DESC";
+	else $sql .= " ORDER BY ofe.date_cre DESC";*/
 	
 	/*if(isset($_REQUEST['fk_product'])) {
 		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		

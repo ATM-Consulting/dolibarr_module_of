@@ -176,7 +176,8 @@
 				$project = new Project($db);
 				$project->fetch($selected);
 				
-				return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
+				//return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
+				return $project->getNomUrl(1).' - '.dol_trunc($project->title,$maxlength);
 			}
 			else 
 			{
@@ -284,8 +285,8 @@
 					
 				}
 				
-				print ajax_autocompleter($selected, $htmlname, DOL_URL_ROOT.'/projet/ajax/projects.php', $urloption, 1);
-				$out =  '<input type="text" size="20" name="search_'.$htmlname.'" id="search_'.$htmlname.'" value="'.$selected_value.'"'.$placeholder.' />';
+				$out = ajax_autocompleter($selected, $htmlname, DOL_URL_ROOT.'/projet/ajax/projects.php', $urloption, 1);
+				$out .= '<input type="text" size="20" name="search_'.$htmlname.'" id="search_'.$htmlname.'" value="'.$selected_value.'"'.$placeholder.' />';
 				
 			}
 			

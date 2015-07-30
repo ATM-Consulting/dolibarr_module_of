@@ -108,11 +108,17 @@ class InterfaceAssetWorkflow
     {
    		global $db;
 		
+		$langs->load('asset@asset');
+		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
     	dol_include_once('/asset/config.php');
 		dol_include_once('/commande/class/commande.class.php');
 		dol_include_once('/compta/facture/class/facture.class.php');
-	   
+		dol_include_once('asset/class/asset.class.php');
+		dol_include_once('asset/class/ordre_fabrication_asset.class.php');
+	   	
+		$ATMdb=new TPDOdb;
+		
         /*
 		 *  COMMANDES
 		 */
@@ -145,7 +151,6 @@ class InterfaceAssetWorkflow
 					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
-					$ATMdb = new TPDOdb;
 					$asset = new TAsset;
 					
 					$asset->load_liste_type_asset($ATMdb);
@@ -176,9 +181,7 @@ class InterfaceAssetWorkflow
 
 			if($conf->global->CREATE_OF_ON_ORDER_VALIDATE) {
 				
-				dol_include_once('asset/class/ordre_fabrication_asset.class.php');
 				dol_include_once('product/class/product.class.php');
-				$ATMdb = new TPDOdb;
 				
 				/*echo "<pre>";
 				print_r($object);
@@ -218,9 +221,6 @@ class InterfaceAssetWorkflow
 				print_r($TID_OF_command);
 				echo "</pre>";
 				exit;*/
-				
-				dol_include_once('asset/class/ordre_fabrication_asset.class.php');
-				$ATMdb = new TPDOdb;
 				
 				// On récupère les identifiants des of créés à partir de cette commande
 				$TID_OF_command = TAssetOF::getTID_OF_command($_REQUEST['id']);
@@ -271,7 +271,6 @@ class InterfaceAssetWorkflow
 					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
-					$ATMdb = new TPDOdb;
 					$asset = new TAsset;
 					
 					$asset->load_liste_type_asset($ATMdb);
@@ -359,7 +358,6 @@ class InterfaceAssetWorkflow
 					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
-					$ATMdb = new TPDOdb;
 					$asset = new TAsset;
 					
 					$asset->load_liste_type_asset($ATMdb);
@@ -389,26 +387,51 @@ class InterfaceAssetWorkflow
 			if($conf->workstation->enabled) {
 				define('INC_FROM_DOLIBARR',true);
 		    	dol_include_once("/asset/config.php");
-				dol_include_once("/asset/class/asset.class.php");
-				dol_include_once("/asset/class/ordre_fabrication_asset.class.php");
+				dol_include_once("/asset/class/asset.class.php");	
 					
-				$PDOdb=new TPDOdb;	
-					
-				$PDOdb->Execute("SELECT rowid 
+				$ATMdb->Execute("SELECT rowid 
 						FROM ".MAIN_DB_PREFIX."asset_workstation_of 
 						WHERE fk_project_task=".$object->id);	
-				if($obj = $PDOdb->Get_line()) {
+				if($obj = $ATMdb->Get_line()) {
 					
 					$wsof=new TAssetWorkstationOF;
-					$wsof->load($PDOdb, $obj->rowid);
+					$wsof->load($ATMdb, $obj->rowid);
 					$wsof->nb_hour_real = ($object->duration_effective + $object->timespent_duration) / 3600;
-					$wsof->save($PDOdb);
+					$wsof->save($ATMdb);
 					
 				}
 				
 				
 			}		
 				
+			
+		}
+		elseif($action === 'ORDERSUPPLIER_ADD_LIVRAISON') {
+			
+			$resql =$db->query('SELECT fk_statut FROM llx_commande_fournisseur WHERE rowid = '.$_REQUEST['id']);
+			$res = $db->fetch_object($resql);
+			if($res->fk_statut == 5) { // La livraison est totale
+				//On cherche l'OF lié
+				$resql = $db->query("SELECT fk_source 
+										FROM ".MAIN_DB_PREFIX."element_element 
+										WHERE fk_target = ".$_REQUEST['id']." 
+											AND sourcetype = 'ordre_fabrication' 
+											AND targettype = 'order_supplier'");
+				$res = $db->fetch_object($resql);
+				
+				$id_of = $res->fk_source;
+				
+				if($id_of > 0) {
+					$of = new TAssetOF;
+					$of->load($ATMdb, $id_of);
+					
+					if($of->status != 'CLOSE') {
+						$of->closeOF($ATMdb);
+						setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
+					}
+				}
+				
+			}
 			
 		}
 		
