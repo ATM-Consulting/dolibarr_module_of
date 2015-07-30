@@ -89,7 +89,7 @@ function _action() {
 			{
 				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) 
 				{
-					if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
+				    if(!isset( $assetOf->TAssetOFLine[$k] ))  $assetOf->TAssetOFLine[$k] = new TAssetOFLine;
 					
 					if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 					{

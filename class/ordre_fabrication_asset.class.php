@@ -1649,9 +1649,10 @@ class TAssetOFLine extends TObjetStd{
 		parent::delete($PDOdb);
 	}
 	
-	function set_workstations(&$PDOdb, $TWorkstations)
+	function set_workstations(&$PDOdb, &$TWorkstations)
 	{
-		if (empty($Tworkstations)) return false;
+	    
+		if (empty($TWorkstations)) return false;
 	
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 		$PDOdb->Execute($sql);
@@ -1680,6 +1681,7 @@ class TAssetOFLine extends TObjetStd{
 		if ($save)
 		{
 			$sql = rtrim($sql, ',');
+           
 			$PDOdb->Execute($sql);
 		}
 	}
@@ -1704,18 +1706,29 @@ class TAssetOFLine extends TObjetStd{
 		return $this->TWorkstation;
 	}	
 	
+    // TODO refaire, c'est codé par la mère michèle et je pense que son chat lui a bouffé la cervelle
 	function visu_checkbox_workstation(&$db, &$of, &$form, $name)
 	{
-		$include = array();
-		
-		$sql = 'SELECT name AS libelle, rowid FROM '.MAIN_DB_PREFIX.'workstation WHERE rowid 
+		$TWSid= array();
+		foreach($this->TWorkstation as &$ws) {
+		    if(is_object($ws)) $TWSid[] = $ws->getId();
+            else  $TWSid[] =(int)$ws;
+        }
+        
+		$sql = 'SELECT name AS libelle, rowid 
+		  FROM '.MAIN_DB_PREFIX.'workstation WHERE rowid 
 		IN (SELECT fk_asset_workstation FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_assetOf = '.(int) $of->rowid.')';
 		$resql = $db->query($sql);
 		
 		$res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
 		while ($r = $db->fetch_object($resql)) 
 		{
-			$res .= '<p style="margin:4px 0">'.$form->checkbox1($r->libelle, $name, $r->rowid, (in_array($r->rowid, $this->TWorkstation) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before' , array('no'=>'', 'yes'=>img_picto('', 'tick.png')) ) . '</p>';
+		   
+			$res .= '<p style="margin:4px 0">'
+    			.$form->checkbox1($r->libelle, $name, $r->rowid
+    			, (in_array($r->rowid, $TWSid) ? true : false), 'style="vertical-align:text-bottom;"', '', '', 'case_before' 
+    			, array('no'=>'', 'yes'=>img_picto('', 'tick.png')) ) 
+    			. '</p>';
 		}
 		
 		return $res;
