@@ -235,7 +235,7 @@ function _object_linked(&$PDOdb,&$assetlot){
 	_listeTraceabilityCommandeFournisseur($PDOdb,$assetlot);
 	
 	//Liste des commandes clients liés à l'équipement
-	_listeTraceabilityCommande($PDOdb,$assetlot);
+	//_listeTraceabilityCommande($PDOdb,$assetlot);
 	
 	//Liste des OF liés à l'équipement
 	_listeTraceabilityOf($PDOdb,$assetlot);

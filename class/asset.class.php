@@ -183,14 +183,13 @@ class TAsset extends TObjetStd{
 		global $conf;
 
 		if (!$fk_entrepot) $fk_entrepot = $this->fk_entrepot;
-		
+
 		if(!$destock_dolibarr_only) 
 		{
 			if(empty($this->serial_number))
 			{
 				$this->serial_number = $this->getNextValue($PDOdb); // TODO à vérifier car il semblerait que le mask se génère tjr comme s'il été le 1er (mask : P01-{00000})
 			}
-			
             $idasset = parent::save($PDOdb);
 			
 			$this->save_link($PDOdb);
@@ -1126,7 +1125,7 @@ class TAssetLot extends TObjetStd{
 			    		$(this).children().css('background-color','#cefbce');
 			    	}
 			    	if($(this).html().indexOf('EXPEDITION') >= 0){
-			    		$(this).children().css('background-color','with');
+			    		$(this).children().css('background-color','#66CCFF');
 			    	}
 			    	if($(this).html().indexOf('COMMANDE FOURNISSEUR') >= 0){
 			    		$(this).children().css('background-color','#e0cefb');
@@ -1239,15 +1238,17 @@ class TAssetLot extends TObjetStd{
 		if(!empty($TAssetIds)){
 			
 			?>
-				<ul style='display: none'><?php
+			<ul style='display: none'>
+            	<li><?php echo 'LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
+				<ul><?php
 				foreach($TAssetIds as $idAsset){
 					
 					$asset = new TAsset;
 					$asset->load($PDOdb, $idAsset);
 					?>
 					<!-- <li style="visibility:hidden"> </li> -->
-					<li style="height: 85px;">
-						<?php echo 'EQUIPEMENT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>'.'<br>-----------------<br>LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
+					<li> <!-- style="height: 85px;" -->
+						<?php echo 'EQUIPEMENT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>';//.'<br>-----------------<br>LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
 						<?php $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$niveau+1); ?>
 					</li>
 					<?php
@@ -1255,6 +1256,8 @@ class TAssetLot extends TObjetStd{
 	
 				?>
 				</ul>
+				</li>
+			</ul>
 			<?php
 		}
 	}
@@ -1262,6 +1265,7 @@ class TAssetLot extends TObjetStd{
 	function traceabilityRecursiveAsset(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
 		global $db,$conf;
 		dol_include_once('/fourn/class/fournisseur.commande.class.php');
+		dol_include_once('/expedition/class/expedition.class.php');
 		
 		if(!in_array($elementId, $this->TAssetRecursive)){
 			$this->TAssetRecursive[] = $elementId;
@@ -1335,11 +1339,11 @@ class TAssetLot extends TObjetStd{
 		else if($type='TO'){
 			// 4 - asset envoyé via une expédition
 			$sql = "SELECT e.rowid
-					FROM ".MAIN_DB_PREFIX."epedition as e
+					FROM ".MAIN_DB_PREFIX."expedition as e
 						LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid)
 						LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
 					WHERE eda.fk_asset = ".$elementId;
-
+			//echo $sql;
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 				
 			if(!empty($TIds)){
@@ -1348,11 +1352,11 @@ class TAssetLot extends TObjetStd{
 					<?php
 					foreach($TIds as $id){
 						$expedition = new Expedition($db);
-						$expedition->fetch($elementId);
+						$expedition->fetch($id);
 						
 						?><li>
 							<?php echo 'EXPEDITION <br><a target="_blank" href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
-							<?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?>
+							<!-- <?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?> -->
 						</li><?php
 					}
 					?>
@@ -1398,6 +1402,8 @@ class TAssetLot extends TObjetStd{
 	}
 	
 	function traceabilityRecursiveExpedition(&$PDOdb,$type,$elementId,$element='lot',$niveau='1'){
+		global $db;
+		dol_include_once('/commande/class/fournisseur.commande.class.php');	
 		
 		if(!in_array($elementId, $this->TExpRecursive)){
 			$this->TExpRecursive[] = $elementId;
