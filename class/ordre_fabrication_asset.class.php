@@ -1574,7 +1574,9 @@ class TAssetOFLine extends TObjetStd{
             
                 if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
                 else $fk_entrepot = $TAsset->fk_entrepot;
-               
+               	
+				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module');
+				
                 $TAsset->save($PDOdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
                 
                 $this->addAssetLink($TAsset);
