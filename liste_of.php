@@ -133,13 +133,14 @@ function _liste() {
 	$sql.=" GROUP BY ofe.rowid ";
 	
 	// TODO je me rappelle plus pourquoi j'ai fait cette merde mais ça fait planter le tri, donc à virer. 
-	/*if(dolibarr_get_const($db, "ASSET_OF_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY ofe.rowid DESC";
-	else $sql .= " ORDER BY ofe.date_cre DESC";*/
+	
+	
+	if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
+	else $orderBy['ofe.date_cre']='DESC';
 	
 	/*if(isset($_REQUEST['fk_product'])) {
 		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		
 	}*/
-	
 	
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
 
@@ -151,6 +152,7 @@ function _liste() {
 		'limit'=>array(
 			'nbLine'=>'30'
 		)
+		,'orderBy'=>$orderBy
 		,'subQuery'=>array()
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
@@ -189,6 +191,12 @@ function _liste() {
 			,'product' => 'get_format_libelle_produit(@fk_product@)'
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 		)
+        ,'search'=>array(
+            'numero'=>array('recherche'=>true, 'table'=>'ofe')
+            ,'date_lancement'=>array('recherche'=>'calendars', 'table'=>'ofe')
+            ,'date_besoin'=>array('recherche'=>'calendars', 'table'=>'ofe')
+            ,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe')
+        )
 	));
 	
 	$form->end();

@@ -36,6 +36,11 @@ WorkStation=Poste de travail
 workstation=poste de travail
 ListOrderProducts=Liste des produits de la commande
 AssetProductionOrder=Ordre de Fabrication
+AssetProductionOrderDraft=Brouillon
+AssetProductionOrderVALID=Validé
+AssetProductionOrderNEEDOFFER=Attente prix/fourniture
+AssetProductionOrderOPEN=En cours
+AssetProductionOrderCLOSE=Terminé
 AssetNewProductionOrder=Nouvel ordre de Fabrication
 OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
 
