@@ -373,14 +373,78 @@ class modAsset extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+	   
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>$langs->trans('AssetProductionOrderDraft'),
+                    'mainmenu'=>'assetOFlistDraft',
+                    'leftmenu'=>'assetOFlist',
+                    'url'=>'/asset/liste_of.php?TListTBS[list_llx_assetOf][search][status]=DRAFT',
+                    'position'=>310+$r,
+                    'enabled'=>'$user->rights->asset->of->lire',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->rights->asset->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+        
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>$langs->trans('AssetProductionOrderNEEDOFFER'),
+                    'mainmenu'=>'assetOFlistDraft',
+                    'leftmenu'=>'assetOFlist',
+                    'url'=>'/asset/liste_of.php?TListTBS[list_llx_assetOf][search][status]=NEEDOFFER',
+                    'position'=>310+$r,
+                    'enabled'=>'$user->rights->asset->of->lire',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->rights->asset->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+        
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>$langs->trans('AssetProductionOrderVALID'),
+                    'mainmenu'=>'assetOFlistDraft',
+                    'leftmenu'=>'assetOFlist',
+                    'url'=>'/asset/liste_of.php?TListTBS[list_llx_assetOf][search][status]=VALID',
+                    'position'=>310+$r,
+                    'enabled'=>'$user->rights->asset->of->lire',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->rights->asset->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+        
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>$langs->trans('AssetProductionOrderOPEN'),
+                    'mainmenu'=>'assetOFlistDraft',
+                    'leftmenu'=>'assetOFlist',
+                    'url'=>'/asset/liste_of.php?TListTBS[list_llx_assetOf][search][status]=OPEN',
+                    'position'=>310+$r,
+                    'enabled'=>'$user->rights->asset->of->lire',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->rights->asset->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>$langs->trans('AssetProductionOrderCLOSE'),
+                    'mainmenu'=>'assetOFlistDraft',
+                    'leftmenu'=>'assetOFlist',
+                    'url'=>'/asset/liste_of.php?TListTBS[list_llx_assetOf][search][status]=CLOSE',
+                    'position'=>310+$r,
+                    'enabled'=>'$user->rights->asset->of->lire',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->rights->asset->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+        
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetNewProductionOrder'),
 					'mainmenu'=>'newAssetOF',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/asset/fiche_of.php?action=new',
-					'position'=>301,
+					'position'=>310+$r,
 					'enabled'=>'$user->rights->asset->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',

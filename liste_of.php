@@ -191,6 +191,12 @@ function _liste() {
 			,'product' => 'get_format_libelle_produit(@fk_product@)'
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 		)
+        ,'search'=>array(
+            'numero'=>array('recherche'=>true, 'table'=>'ofe')
+            ,'date_lancement'=>array('recherche'=>'calendars', 'table'=>'ofe')
+            ,'date_besoin'=>array('recherche'=>'calendars', 'table'=>'ofe')
+            ,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe')
+        )
 	));
 	
 	$form->end();
