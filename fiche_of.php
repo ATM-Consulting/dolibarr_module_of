@@ -12,6 +12,7 @@ dol_include_once('/commande/class/commande.class.php');
 dol_include_once('/fourn/class/fournisseur.commande.class.php');
 dol_include_once('/product/class/html.formproduct.class.php');
 dol_include_once('/core/lib/date.lib.php');
+dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 if(!$user->rights->asset->all->lire) accessforbidden();
 if(!$user->rights->asset->of->write) accessforbidden();
@@ -342,7 +343,14 @@ function generateODTOF(&$PDOdb) {
 			print_r($prod);
 			echo "</pre>";
 			exit;*/
-
+			
+			$n = new TNomenclature;
+			
+			if(!empty($v->fk_nomenclature)) {
+				$n->load($PDOdb, $v->fk_nomenclature);
+				$TTypesProductsNomenclature = $n->getArrayTypesProducts();
+			}
+			
 			$TToMake[] = array(
 				'type' => $v->type
 				, 'qte' => $v->qty
@@ -371,6 +379,7 @@ function generateODTOF(&$PDOdb) {
 								
 			$TNeeded[] = array(
 				'type' => $v->type
+				, 'type_dans_nomenclature' => $TTypesProductsNomenclature[$v->fk_product]
 				, 'qte' => $v->qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
@@ -402,6 +411,7 @@ function generateODTOF(&$PDOdb) {
 			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
 			,'nb_hour_max' => utf8_decode($v->ws->nb_hour_capacity)
 			,'nb_hour_real' => utf8_decode($v->nb_hour_real)
+			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 		);
 		
