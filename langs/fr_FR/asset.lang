@@ -43,6 +43,7 @@ AssetProductionOrderOPEN=En cours
 AssetProductionOrderCLOSE=Terminé
 AssetNewProductionOrder=Nouvel ordre de Fabrication
 OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
+AssetAddNeededQtyZero = Ajouter les composants avec une quantité à 0
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

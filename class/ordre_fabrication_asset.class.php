@@ -426,8 +426,8 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->fk_asset = 0;
 		$TAssetOFLine->type = $type;
 		$TAssetOFLine->qty_needed = $quantite;
-		$TAssetOFLine->qty = $quantite;
-		$TAssetOFLine->qty_used = $quantite;
+		$TAssetOFLine->qty = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
+		$TAssetOFLine->qty_used = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
 		
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
