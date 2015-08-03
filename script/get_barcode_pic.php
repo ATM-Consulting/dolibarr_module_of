@@ -12,7 +12,7 @@
   $fontSize = 10;   // GD1 in px ; GD2 in point
   $marge    = 10;   // between barcode and hri in pixel
   $x        = 145;  // barcode center
-  $y        = 125;  // barcode center
+  $y        = 50;  // barcode center
   $height   = 50;   // barcode height in 1D ; module size in 2D
   $width    = 2;    // barcode height in 1D ; not use in 2D
   $angle    = 0;   // rotation in degrees : nb : non horizontable barcode might not be usable because of pixelisation
@@ -32,7 +32,7 @@
   // -------------------------------------------------- //
   //            ALLOCATE GD RESSOURCE
   // -------------------------------------------------- //
-  $im     = imagecreatetruecolor(300, 300);
+  $im     = imagecreatetruecolor(300, 100);
   $black  = ImageColorAllocate($im,0x00,0x00,0x00);
   $white  = ImageColorAllocate($im,0xff,0xff,0xff);
   $red    = ImageColorAllocate($im,0xff,0x00,0x00);
