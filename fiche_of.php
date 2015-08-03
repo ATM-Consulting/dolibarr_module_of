@@ -211,7 +211,6 @@ function _action() {
 		case 'view':
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $_REQUEST['id']);
-
 			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
@@ -289,7 +288,7 @@ function _action() {
 		default:
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $_REQUEST['id'], false);
-
+			
 			_fiche($PDOdb, $assetOf, 'view');
 			
 			break;
@@ -444,6 +443,8 @@ function generateODTOF(&$PDOdb) {
 		$refcmd = $cmd->ref;
 	}
 	
+	getBarCodePicture($assetOf);
+	
 	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
@@ -480,6 +481,22 @@ function generateODTOF(&$PDOdb) {
 	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
+}
+
+function getBarCodePicture(&$assetOf) {
+	
+	$file_contents = file_get_contents(dol_buildpath('/asset/script/get_barcode_pic.php?code='.$assetOf->numero, 2));
+	
+	$tmpfname = tempnam(sys_get_temp_dir(), 'barcode_pic');
+	$handle = fopen($tmpfname, "w");
+	
+	fwrite($handle, $file_contents);	
+	fclose($handle);
+	
+	chmod($tmpfname, 0777);
+	
+	return $tmpfname;
+	
 }
 
 
