@@ -496,16 +496,8 @@ function generateODTOF(&$PDOdb) {
 
 function getBarCodePicture(&$assetOf) {
 	
-	$file_contents = file_get_contents(dol_buildpath('/asset/script/get_barcode_pic.php?code='.$assetOf->numero, 2));
-	
-	$tmpfname = tempnam(sys_get_temp_dir(), 'barcode_pic');
-	$handle = fopen($tmpfname, "w");
-	
-	fwrite($handle, $file_contents);	
-	fclose($handle);
-	
-	chmod($tmpfname, 0777);
-	
+	$code = $assetOf->numero;
+	include './script/get_barcode_pic.php';
 	return $tmpfname;
 	
 }

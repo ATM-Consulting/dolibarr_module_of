@@ -1,5 +1,5 @@
 <?php
-  include('../php_barcode/php-barcode.php');
+  dol_include_once('/asset/php_barcode/php-barcode.php');
 
   // -------------------------------------------------- //
   //                  PROPERTIES
@@ -17,7 +17,7 @@
   $width    = 2;    // barcode height in 1D ; not use in 2D
   $angle    = 0;   // rotation in degrees : nb : non horizontable barcode might not be usable because of pixelisation
   
-  $code     = $_REQUEST['code']; // barcode, of course ;)
+  //$code     = $_REQUEST['code']; // barcode, of course ;)
   $type     = 'code128';
   
   // -------------------------------------------------- //
@@ -106,9 +106,10 @@
   // -------------------------------------------------- //
   //                    GENERATE
   // -------------------------------------------------- //
-  header('Content-type: image/png');
-  header("Content-Type: application/force-download");
-  header('Content-Disposition: attachment; filename="test.png"');
-  imagepng($im);
+  //header('Content-type: image/png');
+  //header("Content-Type: application/force-download");
+  //header('Content-Disposition: attachment; filename="test.png"');
+  $tmpfname = tempnam(sys_get_temp_dir(), 'barcode_pic');
+  imagepng($im, $tmpfname);
   imagedestroy($im);
 ?>
