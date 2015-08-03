@@ -443,7 +443,7 @@ function generateODTOF(&$PDOdb) {
 		$refcmd = $cmd->ref;
 	}
 	
-	getBarCodePicture($assetOf);
+	$barcode_pic = getBarCodePicture($assetOf);
 	
 	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
@@ -464,6 +464,7 @@ function generateODTOF(&$PDOdb) {
 			,'refcmd'=>$refcmd
 			,'societe'=>$societe->name
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
+			,'barcode'=>$barcode_pic
 			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 			,'defined_task'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
