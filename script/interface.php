@@ -133,7 +133,7 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
     $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE a.contenancereel_value > 0 ';
 	
-    if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product;
+    if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
     if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
     
     $sql .= 'ORDER BY a.serial_number';
