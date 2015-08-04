@@ -344,13 +344,16 @@ function generateODTOF(&$PDOdb) {
 			echo "</pre>";
 			exit;*/
 			
-			$n = new TNomenclature;
-			
-			if(!empty($v->fk_nomenclature)) {
-				$n->load($PDOdb, $v->fk_nomenclature);
-				$TTypesProductsNomenclature = $n->getArrayTypesProducts();
+			if($conf->nomenclature->enabled){
+				
+				$n = new TNomenclature;
+				
+				if(!empty($v->fk_nomenclature)) {
+					$n->load($PDOdb, $v->fk_nomenclature);
+					$TTypesProductsNomenclature = $n->getArrayTypesProducts();
+				}
+				
 			}
-			
 			$TToMake[] = array(
 				'type' => $v->type
 				, 'qte' => $v->qty
@@ -378,8 +381,7 @@ function generateODTOF(&$PDOdb) {
 			}
 								
 			$TNeeded[] = array(
-				'type' => $v->type
-				, 'type_dans_nomenclature' => $TTypesProductsNomenclature[$v->fk_product]
+				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $v->qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
