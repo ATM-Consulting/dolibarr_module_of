@@ -412,7 +412,7 @@ class TAssetOF extends TObjetStd{
 	}*/
 
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0)
+	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0)
 	{
 		global $user,$langs,$conf,$db;
 		
@@ -433,7 +433,13 @@ class TAssetOF extends TObjetStd{
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 			
-			$TNomen = TNomenclature::get($PDOdb,  $fk_product);
+			$TNomen = array();
+			
+			if($fk_commandedet > 0) {
+				$TNomen = TNomenclature::get($PDOdb,  $fk_commandedet, false, 'commande');
+			}
+			
+			if(empty($TNomen)) $TNomen = TNomenclature::get($PDOdb,  $fk_product);
 			if(count($TNomen) == 1) {
 				$TAssetOFLine->fk_nomenclature = $TNomen[0]->getId();
 				$fk_nomenclature = $TAssetOFLine->fk_nomenclature ;

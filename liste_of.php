@@ -39,7 +39,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 
 	if(!empty($TProduct)) {
 			
-			foreach($_REQUEST['TProducts'] as $k=>$v) {
+			foreach($_REQUEST['TProducts'] as $fk_commandedet=>$v) {
 				foreach($v as $fk_product=>$onSenFout) {
 
 					$assetOf = new TAssetOF;
@@ -53,7 +53,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 					}
 					
 					$assetOf->fk_soc = $fk_soc;
-					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_product]);
+					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_product], 0, '', 0, $fk_commandedet);
 					$assetOf->save($ATMdb);
 					
 				}
@@ -210,7 +210,7 @@ function _liste() {
 				
 		$r2 = new TSSRenderControler($assetOf);
 
-		$sql = "SELECT p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee";
+		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c INNER JOIN ".MAIN_DB_PREFIX."product p";
 		$sql.= " ON c.fk_product = p.rowid";
 		$sql.= " WHERE c.fk_commande = ".$fk_commande;
@@ -251,7 +251,7 @@ function _liste() {
 			print '<td>';
 			print $prod->nomProd;
 			print '</td>';
-			print "<td>".$form->checkbox1('', 'TProducts['.$i.']['.$prod->rowid.']', false);
+			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.$prod->rowid.']', false);
 			print "</td>";
 			print $form->hidden('TQuantites['.$prod->rowid.']', $prod->qteCommandee);
 			print "</tr>\n";
