@@ -79,6 +79,13 @@
 	print ajax_constantonoff('USE_LOT_IN_OF');
 	print '</td></tr>';	
 	
+	print '<tr class="pair">';
+	print '<td>'.$langs->trans("AllBatchNumberAreMandatory").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('OF_LOT_MANDATORY');
+	print '</td></tr>';	
+	
 	print '<tr class="impair">';
 	print '<td>'.$langs->trans("UseProjectTask").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';

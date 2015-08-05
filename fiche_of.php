@@ -146,7 +146,7 @@ function _action() {
 			$assetOf->load($PDOdb, $id);
 			
            //Si use_lot alors check de la saisie du lot pour chaque ligne avant validation
-			if (!empty($conf->global->USE_LOT_IN_OF)) {
+			if (!empty($conf->global->USE_LOT_IN_OF) && !empty($conf->global->OF_LOT_MANDATORY)) {
 				if (!$assetOf->checkLotIsFill())
 				{
 					_fiche($PDOdb,$assetOf, 'view');
