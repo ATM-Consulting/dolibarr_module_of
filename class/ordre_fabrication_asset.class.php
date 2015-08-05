@@ -1347,7 +1347,7 @@ class TAssetOFLine extends TObjetStd{
 	  
 		global $db, $user, $conf;	
 		
-        if(!$conf->global->USE_LOT_IN_OF) return true;
+        if(!$conf->global->USE_LOT_IN_OF || empty($this->lot_number)) return true;
 		
 		include_once 'asset.class.php';
 		
