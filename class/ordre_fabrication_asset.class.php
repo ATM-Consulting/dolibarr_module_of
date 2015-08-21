@@ -1279,8 +1279,11 @@ class TAssetOFLine extends TObjetStd{
 				$qty_to_re_stock -= $asset->contenance_value - $asset->contenancereel_value;
 			}
 			
+			$labelMvt = 'Utilisation via Ordre de Fabrication';
+			if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
+			
          	$asset->save($PDOdb,$user
-	            ,'Utilisation via Ordre de Fabrication n°'.$OF->numero.' - Equipement : '.$asset->serial_number
+	            ,$labelMvt.' n°'.$OF->numero.' - Equipement : '.$asset->serial_number
 	            ,$qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot);
     
             
@@ -1303,7 +1306,11 @@ class TAssetOFLine extends TObjetStd{
         if(!$conf->global->USE_LOT_IN_OF) 
         {
             $asset=new TAsset;
-            $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,'Utilisation via Ordre de Fabrication n°'.$this->of_numero, false, 0, $fk_entrepot);
+			
+			$labelMvt = 'Utilisation via Ordre de Fabrication';
+			if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
+			
+            $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
 	
             //$asset->contenancereel_value -= $qty_to_destock_rest;
 			//TODO Manque le destockage de $asset->contenancereel_value
@@ -1315,8 +1322,11 @@ class TAssetOFLine extends TObjetStd{
             
             if(empty($TAsset)) {
                 
+				$labelMvt = 'Utilisation via Ordre de Fabrication';
+				if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
+				
                 $asset=new TAsset;
-                $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,'Utilisation via Ordre de Fabrication n°'.$this->of_numero, false, 0, $fk_entrepot);
+                $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
                 
             }
             else{
@@ -1327,10 +1337,13 @@ class TAssetOFLine extends TObjetStd{
                      if($qty_to_destock_rest - $qty_asset_to_destock <= 0) 
                      {
                          $qty_asset_to_destock = $qty_to_destock_rest;
-                     }
-                 
+					 }
+						
+					 $labelMvt = 'Utilisation via Ordre de Fabrication';
+					 if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
+					 
                      $asset->save($PDOdb,$user
-                             ,'Utilisation via Ordre de Fabrication n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
+                             ,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
                              ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
                     
                     $qty_to_destock_rest-= $qty_asset_to_destock;
