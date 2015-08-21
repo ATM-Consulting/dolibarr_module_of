@@ -574,6 +574,7 @@ class TAssetOF extends TObjetStd{
 	{
 	    global $langs, $conf;
         
+		
 	    $this->status = "CLOSE";
         
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
@@ -595,6 +596,7 @@ class TAssetOF extends TObjetStd{
 			if($AssetOFLine->type == "TO_MAKE")
 			{
 				if($AssetOFLine->makeAsset($PDOdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
+					//exit('1');
 				   $AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
 				}
                 else{
@@ -1596,7 +1598,7 @@ class TAssetOFLine extends TObjetStd{
                	
 				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module');
 				
-                $TAsset->save($PDOdb); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
+                $TAsset->save($PDOdb,'','',0,false,0,true); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
                 
                 $this->addAssetLink($TAsset);
                 
