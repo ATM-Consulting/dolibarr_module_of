@@ -1255,7 +1255,7 @@ class TAssetLot extends TObjetStd{
 			
 			?>
 			<ul style='display: none'>
-            	<li><?php echo 'LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
+            	<li><?php echo 'LOT <br><a href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
 				<ul><?php
 				foreach($TAssetIds as $idAsset){
 					
@@ -1264,7 +1264,7 @@ class TAssetLot extends TObjetStd{
 					?>
 					<!-- <li style="visibility:hidden"> </li> -->
 					<li> <!-- style="height: 85px;" -->
-						<?php echo 'EQUIPEMENT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>';//.'<br>-----------------<br>LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
+						<?php echo 'EQUIPEMENT <br><a href="'.dol_buildpath('/asset/fiche.php?id='.$asset->getId(),2).'">'.$asset->serial_number.'</a>';//.'<br>-----------------<br>LOT <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_lot.php?id='.$TAssetLot->getId(),2).'">'.$elementId.'</a>'; ?>
 						<?php $this->traceabilityRecursive($PDOdb,$type,$idAsset,'asset',$elementId,'TAssetLot',$niveau+1); ?>
 					</li>
 					<?php
@@ -1315,7 +1315,7 @@ class TAssetLot extends TObjetStd{
 					$assetOf->load($PDOdb, $id);
 					
 					?>
-					<li><?php echo 'OF <br><a target="_blank" href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
+					<li><?php echo 'OF <br><a href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
 						<?php
 						$this->traceabilityRecursive($PDOdb,$type,$id,'of',$elementId,'TAsset',$niveau+1);
 						?>
@@ -1346,7 +1346,7 @@ class TAssetLot extends TObjetStd{
 						$commandeFourn = new CommandeFournisseur($db);
 						$commandeFourn->fetch($id);
 						
-						?><li><?php echo 'COMMANDE FOURNISSEUR <br><a target="_blank" href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
+						?><li><?php echo 'COMMANDE FOURNISSEUR <br><a href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
 					}
 					?>
 				</ul>
@@ -1372,7 +1372,7 @@ class TAssetLot extends TObjetStd{
 						$expedition->fetch($id);
 						
 						?><li>
-							<?php echo 'EXPEDITION <br><a target="_blank" href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
+							<?php echo 'EXPEDITION <br><a href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
 							<!-- <?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?> -->
 						</li><?php
 					}
@@ -1451,7 +1451,7 @@ class TAssetLot extends TObjetStd{
 					$commande = new Commande($db);
 					$commande->fetch($elementId);
 					
-					?><li><?php echo 'COMMANDE <br><a target="_blank" href="'.dol_buildpath('/commande/card.php?id='.$commande->id,2).'">'.$commande->ref.'</a>'; ?></li><?php
+					?><li><?php echo 'COMMANDE <br><a href="'.dol_buildpath('/commande/card.php?id='.$commande->id,2).'">'.$commande->ref.'</a>'; ?></li><?php
 				}
 				?>
 			</ul>
