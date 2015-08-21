@@ -12,7 +12,8 @@ ficheOF=Fiche
 # EQUIPEMENT
 GPAO=GPAO
 Asset=Equipement
-ListAsset=Liste des équipements installés
+ListAsset=Liste des équipements
+ListAssetLent=Liste des équipements prêtés
 AssetDeleted=Equipement supprimé
 AssetType=Type d'Equipement
 AssetListType=Liste des types d'équipements

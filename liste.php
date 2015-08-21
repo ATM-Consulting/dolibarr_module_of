@@ -122,7 +122,7 @@ function _liste($id_entity) {
 		$sql.=" AND serial_number='' OR serial_number = 'ErrorBadMask'";		
 	}
 	
-	if(dolibarr_get_const($db, "ASSET_LIST_BY_ROWID_DESC")) $sql.=" ORDER BY e.rowid DESC";
+	if(dolibarr_get_const($db, "ASSET_LIST_BY_ROWID_DESC") && empty($_REQUEST['TListTBS']['list_llx_asset']['search'])) $sql.=" ORDER BY e.rowid DESC";
 	
 	$THide = array('fk_soc','fk_product');
 	if (empty($conf->global->USE_LOT_IN_OF))
@@ -154,7 +154,7 @@ function _liste($id_entity) {
 		,'hide'=>$THide
 		,'type'=>array('Date garantie'=>'date','Date dernière intervention'=>'date', 'Date livraison'=>'date', 'Création'=>'date','Date fin pret'=>'date','Date debut pret'=>'date')
 		,'liste'=>array(
-			'titre'=> ($conf->clinomadic->enabled && isset($_REQUEST['pret']) && $_REQUEST['pret'] == 1 ) ?  'Liste des '.$langs->trans('Asset').' prêté' : 'Liste des '.$langs->trans('Asset')
+			'titre'=> ($conf->clinomadic->enabled && isset($_REQUEST['pret']) && $_REQUEST['pret'] == 1 ) ?  $langs->trans('ListAssetLent') : $langs->trans('ListAsset')
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
@@ -172,6 +172,7 @@ function _liste($id_entity) {
 		)
 		,'search'=>array(
 			'serial_number'=>true
+			,'lot_number'=>true
 			,'nom'=>array('recherche'=>true, 'table'=>'s')
 			,'label'=>array('recherche'=>true, 'table'=>'')
 		)

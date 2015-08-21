@@ -72,6 +72,9 @@ function _liste() {
 			,'assetinlot'=>'Nb Equipement dans ce lot'
 			,'productinlot'=>'Nb Produit dans ce lot'
 		)
+		,'search'=>array(
+			'lot_number'=>true
+		)
 		,'link'=>array(
 			'lot_number'=>'<a href="'.dol_buildpath('/asset/fiche_lot.php?id=@rowid@',1).'">@val@</a>'
 		)
