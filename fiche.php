@@ -128,11 +128,14 @@ function _action() {
 					$no_destock_dolibarr = true;
 					$asset->save($PDOdb, '', "Modification manuelle", 0, false, 0, $no_destock_dolibarr);
 				}
-				else{
+				else if($asset->fk_entrepot){
 					global $conf;
 					$conf->global->PRODUIT_SOUSPRODUITS = 0;
 					$qty = ($_REQUEST['type_mvt'] == 'retrait') ? $_REQUEST['qty'] * -1 : $_REQUEST['qty'];
 					$asset->save($PDOdb,$user,$_REQUEST['commentaire_mvt'],$qty);
+				}
+				else{
+					setEventMessage('Erreur : aucun entrepôt définit sur l\'équipement', 'errors');
 				}
 				
 				?>
