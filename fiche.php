@@ -718,7 +718,7 @@ function _listeTraceabilityCommandeFournisseur(&$PDOdb,&$assetLot){
 				'societe' => 'Société',
 				'ref_fourn' => 'Référence fournisseur',
 				'date_commande' => 'Date commande',
-				'total_ht' => 'Total HT',
+				'total_ttc' => 'Total TTC',
 				'date_livraison' => 'Date de livraison',
 				'status' => 'Statut',
 			)

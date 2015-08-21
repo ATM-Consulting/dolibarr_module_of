@@ -1012,13 +1012,14 @@ class TAssetLot extends TObjetStd{
 
 			$commandeFournisseur->fetch($PDOdb->Get_field('rowid'));
 			$societe->fetch($commandeFournisseur->socid);
-
+			
+			//pre($commandeFournisseur,true);
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['ref'] = $commandeFournisseur->getNomUrl(1);
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['ref_fourn'] = $commandeFournisseur->ref_supplier;
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['societe'] = $societe->getNomUrl(1);
-			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_commande'] = date('d/m/Y',strtotime($commandeFournisseur->date_commande));
-			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['total_ttc'] = $commandeFournisseur->total_ttc;
-			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_livraison'] = date('d/m/Y',strtotime($commandeFournisseur->date_livraison));
+			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_commande'] = date('d/m/Y',$commandeFournisseur->date);
+			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['total_ttc'] = price($commandeFournisseur->total_ttc);
+			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['date_livraison'] = date('d/m/Y',$commandeFournisseur->date_livraison);
 			$this->TTraceabilityObjectLinked['commande_fournisseur'][$commandeFournisseur->id]['status'] = $commandeFournisseur->getLibStatut(3);
 		}
 	}
