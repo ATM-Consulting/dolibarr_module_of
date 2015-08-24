@@ -45,20 +45,6 @@
 	print '</td></tr>';	
 	
 	print '<tr class="pair">';
-	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
-	print '</td></tr>';	
-	
-	print '<tr class="impair">';
-	print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL', array('set' => array('CREATE_CHILDREN_OF' => 1)));
-	print '</td></tr>';	
-	
-	print '<tr class="pair">';
 	print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -85,6 +71,21 @@
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('OF_LOT_MANDATORY');
 	print '</td></tr>';	
+	
+	print '<tr class="pair">';
+	print '<td>'.$langs->trans("AssetAddNeededQtyZero").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
+	print '</td></tr>';	
+	
+	print '</table>';
+	
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre">';
+	print '<td>'.$langs->trans("ParametersWorkstation").'</td>'."\n";
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
 	print '<tr class="impair">';
 	print '<td>'.$langs->trans("UseProjectTask").'</td>';
@@ -114,6 +115,28 @@
 	print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
 	print '</td></tr>';	
 	
+	print '</table>';
+	
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre">';
+	print '<td>'.$langs->trans("ParametersWorkflow").'</td>'."\n";
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
+	
+	print '<tr class="pair">';
+	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
+	print '</td></tr>';	
+	
+	print '<tr class="impair">';
+	print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL', array('set' => array('CREATE_CHILDREN_OF' => 1)));
+	print '</td></tr>';	
+	
 	print '<tr class="impair">';
 	print '<td>'.$langs->trans("AssetUseControl").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
@@ -134,14 +157,6 @@
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF');
 	print '</td></tr>';	
-	
-	print '<tr class="pair">';
-	print '<td>'.$langs->trans("AssetAddNeededQtyZero").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
-	print '</td></tr>';	
-	
 	
 	print "</table>";
 	
