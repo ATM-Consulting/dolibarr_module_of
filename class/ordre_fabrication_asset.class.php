@@ -25,7 +25,7 @@ class TAssetOF extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 	  
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project','type=entier;index;');
-		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication','type=float;');
+		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,compo_cost,total_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
 		$this->add_champs('note','type=text;');
@@ -92,16 +92,30 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
+	function set_fourniture_cost() {
+		
+		$this->compo_cost = 0;
+		
+		foreach($this->TAssetOFLine as &$line) {
+			$this->compo_cost+= $line->qty_used * $line->pmp;
+		}
+		
+	}
+	
 	function set_temps_fabrication() {
 		global $db, $user;    
-            
+        dol_include_once('/projet/class/task.class.php');
+			
 		$this->temps_estime_fabrication=0;
-		$this->temps_reel_fabrication=0;	
+		$this->temps_reel_fabrication=0;
+		$this->mo_cost = 0;	
 		    
 		foreach($this->TAssetWorkstationOF as &$ws) {
 			
 			$this->temps_estime_fabrication+=$ws->nb_hour;
 			$this->temps_reel_fabrication+=$ws->nb_hour_real;
+			
+			$this->mo_cost+= $ws->nb_hour_real * ($ws->ws->thm + $ws->ws->thm_machine);
 			
             if($ws->fk_project_task>0) {
                
@@ -122,6 +136,10 @@ class TAssetOF extends TObjetStd{
 		global $user,$langs,$conf, $db;
 
 		$this->set_temps_fabrication();
+		$this->set_fourniture_cost();
+		$this->total_cost = $this->compo_cost + $this->mo_cost;
+		
+		
 		$this->entity = $conf->entity;
 
 		if(!empty($conf->global->USE_LOT_IN_OF))
@@ -1256,7 +1274,7 @@ class TAssetOFLine extends TObjetStd{
 
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
 
 		//clé étrangère
@@ -1270,6 +1288,8 @@ class TAssetOFLine extends TObjetStd{
 		
 	    $this->start();
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
+		
+		$this->product = null;
 	}
 	
 	//$qty_to_re_stock est normalement tjr positif
@@ -1654,8 +1674,21 @@ class TAssetOFLine extends TObjetStd{
 		$this->load_workstations($PDOdb);
 		
 		$this->loadFournisseurPrice($PDOdb);
+		
+		$this->load_product();
 	}
 	
+	function load_product() {
+		global $db;
+		
+		if($this->fk_product>0) {
+			$this->product = new Product($db);
+			$this->product->fetch($this->fk_product);
+			
+			$this->pmp = $this->product->pmp;
+		}
+		
+	}
 	function delete(&$PDOdb)
 	{
 		global $user,$langs,$conf,$db;
