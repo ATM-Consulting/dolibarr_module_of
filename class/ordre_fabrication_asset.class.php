@@ -93,14 +93,26 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function set_temps_fabrication() {
+		global $db, $user;    
+            
 		$this->temps_estime_fabrication=0;
 		$this->temps_reel_fabrication=0;	
+		    
+		foreach($this->TAssetWorkstationOF as &$ws) {
 			
-		foreach($this->TAssetWorkstationOF as $row) {
+			$this->temps_estime_fabrication+=$ws->nb_hour;
+			$this->temps_reel_fabrication+=$ws->nb_hour_real;
 			
-			$this->temps_estime_fabrication+=$row->nb_hour;
-			$this->temps_reel_fabrication+=$row->nb_hour_real;
-			
+            if($ws->fk_project_task>0) {
+               
+               $task = new Task($db); 
+               $task->fetch($ws->fk_project_task);
+               if($task->date_start<$this->date_lancement) {
+                   $task->date_start = $this->date_lancement;
+                   $task->update($user);
+               }
+               
+            }
 			
 		}
 		
