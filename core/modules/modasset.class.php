@@ -219,7 +219,7 @@ class modAsset extends DolibarrModules
 					'titre'=>$langs->trans('GPAO'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/asset/liste.php',
+					'url'=>'/asset/index.php',
 					'position'=>100,
 					'enabled'=>'$user->rights->asset->all->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->asset->all->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
