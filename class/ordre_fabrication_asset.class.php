@@ -631,8 +631,9 @@ class TAssetOF extends TObjetStd{
             {
                 if($AssetOFLine->type == 'NEEDED')
                 {
+                	list($qty,$qty_stock) = $AssetOFLine->convertQty();
                     //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-                    $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty - $AssetOFLine->qty_stock);
+                    $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
                 }
             }
         }
@@ -1263,33 +1264,23 @@ class TAssetOFLine extends TObjetStd{
 	function reStockAsset(&$PDOdb, $qty_to_re_stock)
 	{
 		global $conf;
-		
+
 		if ($qty_to_re_stock == 0) return false;
-		
+
 		$TAsset = $this->getAssetLinked($PDOdb);
         foreach($TAsset as $asset) 
-        {			
+        {
         	//Si la contenance max de mon équipement peut récupérer la qty restante
-        	if (($qty_to_re_stock - ($asset->contenance_value - $asset->contenancereel_value)) <= 0)
-			{
-				$asset->contenancereel_value = $asset->contenance_value - $asset->contenancereel_value;
+        	if (($asset->contenance_value - $asset->contenancereel_value) < $qty_to_re_stock){
 				$qty_to_re_stock = 0;
 			}
-			else 
-			{
-				$asset->contenancereel_value = $asset->contenance_value - $asset->contenancereel_value;
-				$qty_to_re_stock -= $asset->contenance_value - $asset->contenancereel_value;
-			}
 			
-			$labelMvt = 'Utilisation via Ordre de Fabrication';
-			if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
+			$labelMvt = 'Suppression Ordre de Fabrication';
+			if($this->type == 'TO_MAKE') $labelMvt = 'Suppression Ordre de Fabrication';
 			
          	$asset->save($PDOdb,$user
 	            ,$labelMvt.' n°'.$OF->numero.' - Equipement : '.$asset->serial_number
-	            ,$qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot);
-    
-            
-        	if ($qty_to_re_stock == 0) break; //Fin de la boucle pour réattribuer la qty aux équipements
+	            ,$qty_to_re_stock, false, $this->fk_product, false, $fk_entrepot);
         }
 	}
 	
@@ -1378,6 +1369,11 @@ class TAssetOFLine extends TObjetStd{
 		$is_cumulate = TAsset_type::getIsCumulate($PDOdb, $this->fk_product);
 		$is_perishable = TAsset_type::getIsPerishable($PDOdb, $this->fk_product);
 		
+		//si on cherche à déstocker 5 * 0.10 Kg alors on ne cherche pas un équipement avec + de 5Kg en stock mais bien + de 0.50Kg
+		list($qty,$qty_stock) = $this->convertQty();
+		
+		//echo $this->qty;exit;
+		
 		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
 		if ($is_cumulate)
 		{
@@ -1387,7 +1383,7 @@ class TAssetOFLine extends TObjetStd{
 		}
 		else 
 		{
-			$sql.= ' WHERE contenancereel_value >= '.($this->qty - $this->qty_stock); // - la quantité déjà utilisé
+			$sql.= ' WHERE contenancereel_value >= '.($qty - $qty_sotck); // - la quantité déjà utilisé
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
 			else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
 		}
@@ -1401,17 +1397,19 @@ class TAssetOFLine extends TObjetStd{
 		
 		$sql.= $completeSql;
 		
+		//echo $sql.'<br>';
+		
 		$Tab = $PDOdb->ExecuteAsArray($sql);
 
         $no_error = true;
  
 		if($this->type == 'NEEDED' && ($AssetOf->status == 'OPEN' || !$forReal )  ) // TODO remove condition status
 		{
-			if ($this->qty_stock == $this->qty) return true; //qty_stock = qté déjà utilisé et qty = qté de besoin, donc si egal alors pas besoin de chercher d'autre équipement
+			if ($qty_stock == $qty) return true; //qty_stock = qté déjà utilisé et qty = qté de besoin, donc si egal alors pas besoin de chercher d'autre équipement
 			
 			$nbAssetFound = count($Tab);
 			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
-			$qty_needed = $this->qty - $this->qty_stock; // - la quantité déjà utilisé
+			$qty_needed = $qty - $qty_stock; // - la quantité déjà utilisé
 			
             if ($nbAssetFound == 0) {
                 $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
@@ -1437,6 +1435,20 @@ class TAssetOFLine extends TObjetStd{
 */
         if(!$no_error) return false;
         else return true;
+	}
+	
+	/*
+	 *  Converty les quantités en fonction du conditionnement produit
+	 */
+	function convertQty(){
+			
+		$conditionnement = $this->conditionnement;
+		
+		//TODO : mettre tous sur la même unité de mesure
+		$qty_stock = $this->qty_stock * $this->conditionnement;
+		$qty = $this->qty * $this->conditionnement;
+		
+		return array($qty, $qty_stock);
 	}
 
 	/*
