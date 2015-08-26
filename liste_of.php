@@ -144,7 +144,16 @@ function _liste() {
 	}*/
 	
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
-
+	if(empty($user->rights->asset->of->price)){
+		 $THide[] = 'total_cost';
+	}
+	else {
+		$TMath = array(
+			'total_cost'=>'sum'
+		);
+	}
+	
+	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 
 	$ATMdb=new TPDOdb;
@@ -168,9 +177,7 @@ function _liste() {
 			,'date_besoin'=>'date'
 			,'total_cost'=>'money'
 		)
-		,'math'=>array(
-			'total_cost'=>'sum'
-		)
+		,'math'=>$TMath
 		,'liste'=>array(
 			'titre'=>$langs->trans('ListOFAsset')
 			,'image'=>img_picto('','title.png', '', 0)
