@@ -1682,6 +1682,8 @@ class TAssetOFLine extends TObjetStd{
 		global $db;
 		
 		if($this->fk_product>0) {
+			dol_include_once('/product/class/product.class.php');
+			
 			$this->product = new Product($db);
 			$this->product->fetch($this->fk_product);
 			
