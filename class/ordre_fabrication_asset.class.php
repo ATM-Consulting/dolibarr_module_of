@@ -1990,6 +1990,9 @@ class TAssetWorkstationOF extends TObjetStd{
 				//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
 				if (!$user->id)	$user->id = GETPOST('user_id');
 				
+                $OF=new TAssetOF;
+                $OF->load($PDOdb, $this->fk_assetOf);
+                
 				$ws = new TAssetWorkstation;
 				$ws->load($PDOdb, $this->fk_asset_workstation);
 				
