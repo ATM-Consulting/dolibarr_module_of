@@ -1290,11 +1290,13 @@ class TAssetLot extends TObjetStd{
 			return array();
 		}
 		
+		$TElements = array();
+		
 		$asset = new TAsset;
 		$asset->load($PDOdb, $elementId);
 			
 		// 1 - asset créé OU utilisé dans un OF
-		$sql = "SELECT of.rowid
+		$sql = "SELECT DISTINCT(of.rowid)
 				FROM ".MAIN_DB_PREFIX."assetOf as of
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofl ON (ofl.fk_assetOf = of.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_source = ofl.rowid AND sourcetype = 'TAssetOFLine' AND targettype = 'TAsset')
@@ -1303,28 +1305,36 @@ class TAssetLot extends TObjetStd{
 		if($type == 'FROM') $sql .= " AND ofl.type = 'TO_MAKE'"; //TO_MAKE car c'est comment il a été créé
 		else $sql .= " AND ofl.type = 'NEEDED'"; //NEEDED car c'est comment il a été utilisé
 		
+		//echo $sql;
+		
 		$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 		
 		if(!empty($TIds)){
-			?>
+			/*?>
 			<ul>
-				<?php
+				<?php*/
 				foreach($TIds as $id){
 					
 					$assetOf = new TAssetOF;
 					$assetOf->load($PDOdb, $id);
 					
-					?>
+					/*?>
 					<li><?php echo 'OF <br><a href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'; ?>
-						<?php
-						$this->traceabilityRecursive($PDOdb,$type,$id,'of',$elementId,'TAsset',$niveau+1);
-						?>
+						<?php*/
+						$TElements[] = array(
+								'link'=>'OF <br><a href="'.dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(),2).'">'.$assetOf->numero.'</a>'
+								,'id'=>$id
+								,'element'=>'of'
+								,'object'=>'TAsset'
+							);
+						//$this->traceabilityRecursive($PDOdb,$type,$id,'of',$elementId,'TAsset',$niveau+1);
+						/*?>
 					</li>
-					<?php
+					<?php*/
 				}
-				?>
+				/*?>
 			</ul>
-			<?php
+			<?php*/
 		}
 		
 		if($type == 'FROM'){
@@ -1339,18 +1349,19 @@ class TAssetLot extends TObjetStd{
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 			
 			if(!empty($TIds)){
-				?>
+				/*?>
 				<ul>
-					<?php
+					<?php*/
 					foreach($TIds as $id){
 						$commandeFourn = new CommandeFournisseur($db);
 						$commandeFourn->fetch($id);
 						
-						?><li><?php echo 'COMMANDE FOURNISSEUR <br><a href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php
+						/*?><li><?php echo 'COMMANDE FOURNISSEUR <br><a href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>'; ?></li><?php*/
+						$TElements[] = 'COMMANDE FOURNISSEUR <br><a href="'.dol_buildpath('/fourn/commande/card.php?id='.$commandeFourn->id,2).'">'.$commandeFourn->ref.'</a>';
 					}
-					?>
+					/*?>
 				</ul>
-				<?php
+				<?php*/
 			}
 		}
 		else if($type='TO'){
@@ -1360,26 +1371,52 @@ class TAssetLot extends TObjetStd{
 						LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid)
 						LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet_asset as eda ON (eda.fk_expeditiondet = ed.rowid)
 					WHERE eda.fk_asset = ".$elementId;
-			//echo $sql;
+			//echo $sql.'<br>';
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-				
+			
 			if(!empty($TIds)){
-				?>
+				/*?>
 				<ul>
-					<?php
+					<?php*/
 					foreach($TIds as $id){
 						$expedition = new Expedition($db);
 						$expedition->fetch($id);
-						
-						?><li>
+						/*?><li>
 							<?php echo 'EXPEDITION <br><a href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>'; ?>
 							<!-- <?php $this->traceabilityRecursive($PDOdb,$type,$id,'expedition',$niveau+1); ?> -->
-						</li><?php
+						</li><?php*/
+						$TElements[] = 'EXPEDITION <br><a href="'.dol_buildpath('/expedition/card.php?id='.$expedition->id,2).'">'.$expedition->ref.'</a>';
 					}
-					?>
+					/*?>
 				</ul>
-				<?php
+				<?php*/
 			}
+		}
+		
+		//pre($TElements,true);
+		
+		if(!empty($TElements)){
+			?>
+			<ul>
+				<?php
+				foreach($TElements as $element){
+					?>
+					<li>
+						<?php
+						if(is_array($element)){
+							echo $element['link'];
+							$this->traceabilityRecursive($PDOdb,$type,$element['id'],$element['element'],$element['id'],$element['object'],$niveau+1);
+						}
+						else{
+							echo $element;
+						} 
+						?>
+					</li>
+					<?php
+				}
+				?>
+			</ul>
+			<?php
 		}
 	}
 

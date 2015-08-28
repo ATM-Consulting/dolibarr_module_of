@@ -512,10 +512,8 @@ function _fiche_ligne(&$form, &$of, $type){
 
     $PDOdb=new TPDOdb;
 	$TRes = array();
-	foreach($of->TAssetOFLine as $k=>$TAssetOFLine){
-		$product = new Product($db);
-		$product->fetch($TAssetOFLine->fk_product);
-		$product->load_stock();
+	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
+		$product = &$TAssetOFLine->product;
 
 		$conditionnement = $TAssetOFLine->conditionnement;
 		$conditionnement_unit = $TAssetOFLine->libUnite(); 
@@ -859,6 +857,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'fk_nomenclature'=>$fk_nomenclature
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
 				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
+				
+				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2)
+				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2)
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -877,6 +878,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'hasChildren' => (int) !empty($Tid)
 				,'user_id'=>$user->id
 				,'workstation_module_activate'=>(int) $conf->workstation->enabled
+				,'show_cost'=>(int)$user->rights->asset->of->price
 			)
 		)
 	);

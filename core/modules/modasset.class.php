@@ -177,7 +177,7 @@ class modAsset extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = 104123;
 		$this->rights[$r][1] = 'Créer des Ordres de fabrication';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] =0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'write';
 
@@ -191,7 +191,7 @@ class modAsset extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = 104125;
 		$this->rights[$r][1] = 'Créer des Types d\'équipement';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'type';
 		$this->rights[$r][5] = 'write';
 		
@@ -200,6 +200,13 @@ class modAsset extends DolibarrModules
 		$this->rights[$r][1] = 'Générer les documents';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'read';
+
+		$r++;
+		$this->rights[$r][0] = 104128;
+		$this->rights[$r][1] = 'Voir le coût d\'un OF';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'of';
+		$this->rights[$r][5] = 'price';
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:

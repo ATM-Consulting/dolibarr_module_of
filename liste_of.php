@@ -119,7 +119,8 @@ function _liste() {
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, count(ofel.rowid) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.status, ofe.fk_user
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, count(ofel.rowid) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+		, ofe.status, ofe.fk_user, ofe.total_cost
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = ofe.fk_soc
@@ -143,7 +144,16 @@ function _liste() {
 	}*/
 	
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
-
+	if(empty($user->rights->asset->of->price)){
+		 $THide[] = 'total_cost';
+	}
+	else {
+		$TMath = array(
+			'total_cost'=>'sum'
+		);
+	}
+	
+	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 
 	$ATMdb=new TPDOdb;
@@ -165,7 +175,9 @@ function _liste() {
 		,'type'=>array(
 			'date_lancement'=>'date'
 			,'date_besoin'=>'date'
+			,'total_cost'=>'money'
 		)
+		,'math'=>$TMath
 		,'liste'=>array(
 			'titre'=>$langs->trans('ListOFAsset')
 			,'image'=>img_picto('','title.png', '', 0)
@@ -185,6 +197,7 @@ function _liste() {
 			,'product'=>'Produit'
 			,'client'=>'Client'
 			,'nb_product_to_make'=>'Nb produits à fabriquer'
+			,'total_cost'=>'Coût'
 		)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'

@@ -91,6 +91,23 @@
 						<tr>
 							<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
 						</tr>
+						[onshow;block=begin;when [view.show_cost]=='1']
+						<tr style="background-color:#dedede;">
+							<td>&nbsp;</td>
+							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+								<td align="left">&nbsp;</td>
+							[onshow;block=end]
+							[onshow;block=begin;when [view.use_project_task]=='1']
+								<td>&nbsp;</td>
+							[onshow;block=end]
+							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
+								<td align='center'>&nbsp;</td>
+							[onshow;block=end]
+							<td align="center">Coût</td>
+							<td align="right">[assetOf.mo_cost;strconv=no]</td>
+							<td class="draftedit">&nbsp;</td>
+						</tr>
+						[onshow;block=end]
 					</table>
 				</div>
 			[onshow;block=end]
@@ -155,6 +172,31 @@
 									<td align='center' class="draftedit">[TNeeded.delete;strconv=no]</td>
 									
 								</tr>
+								
+								[onshow;block=begin;when [view.show_cost]=='1']
+								<tr style="background-color:#dedede;">
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>&nbsp;</td>
+									[onshow;block=end]
+									
+									<td>&nbsp;</td>
+									
+									<td>&nbsp;</td>
+									<td>Coût</td>
+									<td class="nodraft">[assetOf.compo_cost;strconv=no]</td>
+									
+									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
+										<td width="20%">&nbsp;</td>
+									[onshow;block=end]
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">&nbsp;</td>
+									[onshow;block=end]
+									<td align='center' class="draftedit">&nbsp;</td>
+									
+									
+								</tr>
+								[onshow;block=end]
+								
 							</table>
 						</td> 
 						<td colspan="2" width="50%" valign="top">
