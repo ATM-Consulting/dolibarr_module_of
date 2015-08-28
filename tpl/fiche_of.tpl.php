@@ -74,7 +74,7 @@
 							<th class="draftedit">Action</th>
 						</tr>
 						<tr id="WS[workstation.id]" style="background-color:#fff;">
-							<td>[workstation.libelle;strconv=no;block=tr]</td>
+							<td>[workstation.libelle;strconv=no;block=tr]<br />[workstation.note_private;strconv=no;]</td>
 							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
 								<td align="left">[workstation.fk_user;strconv=no]</td>
 							[onshow;block=end]
@@ -140,7 +140,7 @@
 										<td>[TNeeded.lot_number;strconv=no]</td>
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
-									<td>[TNeeded.libelle;block=tr;strconv=no]</td>
+									<td>[TNeeded.libelle;block=tr;strconv=no]<br />[TNeeded.note_private;strconv=no;]</td>
 									
 									<td>[TNeeded.qty_needed]</td>
 									<td>[TNeeded.qty;strconv=no]</td>

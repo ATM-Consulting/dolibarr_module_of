@@ -247,7 +247,8 @@ class TAssetOF extends TObjetStd{
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
 		foreach($Tab as $prod) 
 		{
-			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent);
+		    
+			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
 		}
 		
 		return true;
@@ -299,14 +300,15 @@ class TAssetOF extends TObjetStd{
 	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true, $fk_assetOf_line_parent = 0) 
 	{
 		global $conf;
-		//TODO c'est de la merde à refaire
+		//TODO AA c'est de la merde à refaire
 		foreach($TRes as $row) 
 		{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1] * $qty_parent;
+            $prod->note_private = isset($row['note_private']) ? $row['note_private'] : ''; 
 
-			if(isset($Tab[$prod->fk_product])) {
+			if(isset($Tab[$prod->fk_product])) { //TODO veut-on vraiment cumuler ? voir si une conf n'est pas nécessaire ici ?
 				$Tab[$prod->fk_product]->qty += $prod->qty;
 			}
 			else {
@@ -424,7 +426,7 @@ class TAssetOF extends TObjetStd{
 	}*/
 
 	//Ajoute une ligne de produit à l'OF
-	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0)
+	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0, $note_private = '')
 	{
 		global $user,$langs,$conf,$db;
 		
@@ -440,7 +442,10 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
 		$TAssetOFLine->qty_used = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
+		$TAssetOFLine->note_private = $note_private;
 		
+        $TAssetOFLine->fk_product_fournisseur_price = -2;
+        
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
@@ -529,6 +534,7 @@ class TAssetOF extends TObjetStd{
 								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare; // TODO voir si on multiplie le tps de préparation par la quantité à produire : $nws->nb_hour_prepare*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+                                $this->TAssetWorkstationOF[$k]->note_private = $nws->note_private;
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
 							
 							}
@@ -1258,6 +1264,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
+        $this->add_champs('note_private',array('type'=>'text'));
 
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
@@ -1903,12 +1910,14 @@ class TAssetWorkstationOF extends TObjetStd{
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task','type=entier;index;');
 		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare','type=float;'); // nombre d'heure associé au poste de charge sur un OF
+		$this->add_champs('note_private',array('type'=>'text'));
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
 		// celui ci peut être différent ligne par ligne si on a plusieurs fois un même poste de travail sur une nomenclature.
+		// as you wish buddy ! AA 
 		
 	    $this->start();
 		
-		$this->ws = new TAssetWorkstation;
+		$this->ws = new TAssetWorkstation; // TODO replace by TWorkstation
 		$this->users = array();
 		$this->tasks = array();
 	}
@@ -1922,6 +1931,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		if($this->fk_asset_workstation >0)
 		{
 			$this->ws->load($PDOdb, $this->fk_asset_workstation);
+            
 		}
 	}
 	
@@ -1929,11 +1939,11 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 	 	global $db,$conf,$user;
 		
-		$OF = new TAssetOF;
-		$OF->load($PDOdb, $this->fk_assetOf);
-
 		if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $OF->status === 'VALID')
 		{
+		    $OF = new TAssetOF;
+            $OF->load($PDOdb, $this->fk_assetOf);
+            
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
 			
