@@ -56,6 +56,11 @@ class TAssetOF extends TObjetStd{
         foreach($this->TAssetOFLine as &$line) {
             $line->of_numero = $this->numero;
         }
+        foreach($this->TAssetWorkstationOF as &$ws) {
+            $ws->of_status = $this->status;
+            $ws->of_fk_project = $this->fk_project;
+        }
+        
         
 		return $res;
 	}
@@ -1974,15 +1979,13 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 	 	global $db,$conf,$user;
 		
-		if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $OF->status === 'VALID')
+        if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $this->of_status === 'VALID')
 		{
-		    $OF = new TAssetOF;
-            $OF->load($PDOdb, $this->fk_assetOf);
-            
+		    
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
 			
-			if ($OF->fk_project > 0 && $this->fk_project_task == 0)
+			if ($this->of_fk_project > 0 && $this->fk_project_task == 0)
 			{
 				//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
 				if (!$user->id)	$user->id = GETPOST('user_id');
@@ -1997,7 +2000,20 @@ class TAssetWorkstationOF extends TObjetStd{
 				$projectTask->fk_project = $OF->fk_project;
 				$projectTask->ref = $modTask->getNextValue(0, $projectTask);
 				$projectTask->label = $ws->libelle;
-				$projectTask->fk_task_parent = 0;
+                
+                if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
+                    $PDOdb->Execute("SELECT MAX(t.rowid) as rowid 
+                    FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)  
+                    WHERE t.fk_projet=".$this->of_fk_project." AND tex.fk_of=".$this->fk_assetOf);
+                    $PDOdb->Get_line();
+                    $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
+                    
+                }
+                else{
+                    $projectTask->fk_task_parent = 0;    
+                }
+				
+								
 				$projectTask->date_start = $OF->date_lancement;
 				$projectTask->date_end = $OF->date_besoin;
 				$projectTask->planned_workload = $this->nb_hour*3600;
@@ -2025,7 +2041,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				
 				
 			}
-			elseif ($OF->fk_project > 0 && $this->fk_project_task > 0)
+			elseif ($this->of_fk_project > 0 && $this->fk_project_task > 0)
 			{
 				if (!$user->id)	$user->id = GETPOST('user_id');
 				
@@ -2035,7 +2051,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				
 				$projectTask->update($user);
 			}
-			elseif ($OF->fk_project == 0 && $this->fk_project_task > 0)
+			elseif ($this->of_fk_project == 0 && $this->fk_project_task > 0)
 			{
 				require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 				

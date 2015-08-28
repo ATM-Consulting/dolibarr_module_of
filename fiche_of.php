@@ -514,6 +514,10 @@ function _fiche_ligne(&$form, &$of, $type){
 	$TRes = array();
 	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
 		$product = &$TAssetOFLine->product;
+        if(is_null($product)) {
+            $product=new Product($db);
+            $product->fetch($TAssetOFLine->fk_product);
+        }
 
 		$conditionnement = $TAssetOFLine->conditionnement;
 		$conditionnement_unit = $TAssetOFLine->libUnite(); 

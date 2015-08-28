@@ -121,3 +121,5 @@ AssetMsgDeleteControlValue=Valeur supprimée
 AssetErrDeleteControlValue=Erreur lors de la suppression
 AssetListWorkstation=Liste des postes de travails
 UseManualWarehouse=Permet de définir manuellement les entrepôts à utiliser pour le stockage/destockage des équipements sur chaque OF
+
+UseProjectTaskHierarchique=Créer les tâches de manière hierarchique

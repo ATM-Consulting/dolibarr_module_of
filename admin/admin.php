@@ -31,7 +31,7 @@
 	dol_fiche_head($head, 1, $langs->trans("Asset"), 0, 'pictoof@asset');
 	print_fiche_titre($langs->trans("AssetSetup"),$linkback);
 	
-	print '<table class="noborder" width="100%">';
+    print '<table class="noborder" width="100%">';
 	print '<tr class="liste_titre">';
 	print '<td>'.$langs->trans("Parameters").'</td>'."\n";
 	print '<td align="center" width="20">&nbsp;</td>';
@@ -87,12 +87,19 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-	print '<tr class="impair">';
-	print '<td>'.$langs->trans("UseProjectTask").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
-	print '</td></tr>';	
+    print '<tr class="impair">';
+    print '<td>'.$langs->trans("UseProjectTask").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
+    print '</td></tr>'; 
+    
+    print '<tr class="impair">';
+    print '<td>'.$langs->trans("UseProjectTaskHierarchique").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('ASSET_TASK_HIERARCHIQUE_BY_RANK');
+    print '</td></tr>'; 
 	
 	print '<tr class="pair">';
 	print '<td>'.$langs->trans("AssetDefinedUserByWorkstation").'</td>';
