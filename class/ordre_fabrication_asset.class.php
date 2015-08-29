@@ -388,7 +388,7 @@ class TAssetOF extends TObjetStd{
 		
 		global $db;
 		
-		$sql = "SELECT SUM(qty_needed-qty_stock) as qty 
+		$sql = "SELECT SUM( IF(qty_needed>0,qty_needed - qty_stock, qty-qty_stock) ) as qty 
 				FROM ".MAIN_DB_PREFIX."assetOf_line l 
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON(l.fk_assetOf = of.rowid)
 			WHERE l.fk_product=".$fk_product."
