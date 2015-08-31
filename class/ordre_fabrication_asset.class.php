@@ -16,6 +16,7 @@ class TAssetOF extends TObjetStd{
 	static $TStatus=array(
 			'DRAFT'=>'Brouillon'
             ,'NEEDOFFER'=>'En attente de prix fournisseur'
+            ,'ONORDER'=>'En attente de produit(s) en commande'
             ,'VALID'=>'Valide pour production'
             ,'OPEN'=>'En cours de production'
 			,'CLOSE'=>'Terminé'
