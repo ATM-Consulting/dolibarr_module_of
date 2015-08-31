@@ -80,7 +80,7 @@ class TAsset extends TObjetStd{
         
         $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element 
                 WHERE fk_source = ".$fk_source." AND sourcetype='".$sourceType."' AND targettype='".$targetType."'";
-        
+        //echo $sql.'<br>';
         return TRequeteCore::_get_id_by_sql($PDOdb, $sql, 'fk_target');
         
     }

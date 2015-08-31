@@ -20,7 +20,7 @@
 
 			$ATMdb = new TPDOdb;
 
-			_createOFCommande($ATMdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc']);
+			_createOFCommande($ATMdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
 			_liste();
 			break;
 		
@@ -30,7 +30,7 @@
 	}	
 	
 
-function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc) {
+function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc, $oneOF = false) {
 /*
  * Créé des Of depuis un tableau de product
  */	
@@ -38,12 +38,18 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 	global $db, $langs;
 
 	if(!empty($TProduct)) {
-			
-			foreach($_REQUEST['TProducts'] as $fk_commandedet=>$v) {
-				foreach($v as $fk_product=>$onSenFout) {
-
+			if($oneOF) {
 					$assetOf = new TAssetOF;
 					$assetOf->fk_commande = $fk_commande;
+			}
+			
+			foreach($_REQUEST['TProducts'] as $fk_commandedet=>$v) {
+				
+				foreach($v as $fk_product=>$dummy) {
+					if(!$oneOF) {
+							$assetOf = new TAssetOF;
+							$assetOf->fk_commande = $fk_commande;
+					}
 					
 					if($assetOf->fk_commande > 0) {
 						$com = new Commande($db);
@@ -59,7 +65,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 				}
 			}
 			
-			setEventMessage($langs->trans('OFAsset')." créés avec succès", 'mesgs');
+			setEventMessage($langs->trans('OFAsset')." créé(s) avec succès", 'mesgs');
 			
 	}
 			
@@ -119,12 +125,14 @@ function _liste() {
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, count(ofel.rowid) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
 		, ofe.status, ofe.fk_user, ofe.total_cost
-		  FROM ".MAIN_DB_PREFIX."assetOf as ofe LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
+		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
+		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = ofe.fk_soc
-		  WHERE ofe.entity=".$conf->entity;
+		  WHERE ofe.entity=".$conf->entity
+		  ;
 
 	if($fk_soc>0) {$sql.=" AND ofe.fk_soc=".$fk_soc; }
 	if($fk_product>0) {$sql.=" AND ofel.fk_product=".$fk_product;}
@@ -277,7 +285,7 @@ function _liste() {
 		
 		echo '</div>';
 		
-		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm').'</p>';
+		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm').' '.$form->btsubmit('Créer un seul OF', 'subFormAlone').'</p>';
 		$form->end();
 		
 		$db->free($resql);

@@ -79,6 +79,13 @@
 	print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
 	print '</td></tr>';	
 	
+	print '<tr class="impair">';
+	print '<td>'.$langs->trans("AssetNegativeDestock").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
+	print '</td></tr>';
+	
 	print '</table>';
 	
 	print '<table class="noborder" width="100%">';

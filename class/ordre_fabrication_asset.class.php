@@ -389,7 +389,7 @@ class TAssetOF extends TObjetStd{
 		
 		global $db;
 		
-		$sql = "SELECT SUM(qty_needed-qty_stock) as qty 
+		$sql = "SELECT SUM( IF(qty_needed>0,qty_needed - qty_stock, qty-qty_stock) ) as qty 
 				FROM ".MAIN_DB_PREFIX."assetOf_line l 
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON(l.fk_assetOf = of.rowid)
 			WHERE l.fk_product=".$fk_product."
@@ -1339,14 +1339,15 @@ class TAssetOFLine extends TObjetStd{
         $qty_to_destock_rest =  abs($qty_to_destock);
 
 		$fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+
+		//echo $sens." x ".$qty_to_destock_rest.'<br>';
 		
+		$labelMvt = 'Utilisation via Ordre de Fabrication';
+		if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
 		
         if(!$conf->global->USE_LOT_IN_OF) 
         {
             $asset=new TAsset;
-			
-			$labelMvt = 'Utilisation via Ordre de Fabrication';
-			if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
 			
             $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
 	
@@ -1358,27 +1359,36 @@ class TAssetOFLine extends TObjetStd{
 		{
 			$TAsset = $this->getAssetLinked($PDOdb);
             
+			//echo 'assetLinked = '.count($TAsset).'<br>';
+			
             if(empty($TAsset)) {
-                
-				$labelMvt = 'Utilisation via Ordre de Fabrication';
-				if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
-				
-                $asset=new TAsset;
-                $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+				$asset=new TAsset;
+
+				//On a pas d'asset lié à la ligne, cependant si on a un lot il faut quand même destocker un équipement de ce lot
+				if($this->lot_number){
+					$assetOf = new TAssetOF;
+					$assetOf->load($PDOdb, $this->fk_assetOf);
+					$this->setAsset($PDOdb, $assetOf);
+					
+					echo $this->lot_number;exit;
+				}
+				else{ //Sinon effectivement on destocke juste le produit sans les équipements
+	                $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+				}
                 
             }
             else{
+            	
                 foreach($TAsset as $asset) 
                 {
-                     $qty_asset_to_destock = $asset->contenancereel_value;
+                     $qty_asset_to_destock = ($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : $asset->contenancereel_value;
                      
                      if($qty_to_destock_rest - $qty_asset_to_destock <= 0) 
                      {
                          $qty_asset_to_destock = $qty_to_destock_rest;
 					 }
-						
-					 $labelMvt = 'Utilisation via Ordre de Fabrication';
-					 if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
+
+					 //echo $sens." x ".$qty_asset_to_destock.'<br>';
 					 
                      $asset->save($PDOdb,$user
                              ,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
@@ -1392,7 +1402,7 @@ class TAssetOFLine extends TObjetStd{
             }
         	
 		}
-        
+        //exit;
     	$this->qty_stock += -$sens * $qty_to_destock;
         
         return $this->save($PDOdb);
@@ -1422,13 +1432,19 @@ class TAssetOFLine extends TObjetStd{
 		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
 		if ($is_cumulate)
 		{
-			$sql.= ' WHERE contenancereel_value > 0';
+			$sql.= ' WHERE 1 ';
+			
+			if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql.= ' AND contenancereel_value > 0 ';
+			
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
 			else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
 		}
 		else 
 		{
-			$sql.= ' WHERE contenancereel_value >= '.($qty - $qty_sotck); // - la quantité déjà utilisé
+			$sql.= ' WHERE 1 ';
+			
+			if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql.= ' AND contenancereel_value >= '.($qty - $qty_sotck).' ';// - la quantité déjà utilisé
+			
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
 			else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
 		}
@@ -1456,7 +1472,7 @@ class TAssetOFLine extends TObjetStd{
 			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
 			$qty_needed = $qty - $qty_stock; // - la quantité déjà utilisé
 			
-            if ($nbAssetFound == 0) {
+            if ($nbAssetFound == 0 && !$conf->global->ASSET_NEGATIVE_DESTOCK) {
                 $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
                 $no_error = false;                 
             }
@@ -1465,7 +1481,7 @@ class TAssetOFLine extends TObjetStd{
             	//On fait un 1er tour pour vérifier la qté
         		$qtyIsEnough = $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal, false);
             	   
-				if (!$qtyIsEnough) $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+				if (!$qtyIsEnough && !$conf->global->ASSET_NEGATIVE_DESTOCK) $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
 				else $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal);
 				
 				$no_error = $qtyIsEnough;
@@ -1478,7 +1494,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->fk_asset = $idAsset;
 		$this->save($PDOdb, $conf);	
 */
-        if(!$no_error) return false;
+        if(!$no_error && !$conf->global->ASSET_NEGATIVE_DESTOCK) return false;
         else return true;
 	}
 	
@@ -1562,6 +1578,8 @@ class TAssetOFLine extends TObjetStd{
         
         $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
         
+		//pre($TId,true);
+		
         $Tab = array();
         
         foreach($TId as $id) {

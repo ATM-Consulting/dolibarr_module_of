@@ -128,16 +128,19 @@ function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of)
 }
 
 function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
-        
+    global $conf;   
+	
     //$sql = 'SELECT DISTINCT(a.serial_number) ';
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
-    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE a.contenancereel_value > 0 ';
+    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE 1 ';
+	
+	if($conf->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
 	
     if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
     if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
     
     $sql .= 'ORDER BY a.serial_number';
-//      print $sql;
+    //  print $sql;
     $PDOdb->Execute($sql);
     while ($PDOdb->Get_line()) 
     {
@@ -163,7 +166,7 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NE
 	
 	if($fk_product)
 	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.($type_product == 'NEEDED' ? 'AND a.contenancereel_value > 0' : '').') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
 		//var_dump($sql);
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
