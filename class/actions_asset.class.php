@@ -20,14 +20,97 @@ class ActionsAsset
 		}*/
 		// --> Maintenant Géré grâce à la constante INDEPENDANT_SUBPRODUCT_STOCK que j'ai rajoutée sur notre Dolibarr
 		
-        if($action == "validmodasset"){
+		
+        if($parameters['currentcontext'] === 'ordersuppliercard') {
+           
+            if(GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes') {
+                
+                $time_livraison = $object->date_livraison; 
+                
+                $res = $db->query("SELECT fk_source as 'fk_of' 
+                            FROM ".MAIN_DB_PREFIX."element_element 
+                            WHERE sourcetype='ordre_fabrication' AND fk_target=".$object->id." AND targettype='order_supplier' ");
+                
+                define('INC_FROM_DOLIBARR',true);
+                
+                dol_include_once("/asset/config.php");
+                dol_include_once("/asset/class/asset.class.php");   
+                dol_include_once("/asset/class/ordre_fabrication_asset.class.php");   
+                            
+                if($obj = $db->fetch_object($res)) {
+                    // of lié à la commande
+                    $PDOdb=new TPDOdb;
+                    
+                    $OF = new TAssetOF;
+                    $OF->load($PDOdb, $obj->fk_of);
+                    
+                    $OF->date_lancement =  $time_livraison;
+                    $OF->save($PDOdb); 
+                    
+                }
+                else {
+                   // pas d'of liés directement         
+                   $TProduct = $TProd =  array();     
+                   foreach($object->lines as &$l) {
+                        if($l->product_type == 0){ 
+                            $TProduct[] = $l->fk_product;
+                            
+                            if(!isset($TProd[$l->fk_product])) $TProd[$l->fk_product] = 0;
+                            $TProd[$l->fk_product]+=$l->qty;
+                        }    
+                   } 
+                  
+                        
+                   $res = $db->query("SELECT DISTINCT of.rowid as 'fk_of' 
+                            FROM ".MAIN_DB_PREFIX."assetOf_line ofl
+                            LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid = ofl.fk_assetOf)
+                            WHERE ofl.fk_product IN (".implode(',',$TProduct).")
+                            AND of.status='ONORDER'
+                            ORDER BY of.date_besoin ASC");    
+                   $PDOdb=new TPDOdb;
+                   
+                   while($obj = $db->fetch_object($res)) {
+                       
+                       $OF = new TAssetOF;
+                       $OF->load($PDOdb, $obj->fk_of);
+                       $to_save = false;
+                       foreach($OF->TAssetOFLine as &$line) {
+                           
+                           if(isset($TProd[$line->fk_product]) && $TProd[$line->fk_product]>0) {
+                               $TProd[$line->fk_product]-= ($line->qty_needed>0 ?  $line->qty_needed : $line->qty );
+                               
+                               if($OF->date_lancement<$time_livraison){
+                                   $OF->date_lancement =  $time_livraison;
+                                   $to_save = true;
+                               }
+                               
+                               
+                           }
+                           
+                       }
+                       
+                       if($to_save) {
+                          // print 'OF '.$OF->getId().'$time_livraison'.$time_livraison;
+                           $OF->save($PDOdb);
+                       }
+                      
+                   }
+                    //exit;     
+                    
+                }
+                
+            }
+            
+            
+        }
+        else if($action == "validmodasset"){
         	//print_r($object);exit;
 			if(isset($_REQUEST['asset'])){
 				
 				if($conf->climcneil->enabled && !empty($_REQUEST['asset'])){
 					define('INC_FROM_DOLIBARR',true);
-			    	dol_include_once("/custom/asset/config.php");
-					dol_include_once("/custom/asset/class/asset.class.php");
+			    	dol_include_once("/asset/config.php");
+					dol_include_once("/asset/class/asset.class.php");
 					dol_include_once('/core/class/extrafields.class.php');
 					
 					$ATMdb = new TPDOdb;
@@ -68,8 +151,8 @@ class ActionsAsset
 		if (in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])) || in_array('propalcard',explode(':',$parameters['context']))) 
         {
         	define('INC_FROM_DOLIBARR',true);
-        	dol_include_once("/custom/asset/config.php");
-			dol_include_once("/custom/asset/class/asset.class.php");
+        	dol_include_once("/asset/config.php");
+			dol_include_once("/asset/class/asset.class.php");
 			
 			
 			if($action == "create"){
