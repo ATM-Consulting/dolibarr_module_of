@@ -121,3 +121,22 @@ if(GETPOST('ResetAsset')){
 		
 	}
 }
+
+if(GETPOST('UpdateAssetType')){
+	$sql = "SELECT DISTINCT(a.rowid) FROM ".MAIN_DB_PREFIX.'asset as a';
+	
+	$PDOdb->Execute($sql);
+	$TAssetIds = $PDOdb->Get_All();
+	
+	foreach ($TAssetIds as $row) {
+		$asset = new TAsset;
+		$asset->load($PDOdb, $row->rowid);
+		$asset->load_asset_type($PDOdb);
+		
+		echo $asset->getId().' '.$asset->gestion_stock."  =>  ".$asset->assetType->gestion_stock.'<br>';
+		
+		$asset->gestion_stock = $asset->assetType->gestion_stock;
+		$asset->contenance_value = $asset->assetType->contenance_value;
+		$asset->save($PDOdb);
+	}
+}
