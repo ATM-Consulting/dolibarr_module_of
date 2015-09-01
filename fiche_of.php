@@ -539,7 +539,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '
-				            .($stock_needed>0 ? $langs->trans("Stock")." : ".$stock_needed : '<span style="color:red;font-weigth:bold;">'.$langs->trans("Stock")." : ".$stock_needed.'</span>'  )._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
+				            .($stock_needed>0 ? $langs->trans("Stock")." : ".$stock_needed : '<span style="color:red;font-weight:bold;">'.$langs->trans("Stock")." : ".$stock_needed.'</span>'  )._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
 				
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
