@@ -18,6 +18,10 @@
 				
 				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
 				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
+				[onshow;block=begin;when [assetOf.id]=0]
+				<tr><td>Produit à produire</td><td>[assetOf.product_to_create;strconv=no;protect=no]</td></tr>
+				<tr><td>Quantité à produire</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
+				[onshow;block=end]
 				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>

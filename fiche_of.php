@@ -81,9 +81,10 @@ function _action() {
 			$assetOf->set_values($_REQUEST);
 			
 			$fk_product = __get('fk_product_to_add',0);
+			$quantity_to_create = __get('quantity_to_create',1);
 			$fk_nomenclature = __get('fk_nomenclature',0);
 			if($fk_product > 0) {
-				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE',1,0,'',$fk_nomenclature);	
+				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE',$quantity_to_create,0,'',$fk_nomenclature);	
 			}
 
 			if(!empty($_REQUEST['TAssetOFLine'])) 
@@ -828,6 +829,19 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	$parameters = array('id'=>$assetOf->getId());
 	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 	
+	if($fk_product_to_add>0) {
+		$product_to_add = new Product($db);
+		$product_to_add->fetch($fk_product_to_add);
+		
+		$link_product_to_add = $product_to_add->getNomUrl(1).' '.$product_to_add->label;
+		$quantity_to_create = $form->texte('', 'quantity_to_create', 1, 3, 255);
+	}
+	else{
+		$link_product_to_add = '';
+		$quantity_to_create = '';
+	}
+	
+	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -851,6 +865,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'fk_project'=>(!empty($conf->global->ASSET_USE_PROJECT_TASK)) ? custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode) : ''
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
+				
+				,'quantity_to_create'=>$quantity_to_create
+				,'product_to_create'=>$link_product_to_add
 				
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'statustxt'=>TAssetOf::$TStatus[$assetOf->status]
