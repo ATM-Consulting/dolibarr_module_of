@@ -678,6 +678,10 @@ class TAssetOF extends TObjetStd{
 				
 			}
 			
+			if($wsof->nb_hour_real == 0) {
+				$wsof->nb_hour_real = $wsof->nb_hour;
+			}
+			
 		}
 	
 		$this->save($PDOdb);
