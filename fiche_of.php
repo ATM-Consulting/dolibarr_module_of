@@ -331,20 +331,13 @@ function generateODTOF(&$PDOdb) {
 	}
 	
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
-	foreach($assetOf->TAssetOFLine as $k=>$v) {
+	foreach($assetOf->TAssetOFLine as $k=>&$v) {
 
 		$prod = new Product($db);
 		$prod->fetch($v->fk_product);
 		$prod->fetch_optionals($prod->id);
 		
-		if($v->type == "TO_MAKE") {
-			
-			/*echo "<pre>";
-			print_r($prod);
-			echo "</pre>";
-			exit;*/
-			
-			if($conf->nomenclature->enabled){
+		if($conf->nomenclature->enabled){
 				
 				$n = new TNomenclature;
 				
@@ -353,10 +346,15 @@ function generateODTOF(&$PDOdb) {
 					$TTypesProductsNomenclature = $n->getArrayTypesProducts();
 				}
 				
-			}
+		}
+		
+		$qty = !empty($v->qty_needed) ? $v->qty_needed : $v->qty; 
+		
+		if($v->type == "TO_MAKE") {
+			
 			$TToMake[] = array(
 				'type' => $v->type
-				, 'qte' => $v->qty
+				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
@@ -365,8 +363,7 @@ function generateODTOF(&$PDOdb) {
 			);
 
 		}
-		
-		if($v->type == "NEEDED") {
+		else if($v->type == "NEEDED") {
 	
 			$unitLabel = "";
 
@@ -382,7 +379,7 @@ function generateODTOF(&$PDOdb) {
 								
 			$TNeeded[] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
-				, 'qte' => $v->qty
+				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
