@@ -659,12 +659,16 @@ class TAssetOF extends TObjetStd{
 				}
 				
 				//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $qty_needed);
+				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
 			}
 		}
 	
-		
-	
+		/*foreach($this->TAssetWorkstationOF as &$wsof) {
+			
+			if($wsof->)
+			
+		}
+	*/
 	
 		$this->save($PDOdb);
 
