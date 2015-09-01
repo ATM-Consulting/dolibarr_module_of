@@ -634,7 +634,7 @@ class TAssetOF extends TObjetStd{
 		if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 		else $fk_entrepot = $asset->fk_entrepot;
 		
-		foreach($this->TAssetOFLine as $AssetOFLine)
+		foreach($this->TAssetOFLine as &$AssetOFLine)
 		{
 			$asset = new TAsset;
 			
@@ -651,10 +651,20 @@ class TAssetOF extends TObjetStd{
 			} 
 			else 
 			{
+				
+				$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
+				
+				if($AssetOFLine->qty_used == 0) {
+					$AssetOFLine->qty_used = 0;
+				}
+				
 				//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty);
+				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $qty_needed);
 			}
 		}
+	
+		
+	
 	
 		$this->save($PDOdb);
 
