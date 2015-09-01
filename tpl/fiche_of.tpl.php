@@ -71,6 +71,7 @@
 							[onshow;block=end]
 							<th>Nb. heures prévues</th>
 							<th>Nb. heures réelles</th>
+							<th>Rang</th>
 							<th class="draftedit">Action</th>
 						</tr>
 						<tr id="WS[workstation.id]" style="background-color:#fff;">
@@ -86,6 +87,7 @@
 							[onshow;block=end]
 							<td align='center'>[workstation.nb_hour;strconv=no]</td>
 							<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
+							<td align='center'>[workstation.rang;strconv=no]</td>
 							<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
 						</tr>
 						<tr>

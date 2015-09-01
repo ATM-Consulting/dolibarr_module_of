@@ -558,6 +558,8 @@ class TAssetOF extends TObjetStd{
 								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour = $this->TAssetWorkstationOF[$k]->nb_hour_prepare + $this->TAssetWorkstationOF[$k]->nb_hour_manufacture ;
 								
+								$this->TAssetWorkstationOF[$k]->rang = $nws->rang;
+								
 								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
                                 $this->TAssetWorkstationOF[$k]->note_private = $nws->note_private;
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
@@ -1969,7 +1971,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task','type=entier;index;');
-		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare','type=float;'); // nombre d'heure associé au poste de charge sur un OF
+		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang','type=float;'); // nombre d'heure associé au poste de charge sur un OF
 		$this->add_champs('note_private',array('type'=>'text'));
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
 		// celui ci peut être différent ligne par ligne si on a plusieurs fois un même poste de travail sur une nomenclature.
