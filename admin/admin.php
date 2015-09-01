@@ -21,7 +21,14 @@
 			
 		}
 		
+		if(isset($_FILES['template']) && !empty($_FILES['template']['tmpname'])) {
+			
+			copy($_FILES['template']['tmpname'],'../exempleTemplate/templateOF.odt');
+			
+		}
+		
 		setEventMessage("Configuration enregistrée");
+		
 	}
 
 	llxHeader('','Gestion des équipements, à propos', '');
@@ -206,6 +213,18 @@ function showParameters(&$form) {
 			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr> 
+			<tr class="liste_titre">
+				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>
+			</tr>
+			<tr class="pair" >
+				<td><?php echo $langs->trans('Template') ?></td><td>
+					<input type="file" name="template" />
+					<?php 
+				
+					 echo ' <a href="'.dol_buildpath('/asset/exempleTemplate/templateOF.odt',1).'">'.$langs->trans('Download').'</a>';
+				 ?></td>
+			</tr> 
+			
 			
 		</table>
 		
