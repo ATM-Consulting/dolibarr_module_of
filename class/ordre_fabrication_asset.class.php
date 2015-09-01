@@ -655,7 +655,7 @@ class TAssetOF extends TObjetStd{
 				$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
 				
 				if($AssetOFLine->qty_used == 0) {
-					$AssetOFLine->qty_used = 0;
+					$AssetOFLine->qty_used = $qty_needed;
 				}
 				
 				//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
