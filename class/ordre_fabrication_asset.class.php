@@ -554,9 +554,10 @@ class TAssetOF extends TObjetStd{
 							
 								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
-								$this->TAssetWorkstationOF[$k]->nb_hour = $nws->nb_hour*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare; // TODO voir si on multiplie le tps de préparation par la quantité à produire : $nws->nb_hour_prepare*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
+								$this->TAssetWorkstationOF[$k]->nb_hour = $this->TAssetWorkstationOF[$k]->nb_hour_prepare + $this->TAssetWorkstationOF[$k]->nb_hour_manufacture ;
+								
 								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
                                 $this->TAssetWorkstationOF[$k]->note_private = $nws->note_private;
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
