@@ -258,6 +258,7 @@ function _liste() {
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Produits à ajouter à un OF"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("Quantité à produire"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
 		$var=True;
 		
@@ -275,7 +276,9 @@ function _liste() {
 			print '</td>';
 			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.$prod->rowid.']', false);
 			print "</td>";
-			print $form->hidden('TQuantites['.$prod->rowid.']', $prod->qteCommandee);
+			print "<td>";
+			print $form->texte('','TQuantites['.$prod->rowid.']', $prod->qteCommandee,3,255);
+			print "</td>";
 			print "</tr>\n";
 	
 			$i++;

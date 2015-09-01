@@ -530,7 +530,7 @@ function _fiche_ligne(&$form, &$of, $type){
         }
 		
         if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
-		$stock_needed = TAssetOF::getProductStock($product->id);
+			$stock_needed = TAssetOF::getProductStock($product->id);
 
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
@@ -644,13 +644,14 @@ function _fiche_ligne(&$form, &$of, $type){
 			}
 			
 			//($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
+			$stock_tomake = TAssetOF::getProductStock($product->id);
 			
 			$TRes[]= array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="TO_MAKE" fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
-				        .$product->stock_reel._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
+				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
 		        ,'nomenclature'=>$nomenclature
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label 
