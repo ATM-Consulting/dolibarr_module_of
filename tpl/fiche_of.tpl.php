@@ -108,6 +108,7 @@
 							<td align="center">Coût</td>
 							<td align="right">[assetOf.mo_cost;strconv=no]</td>
 							<td class="draftedit">&nbsp;</td>
+							<td class="draftedit">&nbsp;</td>
 						</tr>
 						[onshow;block=end]
 					</table>
@@ -116,14 +117,9 @@
 	
 			<div class="of-details" style="margin-top: 25px;">
 				<table width="100%" class="border">
+					
 					<tr height="40px;">
-						<td style="border-right: none;">&nbsp;&nbsp;<b>Produits nécessaires à la fabrication</b></td>
-						<td style="border-left: none; text-align: right;">
-							[onshow;block=begin;when [view.mode]!='view']
-								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>						
-							[onshow;block=end]
-						</td>
-						<td style="border-right: none; ">&nbsp;&nbsp;<b>Produits à créer</b></td>
+						<td style="border-right: none; " colspan="3">&nbsp;&nbsp;<b>Produits à créer</b></td>
 						<td style="border-left: none; text-align: right;">
 							[onshow;block=begin;when [view.mode]!='view']
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
@@ -131,7 +127,56 @@
 						</td>
 					</tr>
 					<tr style="background-color:#fff;">
-						<td colspan="2" width="50%" valign="top">
+						<td colspan="4" valign="top">
+							<!-- TO_MAKE -->
+							<table width="100%" class="border tomake">
+								<tr style="background-color:#dedede;">
+									<td class="draftedit" style="width:20px;">Action</td>
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>Lot</td>
+									[onshow;block=end]
+									<td>Produit</td>
+									<td>Quantité à produire</td>
+									<td>Fournisseur</td>
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">Entrepôt</td>
+									[onshow;block=end]
+									<td class="draftedit" style="width:20px;">Action</td>
+									
+								</tr>
+								<tr id="[TTomake.id]">
+									<td align='center' class="draftedit">[TTomake.addneeded;strconv=no]</td>
+									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>[TTomake.lot_number;strconv=no]</td>
+									[onshow;block=end]
+									<td>[TTomake.libelle;block=tr;strconv=no]
+									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
+										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
+									[onshow;block=end]
+										
+									</td>
+									<td>[TTomake.qty;strconv=no]</td>
+									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
+									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
+									[onshow;block=end]
+									<td align='center' class="draftedit">[TTomake.delete;strconv=no]</td>
+									
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr height="40px;">
+						<td style="border-right: none;" colspan="3">&nbsp;&nbsp;<b>Produits nécessaires à la fabrication</b></td>
+						<td style="border-left: none; text-align: right;">
+							[onshow;block=begin;when [view.mode]!='view']
+								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>						
+							[onshow;block=end]
+						</td>
+						
+					</tr>
+					<tr style="background-color:#fff;">
+						<td colspan="4" valign="top">
 							<!-- NEEDED -->
 							<table width="100%" class="border needed">
 								<tr style="background-color:#dedede;">
@@ -201,45 +246,8 @@
 								
 							</table>
 						</td> 
-						<td colspan="2" width="50%" valign="top">
-							<!-- TO_MAKE -->
-							<table width="100%" class="border tomake">
-								<tr style="background-color:#dedede;">
-									<td class="draftedit" style="width:20px;">Action</td>
-									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td>Lot</td>
-									[onshow;block=end]
-									<td>Produit</td>
-									<td>Quantité à produire</td>
-									<td>Fournisseur</td>
-									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
-										<td width="20%">Entrepôt</td>
-									[onshow;block=end]
-									<td class="draftedit" style="width:20px;">Action</td>
-									
-								</tr>
-								<tr id="[TTomake.id]">
-									<td align='center' class="draftedit">[TTomake.addneeded;strconv=no]</td>
-									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td>[TTomake.lot_number;strconv=no]</td>
-									[onshow;block=end]
-									<td>[TTomake.libelle;block=tr;strconv=no]
-									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
-										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
-									[onshow;block=end]
-										
-									</td>
-									<td>[TTomake.qty;strconv=no]</td>
-									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
-									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
-										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
-									[onshow;block=end]
-									<td align='center' class="draftedit">[TTomake.delete;strconv=no]</td>
-									
-								</tr>
-							</table>
-						</td>
 					</tr>
+					
 				</table>
 			</div>
 
