@@ -617,7 +617,7 @@ class TAssetOF extends TObjetStd{
 	//Finalise un OF => incrémention/décrémentation du stock
 	function closeOF(&$PDOdb)
 	{
-	    global $langs, $conf;
+	    global $langs, $conf, $db, $user;
         
 		
 	    $this->status = "CLOSE";
@@ -663,12 +663,22 @@ class TAssetOF extends TObjetStd{
 			}
 		}
 	
-		/*foreach($this->TAssetWorkstationOF as &$wsof) {
+		dol_include_once('/projet/class/task.class.php');
+		
+		foreach($this->TAssetWorkstationOF as &$wsof) {
 			
-			if($wsof->)
+			if($wsof->fk_project_task > 0) {
+				
+				$t=new Task($db);
+				$t->fetch($wsof->fk_project_task);
+				if($t->progress<100) {
+					$t->progress = 100;
+					$t->update($user);
+				}
+				
+			}
 			
 		}
-	*/
 	
 		$this->save($PDOdb);
 
