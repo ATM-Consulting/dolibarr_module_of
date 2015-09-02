@@ -34,22 +34,23 @@ foreach ($Tres as $res) {
 if(GETPOST('TransfertStock')){
 	echo '<hr>CHANGEMENT D\'ENTREPOT DES PRODUITS FINIS<hr>';
 	
-	$sql = "SELECT p.rowid 
+	$sql = "SELECT p.rowid, ps.rowid as product_stock_id, ps.reel as stock_entrepot
 			FROM ".MAIN_DB_PREFIX."product as p
-			WHERE p.finished = 1 AND stock > 0 AND fk_product_type = 0";
+				LEFT JOIN ".MAIN_DB_PREFIX."product_stock as ps ON (ps.fk_product = p.rowid)
+			WHERE p.finished = 1 AND p.stock > 0 AND p.fk_product_type = 0 AND ps.fk_entrepot = 1 AND ps.reel > 0";
 	
 	$PDOdb->Execute($sql);
-	
+	$cpt = 0;
 	while ($res = $PDOdb->Get_line()) {
 		$product = new Product($db);
 		$product->fetch($res->rowid);
 		$product->load_stock();
-		
+
 		// Remove stock
 		$result1=$product->correct_stock(
 			$user,
 			1,
-			$product->stock_reel,
+			$res->stock_entrepot,
 			1,
 			"Transfert de stock ".date('d/m/Y H:i'),
 			$product->stock_warehouse[1]->pmp
@@ -64,7 +65,55 @@ if(GETPOST('TransfertStock')){
 		$result2=$product->correct_stock(
 			$user,
 			2,
-			$product->stock_reel,
+			$res->stock_entrepot,
+			0,
+			"Transfert de stock ".date('d/m/Y H:i'),
+			$product->stock_warehouse[1]->pmp
+		);
+	
+		if($result2) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> AJOUT<br>";
+		else{
+			echo "ERREUR AJOUT"; break;
+		} 
+		
+		$cpt ++;
+	}
+	
+	echo $cpt;
+	echo '<hr>CHANGEMENT D\'ENTREPOT DES MATIERES PREMIERES<hr>';
+	
+	$sql = "SELECT p.rowid, ps.rowid as product_stock_id, ps.reel as stock_entrepot
+			FROM ".MAIN_DB_PREFIX."product as p
+				LEFT JOIN ".MAIN_DB_PREFIX."product_stock as ps ON (ps.fk_product = p.rowid)
+			WHERE p.finished = 0 AND p.stock > 0 AND p.fk_product_type = 0 AND ps.fk_entrepot = 2 AND ps.reel > 0";
+	
+	$PDOdb->Execute($sql);
+	
+	while ($res = $PDOdb->Get_line()) {
+		$product = new Product($db);
+		$product->fetch($res->rowid);
+		$product->load_stock();
+		
+		// Remove stock
+		$result1=$product->correct_stock(
+			$user,
+			2,
+			$res->stock_entrepot,
+			1,
+			"Transfert de stock ".date('d/m/Y H:i'),
+			$product->stock_warehouse[1]->pmp
+		);
+	
+		if($result1) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> RETRAIT<br>";
+		else{
+			echo "ERREUR RETRAIT"; break;
+		} 
+		
+		// Add stock
+		$result2=$product->correct_stock(
+			$user,
+			1,
+			$res->stock_entrepot,
 			0,
 			"Transfert de stock ".date('d/m/Y H:i'),
 			$product->stock_warehouse[1]->pmp
