@@ -785,7 +785,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	}
 	
 	ob_start();
-	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array());
 	$select_product = ob_get_clean();
 	
 	$Tid = array();
