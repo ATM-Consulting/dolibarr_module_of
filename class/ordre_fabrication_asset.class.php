@@ -66,6 +66,40 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 	
+	function validate(&$PDOdb) {
+		
+		global $conf;
+		
+		$TIDOFToValidate = array($this->rowid);
+		
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
+		
+		foreach ($TIDOFToValidate as $id_of) {
+			
+			$of = new TAssetOF;
+			$of->load($PDOdb, $id_of);
+			
+			// On valide pas une of qui est déjà validé ou supérieur
+			if($of->rowid <= 0 || $of->status != 'DRAFT') continue;
+
+			$of->status = 'VALID';
+			
+			if($this->rowid == $id_of) { // Ca c'est juste pour l'of sur lequel on se trouve.
+				if(!empty($_REQUEST['TAssetOFLine'])) {
+					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
+						$of->TAssetOFLine[$k]->set_values($row);
+					}
+				}
+			}
+			$of->createOfAndCommandesFourn($PDOdb);
+			$of->unsetChildDeleted = true;
+			
+			$of->save($PDOdb);
+			
+		}
+		
+	}
+	
 	function create_new_project() {
 		
 		global $db, $user;
@@ -619,72 +653,85 @@ class TAssetOF extends TObjetStd{
 	{
 	    global $langs, $conf, $db, $user;
         
+		$TIDOFToValidate = array($this->rowid);
 		
-	    $this->status = "CLOSE";
-        
-		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
 		
-        if (!$this->checkCommandeFournisseur($PDOdb))
-        {
-                setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
-                return false;
-        }    
-        
-        
-		if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
-		else $fk_entrepot = $asset->fk_entrepot;
-		
-		foreach($this->TAssetOFLine as &$AssetOFLine)
-		{
-			$asset = new TAsset;
+		foreach ($TIDOFToValidate as $id_of) {
 			
-			if($AssetOFLine->type == "TO_MAKE")
+			$of = new TAssetOF;
+			$of->load($PDOdb, $id_of);
+			
+			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
+			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
+			
+		    $of->status = "CLOSE";
+	        
+			include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+			
+	        if (!$of->checkCommandeFournisseur($PDOdb))
+	        {
+	                setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
+	                return false;
+	        }    
+	        
+	        
+			if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+			else $fk_entrepot = $asset->fk_entrepot;
+			
+			foreach($of->TAssetOFLine as &$AssetOFLine)
 			{
-				if($AssetOFLine->makeAsset($PDOdb, $this, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
-					//exit('1');
-				   $AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
+				$asset = new TAsset;
+				
+				if($AssetOFLine->type == "TO_MAKE")
+				{
+					if($AssetOFLine->makeAsset($PDOdb, $of, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
+						//exit('1');
+					   $AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
+					}
+	                else{
+	                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
+	                }
+					
+				} 
+				else 
+				{
+					
+					$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
+					
+					if($AssetOFLine->qty_used == 0) {
+						$AssetOFLine->qty_used = $qty_needed;
+					}
+					
+					//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+					$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
 				}
-                else{
-                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
-                }
-				
-			} 
-			else 
-			{
-				
-				$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
-				
-				if($AssetOFLine->qty_used == 0) {
-					$AssetOFLine->qty_used = $qty_needed;
-				}
-				
-				//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-				$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
 			}
-		}
-	
-		dol_include_once('/projet/class/task.class.php');
 		
-		foreach($this->TAssetWorkstationOF as &$wsof) {
+			dol_include_once('/projet/class/task.class.php');
 			
-			if($wsof->fk_project_task > 0) {
+			foreach($of->TAssetWorkstationOF as &$wsof) {
 				
-				$t=new Task($db);
-				$t->fetch($wsof->fk_project_task);
-				if($t->progress<100) {
-					$t->progress = 100;
-					$t->update($user);
+				if($wsof->fk_project_task > 0) {
+					
+					$t=new Task($db);
+					$t->fetch($wsof->fk_project_task);
+					if($t->progress<100) {
+						$t->progress = 100;
+						$t->update($user);
+					}
+					
+				}
+				
+				if($wsof->nb_hour_real == 0) {
+					$wsof->nb_hour_real = $wsof->nb_hour;
 				}
 				
 			}
-			
-			if($wsof->nb_hour_real == 0) {
-				$wsof->nb_hour_real = $wsof->nb_hour;
-			}
-			
+		
+			$of->save($PDOdb);
+
 		}
-	
-		$this->save($PDOdb);
 
         return true;
 	}
@@ -697,20 +744,33 @@ class TAssetOF extends TObjetStd{
 		dol_include_once("fourn/class/fournisseur.product.class.php");
 		dol_include_once("fourn/class/fournisseur.commande.class.php");
 		
+		$TIDOFToValidate = array($this->rowid);
 		
-        if($this->launchOF($PDOdb)) 
-        {
-            foreach($this->TAssetOFLine as $AssetOFLine)
-            {
-                if($AssetOFLine->type == 'NEEDED')
-                {
-                	list($qty,$qty_stock) = $AssetOFLine->convertQty();
-                    //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-                    $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
-                }
-            }
-        }
-        
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
+		
+		foreach ($TIDOFToValidate as $id_of) {
+			
+			$of = new TAssetOF;
+			$of->load($PDOdb, $id_of);
+			
+			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
+			if($of->rowid <= 0 || $of->status != 'VALID') continue;
+			
+	        if($of->launchOF($PDOdb)) 
+	        {
+	            foreach($of->TAssetOFLine as $AssetOFLine)
+	            {
+	                if($AssetOFLine->type == 'NEEDED')
+	                {
+	                	list($qty,$qty_stock) = $AssetOFLine->convertQty();
+	                    //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+	                    $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
+	                }
+	            }
+	        }
+		
+		}
+		
 	}
 	
 	private function getEnfantsDirects() {

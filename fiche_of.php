@@ -155,18 +155,7 @@ function _action() {
 				}
 			}
 			
-			$assetOf->status = 'VALID';
-
-			if(!empty($_REQUEST['TAssetOFLine'])) {
-				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
-					$assetOf->TAssetOFLine[$k]->set_values($row);
-				}
-			}
-			
-			$assetOf->createOfAndCommandesFourn($PDOdb);
-			$assetOf->unsetChildDeleted = true;
-			
-			$assetOf->save($PDOdb);
+			$assetOf->validate($PDOdb);
 			
 			//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
 			$assetOf=new TAssetOF;
@@ -184,6 +173,8 @@ function _action() {
 			$assetOf->load($PDOdb,$id);
             
 			$assetOf->openOF($PDOdb);
+            
+			$assetOf->load($PDOdb,$id);
 			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
@@ -192,6 +183,7 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $_REQUEST['id']);
 			$assetOf->closeOF($PDOdb);
+			$assetOf->load($PDOdb, $_REQUEST['id']);
             
 			_fiche($PDOdb,$assetOf, 'view');
 			
