@@ -50,6 +50,7 @@ OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquemen
 AssetAddNeededQtyZero = Ajouter les composants avec une quantité à 0
 AssetNegativeDestock = Permettre le déstockage des équipements dans l'OF même si la quantité est insufisante
 AssetChildOfStatusFollowParentStatus = Lors d'un changement de status de l'OF parent, peupler ce dernier sur le statut des OF's enfants si non supérieur
+AssetConcatPDF = Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

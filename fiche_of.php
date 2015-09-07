@@ -12,6 +12,7 @@ dol_include_once('/commande/class/commande.class.php');
 dol_include_once('/fourn/class/fournisseur.commande.class.php');
 dol_include_once('/product/class/html.formproduct.class.php');
 dol_include_once('/core/lib/date.lib.php');
+dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -210,8 +211,53 @@ function _action() {
 			break;
 		case 'createDocOF':
 			
-			generateODTOF($PDOdb);
-
+			$id_of = $_REQUEST['id'];
+			
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $id_of, false);
+			
+			$TOFToGenerate = array($assetOf->rowid);
+			
+			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
+			
+			foreach($TOFToGenerate as $id_of) {
+			
+				$assetOf=new TAssetOF;
+				$assetOf->load($PDOdb, $id_of, false);
+				$TRes[] = generateODTOF($PDOdb, $assetOf);
+				
+			}
+			
+			$TFilePath = get_tab_file_path($TRes);
+			//var_dump($TFilePath);exit;
+			if($conf->global->ASSET_CONCAT_PDF) {
+			
+				$pdf=pdf_getInstance();
+				if (class_exists('TCPDF'))
+				{
+					$pdf->setPrintHeader(false);
+					$pdf->setPrintFooter(false);
+				}
+				$pdf->SetFont(pdf_getPDFFont($langs));
+				
+				if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
+				//$pdf->SetCompression(false);
+				                 
+				$pagecount = concat($pdf, $TFilePath);
+				
+				if ($pagecount)
+				{
+					$pdf->Output($TFilePath[0],'F');
+					if (! empty($conf->global->MAIN_UMASK))
+					{
+						@chmod($file, octdec($conf->global->MAIN_UMASK));
+					}
+				}
+				
+			}
+			
+			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
+			
 			break;
 			
 		case 'control':
@@ -292,12 +338,10 @@ function _action() {
 
 
 
-function generateODTOF(&$PDOdb) {
+function generateODTOF(&$PDOdb, &$assetOf) {
 	
 	global $db,$conf;
 
-	$assetOf=new TAssetOF;
-	$assetOf->load($PDOdb, $_REQUEST['id'], false);
 	foreach($assetOf as $k => $v) {
 		print $k."<br />";
 	}
@@ -425,7 +469,7 @@ function generateODTOF(&$PDOdb) {
 
 	}
 	
-	$dirName = 'OF'.$_REQUEST['id'].'('.date("d_m_Y").')';
+	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
 	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
@@ -447,7 +491,7 @@ function generateODTOF(&$PDOdb) {
 	
 	$barcode_pic = getBarCodePicture($assetOf);
 	
-	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
+	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
@@ -479,7 +523,9 @@ function generateODTOF(&$PDOdb) {
 			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 		
-	);	
+	);
+	
+	return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
 	
 	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
@@ -489,11 +535,22 @@ function generateODTOF(&$PDOdb) {
 function getBarCodePicture(&$assetOf) {
 	
 	$code = $assetOf->numero;
-	include './script/get_barcode_pic.php';
+	include_once './script/get_barcode_pic.php';
 	return $tmpfname;
 	
 }
 
+function get_tab_file_path($TRes) {
+	
+	$tab = array();
+	
+	foreach($TRes as $TData) {
+		$tab[] = strtr($TData['file_path'], array('.odt'=>'.pdf'));
+	}
+	
+	return $tab;
+	
+}
 
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs;
@@ -983,4 +1040,21 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	/******/
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
+}
+function concat(&$pdf,$files) {
+	
+	foreach($files as $file)
+	{
+		$pagecount = $pdf->setSourceFile($file);
+		
+		for ($i = 1; $i <= $pagecount; $i++) {
+			$tplidx = $pdf->ImportPage($i);
+			$s = $pdf->getTemplatesize($tplidx);
+			$pdf->AddPage($s['h'] > $s['w'] ? 'P' : 'L');
+			$pdf->useTemplate($tplidx);
+		}
+		
+	}
+	
+	return $pagecount;
 }
