@@ -59,7 +59,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 					}
 					
 					$assetOf->fk_soc = $fk_soc;
-					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_product], 0, '', 0, $fk_commandedet);
+					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_commandedet], 0, '', 0, $fk_commandedet);
 					$assetOf->save($ATMdb);
 					
 				}
@@ -279,7 +279,7 @@ function _liste() {
 			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.$prod->rowid.']', false);
 			print "</td>";
 			print "<td>";
-			print $form->texte('','TQuantites['.$prod->rowid.']', $prod->qteCommandee,3,255);
+			print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
 			print "</td>";
 			print "</tr>\n";
 	
