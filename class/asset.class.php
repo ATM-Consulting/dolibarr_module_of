@@ -272,7 +272,7 @@ class TAsset extends TObjetStd{
 			
 			//Pour destocker dans la bonne unité, on met dans l'unité correspondant au produit
 			$unite = $product->{$type_unit."_units"}-$this->contenance_units;
-			$qty_product = ($product->{$type_unit} > 0) ? $product->{$type_unit} : $this->contenance_value;
+			$qty_product = ($product->{$type_unit} > 0) ? $product->{$type_unit} : 1;
 
 			$qty = $qty / ($qty_product * pow(10,$unite));
 			$qty = round($qty,5);
