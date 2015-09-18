@@ -59,7 +59,7 @@ function _createOFCommande($ATMdb, $TProduct, $TQuantites, $fk_commande, $fk_soc
 					}
 					
 					$assetOf->fk_soc = $fk_soc;
-					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_product], 0, '', 0, $fk_commandedet);
+					$assetOf->addLine($ATMdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_commandedet], 0, '', 0, $fk_commandedet);
 					$assetOf->save($ATMdb);
 					
 				}
@@ -151,15 +151,16 @@ function _liste() {
 		$sql.= ' AND ofel.fk_product='.$_REQUEST['fk_product'].' AND ofel.type = "TO_MAKE"';		
 	}*/
 	
+	$TMath=array();
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
 	if(empty($user->rights->asset->of->price)){
 		 $THide[] = 'total_cost';
 	}
 	else {
-		$TMath = array(
-			'total_cost'=>'sum'
-		);
+		$TMath['total_cost']='sum';
 	}
+	
+	if(!empty($_REQUEST['fk_product'])) $TMath['nb_product_to_make']='sum';
 	
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
@@ -168,7 +169,7 @@ function _liste() {
 
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
-			'nbLine'=>'30'
+			'nbLine'=>$conf->liste_limit
 		)
 		,'orderBy'=>$orderBy
 		,'subQuery'=>array()
@@ -184,6 +185,7 @@ function _liste() {
 			'date_lancement'=>'date'
 			,'date_besoin'=>'date'
 			,'total_cost'=>'money'
+			,'nb_product_to_make'=>'number'
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
@@ -277,7 +279,7 @@ function _liste() {
 			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.$prod->rowid.']', false);
 			print "</td>";
 			print "<td>";
-			print $form->texte('','TQuantites['.$prod->rowid.']', $prod->qteCommandee,3,255);
+			print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
 			print "</td>";
 			print "</tr>\n";
 	
@@ -295,6 +297,91 @@ function _liste() {
 
 
 	} else {
+		                
+		if(!empty($_REQUEST['fk_product'])) {
+		    
+            
+            $sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(IF(ofel.qty>0,ofel.qty,ofel.qty_needed) ) as nb_product_needed, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+            , ofe.status, ofe.fk_user, ofe.total_cost
+              FROM ".MAIN_DB_PREFIX."assetOf as ofe 
+              LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'NEEDED')
+              LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
+              LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = ofe.fk_soc
+              WHERE ofe.entity=".$conf->entity." AND ofel.fk_product=".$_REQUEST['fk_product']." AND ofe.status!='CLOSE'";
+              ;
+
+            $sql.=" GROUP BY ofe.rowid ";
+            
+            if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
+            else $orderBy['ofe.date_cre']='DESC';
+            
+            $TMath=array();
+            $THide = array('rowid','fk_user','fk_product','fk_soc');
+            if(empty($user->rights->asset->of->price)){
+                 $THide[] = 'total_cost';
+            }
+            else {
+                $TMath['total_cost']='sum';
+            }
+            
+            if(!empty($_REQUEST['fk_product'])) $TMath['nb_product_needed']='sum';
+            
+            $l=new TListviewTBS('listeofproductneeded');
+            print '<strong>Liste OF ayant besoin du produit</strong>';
+            echo $l->render($ATMdb, $sql, array(
+                'limit'=>array(
+                    'nbLine'=>$conf->liste_limit
+                )
+                ,'orderBy'=>$orderBy
+                ,'subQuery'=>array()
+                ,'link'=>array(
+                    'Utilisateur en charge'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png','',0).' @val@</a>'
+                    ,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
+                    ,'product'=>'<a href="'.DOL_URL_ROOT.'/product/card.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
+                    ,'client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+                )
+                ,'translate'=>array()
+                ,'hide'=>$THide
+                ,'type'=>array(
+                    'date_lancement'=>'date'
+                    ,'date_besoin'=>'date'
+                    ,'total_cost'=>'money'
+                    ,'nb_product_needed'=>'number'
+                )
+                ,'math'=>$TMath
+                ,'liste'=>array(
+                    'titre'=>$langs->trans('ListOFAsset')
+                    ,'image'=>img_picto('','title.png', '', 0)
+                    ,'picto_precedent'=>img_picto('','back.png', '', 0)
+                    ,'picto_suivant'=>img_picto('','next.png', '', 0)
+                    ,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
+                    ,'messa geNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
+                    ,'picto_search'=>img_picto('','search.png', '', 0)
+                )
+                ,'title'=>array(
+                    'numero'=>'Numéro'
+                    ,'ordre'=>'Priorité'
+                    ,'date_lancement'=>'Date du lancement'
+                    ,'date_besoin'=>'Date du besoin'
+                    ,'status'=>'Status'
+                    ,'login'=>'Utilisateur en charge'
+                    ,'product'=>'Produit'
+                    ,'client'=>'Client'
+                    ,'nb_product_needed'=>'Nb produits nécessaire'
+                    ,'total_cost'=>'Coût'
+                )
+                ,'eval'=>array(
+                    'ordre'=>'TAssetOF::ordre(@val@)'
+                    ,'status'=>'TAssetOF::status(@val@)'
+                    ,'product' => 'get_format_libelle_produit(@fk_product@)'
+                    ,'client' => 'get_format_libelle_societe(@fk_soc@)'
+                )
+            ));
+            
+            
+		}
+		        
+		    
 		
 		echo '<div class="tabsAction">';
 		

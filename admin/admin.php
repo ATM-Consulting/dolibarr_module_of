@@ -72,7 +72,7 @@
 	print ajax_constantonoff('USE_LOT_IN_OF');
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	print '<tr class="impair">';
 	print '<td>'.$langs->trans("AllBatchNumberAreMandatory").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -93,6 +93,20 @@
 	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
 	print '</td></tr>';
 	
+	print '<tr class="pair">';
+	print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
+	print '</td></tr>';
+	
+	print '<tr class="impair">';
+	print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_CONCAT_PDF');
+	print '</td></tr>';
+	
 	print '</table>';
 	
 	print '<table class="noborder" width="100%">';
@@ -101,7 +115,7 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-    print '<tr class="impair">';
+    print '<tr class="pair">';
     print '<td>'.$langs->trans("UseProjectTask").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
@@ -144,14 +158,14 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-	print '<tr class="pair">';
+	print '<tr class="impair">';
 	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	print '<tr class="pair">';
 	print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';

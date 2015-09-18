@@ -12,6 +12,7 @@ dol_include_once('/commande/class/commande.class.php');
 dol_include_once('/fourn/class/fournisseur.commande.class.php');
 dol_include_once('/product/class/html.formproduct.class.php');
 dol_include_once('/core/lib/date.lib.php');
+dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 if(!$user->rights->asset->all->lire) accessforbidden();
@@ -155,18 +156,7 @@ function _action() {
 				}
 			}
 			
-			$assetOf->status = 'VALID';
-
-			if(!empty($_REQUEST['TAssetOFLine'])) {
-				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
-					$assetOf->TAssetOFLine[$k]->set_values($row);
-				}
-			}
-			
-			$assetOf->createOfAndCommandesFourn($PDOdb);
-			$assetOf->unsetChildDeleted = true;
-			
-			$assetOf->save($PDOdb);
+			$assetOf->validate($PDOdb);
 			
 			//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
 			$assetOf=new TAssetOF;
@@ -184,6 +174,8 @@ function _action() {
 			$assetOf->load($PDOdb,$id);
             
 			$assetOf->openOF($PDOdb);
+            
+			$assetOf->load($PDOdb,$id);
 			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
@@ -192,6 +184,7 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $_REQUEST['id']);
 			$assetOf->closeOF($PDOdb);
+			$assetOf->load($PDOdb, $_REQUEST['id']);
             
 			_fiche($PDOdb,$assetOf, 'view');
 			
@@ -218,8 +211,53 @@ function _action() {
 			break;
 		case 'createDocOF':
 			
-			generateODTOF($PDOdb);
-
+			$id_of = $_REQUEST['id'];
+			
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $id_of, false);
+			
+			$TOFToGenerate = array($assetOf->rowid);
+			
+			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
+			
+			foreach($TOFToGenerate as $id_of) {
+			
+				$assetOf=new TAssetOF;
+				$assetOf->load($PDOdb, $id_of, false);
+				$TRes[] = generateODTOF($PDOdb, $assetOf);
+				
+			}
+			
+			$TFilePath = get_tab_file_path($TRes);
+			//var_dump($TFilePath);exit;
+			if($conf->global->ASSET_CONCAT_PDF) {
+			
+				$pdf=pdf_getInstance();
+				if (class_exists('TCPDF'))
+				{
+					$pdf->setPrintHeader(false);
+					$pdf->setPrintFooter(false);
+				}
+				$pdf->SetFont(pdf_getPDFFont($langs));
+				
+				if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
+				//$pdf->SetCompression(false);
+				                 
+				$pagecount = concat($pdf, $TFilePath);
+				
+				if ($pagecount)
+				{
+					$pdf->Output($TFilePath[0],'F');
+					if (! empty($conf->global->MAIN_UMASK))
+					{
+						@chmod($file, octdec($conf->global->MAIN_UMASK));
+					}
+				}
+				
+			}
+			
+			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
+			
 			break;
 			
 		case 'control':
@@ -300,12 +338,10 @@ function _action() {
 
 
 
-function generateODTOF(&$PDOdb) {
+function generateODTOF(&$PDOdb, &$assetOf) {
 	
 	global $db,$conf;
 
-	$assetOf=new TAssetOF;
-	$assetOf->load($PDOdb, $_REQUEST['id'], false);
 	foreach($assetOf as $k => $v) {
 		print $k."<br />";
 	}
@@ -433,7 +469,7 @@ function generateODTOF(&$PDOdb) {
 
 	}
 	
-	$dirName = 'OF'.$_REQUEST['id'].'('.date("d_m_Y").')';
+	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
 	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
@@ -455,7 +491,7 @@ function generateODTOF(&$PDOdb) {
 	
 	$barcode_pic = getBarCodePicture($assetOf);
 	
-	$TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
+	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
@@ -487,21 +523,72 @@ function generateODTOF(&$PDOdb) {
 			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 		
-	);	
+	);
+	
+	return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
 	
 	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
 }
 
+function drawCross($im, $color, $x, $y){
+	
+	imageline($im, $x - 10, $y, $x + 10, $y, $color);
+    imageline($im, $x, $y- 10, $x, $y + 10, $color);
+	
+}
+
 function getBarCodePicture(&$assetOf) {
 	
+	dol_include_once('/asset/php_barcode/php-barcode.php');
+	
 	$code = $assetOf->numero;
-	include './script/get_barcode_pic.php';
+	
+  	$fontSize = 10;   // GD1 in px ; GD2 in point
+  	$marge    = 10;   // between barcode and hri in pixel
+  	$x        = 145;  // barcode center
+  	$y        = 50;  // barcode center
+  	$height   = 50;   // barcode height in 1D ; module size in 2D
+  	$width    = 2;    // barcode height in 1D ; not use in 2D
+  	$angle    = 0;   // rotation in degrees : nb : non horizontable barcode might not be usable because of pixelisation
+  
+  	$type     = 'code128';
+
+ 	$im     = imagecreatetruecolor(300, 100);
+  	$black  = ImageColorAllocate($im,0x00,0x00,0x00);
+  	$white  = ImageColorAllocate($im,0xff,0xff,0xff);
+  	$red    = ImageColorAllocate($im,0xff,0x00,0x00);
+  	$blue   = ImageColorAllocate($im,0x00,0x00,0xff);
+  	imagefilledrectangle($im, 0, 0, 300, 300, $white);
+
+  	$data = Barcode::gd($im, $black, $x, $y, $angle, $type, array('code'=>$code), $width, $height);
+  	if ( isset($font) ){
+    	$box = imagettfbbox($fontSize, 0, $font, $data['hri']);
+		$len = $box[2] - $box[0];
+		Barcode::rotate(-$len / 2, ($data['height'] / 2) + $fontSize + $marge, $angle, $xt, $yt);
+		imagettftext($im, $fontSize, $angle, $x + $xt, $y + $yt, $blue, $font, $data['hri']);
+	}
+
+	$tmpfname = tempnam(sys_get_temp_dir(), 'barcode_pic');
+	imagepng($im, $tmpfname);
+	imagedestroy($im);
+	
 	return $tmpfname;
 	
 }
 
+function get_tab_file_path($TRes) {
+	
+	$tab = array();
+	
+	foreach($TRes as $TData) {
+		$tab[] = strtr($TData['file_path'], array('.odt'=>'.pdf'));
+	}
+	
+	return $tab;
+	
+}
 
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs;
@@ -785,7 +872,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	}
 	
 	ob_start();
-	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,1,2,'',3,array());
+	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array());
 	$select_product = ob_get_clean();
 	
 	$Tid = array();
@@ -991,4 +1078,21 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	/******/
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
+}
+function concat(&$pdf,$files) {
+	
+	foreach($files as $file)
+	{
+		$pagecount = $pdf->setSourceFile($file);
+		
+		for ($i = 1; $i <= $pagecount; $i++) {
+			$tplidx = $pdf->ImportPage($i);
+			$s = $pdf->getTemplatesize($tplidx);
+			$pdf->AddPage($s['h'] > $s['w'] ? 'P' : 'L');
+			$pdf->useTemplate($tplidx);
+		}
+		
+	}
+	
+	return $pagecount;
 }
