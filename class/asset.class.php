@@ -39,6 +39,7 @@ class TAsset extends TObjetStd{
 				'USED'=>'Consommé'
 			);
 		
+        $this->status = 'NOTUSED';
 		$this->TField=array();
 		$this->assetType=new TAsset_type;
 		$this->TType = array();
