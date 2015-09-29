@@ -673,9 +673,8 @@ class TAssetOF extends TObjetStd{
 	        {
 	                setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
 	                return false;
-	        }    
-	        
-	        
+	        }
+			    
 			if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 			else $fk_entrepot = $asset->fk_entrepot;
 			
@@ -1413,7 +1412,7 @@ class TAssetOFLine extends TObjetStd{
 			
 			$labelMvt = 'Suppression Ordre de Fabrication';
 			if($this->type == 'TO_MAKE') $labelMvt = 'Suppression Ordre de Fabrication';
-			
+		
          	$asset->save($PDOdb,$user
 	            ,$labelMvt.' n°'.$OF->numero.' - Equipement : '.$asset->serial_number
 	            ,$qty_to_re_stock, false, $this->fk_product, false, $fk_entrepot);
@@ -1429,7 +1428,8 @@ class TAssetOFLine extends TObjetStd{
         $sens = ($qty_to_destock>0) ? -1 : 1;
         $qty_to_destock_rest =  abs($qty_to_destock);
 
-		$fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
+		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 
 		//echo $sens." x ".$qty_to_destock_rest.'<br>';
 		
@@ -1758,13 +1758,13 @@ class TAssetOFLine extends TObjetStd{
 
                 $TAsset->contenancereel_value = $qty_to_make_asset;
                 $TAsset->lot_number = $lot_number;
-            
+				
                 if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
                 else $fk_entrepot = $TAsset->fk_entrepot;
                	
 				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module');
 				
-                $TAsset->save($PDOdb,'','',0,false,0,true); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
+                $TAsset->save($PDOdb,'','',0,false,0,true,$fk_entrepot); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
                 
                 $this->addAssetLink($TAsset);
                 
