@@ -1079,6 +1079,9 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
+
+if(!function_exists('concat')) {
+
 function concat(&$pdf,$files) {
 	
 	foreach($files as $file)
@@ -1095,4 +1098,5 @@ function concat(&$pdf,$files) {
 	}
 	
 	return $pagecount;
+}
 }
