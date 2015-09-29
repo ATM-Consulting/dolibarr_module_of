@@ -1597,8 +1597,8 @@ class TAssetOFLine extends TObjetStd{
 		$conditionnement = $this->conditionnement;
 		
 		//TODO : mettre tous sur la même unité de mesure
-		$qty_stock = $this->qty_stock * $this->conditionnement;
-		$qty = $this->qty * $this->conditionnement;
+		$qty_stock = $this->qty_stock;
+		$qty = $this->qty;
 		
 		return array($qty, $qty_stock);
 	}
@@ -1741,7 +1741,8 @@ class TAssetOFLine extends TObjetStd{
             for($i=0; $i<$nb_asset_to_create; $i++) 
             {
                 $TAsset = new TAsset;
-                $TAsset->fk_soc = 0;
+                $TAsset->fk_soc = $AssetOf->fk_soc;
+                $TAsset->fk_societe_localisation = $AssetOf->fk_soc;
                 $TAsset->fk_product = $fk_product;
                 $TAsset->entity = $conf->entity;
                 $TAsset->fk_asset_type = $assetType->getId();
@@ -1760,9 +1761,10 @@ class TAssetOFLine extends TObjetStd{
                 $TAsset->lot_number = $lot_number;
 				
                 if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
-                else $fk_entrepot = $TAsset->fk_entrepot;
-               	
+                
 				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module');
+                
+                $TAsset->fk_entrepot = $fk_entrepot;
 				
                 $TAsset->save($PDOdb,'','',0,false,0,true,$fk_entrepot); //Save une première fois pour avoir le serial_number + 2ème save pour mvt de stock   
                 

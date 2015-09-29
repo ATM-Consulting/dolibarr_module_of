@@ -608,7 +608,7 @@ function _fiche_ligne(&$form, &$of, $type){
 		$conditionnement_unit = $TAssetOFLine->libUnite(); 
 		
 		if($TAssetOFLine->measuring_units!='unit' && !empty($TAssetOFLine->measuring_units)) {
-            $conditionnement_label = ' x '.$conditionnement.$conditionnement_unit;
+            $conditionnement_label = ' / '.$conditionnement.$conditionnement_unit;
             $conditionnement_label_edit = ' par '.$form->texte('', 'TAssetOFLine['.$k.'][conditionnement]', $conditionnement, 5,5,'','').$conditionnement_unit;
 		    
 		}
@@ -1079,6 +1079,9 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
+
+if(!function_exists('concat')) {
+
 function concat(&$pdf,$files) {
 	
 	foreach($files as $file)
@@ -1095,4 +1098,5 @@ function concat(&$pdf,$files) {
 	}
 	
 	return $pagecount;
+}
 }
