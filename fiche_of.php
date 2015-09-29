@@ -608,7 +608,7 @@ function _fiche_ligne(&$form, &$of, $type){
 		$conditionnement_unit = $TAssetOFLine->libUnite(); 
 		
 		if($TAssetOFLine->measuring_units!='unit' && !empty($TAssetOFLine->measuring_units)) {
-            $conditionnement_label = ' x '.$conditionnement.$conditionnement_unit;
+            $conditionnement_label = ' / '.$conditionnement.$conditionnement_unit;
             $conditionnement_label_edit = ' par '.$form->texte('', 'TAssetOFLine['.$k.'][conditionnement]', $conditionnement, 5,5,'','').$conditionnement_unit;
 		    
 		}

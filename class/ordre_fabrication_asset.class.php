@@ -1597,8 +1597,8 @@ class TAssetOFLine extends TObjetStd{
 		$conditionnement = $this->conditionnement;
 		
 		//TODO : mettre tous sur la même unité de mesure
-		$qty_stock = $this->qty_stock * $this->conditionnement;
-		$qty = $this->qty * $this->conditionnement;
+		$qty_stock = $this->qty_stock;
+		$qty = $this->qty;
 		
 		return array($qty, $qty_stock);
 	}
