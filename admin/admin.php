@@ -10,8 +10,26 @@
 	$langs->load('admin');
 	
 	if (!($user->admin)) accessforbidden();
-	
+        
+    
 	$action=__get('action','');
+    
+    /*
+     * Actions
+     */
+    if (preg_match('/set_(.*)/',$action,$reg))
+    {
+        $code=$reg[1];
+        if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
+        {
+            header("Location: ".$_SERVER["PHP_SELF"]);
+            exit;
+        }
+        else
+        {
+            dol_print_error($db);
+        }
+    }
 
 	if($action=='save') {
 		
@@ -99,13 +117,29 @@
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
 	print '</td></tr>';
+    
+    print '<tr class="impair">';
+    print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('ASSET_CONCAT_PDF');
+    print '</td></tr>';
+    
+// Setup page goes here
+$form=new TFormCore;
+
+    print '<tr class="pair">';
+    print '<td>'.$langs->trans("AssetDefaultDLUO").'</td>';
+    print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+    print '<input type="hidden" name="action" value="set_ASSET_DEFAULT_DLUO">';
+    print $form->number("", "ASSET_DEFAULT_DLUO",$conf->global->ASSET_DEFAULT_DLUO,10);
+    print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+    print '</form>';
+    print '</td></tr>';
 	
-	print '<tr class="impair">';
-	print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_CONCAT_PDF');
-	print '</td></tr>';
 	
 	print '</table>';
 	
@@ -213,7 +247,7 @@ function showParameters(&$form) {
 			</tr>
 			
 			<tr class="pair">
-				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
+				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td<td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
 			</tr> 
 			
 			<tr id="USE_DEFAULT_WAREHOUSE" class="impair">

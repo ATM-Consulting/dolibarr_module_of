@@ -1745,6 +1745,8 @@ class TAssetOFLine extends TObjetStd{
                 $TAsset->fk_societe_localisation = $AssetOf->fk_soc;
                 $TAsset->fk_product = $fk_product;
                 $TAsset->entity = $conf->entity;
+                if(!empty($conf->global->ASSET_DEFAULT_DLUO)) $TAsset->dluo = strtotime(date('Y-m-d').' +'.$conf->global->ASSET_DEFAULT_DLUO.' days');
+                else $TAsset->dluo = strtotime(date('Y-m-d'));
                 $TAsset->fk_asset_type = $assetType->getId();
                 $TAsset->load_asset_type($PDOdb);
                 

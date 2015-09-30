@@ -22,6 +22,7 @@ AssetToComplete=A completer
 AssetLotsList=Liste des Lots
 AssetLoaned=Prêté
 ImpossibleToCreateAsset=Unable to create asset
+AssetDefaultDLUO=The date interval for optimal use (in days)
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication

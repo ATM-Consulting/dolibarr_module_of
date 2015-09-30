@@ -28,6 +28,7 @@ AssetLotsList=Liste des Lots
 AssetLoaned=Prêté
 AssetDescDLUO=Date Limite d'Utilisation Optimale
 ImpossibleToCreateAsset=Impossible de créer l'équipement
+AssetDefaultDLUO=Decalage en jours de la date limite d'utilisation optimale
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
