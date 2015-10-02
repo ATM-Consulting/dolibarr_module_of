@@ -126,7 +126,7 @@
     print '</td></tr>';
     
 // Setup page goes here
-$form=new TFormCore;
+	$form=new TFormCore;
 
     print '<tr class="pair">';
     print '<td>'.$langs->trans("AssetDefaultDLUO").'</td>';
@@ -136,6 +136,20 @@ $form=new TFormCore;
     print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
     print '<input type="hidden" name="action" value="set_ASSET_DEFAULT_DLUO">';
     print $form->number("", "ASSET_DEFAULT_DLUO",$conf->global->ASSET_DEFAULT_DLUO,10);
+    print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+    print '</form>';
+    print '</td></tr>';
+	
+	$form=new Form($db);
+
+    print '<tr class="impair">';
+    print '<td>'.$langs->trans("AssetDefaultLocatlisation").'</td>';
+    print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+    print '<input type="hidden" name="action" value="set_ASSET_DEFAULT_LOCATION">';
+    print $form->select_company($conf->global->ASSET_DEFAULT_LOCATION, 'ASSET_DEFAULT_LOCATION', 's.client = 1 OR s.client = 3', 1);
     print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
     print '</form>';
     print '</td></tr>';
@@ -247,7 +261,7 @@ function showParameters(&$form) {
 			</tr>
 			
 			<tr class="pair">
-				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td<td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
+				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
 			</tr> 
 			
 			<tr id="USE_DEFAULT_WAREHOUSE" class="impair">
