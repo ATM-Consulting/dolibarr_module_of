@@ -37,7 +37,7 @@ if(GETPOST('TransfertStock')){
 	$sql = "SELECT p.rowid, ps.rowid as product_stock_id, ps.reel as stock_entrepot
 			FROM ".MAIN_DB_PREFIX."product as p
 				LEFT JOIN ".MAIN_DB_PREFIX."product_stock as ps ON (ps.fk_product = p.rowid)
-			WHERE p.finished = 1 AND p.stock > 0 AND p.fk_product_type = 0 AND ps.fk_entrepot = 1 AND ps.reel > 0";
+			WHERE p.finished = 1 AND p.fk_product_type = 0 AND ps.fk_entrepot = 1";
 	
 	$PDOdb->Execute($sql);
 	$cpt = 0;
@@ -45,85 +45,94 @@ if(GETPOST('TransfertStock')){
 		$product = new Product($db);
 		$product->fetch($res->rowid);
 		$product->load_stock();
-
-		// Remove stock
-		$result1=$product->correct_stock(
-			$user,
-			1,
-			$res->stock_entrepot,
-			1,
-			"Transfert de stock ".date('d/m/Y H:i'),
-			$product->stock_warehouse[1]->pmp
-		);
-	
-		if($result1) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> RETRAIT<br>";
-		else{
-			echo "ERREUR RETRAIT"; break;
-		} 
 		
-		// Add stock
-		$result2=$product->correct_stock(
-			$user,
-			2,
-			$res->stock_entrepot,
-			0,
-			"Transfert de stock ".date('d/m/Y H:i'),
-			$product->stock_warehouse[1]->pmp
-		);
-	
-		if($result2) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> AJOUT<br>";
-		else{
-			echo "ERREUR AJOUT"; break;
-		} 
+		if($res->stock_entrepot){
+			// Remove stock
+			$result1=$product->correct_stock(
+				$user,
+				1,
+				$res->stock_entrepot,
+				1,
+				"Transfert de stock ".date('d/m/Y H:i'),
+				$product->stock_warehouse[1]->pmp
+			);
 		
-		$cpt ++;
+			if($result1) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> RETRAIT<br>";
+			else{
+				echo "ERREUR RETRAIT"; break;
+			} 
+			
+			// Add stock
+			$result2=$product->correct_stock(
+				$user,
+				2,
+				$res->stock_entrepot,
+				0,
+				"Transfert de stock ".date('d/m/Y H:i'),
+				$product->stock_warehouse[1]->pmp
+			);
+		
+			if($result2) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> AJOUT<br>";
+			else{
+				echo "ERREUR AJOUT"; break;
+			} 
+			
+			$cpt ++;
+		}
 	}
 	
-	echo $cpt;
+	echo $cpt."<br>";
 	echo '<hr>CHANGEMENT D\'ENTREPOT DES MATIERES PREMIERES<hr>';
 	
 	$sql = "SELECT p.rowid, ps.rowid as product_stock_id, ps.reel as stock_entrepot
 			FROM ".MAIN_DB_PREFIX."product as p
 				LEFT JOIN ".MAIN_DB_PREFIX."product_stock as ps ON (ps.fk_product = p.rowid)
-			WHERE p.finished = 0 AND p.stock > 0 AND p.fk_product_type = 0 AND ps.fk_entrepot = 2 AND ps.reel > 0";
+			WHERE p.finished = 0 AND p.fk_product_type = 0 AND ps.fk_entrepot = 2";
 	
 	$PDOdb->Execute($sql);
 	
+	$cpt = 0;
 	while ($res = $PDOdb->Get_line()) {
 		$product = new Product($db);
 		$product->fetch($res->rowid);
 		$product->load_stock();
 		
-		// Remove stock
-		$result1=$product->correct_stock(
-			$user,
-			2,
-			$res->stock_entrepot,
-			1,
-			"Transfert de stock ".date('d/m/Y H:i'),
-			$product->stock_warehouse[1]->pmp
-		);
-	
-		if($result1) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> RETRAIT<br>";
-		else{
-			echo "ERREUR RETRAIT"; break;
-		} 
+		if($res->stock_entrepot){
+			// Remove stock
+			$result1=$product->correct_stock(
+				$user,
+				2,
+				$res->stock_entrepot,
+				1,
+				"Transfert de stock ".date('d/m/Y H:i'),
+				$product->stock_warehouse[1]->pmp
+			);
 		
-		// Add stock
-		$result2=$product->correct_stock(
-			$user,
-			1,
-			$res->stock_entrepot,
-			0,
-			"Transfert de stock ".date('d/m/Y H:i'),
-			$product->stock_warehouse[1]->pmp
-		);
+			if($result1) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> RETRAIT<br>";
+			else{
+				echo "ERREUR RETRAIT"; break;
+			} 
+			
+			// Add stock
+			$result2=$product->correct_stock(
+				$user,
+				1,
+				$res->stock_entrepot,
+				0,
+				"Transfert de stock ".date('d/m/Y H:i'),
+				$product->stock_warehouse[1]->pmp
+			);
 	
-		if($result2) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> AJOUT<br>";
-		else{
-			echo "ERREUR AJOUT"; break;
-		} 
+			if($result2) echo $product->label." Transfert de stock ".date('d/m/Y H:i')." ---> AJOUT<br>";
+			else{
+				echo "ERREUR AJOUT"; break;
+			}
+			
+			$cpt++;
+		}
 	}
+	
+	echo $cpt.'<br>';
 }
 
 if(GETPOST('ResetAsset')){
@@ -172,6 +181,9 @@ if(GETPOST('ResetAsset')){
 }
 
 if(GETPOST('UpdateAssetType')){
+	
+	echo '<hr>MISE A JOUR DE LA GESTION DE STOCK DES EQUIPEMENTS<hr>';
+		
 	$sql = "SELECT DISTINCT(a.rowid) FROM ".MAIN_DB_PREFIX.'asset as a';
 	
 	$PDOdb->Execute($sql);
