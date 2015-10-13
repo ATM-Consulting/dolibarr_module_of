@@ -274,7 +274,7 @@
 				$out.= '</select>';
 			}
 
-			if(is_file(dol_buildpath('/projet/ajax/projects.php'))) {
+			if($conf->cliacropose->enabled) { // TODO c'est naze, à refaire en utilisant la vraie autocompletion dispo depuis dolibarr 3.8 pour utiliser l'auto complete projets de doli si active (j'avais rajouté un script ajax/projects.php pour acropose)
 			
 				// Autocomplétion
 				if(isset($selected)) {
