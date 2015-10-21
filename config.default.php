@@ -22,7 +22,7 @@
 		define('DB_DRIVER',$dolibarr_main_db_type);
 	}
 
-	dol_include_once('/abricot/inc.core.php');
+	if(!dol_include_once('/abricot/inc.core.php')) exit('abricot');
 	
 	dol_include_once('/core/lib/admin.lib.php');
 	
