@@ -33,15 +33,17 @@
 
 	if($action=='save') {
 		
-		foreach($_REQUEST['TAsset'] as $name=>$param) {
-			
-			dolibarr_set_const($db, $name, $param, 'chaine', 0, '', $conf->entity);
-			
+		if(isset($_REQUEST['TAsset']))
+		{
+			foreach($_REQUEST['TAsset'] as $name=>$param) {
+				
+				dolibarr_set_const($db, $name, $param, 'chaine', 0, '', $conf->entity);
+				
+			}
 		}
-		
-		if(isset($_FILES['template']) && !empty($_FILES['template']['tmpname'])) {
+		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name'])) {
 			
-			copy($_FILES['template']['tmpname'],'../exempleTemplate/templateOF.odt');
+			copy($_FILES['template']['tmp_name'],'../exempleTemplate/templateOF.odt');
 			
 		}
 		
