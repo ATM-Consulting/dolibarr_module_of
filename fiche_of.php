@@ -607,13 +607,22 @@ function _fiche_ligne(&$form, &$of, $type){
         if(is_null($product)) {
             $product=new Product($db);
             $product->fetch($TAssetOFLine->fk_product);
+			$product->fetch_optionals();
         }
-
+		
+		
 		$conditionnement = $TAssetOFLine->conditionnement;
-		$conditionnement_unit = $TAssetOFLine->libUnite(); 
+		
+		$TAssetType = new TAsset_type;
+		$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
+		
+		//echo $TAssetType->measuring_units.'<br>';
+		
+		$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
+		//$conditionnement_unit = $TAssetOFLine->libUnite(); 
 		
 		if($TAssetOFLine->measuring_units!='unit' && !empty($TAssetOFLine->measuring_units)) {
-            $conditionnement_label = ' / '.$conditionnement.$conditionnement_unit;
+            $conditionnement_label = ' / '.$conditionnement." ".$conditionnement_unit;
             $conditionnement_label_edit = ' par '.$form->texte('', 'TAssetOFLine['.$k.'][conditionnement]', $conditionnement, 5,5,'','').$conditionnement_unit;
 		    
 		}
