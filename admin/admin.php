@@ -64,6 +64,13 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
+	print '<tr class="pair">';
+	print '<td>'.$langs->trans("NotConcatQtyForNeeded").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED', array('set' => array('ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED' => 1)));
+	print '</td></tr>';	
+	
 	print '<tr class="impair">';
 	print '<td>'.$langs->trans("UsetAssetProductionAttributs").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';

@@ -303,10 +303,12 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 		
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
-		foreach($Tab as $prod) 
+		foreach($Tab as $fk_product => $TProd) 
 		{
-		    
-			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
+		    foreach ($TProd as $prod)
+			{
+				$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
+			}
 		}
 		
 		return true;
@@ -366,13 +368,22 @@ class TAssetOF extends TObjetStd{
 			$prod->qty = $row[1] * $qty_parent;
             $prod->note_private = isset($row['note_private']) ? $row['note_private'] : ''; 
 
-			if(isset($Tab[$prod->fk_product])) { //TODO veut-on vraiment cumuler ? voir si une conf n'est pas nécessaire ici ?
-				$Tab[$prod->fk_product]->qty += $prod->qty;
+			if (!empty($conf->global->ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED))
+			{
+				$Tab[$prod->fk_product][]=$prod;
 			}
-			else {
-				$Tab[$prod->fk_product]=$prod;	
+			else
+			{
+				if(isset($Tab[$prod->fk_product])) 
+				{
+					$Tab[$prod->fk_product][0]->qty += $prod->qty;
+				}
+				else 
+				{
+					$Tab[$prod->fk_product][]=$prod;	
+				}
 			}
-
+			
 			if (!empty($conf->global->CREATE_CHILDREN_OF))
 			{
 				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 

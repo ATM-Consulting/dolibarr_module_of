@@ -387,11 +387,18 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		
 		$qty = !empty($v->qty_needed) ? $v->qty_needed : $v->qty; 
 		
+		$TAssetType = new TAsset_type;
+		$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
+		
+		//echo $TAssetType->measuring_units.'<br>';
+		
+		$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
+	
 		if($v->type == "TO_MAKE") {
 			
 			$TToMake[] = array(
 				'type' => $v->type
-				, 'qte' => $qty
+				, 'qte' => $qty." ".utf8_decode($unitLabel)
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
@@ -401,27 +408,25 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 		}
 		else if($v->type == "NEEDED") {
-	
-			$unitLabel = "";
-
-			if($prod->weight_units == 0) {
-				$unitLabel = "Kg";
-			} else if ($prod->weight_units == -3) {
-				$unitLabel = "g";
-			} else if ($prod->weight_units == -6) {
-				$unitLabel = "mg";
-			} else if ($prod->weight_units == 99) {
-				$unitLabel = "livre(s)";
-			}
-								
+			
+			//pre($prod,true);exit;
+			$TAssetType = new TAsset_type;
+			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
+			
+			//echo $TAssetType->measuring_units.'<br>';
+			
+			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
+			
+			//echo $unitLabel.'<br>';
+			
 			$TNeeded[] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
-				, 'poids' => $prod->weight
-				, 'unitPoids' => $unitLabel
+				, 'poids' => ($prod->weight) ? $prod->weight : 1
+				, 'unitPoids' => utf8_decode($unitLabel)
 				, 'finished' => $prod->finished?"PM":"MP"
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
@@ -438,7 +443,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		}
 
 	}
-
+//exit;
 	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
 		
@@ -602,13 +607,22 @@ function _fiche_ligne(&$form, &$of, $type){
         if(is_null($product)) {
             $product=new Product($db);
             $product->fetch($TAssetOFLine->fk_product);
+			$product->fetch_optionals();
         }
-
+		
+		
 		$conditionnement = $TAssetOFLine->conditionnement;
-		$conditionnement_unit = $TAssetOFLine->libUnite(); 
+		
+		$TAssetType = new TAsset_type;
+		$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
+		
+		//echo $TAssetType->measuring_units.'<br>';
+		
+		$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
+		//$conditionnement_unit = $TAssetOFLine->libUnite(); 
 		
 		if($TAssetOFLine->measuring_units!='unit' && !empty($TAssetOFLine->measuring_units)) {
-            $conditionnement_label = ' / '.$conditionnement.$conditionnement_unit;
+            $conditionnement_label = ' / '.$conditionnement." ".$conditionnement_unit;
             $conditionnement_label_edit = ' par '.$form->texte('', 'TAssetOFLine['.$k.'][conditionnement]', $conditionnement, 5,5,'','').$conditionnement_unit;
 		    
 		}
