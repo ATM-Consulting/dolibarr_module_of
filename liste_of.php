@@ -167,6 +167,7 @@ function _liste() {
 
 	$ATMdb=new TPDOdb;
 
+	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'nbLine'=>$conf->liste_limit
