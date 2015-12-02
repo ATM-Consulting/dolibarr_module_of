@@ -231,7 +231,7 @@ function _action() {
 			$TFilePath = get_tab_file_path($TRes);
 			//var_dump($TFilePath);exit;
 			if($conf->global->ASSET_CONCAT_PDF) {
-			
+				ob_start();
 				$pdf=pdf_getInstance();
 				if (class_exists('TCPDF'))
 				{
@@ -242,8 +242,8 @@ function _action() {
 				
 				if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
 				//$pdf->SetCompression(false);
-				                 
-				$pagecount = concat($pdf, $TFilePath);
+         
+				$pagecount = concatPDFOF($pdf, $TFilePath);
 				
 				if ($pagecount)
 				{
@@ -253,9 +253,9 @@ function _action() {
 						@chmod($file, octdec($conf->global->MAIN_UMASK));
 					}
 				}
-				
+				ob_clean();
 			}
-			
+
 			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			
 			break;
@@ -1080,10 +1080,9 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
 
-if(!function_exists('concat')) {
 
-function concat(&$pdf,$files) {
-	
+function concatPDFOF(&$pdf,$files) {
+
 	foreach($files as $file)
 	{
 		$pagecount = $pdf->setSourceFile($file);
@@ -1098,5 +1097,4 @@ function concat(&$pdf,$files) {
 	}
 	
 	return $pagecount;
-}
 }
