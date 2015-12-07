@@ -52,8 +52,10 @@ class ActionsAsset
                    // pas d'of liés directement         
                    $TProduct = $TProd =  array();     
                    foreach($object->lines as &$l) {
-                        if($l->product_type == 0){ 
-                            $TProduct[] = $l->fk_product;
+                        if($l->product_type == 0){
+                        	if (empty($l->fk_product)) continue; 
+                        	
+                        	$TProduct[] = $l->fk_product;
                             
                             if(!isset($TProd[$l->fk_product])) $TProd[$l->fk_product] = 0;
                             $TProd[$l->fk_product]+=$l->qty;
