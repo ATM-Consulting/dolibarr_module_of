@@ -196,6 +196,8 @@ class TAssetOF extends TObjetStd{
 			}
 		}
 		
+		if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockAssetByOf($PDOdb, $this);
+		
 		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
 		parent::save($PDOdb);
@@ -746,6 +748,9 @@ class TAssetOF extends TObjetStd{
         return true;
 	}
 	
+	/*
+	 * Permet le lancer l'OF pour la production et de faire le destockage des NEEDED
+	 */
 	function openOF(&$PDOdb)
 	{
 		global $db, $user, $conf;
@@ -768,19 +773,24 @@ class TAssetOF extends TObjetStd{
 			
 	        if($of->launchOF($PDOdb)) 
 	        {
-	            foreach($of->TAssetOFLine as $AssetOFLine)
-	            {
-	                if($AssetOFLine->type == 'NEEDED')
-	                {
-	                	list($qty,$qty_stock) = $AssetOFLine->convertQty();
-	                    //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-	                    $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
-	                }
-	            }
+				if (empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockAssetByOf($PDOdb, $of);
 	        }
 		
 		}
 		
+	}
+	
+	function destockAssetByOf(&$PDOdb, &$of)
+	{
+		foreach($of->TAssetOFLine as $AssetOFLine)
+        {
+            if($AssetOFLine->type == 'NEEDED')
+            {
+            	list($qty,$qty_stock) = $AssetOFLine->convertQty();
+                //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+                $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
+            }
+        }
 	}
 	
 	private function getEnfantsDirects() {

@@ -163,6 +163,12 @@
     print '</form>';
     print '</td></tr>';
 	
+	print '<tr class="impair">';
+    print '<td>'.$langs->trans("AssetUseDestockagePartiel").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_USE_DESTOCKAGE_PARTIEL');
+    print '</td></tr>';
 	
 	print '</table>';
 	
