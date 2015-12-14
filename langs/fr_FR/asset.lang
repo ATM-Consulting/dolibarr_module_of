@@ -54,6 +54,8 @@ AssetChildOfStatusFollowParentStatus = Lors d'un changement de status de l'OF pa
 AssetConcatPDF = Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
 NotConcatQtyForNeeded=Dissocier les quantités des produits, nécessaires à la fabrication, pour une même référence
 AssetUseDestockagePartiel=Utiliser le destockage partiel (les produits nécessaires à la fabrication ne seront plus totalement destocké au passage "Production en cours", mais à la mise à jour des lignes à cette état)
+ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
+OfShowQtytheorique=Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

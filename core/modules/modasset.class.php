@@ -75,7 +75,7 @@ class modAsset extends DolibarrModules
 		
 		
 		$this->module_parts = array(
-			'hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard','propalcard', 'expeditioncard', 'ordersuppliercard')
+			'hooks'=>array('ordercard', 'invoicecard', 'pricesuppliercard','propalcard', 'expeditioncard', 'ordersuppliercard', 'productstock')
 			,'triggers' => 1
 			,'js' => array('/asset/js/jquery.orgchart.min.js')
 			,'css' =>  array('/asset/css/jquery.orgchart.css')

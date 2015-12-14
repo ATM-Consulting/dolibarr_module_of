@@ -517,4 +517,42 @@ class ActionsAsset
         }
 	}
 	
+	
+	function addMoreLine($parameters, &$object, &$action, $hookmanager)
+	{
+		global $db,$conf,$langs;
+		
+		if (!empty($conf->global->OF_SHOW_QTY_THEORIQUE_MOINS_OF))
+		{
+			$langs->load('asset@asset');
+			dol_include_once('/product/class/procudt.class.php');
+			
+			$product = new Product($db);
+			$f = $product->fetch(GETPOST('id', 'int'));
+			
+			if ($f > 0)
+			{
+				$product->load_stock();
+				
+				print '<tr>';
+				print '<td>'.$langs->trans('ofLabelQtyTheoriqueMoinsOf').'</td>';
+				print '<td>'.($product->stock_theorique - $this->_calcQtyOfProductInOf($db, $product)).'</td>';
+				print '</tr>';
+			}
+		}
+	}
+	
+	private function _calcQtyOfProductInOf(&$db, &$product)
+	{
+		$sql = 'SELECT (SUM(aol.qty_needed) - SUM(aol.qty)) AS qty
+				FROM '.MAIN_DB_PREFIX.'assetOf_line aol
+				INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
+				WHERE aol.fk_product = '.$product->id.' 
+				AND ao.status IN ("DRAFT", "VALID")';
+		
+		$resql = $db->query($sql);
+		
+		if ($row = $db->fetch_object($resql)) return $row->qty;		
+		else return 0;
+	}
 }
