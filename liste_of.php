@@ -471,28 +471,8 @@ function _printTicket()
 	@mkdir($dir, 0777, true);
 	
 	if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
-	else $template = "etiquette.odt";
+	else $template = "etiquette.html";
 	
-	$renderHtml = '';
-	
-	$i=1;
-	foreach ($TInfoEtiquette as $TInfo)
-	{
-		$renderHtml .= '<div style="float:left;padding:10px 25px;height:161px;">';
-		$renderHtml.= '<p><b>N°CMD : '.$TInfo['refCmd'].' / '.(ceil($i/8) ).' / '.$TInfo['refProd'].'</b></p>';
-		$renderHtml.= '<p><b>Quantité : '.$TInfo['qty_to_make'].'</b></p>';
-		$renderHtml.= '<p>'.($TInfo['label']).'</p>';
-		$renderHtml.= '</div>';
-		
-		if ($i%2==0) $renderHtml.= '<p style="clear:both;"></p>';
-		
-		$i++;
-	}
-	
-	echo $renderHtml;
-	exit;
-
-	/*
 	$TBS=new TTemplateTBS();
 	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
 		,array(
@@ -503,14 +483,12 @@ function _printTicket()
 		)
 		,array()
 		,array(
-			'outFile'=>$dir.$fileName.".odt"
-			,"convertToPDF"=>true
+			'outFile'=>$dir.$fileName.".html"
+			,'convertToPDF'=>true
 		)
 	);
 	
 	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf");
-	 * 
-	 */
 }
 
 function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
@@ -523,6 +501,7 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	$assetOf = new TAssetOF;
 	$cmd = new Commande($db);
 	$product = new Product($db);
+	$pos = 1;
 	foreach ($TPrintTicket as $fk_assetOf => $qty)
 	{
 		if ($qty <= 0) continue;
@@ -543,8 +522,9 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 							,'qty_to_print' => $qty
 							,'qty_to_make' => $assetOfLine->qty
 							,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
-							//,'barCode' => _getBarCodePicture($product)
-						);	
+							,'pos' => ceil($pos/8)						);
+						
+						$pos++;
 					}
 				}
 			}
@@ -553,43 +533,4 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	}
 	
 	return $TInfoEtiquette;
-}
-
-function _getBarCodePicture(&$product) {
-	
-	dol_include_once('/asset/php_barcode/php-barcode.php');
-	
-	$code = $product->barcode;
-	
-  	$fontSize = 10;   // GD1 in px ; GD2 in point
-  	$marge    = 10;   // between barcode and hri in pixel
-  	$x        = 145;  // barcode center
-  	$y        = 50;  // barcode center
-  	$height   = 50;   // barcode height in 1D ; module size in 2D
-  	$width    = 2;    // barcode height in 1D ; not use in 2D
-  	$angle    = 0;   // rotation in degrees : nb : non horizontable barcode might not be usable because of pixelisation
-  
-  	$type     = 'code128';
-
- 	$im     = imagecreatetruecolor(300, 100);
-  	$black  = ImageColorAllocate($im,0x00,0x00,0x00);
-  	$white  = ImageColorAllocate($im,0xff,0xff,0xff);
-  	$red    = ImageColorAllocate($im,0xff,0x00,0x00);
-  	$blue   = ImageColorAllocate($im,0x00,0x00,0xff);
-  	imagefilledrectangle($im, 0, 0, 300, 300, $white);
-
-  	$data = Barcode::gd($im, $black, $x, $y, $angle, $type, array('code'=>$code), $width, $height);
-  	if ( isset($font) ){
-    	$box = imagettfbbox($fontSize, 0, $font, $data['hri']);
-		$len = $box[2] - $box[0];
-		Barcode::rotate(-$len / 2, ($data['height'] / 2) + $fontSize + $marge, $angle, $xt, $yt);
-		imagettftext($im, $fontSize, $angle, $x + $xt, $y + $yt, $blue, $font, $data['hri']);
-	}
-
-	$tmpfname = tempnam(sys_get_temp_dir(), 'barcode_pic');
-	imagepng($im, $tmpfname);
-	imagedestroy($im);
-	
-	return $tmpfname;
-	
 }
