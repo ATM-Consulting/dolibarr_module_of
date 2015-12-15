@@ -14,7 +14,7 @@
 	$langs->load('asset@asset');
 	
 	$action = __get('action');
-	
+
 	switch ($action) {
 		case 'createOFCommande':
 
@@ -23,9 +23,10 @@
 			_createOFCommande($ATMdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
 			_liste();
 			break;
-		
+		case 'printTicket':
+			_printTicket();
 		default:
-			_liste();		
+			_liste();
 			break;
 	}	
 	
@@ -121,12 +122,12 @@ function _liste() {
 	}
 	
 	$form=new TFormCore;
-
+	
 	$assetOf=new TAssetOF;
 	$r = new TSSRenderControler($assetOf);
 
 	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
-		, ofe.status, ofe.fk_user, ofe.total_cost
+		, ofe.status, ofe.fk_user, ofe.total_cost, '' AS printTicket
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
 		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
@@ -165,6 +166,9 @@ function _liste() {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 
+	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
+	echo $form->hidden('action', 'printTicket');
+	
 	$ATMdb=new TPDOdb;
 
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
@@ -179,6 +183,7 @@ function _liste() {
 			,'numero'=>'<a href="fiche_of.php?id=@rowid@">'.img_picto('','object_list.png','',0).' @val@</a>'
 			,'product'=>'<a href="'.DOL_URL_ROOT.'/product/card.php?id=@fk_product@">'.img_picto('','object_product.png','',0).' @val@</a>'
 			,'client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?id=@fk_soc@">'.img_picto('','object_company.png','',0).' @val@</a>'
+			,'printTicket'=>'<input style=width:40px;"" type="number" value="0" name="printTicket[@rowid@]" min="0" />'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -209,6 +214,7 @@ function _liste() {
 			,'client'=>'Client'
 			,'nb_product_to_make'=>'Nb produits à fabriquer'
 			,'total_cost'=>'Coût'
+			,'printTicket' => 'impression<br />étiquette'
 		)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
@@ -224,12 +230,14 @@ function _liste() {
         )
 	));
 	
+	echo '<p align="right"><input class="button" type="submit" name="print" value="Impression étiquette" /></p>';
+	
 	$form->end();
 	
 	// 
 	// On n'affiche pas le bouton de création d'OF si on est sur la liste OF depuis l'onglet "OF" de la fiche commande
 	if($fk_commande) {
-				
+		
 		$commande=new Commande($db);
 		$commande->fetch($fk_commande);	
 				
@@ -246,7 +254,6 @@ function _liste() {
 		$limit = $conf->liste_limit;
 	
 		print_barre_liste($langs->trans('ListOrderProducts'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
-	
 	
 		$i = 0;
 		
@@ -381,8 +388,6 @@ function _liste() {
             
             
 		}
-		        
-		    
 		
 		echo '<div class="tabsAction">';
 		
@@ -448,4 +453,143 @@ function get_format_libelle_societe($fk_soc) {
     }
     
     return '';
+}
+
+function _printTicket()
+{
+	global $db,$conf,$langs;
+
+	$PDOdb = new TPDOdb;
+	
+	$dirName = 'OF_TICKET('.date("Y_m_d").')';
+	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
+	$fileName = date('Ymd').'_ETIQUETTE';
+	
+	$TPrintTicket = GETPOST('printTicket', 'array');
+	$TInfoEtiquette = _genInfoEtiquette($db, $PDOdb, $TPrintTicket);
+	//var_dump($TInfoEtiquette);exit;
+	@mkdir($dir, 0777, true);
+	
+	if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
+	else $template = "etiquette.odt";
+	
+	$renderHtml = '';
+	
+	$i=1;
+	foreach ($TInfoEtiquette as $TInfo)
+	{
+		$renderHtml .= '<div style="float:left;padding:10px 25px;height:161px;">';
+		$renderHtml.= '<p><b>N°CMD : '.$TInfo['refCmd'].' / '.(ceil($i/8) ).' / '.$TInfo['refProd'].'</b></p>';
+		$renderHtml.= '<p><b>Quantité : '.$TInfo['qty_to_make'].'</b></p>';
+		$renderHtml.= '<p>'.($TInfo['label']).'</p>';
+		$renderHtml.= '</div>';
+		
+		if ($i%2==0) $renderHtml.= '<p style="clear:both;"></p>';
+		
+		$i++;
+	}
+	
+	echo $renderHtml;
+	exit;
+
+	/*
+	$TBS=new TTemplateTBS();
+	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
+		,array(
+			'TInfoEtiquette'=>$TInfoEtiquette
+		)
+		,array(
+			'date'=>date("d/m/Y")
+		)
+		,array()
+		,array(
+			'outFile'=>$dir.$fileName.".odt"
+			,"convertToPDF"=>true
+		)
+	);
+	
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf");
+	 * 
+	 */
+}
+
+function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
+{
+	$TInfoEtiquette = array();
+	if (empty($TPrintTicket)) return $TInfoEtiquette;
+	
+	dol_include_once('/commande/class/commande.class.php');
+	
+	$assetOf = new TAssetOF;
+	$cmd = new Commande($db);
+	$product = new Product($db);
+	foreach ($TPrintTicket as $fk_assetOf => $qty)
+	{
+		if ($qty <= 0) continue;
+		
+		$load = $assetOf->load($PDOdb, $fk_assetOf);
+		if ($load === true && $assetOf->fk_commande > 0 && $cmd->fetch($assetOf->fk_commande) > 0)
+		{
+			foreach ($assetOf->TAssetOFLine as &$assetOfLine)
+			{
+				if ($assetOfLine->type == 'TO_MAKE' && $product->fetch($assetOfLine->fk_product) > 0)
+				{
+					for ($i = 0; $i < $qty; $i++)
+					{
+						$TInfoEtiquette[] = array(
+							'numOf' => $assetOf->numero
+							,'refCmd' => $cmd->ref
+							,'refProd' => $product->ref
+							,'qty_to_print' => $qty
+							,'qty_to_make' => $assetOfLine->qty
+							,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
+							//,'barCode' => _getBarCodePicture($product)
+						);	
+					}
+				}
+			}
+		}
+		
+	}
+	
+	return $TInfoEtiquette;
+}
+
+function _getBarCodePicture(&$product) {
+	
+	dol_include_once('/asset/php_barcode/php-barcode.php');
+	
+	$code = $product->barcode;
+	
+  	$fontSize = 10;   // GD1 in px ; GD2 in point
+  	$marge    = 10;   // between barcode and hri in pixel
+  	$x        = 145;  // barcode center
+  	$y        = 50;  // barcode center
+  	$height   = 50;   // barcode height in 1D ; module size in 2D
+  	$width    = 2;    // barcode height in 1D ; not use in 2D
+  	$angle    = 0;   // rotation in degrees : nb : non horizontable barcode might not be usable because of pixelisation
+  
+  	$type     = 'code128';
+
+ 	$im     = imagecreatetruecolor(300, 100);
+  	$black  = ImageColorAllocate($im,0x00,0x00,0x00);
+  	$white  = ImageColorAllocate($im,0xff,0xff,0xff);
+  	$red    = ImageColorAllocate($im,0xff,0x00,0x00);
+  	$blue   = ImageColorAllocate($im,0x00,0x00,0xff);
+  	imagefilledrectangle($im, 0, 0, 300, 300, $white);
+
+  	$data = Barcode::gd($im, $black, $x, $y, $angle, $type, array('code'=>$code), $width, $height);
+  	if ( isset($font) ){
+    	$box = imagettfbbox($fontSize, 0, $font, $data['hri']);
+		$len = $box[2] - $box[0];
+		Barcode::rotate(-$len / 2, ($data['height'] / 2) + $fontSize + $marge, $angle, $xt, $yt);
+		imagettftext($im, $fontSize, $angle, $x + $xt, $y + $yt, $blue, $font, $data['hri']);
+	}
+
+	$tmpfname = tempnam(sys_get_temp_dir(), 'barcode_pic');
+	imagepng($im, $tmpfname);
+	imagedestroy($im);
+	
+	return $tmpfname;
+	
 }
