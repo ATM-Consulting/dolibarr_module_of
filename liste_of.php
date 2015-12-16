@@ -463,7 +463,21 @@ function _printTicket(&$PDOdb)
 		)
 	);
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf");
+	try 
+	{
+        $wkhtmltopdf = new Wkhtmltopdf(array('path' => sys_get_temp_dir()));
+		$wkhtmltopdf->setUrl($file_path);
+		$wkhtmltopdf->_bin = !empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? $conf->global->ABRICOT_WKHTMLTOPDF_CMD : 'wkhtmltopdf';
+        $wkhtmltopdf->output(Wkhtmltopdf::MODE_DOWNLOAD,$fileName.'.pdf');
+		
+		header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf");
+		exit;
+    } 
+    catch (Exception $e) 
+    {
+        setEventMessages($e->getMessage(), null, 'errors');
+    }
+	
 }
 
 function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
