@@ -58,6 +58,7 @@ ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
 OfShowQtytheorique=Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
 ofPrintTicket=Impression étiquette
 ofListProductNeeded=<strong>Liste OF ayant besoin du produit</strong>
+set_ABRICOT_WKHTMLTOPDF_CMD=Commande pour la génération PDF des étiquettes (WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/)
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

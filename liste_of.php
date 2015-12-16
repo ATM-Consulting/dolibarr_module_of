@@ -438,7 +438,7 @@ function _printTicket(&$PDOdb)
 	
 	$dirName = 'OF_TICKET('.date("Y_m_d").')';
 	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
-	$fileName = date('Ymd').'_ETIQUETTE';
+	$fileName = date('YmdHis').'_ETIQUETTE';
 	
 	$TPrintTicket = GETPOST('printTicket', 'array');
 	$TInfoEtiquette = _genInfoEtiquette($db, $PDOdb, $TPrintTicket);
@@ -463,21 +463,8 @@ function _printTicket(&$PDOdb)
 		)
 	);
 	
-	try 
-	{
-        $wkhtmltopdf = new Wkhtmltopdf(array('path' => sys_get_temp_dir()));
-		$wkhtmltopdf->setUrl($file_path);
-		$wkhtmltopdf->_bin = !empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? $conf->global->ABRICOT_WKHTMLTOPDF_CMD : 'wkhtmltopdf';
-        $wkhtmltopdf->output(Wkhtmltopdf::MODE_DOWNLOAD,$fileName.'.pdf');
-		
-		header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf");
-		exit;
-    } 
-    catch (Exception $e) 
-    {
-        setEventMessages($e->getMessage(), null, 'errors');
-    }
-	
+	header("Location: ".dol_buildpath("/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf", 1));
+	exit;
 }
 
 function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
