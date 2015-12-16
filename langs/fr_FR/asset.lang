@@ -56,6 +56,8 @@ NotConcatQtyForNeeded=Dissocier les quantités des produits, nécessaires à la 
 AssetUseDestockagePartiel=Utiliser le destockage partiel (les produits nécessaires à la fabrication ne seront plus totalement destocké au passage "Production en cours", mais à la mise à jour des lignes à cette état)
 ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
 OfShowQtytheorique=Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
+ofPrintTicket=Impression étiquette
+ofListProductNeeded=<strong>Liste OF ayant besoin du produit</strong>
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
