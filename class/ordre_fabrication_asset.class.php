@@ -196,7 +196,7 @@ class TAssetOF extends TObjetStd{
 			}
 		}
 		
-		if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockAssetByOf($PDOdb, $this);
+		if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockOrStockPartialQty($PDOdb, $this);
 		
 		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
@@ -513,6 +513,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
 		$TAssetOFLine->qty_used = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
+		$TAssetOFLine->qty_make = 0;
 		$TAssetOFLine->note_private = $note_private;
 		
         $TAssetOFLine->fk_product_fournisseur_price = -2;
@@ -697,13 +698,16 @@ class TAssetOF extends TObjetStd{
 				
 				if($AssetOFLine->type == "TO_MAKE")
 				{
-					if($AssetOFLine->makeAsset($PDOdb, $of, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
-						//exit('1');
-					   $AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
+					if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
+					else {
+						if($AssetOFLine->makeAsset($PDOdb, $of, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
+							//exit('1');
+							$AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
+						}
+		                else{
+		                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
+		                }	
 					}
-	                else{
-	                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
-	                }
 					
 				} 
 				else 
@@ -716,7 +720,7 @@ class TAssetOF extends TObjetStd{
 					}
 					
 					//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-					$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
+					if (empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
 				}
 			}
 		
@@ -791,6 +795,16 @@ class TAssetOF extends TObjetStd{
                 $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
             }
         }
+	}
+	
+	function destockOrStockPartialQty(&$PDOdb, &$of)
+	{
+		if ($of->status != 'OPEN' && $of->status != 'CLOSE') return false;
+		foreach($of->TAssetOFLine as $AssetOFLine)
+        {
+            if($AssetOFLine->type == 'NEEDED') $AssetOFLine->destockQtyUsedAsset($PDOdb);
+			else $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
+		}
 	}
 	
 	private function getEnfantsDirects() {
@@ -1397,7 +1411,7 @@ class TAssetOFLine extends TObjetStd{
 
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp','type=float;');
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,qty_make,conditionnement,conditionnement_unit,pmp','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
         $this->add_champs('note_private',array('type'=>'text'));
 
@@ -1686,10 +1700,10 @@ class TAssetOFLine extends TObjetStd{
         
         return $r;
     }
-    function getAssetLinked(&$PDOdb) {
+    function getAssetLinked(&$PDOdb, $only_ids=false) {
         
         $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
-        
+        if ($only_ids) return $TId;
 		//pre($TId,true);
 		
         $Tab = array();
@@ -1826,6 +1840,11 @@ class TAssetOFLine extends TObjetStd{
 		$this->loadFournisseurPrice($PDOdb);
 		
 		$this->load_product();
+		
+		//Utilisé pour le destockage/stockage partiel
+		$this->old_qty_stock = $this->qty_stock;
+		$this->old_qty_used = $this->qty_used;
+		$this->old_qty_make = $this->qty_make;
 	}
 	
 	function load_product() {
@@ -2057,6 +2076,22 @@ class TAssetOFLine extends TObjetStd{
 		parent::set_values($row);
 	}
 	
+	//Fonction pour le destockage partiel
+	function destockQtyUsedAsset(&$PDOdb)
+	{
+    	//Ne pas prendre en compte le ->qty_stock dans le calcul car avec le destockage partiel le module ne destock pas le prévisionnel (Quantité réelle) lors du lancement en production
+    	//Cette donnée devient donc un simple indicateur
+		$qty_to_destock = $this->qty_used - $this->old_qty_used;
+		$this->destockAsset($PDOdb, $qty_to_destock);
+	}
+	
+	function stockQtyToMakeAsset(&$PDOdb, &$of)
+	{
+		$qty_make = $this->qty_make - $this->old_qty_make;
+		
+		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->destockAsset($PDOdb, -$qty_make, true); // On stock les nouveaux équipements
+		else setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
+	}
 }
 
 /*
