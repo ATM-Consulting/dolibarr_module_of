@@ -536,23 +536,33 @@ class ActionsAsset
 				
 				print '<tr>';
 				print '<td>'.$langs->trans('ofLabelQtyTheoriqueMoinsOf').'</td>';
-				print '<td>'.($product->stock_theorique - $this->_calcQtyOfProductInOf($db, $product)).'</td>';
+				print '<td>'.($product->stock_theorique + $this->_calcQtyOfProductInOf($db, $conf, $product)).'</td>';
 				print '</tr>';
 			}
 		}
 	}
 	
-	private function _calcQtyOfProductInOf(&$db, &$product)
+	private function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 	{
-		$sql = 'SELECT (SUM(aol.qty_needed) - SUM(aol.qty)) AS qty
-				FROM '.MAIN_DB_PREFIX.'assetOf_line aol
-				INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
-				WHERE aol.fk_product = '.$product->id.' 
-				AND ao.status IN ("DRAFT", "VALID")';
+		$qty = 0;
+		
+		$sql = 'SELECT (SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_used) - SUM(aol.qty_make)' : 'SUM(aol.qty_used)'  ).' 
+				        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol 
+				        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
+				        	AND aol.fk_product = '.$product->id.' 
+				        	AND aol.type = "TO_MAKE"  
+				        	AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_to_make
+				        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : 'SUM(aol.qty_needed) - SUM(aol.qty_used)' ).' 
+							FROM '.MAIN_DB_PREFIX.'assetOf_line aol
+							INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
+							WHERE aol.fk_product = '.$product->id.'
+							AND aol.type = "NEEDED"
+							AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_needed';
 		
 		$resql = $db->query($sql);
+		if ($row = $db->fetch_object($resql)) $qty = ($row->qty_to_make - $row->qty_needed); //Valeur de retour tjr positif car on doit soustraire
+		//Si je fabrique plus de ce que j'utilise alors
 		
-		if ($row = $db->fetch_object($resql)) return $row->qty;		
-		else return 0;
+		return $qty;
 	}
 }
