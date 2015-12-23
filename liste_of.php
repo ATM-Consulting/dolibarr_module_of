@@ -140,6 +140,8 @@ function _liste(&$PDOdb)
 	$TMath=array();
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
 	
+	if ($conf->global->OF_NB_TICKET_PER_PAGE == -1) $THide[] = 'printTicket';
+	
 	if(empty($user->rights->asset->of->price)) $THide[] = 'total_cost';
 	else $TMath['total_cost']='sum';
 	
@@ -147,7 +149,7 @@ function _liste(&$PDOdb)
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 	
-	echo $form->hidden('action', 'printTicket');
+	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) echo $form->hidden('action', 'printTicket');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
 	
@@ -162,7 +164,7 @@ function _liste(&$PDOdb)
 			,'numero'=>'<a href="'.dol_buildpath('/asset/fiche_of.php?id=@rowid@"', 2).'>'.img_picto('','object_list.png','',0).' @val@</a>'
 			,'product'=>'<a href="'.dol_buildpath('/product/card.php?id=@fk_product@', 2).'">'.img_picto('','object_product.png','',0).' @val@</a>'
 			,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 2).'">'.img_picto('','object_company.png','',0).' @val@</a>'
-			,'printTicket'=>'<input style=width:40px;"" type="number" value="0" name="printTicket[@rowid@]" min="0" />'
+			,'printTicket'=>'<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket[@rowid@]" min="0" />'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -209,7 +211,7 @@ function _liste(&$PDOdb)
         )
 	));
 	
-	echo '<p align="right"><input class="button" type="submit" name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
+	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) echo '<p align="right"><input class="button" type="submit" name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
 	
 	$form->end();
 	

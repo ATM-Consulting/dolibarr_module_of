@@ -121,6 +121,7 @@ class modAsset extends DolibarrModules
 			,array('ASSET_DEFINED_OPERATION_BY_WORKSTATION', 'chaine', 0,'Permet de définir un protocole opératoire pour chaque poste de travail',1)
 			,array('ASSET_DEFINED_WORKSTATION_BY_NEEDED', 'chaine', 0,'Permet de ventiler les produits de composition par poste de travail',1)
 			,array('ASSET_USE_CONTROL', 'chaine', 0,'Permet de définir des contrôles à appliquer lors du processus de l\'OF',1)
+			,array('OF_NB_TICKET_PER_PAGE', 'chaine', -1, '', 1)
 		);
 
 

@@ -178,6 +178,19 @@
 	
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
+    print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+    print '<input type="hidden" name="action" value="set_OF_NB_TICKET_PER_PAGE">';
+    print $formCore->number("", "OF_NB_TICKET_PER_PAGE",$conf->global->OF_NB_TICKET_PER_PAGE,10,1,-1);
+    print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+    print '</form>';
+    print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("set_ABRICOT_WKHTMLTOPDF_CMD").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="right" width="300" style="white-space:nowrap;">';
