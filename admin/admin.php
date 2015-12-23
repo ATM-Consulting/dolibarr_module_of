@@ -64,70 +64,80 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("NotConcatQtyForNeeded").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED', array('set' => array('ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED' => 1)));
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("UsetAssetProductionAttributs").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_USE_PRODUCTION_ATTRIBUT');
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('CREATE_CHILDREN_OF', array('alert' => array('method'=>'fnHideOPCAAdrr' ,'del' => array('content'=>$langs->trans('AssetOFConfirmChangeState'), 'title'=>$langs->trans('AssetOFConfirmChangeStateTitle'))), 'del' => array('CREATE_CHILDREN_OF_COMPOSANT', 'CREATE_OF_ON_ORDER_VALIDATE', 'DELETE_OF_ON_ORDER_CANCEL')));
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("CreateAssetChildrenOFWithComposant").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('USE_LOT_IN_OF');
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AllBatchNumberAreMandatory").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('OF_LOT_MANDATORY');
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetAddNeededQtyZero").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetNegativeDestock").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
 	print '</td></tr>';
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
 	print '</td></tr>';
     
-    print '<tr class="impair">';
+    $var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
@@ -136,7 +146,8 @@
     
 // Setup page goes here
 
-    print '<tr class="pair">';
+    $var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("AssetDefaultDLUO").'</td>';
     print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
     print '<td align="center" width="20">&nbsp;</td>';
@@ -150,7 +161,8 @@
 	
 	$form=new Form($db);
 
-    print '<tr class="impair">';
+    $var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("AssetDefaultLocatlisation").'</td>';
     print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
     print '<td align="center" width="20">&nbsp;</td>';
@@ -162,14 +174,16 @@
     print '</form>';
     print '</td></tr>';
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("AssetUseDestockagePartiel").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_USE_DESTOCKAGE_PARTIEL');
     print '</td></tr>';
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfShowQtytheorique").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
@@ -210,35 +224,40 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-    print '<tr class="pair">';
+    $var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("UseProjectTask").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
     print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
     print '</td></tr>'; 
     
-    print '<tr class="impair">';
+    $var=!$var;
+	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("UseProjectTaskHierarchique").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
     print ajax_constantonoff('ASSET_TASK_HIERARCHIQUE_BY_RANK');
     print '</td></tr>'; 
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetDefinedUserByWorkstation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_DEFINED_USER_BY_WORKSTATION');
 	print '</td></tr>';
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetDefinedTaskByWorkstation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_DEFINED_OPERATION_BY_WORKSTATION');
 	print '</td></tr>';
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -253,35 +272,40 @@
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetUseControl").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_USE_CONTROL');
 	print '</td></tr>';	
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetAutoCreateProjectOnOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_AUTO_CREATE_PROJECT_ON_OF');
 	print '</td></tr>';	
 	
-	print '<tr class="impair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetAuthorizeAddWorkstationTime0OnOF").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -293,7 +317,7 @@
 	showParameters($formCore);
 
 function showParameters(&$formCore) {
-	global $db,$conf,$langs;
+	global $db,$conf,$langs,$bc;
 	dol_include_once('/product/class/html.formproduct.class.php');
 	
 	$formProduct = new FormProduct($db);
@@ -305,25 +329,33 @@ function showParameters(&$formCore) {
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
 			</tr>
 			
-			<tr class="pair">
+			<?php $var=!$var; ?>
+			<tr <?php echo $bc[$var]; ?>>
 				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
 			</tr> 
 			
-			<tr id="USE_DEFAULT_WAREHOUSE" class="impair">
+			<?php $var=!$var; ?>
+			<tr id ="USE_DEFAULT_WAREHOUSE" <?php echo $bc[$var]; ?>>
 				<td><?php echo $langs->trans('UseDefinedWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_DEFAULT_WAREHOUSE', array('showhide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'), 'hide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'))); ?></td>
 			</tr> 
 			
-			<tr class="pair" id="WAREHOUSE_TO_MAKE" class="pair" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
+			<?php $var=!$var; ?>
+			<tr <?php echo $bc[$var]; ?> id="WAREHOUSE_TO_MAKE" class="pair" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
 			
-			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
+			<?php $var=!$var; ?>
+			<tr <?php echo $bc[$var]; ?> id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr> 
+			
+			
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>
 			</tr>
-			<tr class="pair" >
+			
+			<?php $var=!$var; ?>
+			<tr <?php echo $bc[$var]; ?>>
 				<td><?php echo $langs->trans('Template') ?></td><td>
 					<input type="file" name="template" />
 					<?php 
