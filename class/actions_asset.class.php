@@ -535,8 +535,9 @@ class ActionsAsset
 			if ($f > 0)
 			{
 				$product->load_stock();
-				$qty = $product->stock_theorique + $qty_to_make - $qty_needed;
 				list($qty_to_make, $qty_needed) = $this->_calcQtyOfProductInOf($db, $conf, $product);
+				$qty = $product->stock_theorique + $qty_to_make - $qty_needed;
+				
 				print '<tr>';
 				print '<td>'.$langs->trans('ofLabelQtyTheoriqueMoinsOf').'</td>';
 				print '<td>'.$langs->trans('ofResultQty', $qty, $qty_to_make, $qty_needed).'</td>';
@@ -554,7 +555,7 @@ class ActionsAsset
 				        	AND aol.fk_product = '.$product->id.' 
 				        	AND aol.type = "TO_MAKE"  
 				        	AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_to_make
-				        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : 'SUM(aol.qty_needed) - SUM(aol.qty_used)' ).' 
+				        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : 'SUM(aol.qty_used)' ).' 
 							FROM '.MAIN_DB_PREFIX.'assetOf_line aol
 							INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
 							WHERE aol.fk_product = '.$product->id.'

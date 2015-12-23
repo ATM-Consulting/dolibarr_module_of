@@ -1530,7 +1530,7 @@ class TAssetOFLine extends TObjetStd{
 		}
         //exit;
     	$this->qty_stock += -$sens * $qty_to_destock;
-        
+        if ($this->type == 'TO_MAKE') $this->qty_make = $this->qty_stock;
         return $this->save($PDOdb);
     }
     
