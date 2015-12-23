@@ -528,15 +528,18 @@ class ActionsAsset
 			dol_include_once('/product/class/procudt.class.php');
 			
 			$product = new Product($db);
-			$f = $product->fetch(GETPOST('id', 'int'));
+			$fk_product = GETPOST('id', 'int');
+			$ref_product = GETPOST('ref', 'alpha');
+			$f = $product->fetch($fk_product, $ref_product);
 			
 			if ($f > 0)
 			{
 				$product->load_stock();
-				
+				$qty = $product->stock_theorique + $qty_to_make - $qty_needed;
+				list($qty_to_make, $qty_needed) = $this->_calcQtyOfProductInOf($db, $conf, $product);
 				print '<tr>';
 				print '<td>'.$langs->trans('ofLabelQtyTheoriqueMoinsOf').'</td>';
-				print '<td>'.($product->stock_theorique + $this->_calcQtyOfProductInOf($db, $conf, $product)).'</td>';
+				print '<td>'.$langs->trans('ofResultQty', $qty, $qty_to_make, $qty_needed).'</td>';
 				print '</tr>';
 			}
 		}
@@ -544,8 +547,7 @@ class ActionsAsset
 	
 	private function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 	{
-		$qty = 0;
-		
+		$qty_to_make = $qty_needed = 0;
 		$sql = 'SELECT (SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_used) - SUM(aol.qty_make)' : 'SUM(aol.qty_used)'  ).' 
 				        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol 
 				        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
@@ -560,9 +562,13 @@ class ActionsAsset
 							AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_needed';
 		
 		$resql = $db->query($sql);
-		if ($row = $db->fetch_object($resql)) $qty = ($row->qty_to_make - $row->qty_needed); //Valeur de retour tjr positif car on doit soustraire
-		//Si je fabrique plus de ce que j'utilise alors
 		
-		return $qty;
+		if ($row = $db->fetch_object($resql)) 
+		{
+			$qty_to_make = is_null($row->qty_to_make) ? 0 : $row->qty_to_make;
+			$qty_needed = is_null($row->qty_needed) ? 0 : $row->qty_needed;
+		}
+		
+		return array($qty_to_make, $qty_needed);
 	}
 }

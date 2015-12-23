@@ -55,6 +55,7 @@ AssetConcatPDF = Concaténer les documents PDF de fabrication des OFs enfants av
 NotConcatQtyForNeeded=Dissocier les quantités des produits, nécessaires à la fabrication, pour une même référence
 AssetUseDestockagePartiel=Utiliser le destockage partiel (les produits nécessaires à la fabrication ne seront plus totalement destocké au passage "Production en cours", mais à la mise à jour de la "Quantité réelle")
 ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
+ofResultQty=%s (Qté en fabrication : %s / Qté utilisée : %s)
 OfShowQtytheorique=Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
 ofPrintTicket=Impression étiquette
 ofListProductNeeded=<strong>Liste OF ayant besoin du produit</strong>
