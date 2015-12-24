@@ -513,7 +513,6 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
 		$TAssetOFLine->qty_used = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
-		$TAssetOFLine->qty_make = 0;
 		$TAssetOFLine->note_private = $note_private;
 		
         $TAssetOFLine->fk_product_fournisseur_price = -2;
@@ -1411,7 +1410,7 @@ class TAssetOFLine extends TObjetStd{
 
     	$this->TChamps = array(); 	  
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,qty_make,conditionnement,conditionnement_unit,pmp','type=float;');
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp','type=float;');
 		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
         $this->add_champs('note_private',array('type'=>'text'));
 
