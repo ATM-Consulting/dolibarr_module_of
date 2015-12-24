@@ -548,6 +548,7 @@ class ActionsAsset
 	
 	private function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 	{
+		
 		$qty_to_make = $qty_needed = 0;
 		$sql = 'SELECT (SELECT SUM(aol.qty_used) - SUM(aol.qty_stock) 
 				        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol 
@@ -555,8 +556,8 @@ class ActionsAsset
 				        	AND aol.fk_product = '.$product->id.' 
 				        	AND aol.type = "TO_MAKE"  
 				        	AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_to_make
-				        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : 'SUM(aol.qty_used) - SUM(aol.qty_stock)' ).' 
-							FROM '.MAIN_DB_PREFIX.'assetOf_line aol
+				        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
+				        	FROM '.MAIN_DB_PREFIX.'assetOf_line aol
 							INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
 							WHERE aol.fk_product = '.$product->id.'
 							AND aol.type = "NEEDED"
@@ -569,7 +570,7 @@ class ActionsAsset
 			$qty_to_make = is_null($row->qty_to_make) ? 0 : $row->qty_to_make;
 			$qty_needed = is_null($row->qty_needed) ? 0 : $row->qty_needed;
 		}
-		//var_dump($qty_to_make, $qty_needed);
+		
 		return array($qty_to_make, $qty_needed);
 	}
 }
