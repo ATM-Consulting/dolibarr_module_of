@@ -247,7 +247,8 @@ function _addlines(&$PDOdb,$idLine,$qty)
 	//$PDOdb->debug = true;
 	$TAssetOFLine->load($PDOdb, $idLine);
 	$TAssetOFLine->qty = $_REQUEST['qty'];
-	if ($TAssetOFLine->type == 'TO_MAKE') { $TAssetOFLine->qty_needed = $TAssetOFLine->qty; $TAssetOFLine->qty_used = $TAssetOFLine->qty; }
+	if ($TAssetOFLine->type == 'TO_MAKE') { $TAssetOFLine->qty_needed = $TAssetOFLine->qty_used = $TAssetOFLine->qty; }
+	
 	$TAssetOFLine->save($PDOdb);
 
 	//On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
@@ -281,7 +282,7 @@ function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_pr
 			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
 			{
 				$TIdLineModified[] = $TAssetOF->getId();
-				$line->qty = $line->qty_needed = $line->qty_used = $qty;
+				$line->qty_needed = $line->qty = $line->qty_used = $qty;
 				$line->save($PDOdb);
 
 				_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF, $line);
@@ -379,21 +380,22 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
 		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
 		if($line->type == 'NEEDED' && !empty($TComposition[$line->fk_product][1])) 
 		{
-			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
+			//$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
+			$line->qty_needed = $qty * $TComposition[$line->fk_product][1];
 			$line->save($PDOdb);
 
 			//_updateToMake : si un OF enfant existe pour ce produit NEEDED alors on met à jour les qté de celui-ci
-	        if(!_updateToMake($TAssetOFChildId, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF)) {
+	        if(!_updateToMake($TAssetOFChildId, $PDOdb, $db, $conf, $line->fk_product, $line->qty_needed, $TIdLineModified, $TNewIdAssetOF)) {
 				//Si on entre là, c'est que la création d'un OF doit être efféctué, uniquement si la conf nous le permet
 				
 				//TODO attention la création de l'OF ne prend pas en compte la quantité encore en stock
   				
   				if (!empty($conf->global->CREATE_CHILDREN_OF)) 
   				{
-                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty, $line->fk_nomenclature);
+                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty_needed, $line->fk_nomenclature);
 
 					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {	
-						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty, $line->getId());
+						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty_needed, $line->getId());
 						$TAssetOF->save($PDOdb);
 
 						if ($k !== null) $TNewIdAssetOF[] = $TAssetOF->TAssetOF[$k]->rowid;
