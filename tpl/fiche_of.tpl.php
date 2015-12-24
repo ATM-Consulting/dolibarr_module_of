@@ -94,7 +94,7 @@
 									</td>
 									<td>[TTomake.qty;strconv=no]</td>
 									[onshow;block=begin;when [view.OF_USE_DESTOCKAGE_PARTIEL]=='1']
-										<td>[TTomake.qty_make;strconv=no]</td>
+										<td>[TTomake.qty_stock;strconv=no]</td>
 									[onshow;block=end]
 									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
