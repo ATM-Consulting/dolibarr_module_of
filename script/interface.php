@@ -247,6 +247,7 @@ function _addlines(&$PDOdb,$idLine,$qty)
 	//$PDOdb->debug = true;
 	$TAssetOFLine->load($PDOdb, $idLine);
 	$TAssetOFLine->qty = $_REQUEST['qty'];
+	if ($TAssetOFLine->type == 'TO_MAKE') { $TAssetOFLine->qty_needed = $TAssetOFLine->qty; $TAssetOFLine->qty_used = $TAssetOFLine->qty; }
 	$TAssetOFLine->save($PDOdb);
 
 	//On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
@@ -280,7 +281,7 @@ function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_pr
 			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
 			{
 				$TIdLineModified[] = $TAssetOF->getId();
-				$line->qty = $qty;
+				$line->qty = $line->qty_needed = $line->qty_used = $qty;
 				$line->save($PDOdb);
 
 				_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF, $line);
