@@ -2087,7 +2087,6 @@ class TAssetOFLine extends TObjetStd{
 	
 	function stockQtyToMakeAsset(&$PDOdb, &$of)
 	{
-		//Petit souci sur le destockAsset à revoir
 		$qty_make = ($this->qty_stock - $this->old_qty_stock) / -1;
 		
 		//var_dump($this->qty_stock, $this->old_qty_stock);
