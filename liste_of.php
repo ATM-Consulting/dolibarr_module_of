@@ -83,7 +83,7 @@ function _liste(&$PDOdb)
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
 		<br><div class="error"><?php echo $langs->trans('OFAssetDeleted'); ?></div><br>
-		<?
+		<?php
 	}
 	
 	$fk_soc=__get('fk_soc',0,'integer');
