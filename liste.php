@@ -43,7 +43,7 @@ function _liste($id_entity) {
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
 		<br><div class="error"><?php echo  $langs->trans('AssetDeleted'); ?></div><br>
-		<?
+		<?php
 	}
 	
 	if(isset($_REQUEST['fk_soc'])) {

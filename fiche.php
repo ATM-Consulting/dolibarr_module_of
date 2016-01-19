@@ -187,7 +187,7 @@ function _action() {
 				<script language="javascript">
 					document.location.href="<?php echo dirname($_SERVER['PHP_SELF'])?>/liste.php?delete_ok=1";					
 				</script>
-				<?
+				<?php
 				
 				break;
 				
@@ -254,7 +254,7 @@ global $langs,$db,$conf, $ASSET_LINK_ON_FIELD, $hookmanager;
 	if(isset($_REQUEST['error'])) {
 		?>
 		<br><div class="error">Type de mouvement incorrect</div><br>
-		<?
+		<?php
 	}
 	
 	// Utilisé pour afficher les bulles d'aide :: A voir si on ferais mieux pas de copier la fonction dans la class TFormCore pour éviter cette instant
