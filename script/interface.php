@@ -109,13 +109,18 @@ function _getNomenclatures(&$PDOdb, $fk_product)
 
 function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) 
 {
+	global $conf;
+	 
+	$coef = 1;
+	if (!empty($conf->global->ASSET_COEF_WS)) $coef = $conf->global->ASSET_COEF_WS;
+	
 	$of=new TAssetOF;
 	$of->load($PDOdb, $id_assetOf);
 	
 	$k = $of->addChild($PDOdb, 'TAssetWorkstationOF');
 	
 	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
-	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour;
+	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour * $coef;
 	$of->save($PDOdb);
 }
 

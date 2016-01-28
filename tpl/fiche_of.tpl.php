@@ -6,6 +6,9 @@
 	}		
 	[onshow;block=end]
 	
+	.ui-autocomplete {
+		z-index:999;
+	}
 </style>		
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">		
 		<form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
