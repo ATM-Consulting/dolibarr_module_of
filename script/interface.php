@@ -107,23 +107,6 @@ function _getNomenclatures(&$PDOdb, $fk_product)
 	return $TNomenclature;
 }
 
-function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) 
-{
-	global $conf;
-	 
-	$coef = 1;
-	if (!empty($conf->global->ASSET_COEF_WS)) $coef = $conf->global->ASSET_COEF_WS;
-	
-	$of=new TAssetOF;
-	$of->load($PDOdb, $id_assetOf);
-	
-	$k = $of->addChild($PDOdb, 'TAssetWorkstationOF');
-	
-	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
-	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour * $coef;
-	$of->save($PDOdb);
-}
-
 function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of) 
 {
 	$of=new TAssetOF;
@@ -203,28 +186,6 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 	$TassetOF->load($PDOdb, $id_assetOf);
 	$TassetOF->addLine($PDOdb, $fk_product, $type,$qty,0, $lot_number, GETPOST('fk_nomenclature', 'int'));
 	$TassetOF->save($PDOdb);
-	
-	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
-	if(!empty($conf->workstation->enabled) && $type == "TO_MAKE") 
-	{
-		//$sql = "SELECT fk_asset_workstation, nb_hour"; 
-		$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-		//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
-		$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-		$sql.= " WHERE fk_product = ".$fk_product;
-		$resql = $db->query($sql);
-		
-		if($resql) 
-		{
-			while($res = $db->fetch_object($resql)) 
-			{
-				_addofworkstation($PDOdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
-			}
-
-		}
-		
-	}
-
 }
 
 function _deletelineof(&$PDOdb,$idLine,$type){

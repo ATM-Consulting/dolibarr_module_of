@@ -562,6 +562,42 @@ class TAssetOF extends TObjetStd{
 			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
+		
+		// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
+		if(!empty($conf->workstation->enabled) && $type == "TO_MAKE") 
+		{
+			//$sql = "SELECT fk_asset_workstation, nb_hour"; 
+			$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+			//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+			$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
+			$sql.= " WHERE fk_product = ".$fk_product;
+			$resql = $db->query($sql);
+			
+			if($resql) 
+			{
+				while($res = $db->fetch_object($resql)) 
+				{
+					$this->addofworkstation($PDOdb, $res->fk_asset_workstation, $res->nb_hour);
+				}
+	
+			}
+			
+			$this->save($PDOdb);
+			$this->load($PDOdb, $this->getId());
+		}
+	}
+	
+	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0) 
+	{
+		global $conf;
+		 
+		$coef = 1;
+		if (!empty($conf->global->ASSET_COEF_WS)) $coef = $conf->global->ASSET_COEF_WS;
+		
+		$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+		
+		$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
+		$this->TAssetWorkstationOF[$k]->nb_hour = $nb_hour * $coef;
 	}
 	
 	function updateLines(&$PDOdb,$TQty)
