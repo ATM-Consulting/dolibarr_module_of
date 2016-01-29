@@ -143,19 +143,24 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function set_temps_fabrication() {
-		global $db, $user;    
+		global $db, $user, $conf;
         dol_include_once('/projet/class/task.class.php');
 			
 		$this->temps_estime_fabrication=0;
 		$this->temps_reel_fabrication=0;
-		$this->mo_cost = 0;	
-		    
+		$this->mo_cost = 0;
+		
+		$night = $this->isNight();
+		
 		foreach($this->TAssetWorkstationOF as &$ws) {
 			
 			$this->temps_estime_fabrication+=$ws->nb_hour;
 			$this->temps_reel_fabrication+=$ws->nb_hour_real;
 			
-			$this->mo_cost+= $ws->nb_hour_real * ($ws->ws->thm + $ws->ws->thm_machine);
+			if ($night) $thm = $ws->ws->thm_night;
+			else $thm = $ws->ws->thm;
+			
+			$this->mo_cost+= $ws->nb_hour_real * ($thm + $ws->ws->thm_machine);
 			
             if($ws->fk_project_task>0) {
                
@@ -170,6 +175,23 @@ class TAssetOF extends TObjetStd{
 			
 		}
 		
+	}
+	
+	function isNight()
+	{
+		global $conf;
+		
+		$night = false;
+		if (!empty($conf->global->WORKSTATION_TRANCHE_HORAIRE_THM_NUIT)) 
+		{
+			// Cas simple
+			$tranche = explode('-', $conf->global->WORKSTATION_TRANCHE_HORAIRE_THM_NUIT);
+			$heure_de_saisie = date('Hi');
+			
+			if ($heure_de_saisie >= $tranche[0] || $heure_de_saisie <= $tranche[1]) $night = true;
+		}
+		
+		return $night;
 	}
 	
 	function save(&$PDOdb) {
