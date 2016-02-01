@@ -75,6 +75,7 @@ AssetWorkstation=Poste de travail
 AssetNewWorkstation=Nouveau poste de travail
 AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
 set_ASSET_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste depuis une nomenclature produit
+AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
 
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement

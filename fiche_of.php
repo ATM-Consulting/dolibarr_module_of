@@ -129,7 +129,6 @@ function _action() {
 				}
 			}
 
-			
 			$assetOf->entity = $conf->entity;
 
 			//Permet de mettre à jour le lot de l'OF parent

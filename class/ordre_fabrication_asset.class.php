@@ -62,7 +62,6 @@ class TAssetOF extends TObjetStd{
             $ws->of_fk_project = $this->fk_project;
         }
         
-        
 		return $res;
 	}
 	
@@ -2207,116 +2206,143 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 	}
 	
+	function createTask(&$PDOdb, &$db, &$conf, &$user, &$OF)
+	{
+		//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
+		if (!$user->id)	$user->id = GETPOST('user_id');
+
+		$ws = new TAssetWorkstation;
+		$ws->load($PDOdb, $this->fk_asset_workstation);
+		
+		$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
+		$modTask = new $class_mod;
+		
+		$projectTask = new Task($db);
+		$projectTask->fk_project = $OF->fk_project;
+		$projectTask->ref = $modTask->getNextValue(0, $projectTask);
+		$projectTask->label = $ws->libelle;
+        
+        if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
+            $PDOdb->Execute("SELECT MAX(t.rowid) as rowid 
+            FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)  
+            WHERE t.fk_projet=".$this->of_fk_project." AND tex.fk_of=".$this->fk_assetOf);
+            $PDOdb->Get_line();
+            $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
+            
+        }
+        else{
+            $projectTask->fk_task_parent = 0;    
+        }
+		
+						
+		$projectTask->date_start = $OF->date_lancement;
+		$projectTask->date_end = $OF->date_besoin;
+		$projectTask->planned_workload = $this->nb_hour*3600;
+		
+        $projectTask->array_options['options_grid_use']=1;
+        $projectTask->array_options['options_fk_workstation']=$ws->getId();
+		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
+		
+		$p = new Product($db);
+		$line_product_to_make = $OF->getLineProductToMake();
+		if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
+			$projectTask->array_options['options_fk_product']=$p->id;
+		}
+        
+		$res = $projectTask->create($user);
+        if($res<0) {
+            var_dump($projectTask);
+            
+            exit('ErrorCreateTaskWS') ;
+        }
+        else{
+            $this->fk_project_task = $projectTask->id;
+        }
+		
+		$this->updateAssociation($PDOdb, $db, $projectTask);
+	}
+	
+	function updateTask(&$PDOdb, &$db, &$conf, &$user, &$OF)
+	{
+		if (!$user->id)	$user->id = GETPOST('user_id');
+		
+		$projectTask = new Task($db);
+		$projectTask->fetch($this->fk_project_task);
+		$projectTask->fk_project = $OF->fk_project;
+		
+		$projectTask->update($user);
+		
+		$this->updateAssociation($PDOdb, $db, $projectTask);
+	}
+	
+	function updateAssociation(&$PDOdb, &$db, &$projectTask)
+	{
+		// Association des utilisateurs aux tâches du projet
+		$TUsers = $this->get_users($PDOdb);
+		if(!empty($TUsers)) {
+			dol_include_once('/projet/class/project.class.php');
+			foreach ($TUsers as $id_user_associated_on_task) {
+				$p = new Project($db);
+				if($p->fetch($projectTask->fk_project) > 0) {
+					$p->add_contact($id_user_associated_on_task, 160, 'internal');
+					$projectTask->add_contact($id_user_associated_on_task, 180, 'internal');
+				}
+				
+			}
+		}
+	}
+	
+	function deleteTask(&$db, &$conf, &$user)
+	{
+		require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+			
+		if (!$user->id)	$user->id = GETPOST('user_id');
+		
+		$projectTask = new Task($db);
+		$projectTask->fetch($this->fk_project_task);
+		$projectTask->delete($user);
+		
+		$this->fk_project_task = 0;
+	}
+	
+	function manageProjectTask(&$PDOdb, &$of)
+	{
+		global $db,$conf,$user;
+		
+		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
+		
+		$action = '';
+		
+		if ($of->fk_project > 0 && $this->fk_project_task == 0) $action = 'createTask';
+		elseif ($of->fk_project > 0 && $this->fk_project_task > 0) $action = 'updateTask';
+		elseif ($of->fk_project == 0 && $this->fk_project_task > 0) $action = 'deleteTask';
+		
+		switch ($action) 
+		{
+			case 'createTask':
+				$this->createTask($PDOdb, $db, $conf, $user, $of);
+				break;
+			case 'updateTask':
+				$this->updateTask($PDOdb, $db, $conf, $user, $of);
+				break;
+			case 'deleteTask':
+				$this->deleteTask($db, $conf, $user);
+				break;
+			default:
+				break;
+		}
+	}
+	
 	function save(&$PDOdb)
 	{
-	 	global $db,$conf,$user;
+	 	global $conf;
 		
-        if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $this->of_status === 'VALID')
+        if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
-		    
-			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
-			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
-			
-			if ($this->of_fk_project > 0 && $this->fk_project_task == 0)
-			{
-				//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
-				if (!$user->id)	$user->id = GETPOST('user_id');
-				
-                $OF=new TAssetOF;
-                $OF->load($PDOdb, $this->fk_assetOf);
-                
-				$ws = new TAssetWorkstation;
-				$ws->load($PDOdb, $this->fk_asset_workstation);
-				
-				$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
-				$modTask = new $class_mod;
-				
-				$projectTask = new Task($db);
-				$projectTask->fk_project = $OF->fk_project;
-				$projectTask->ref = $modTask->getNextValue(0, $projectTask);
-				$projectTask->label = $ws->libelle;
-                
-                if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
-                    $PDOdb->Execute("SELECT MAX(t.rowid) as rowid 
-                    FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)  
-                    WHERE t.fk_projet=".$this->of_fk_project." AND tex.fk_of=".$this->fk_assetOf);
-                    $PDOdb->Get_line();
-                    $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
-                    
-                }
-                else{
-                    $projectTask->fk_task_parent = 0;    
-                }
-				
-								
-				$projectTask->date_start = $OF->date_lancement;
-				$projectTask->date_end = $OF->date_besoin;
-				$projectTask->planned_workload = $this->nb_hour*3600;
-				
-                $projectTask->array_options['options_grid_use']=1;
-                $projectTask->array_options['options_fk_workstation']=$ws->getId();
-				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
-				
-				$p = new Product($db);
-				$line_product_to_make = $OF->getLineProductToMake();
-				if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
-					$projectTask->array_options['options_fk_product']=$p->id;
-				}
-                
-				$res = $projectTask->create($user);
-                if($res<0) {
-                    var_dump($projectTask);
-                    
-                    exit('ErrorCreateTaskWS') ;
-                }
-                else{
-                    $this->fk_project_task = $projectTask->id;    
-                }
-                
-				
-				
-			}
-			elseif ($this->of_fk_project > 0 && $this->fk_project_task > 0)
-			{
-				if (!$user->id)	$user->id = GETPOST('user_id');
-				
-				$projectTask = new Task($db);
-				$projectTask->fetch($this->fk_project_task);
-				$projectTask->fk_project = $OF->fk_project;
-				
-				$projectTask->update($user);
-			}
-			elseif ($this->of_fk_project == 0 && $this->fk_project_task > 0)
-			{
-				require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-				
-				if (!$user->id)	$user->id = GETPOST('user_id');
-				
-				$projectTask = new Task($db);
-				$projectTask->fetch($this->fk_project_task);
-				$projectTask->delete($user);
-				
-				$this->fk_project_task = 0;
-			}
-			else 
-			{
-				//Rien à faire
-			}
-			
-			// Association des utilisateurs aux tâches du projet
-			$TUsers = $this->get_users($PDOdb);
-			if(!empty($TUsers)) {
-				dol_include_once('/projet/class/project.class.php');
-				foreach ($TUsers as $id_user_associated_on_task) {
-					$p = new Project($db);
-					if($p->fetch($projectTask->fk_project) > 0) {
-						$p->add_contact($id_user_associated_on_task, 160, 'internal');
-						$projectTask->add_contact($id_user_associated_on_task, 180, 'internal');
-					}
-					
-				}
-			}
-			
+			$of=new TAssetOF;
+        	$of->load($PDOdb, $this->fk_assetOf);
+			if ($of->status === 'VALID') $this->manageProjectTask($PDOdb, $of);
 		}
 		
 		parent::save($PDOdb);
