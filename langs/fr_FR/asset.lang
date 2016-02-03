@@ -140,3 +140,5 @@ AssetListWorkstation=Liste des postes de travails
 UseManualWarehouse=Permet de définir manuellement les entrepôts à utiliser pour le stockage/destockage des équipements sur chaque OF
 UseProjectTaskHierarchique=Créer les tâches de manière hierarchique
 
+NewWorkStation=Nouveau poste de travail
+moduleWorkstationNeeded=Module Poste de travail requis

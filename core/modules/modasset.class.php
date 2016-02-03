@@ -314,10 +314,10 @@ class modAsset extends DolibarrModules
 		
 		
 		
-		//WORKSTATION module
+		//WORKSTATION module //TODO remove menu from of and put it in OF
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetWorkstation'),
+					'titre'=>$langs->trans('WorkStation'),
 					'mainmenu'=>'asset',
 					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/workstation/workstation.php',
@@ -325,12 +325,13 @@ class modAsset extends DolibarrModules
 					'enabled'=>'$conf->workstation->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->workstation->all->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
+					'lang'=>'workstation@workstation',
 					'user'=>2);
 		$r++;
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=asset,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetNewWorkstation'),
+					'titre'=>$langs->trans('NewWorkStation'),
 					'mainmenu'=>'newworkstation',
 					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/workstation/workstation.php?action=new',
@@ -338,6 +339,7 @@ class modAsset extends DolibarrModules
 					'enabled'=>'$conf->workstation->enabled',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 					'perms'=>'$user->rights->workstation->all->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
+					'lang'=>'workstation@workstation',
 					'user'=>2);
 		$r++;
 		/***/

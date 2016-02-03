@@ -51,9 +51,14 @@
 
 	$o=new TAssetOFLine;
 	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetWorkstation;
-	$o->init_db_by_vars($ATMdb);
+	if (class_exists('TWorkstation')) {
+		$o=new TAssetWorkstation;
+		$o->init_db_by_vars($ATMdb);
+			
+	}
+	else {
+		exit($langs->trans("moduleWorkstationNeeded").' : <a href="https://github.com/ATM-Consulting/dolibarr_module_workstation" target="_blank">'.$langs->trans('DownloadModule').'</a>');
+	}
 	
 	$o=new TAssetWorkstationOF;
 	$o->init_db_by_vars($ATMdb);

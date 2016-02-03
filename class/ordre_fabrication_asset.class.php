@@ -2586,44 +2586,35 @@ class TAssetWorkstationOF extends TObjetStd{
 
 
 
-require_once DOL_DOCUMENT_ROOT.'/custom/workstation/class/workstation.class.php';
+dol_include_once('/workstation/class/workstation.class.php');
 
-class TAssetWorkstation extends TWorkstation {
-/*
- * Atelier de fabrication d'équipement
- * */
-	
-	function __construct() {
-		//$this->set_table(MAIN_DB_PREFIX.'asset_workstation');
-    	//$this->TChamps = array(); 	 
-    	
-    	parent::__construct();
-    	 
-		//$this->add_champs('entity,fk_usergroup','type=entier;index;');
-		//$this->add_champs('libelle','type=chaine;');
-		//$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
+if (class_exists('TWorkstation')) {
+	class TAssetWorkstation extends TWorkstation {
+	//TODO remove it and use workstation object
+		function __construct() {
+	    	
+	    	parent::__construct();
+		    $this->start();
+			
+		}
 		
-	    $this->start();
+		function load(&$PDOdb, $id)
+		{
+			parent::load($PDOdb, $id);
+			$this->libelle = $this->name;
+		}
+		
+		function save(&$PDOdb) {
+			global $conf;
+			
+			$this->name = $this->libelle;
+			$this->entity = $conf->entity;
+			
+			parent::save($PDOdb);
+		}
 		
 	}
-	
-	function load(&$PDOdb, $id)
-	{
-		parent::load($PDOdb, $id);
-		$this->libelle = $this->name;
-	}
-	
-	function save(&$PDOdb) {
-		global $conf;
-		
-		$this->name = $this->libelle;
-		$this->entity = $conf->entity;
-		
-		parent::save($PDOdb);
-	}
-	
 }
-
 
 class TAssetWorkstationTask extends TObjetStd
 {

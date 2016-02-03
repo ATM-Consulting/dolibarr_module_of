@@ -352,13 +352,25 @@ class TAsset extends TObjetStd{
 		
 	}
     
-    function getNomUrl($with_picto=true, $with_lot=false) {
+    function getNomUrl($with_picto=true, $with_lot=false, $with_product=false) {
         
         $url = '<a href="'.dol_buildpath('/asset/fiche.php?id='.$this->getId(),1).'" />';
         if($with_picto)$url.=img_picto('', 'pictoasset.png@asset');
         if($with_lot)$url.='[ '.$this->lot_number.' ] ';
-        $url.=$this->serial_number.'</a>';
+        $url.=$this->serial_number;
         
+		if($with_product && $this->fk_product>0) {
+			global $db;
+			
+			$product = new Product($db);
+			$product->fetch($this->fk_product);
+			$url.=' - '.$product->label;
+		}
+		
+        $url.='</a>';
+        
+		
+		
         return $url;
         
     }
