@@ -1,8 +1,8 @@
 # Dolibarr language file - fr_FR
 CHARSET=UTF-8
 
-Module104160Name = Equipement
-Module104160Desc = Gestion des équipements et de la production (GPAO)
+Module104161Name = OF
+Module104161Desc = Gestion des ordres de fabrication (GPAO)
 CreateAssetLot=Créer un lot d'équipement
 CreateAsset=Créer un équipement
 AssetSetup=Configuration du module Equipement
