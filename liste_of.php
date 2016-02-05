@@ -5,8 +5,7 @@
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/commande/class/commande.class.php');
 	
-	if(!$user->rights->asset->all->lire) accessforbidden();
-	if(!$user->rights->asset->of->lire) accessforbidden();
+	if(!$user->rights->of->of->lire) accessforbidden();
 	
 	dol_include_once("/core/class/html.formother.class.php");
 	dol_include_once("/core/lib/company.lib.php");
@@ -161,9 +160,7 @@ function _liste(&$PDOdb)
 		,'subQuery'=>array()
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 2).'">'.img_picto('','object_user.png','',0).' @val@</a>'
-			,'numero'=>'<a href="'.dol_buildpath('/asset/fiche_of.php?id=@rowid@"', 2).'>'.img_picto('','object_list.png','',0).' @val@</a>'
-			,'product'=>'<a href="'.dol_buildpath('/product/card.php?id=@fk_product@', 2).'">'.img_picto('','object_product.png','',0).' @val@</a>'
-			,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 2).'">'.img_picto('','object_company.png','',0).' @val@</a>'
+			,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@"', 2).'>'.img_picto('','object_list.png','',0).' @val@</a>'
 			,'printTicket'=>'<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket[@rowid@]" min="0" />'
 		)
 		,'translate'=>array()

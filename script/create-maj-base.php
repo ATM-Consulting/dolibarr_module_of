@@ -16,37 +16,9 @@
 	
 	global $db;
 	
-	dol_include_once('/asset/class/asset.class.php');
-	dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
+	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
-    if(!class_exists('modAsset')) dol_include_once('/asset/core/modules/modasset.class.php');
-    Tools::setVersion($db, 'modAsset');
-	
-	$o=new TAsset_type;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetLink;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAsset_field;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetLot;
-	$o->init_db_by_vars($ATMdb);
-
-	$o=new TAsset;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetCommandedet;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetFacturedet;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetStock;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetOF;
+    $o=new TAssetOF;
 	$o->init_db_by_vars($ATMdb);
 
 	$o=new TAssetOFLine;
@@ -66,18 +38,6 @@
 	$o=new TAssetWorkstationProduct;
 	$o->init_db_by_vars($ATMdb);
 	
-	$o=new TAssetPropaldet;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetPropal;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetCommande;
-	$o->init_db_by_vars($ATMdb);
-	
-	$o=new TAssetFacture;
-	$o->init_db_by_vars($ATMdb);
-	
 	$o=new TAssetControl;
 	$o->init_db_by_vars($ATMdb);
 	
@@ -90,6 +50,5 @@
 	$o=new TAssetWorkstationTask;
 	$o->init_db_by_vars($ATMdb);
 	
-	//Obligatoire pour que la fonctionnalité d'import standard fonctionne
-	$ATMdb->Execute("ALTER TABLE ".MAIN_DB_PREFIX."asset CHANGE rowid rowid INT(11) AUTO_INCREMENT");
+	
 	

@@ -1,9 +1,9 @@
 <?php
 
 require('config.php');
-dol_include_once('/asset/class/asset.class.php');
-dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
-dol_include_once('/asset/lib/asset.lib.php');
+
+dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+dol_include_once('/of/lib/of.lib.php');
 dol_include_once('/core/lib/ajax.lib.php');
 dol_include_once('/core/lib/product.lib.php');
 dol_include_once('/core/lib/admin.lib.php');
@@ -15,13 +15,12 @@ dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
-if(!$user->rights->asset->all->lire) accessforbidden();
-if(!$user->rights->asset->of->write) accessforbidden();
+if(!$user->rights->of->of->lire) accessforbidden();
 
 // Load traductions files requiredby by page
 $langs->load("other");
 $langs->load("orders");
-$langs->load("asset@asset");
+$langs->load("of@of");
 
 $hookmanager->initHooks(array('ofcard'));
 
