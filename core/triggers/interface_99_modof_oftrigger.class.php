@@ -121,11 +121,11 @@ class Interfaceoftrigger
 			if($conf->global->CREATE_OF_ON_ORDER_VALIDATE) {
 				define('INC_FROM_DOLIBARR',true);
 				
-				dol_include_once('product/class/product.class.php');
+				dol_include_once('/product/class/product.class.php');
 			
 				dol_include_once('/of/config.php');
 				dol_include_once('/of/class/ordre_fabrication_asset.class.php');
-					
+				$PDOdb=new TPDOdb;	
 				
 				foreach($object->lines as $line) {
 					
@@ -142,8 +142,8 @@ class Interfaceoftrigger
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $_REQUEST['id'];
 							$assetOF->fk_soc = $object->socid;
-							$assetOF->addLine($ATMdb, $line->fk_product, 'TO_MAKE', $line->qty);
-							$assetOF->save($ATMdb);
+							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty);
+							$assetOF->save($PDOdb);
 							
 						}
 
@@ -160,16 +160,18 @@ class Interfaceoftrigger
 					define('INC_FROM_DOLIBARR',true);
 					dol_include_once('/of/config.php');
 					dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+					$PDOdb=new TPDOdb;
+					
 					// On récupère les identifiants des of créés à partir de cette commande
 					$TID_OF_command = TAssetOF::getTID_OF_command($_REQUEST['id']);
 				
 					foreach($TID_OF_command as $id_of) {
 						
 						$asset = new TAssetOF;
-						$asset->load($ATMdb, $id_of);
+						$asset->load($PDOdb, $id_of);
 						
 						if($asset->status == "DRAFT" || $asset->status == "VALID")
-							$asset->delete($ATMdb);
+							$asset->delete($PDOdb);
 						
 					}
 	
@@ -181,16 +183,17 @@ class Interfaceoftrigger
 				define('INC_FROM_DOLIBARR',true);
 		    	dol_include_once('/of/config.php');
 				dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+				$PDOdb=new TPDOdb;
 					
-				$ATMdb->Execute("SELECT rowid 
+				$PDOdb->Execute("SELECT rowid 
 						FROM ".MAIN_DB_PREFIX."asset_workstation_of 
 						WHERE fk_project_task=".$object->id);	
-				if($obj = $ATMdb->Get_line()) {
+				if($obj = $PDOdb->Get_line()) {
 					
 					$wsof=new TAssetWorkstationOF;
-					$wsof->load($ATMdb, $obj->rowid);
+					$wsof->load($PDOdb, $obj->rowid);
 					$wsof->nb_hour_real = ($object->duration_effective + $object->timespent_duration) / 3600;
-					$wsof->save($ATMdb);
+					$wsof->save($PDOdb);
 					
 				}
 				
@@ -220,10 +223,10 @@ class Interfaceoftrigger
 					
 					if($id_of > 0) {
 						$of = new TAssetOF;
-						$of->load($ATMdb, $id_of);
+						$of->load($PDOdb, $id_of);
 						
 						if($of->status != 'CLOSE') {
-							$of->closeOF($ATMdb);
+							$of->closeOF($PDOdb);
 							setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
 						}
 					}
