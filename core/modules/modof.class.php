@@ -52,7 +52,7 @@ class modof extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "products";
+		$this->family = "GPAO";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
@@ -235,7 +235,8 @@ class modof extends DolibarrModules
 		$this->menus = array();			// List of menus to add
 		$r=0;
 		
-		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
+		if(empty($conf->asset->enabled)) {
+			$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
 					'type'=>'top',			// This is a Top menu entry
 					'titre'=>$langs->trans('GPAO'),
 					'mainmenu'=>'gpao',
@@ -247,8 +248,8 @@ class modof extends DolibarrModules
 					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-	
+			$r++;
+		}
 		
 		//WORKSTATION module
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao',			// Put 0 if this is a top menu
