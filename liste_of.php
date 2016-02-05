@@ -1,7 +1,7 @@
 <?php
 	require('config.php');
-	dol_include_once('/asset/class/asset.class.php');
-	dol_include_once('asset/class/ordre_fabrication_asset.class.php');
+	
+	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/commande/class/commande.class.php');
 	
@@ -316,7 +316,7 @@ function _liste(&$PDOdb)
                 ,'subQuery'=>array()
                 ,'link'=>array(
                     'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 2).'">'.img_picto('','object_user.png','',0).' @val@</a>'
-                    ,'numero'=>'<a href="'.dol_buildpath('/asset/fiche_of.php?id=@rowid@', 2).'">'.img_picto('','object_list.png','',0).' @val@</a>'
+                    ,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@', 2).'">'.img_picto('','object_list.png','',0).' @val@</a>'
                     ,'product'=>'<a href="'.dol_buildpath('/product/card.php?id=@fk_product@', 2).'">'.img_picto('','object_product.png','',0).' @val@</a>'
                     ,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 2).'">'.img_picto('','object_company.png','',0).' @val@</a>'
                 )

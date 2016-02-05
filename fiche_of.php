@@ -777,7 +777,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     
     if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED') 
     {
-    	$url = dol_buildpath('asset/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 2);
+    	$url = dol_buildpath('/of/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 2);
 		// Pour le moment au limite au besoin, la création reste en dure, à voir
 		$r.=$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 10,255,' title="Ajouter un équipement" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
 			.'<a href="" base-href="'.$url.'">'.img_right('lier').'</a>'
@@ -813,7 +813,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'));
+	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'));
 	
 	?><style type="text/css">
 		#assetChildContener .OFMaster {
@@ -973,12 +973,12 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'statustxt'=>TAssetOf::$TStatus[$assetOf->status]
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
-				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
-				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
+				,'url' => dol_buildpath('/of/fiche_of.php', 2)
+				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
 				,'fk_nomenclature'=>$fk_nomenclature
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
-				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
+				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
 				
 				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2)
 				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2)
@@ -1057,7 +1057,7 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	global $langs,$db,$conf;
 	
 	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'controle', $langs->trans('OFAsset'));
+	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'controle', $langs->trans('OFAsset'));
 	
 	/******/
 	$TBS=new TTemplateTBS();
@@ -1082,7 +1082,7 @@ function _fiche_control(&$PDOdb, &$assetOf)
 			,'view'=>array(
 				'nbTControl'=>count($TControl)
 				,'nbTAssetOFControl'=>count($TAssetOFControl)
-				,'url'=>DOL_URL_ROOT.'/custom/asset/fiche_of.php'
+				,'url'=>DOL_URL_ROOT.'/custom/of/fiche_of.php'
 			)
 		)
 	);

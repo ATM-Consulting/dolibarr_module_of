@@ -15,7 +15,7 @@
 
 	switch($action) {
 		case 'view':
-			if ($id <= 0) header('Location: '.DOL_MAIN_URL_ROOT.'/custom/asset/list_control.php');
+			if ($id <= 0) header('Location: '.dol_buildpath('/of/list_control.php',1));
 		
 			$control=new TAssetControl;
 			$control->load($ATMdb, $id);
@@ -57,7 +57,7 @@
 			$control->delete($ATMdb);
 			
 			$_SESSION['AssetMsg'] = 'AssetDeleteControlEvent';
-			header('Location: '.DOL_MAIN_URL_ROOT.'/custom/asset/list_control.php');
+			header('Location: '.dol_buildpath('/of/list_control.php',1));
 			
 			break;
 			
@@ -142,7 +142,7 @@ function _fiche(&$ATMdb, &$control, $mode='view', $editValue=false) {
 				'mode'=>$mode
 				,'editValue'=>$editValue
 				,'type'=>$control->type
-				,'url'=>dol_buildpath('custom/asset/control.php', 1)
+				,'url'=>dol_buildpath('/asset/control.php', 1)
 			)
 		)
 	);

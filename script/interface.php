@@ -3,11 +3,10 @@
 define('INC_FROM_CRON_SCRIPT', true);
 set_time_limit(0);
 require('../config.php');
-require('../lib/asset.lib.php');
-require('../class/asset.class.php');
-require('../class/ordre_fabrication_asset.class.php');
+dol_include_once('/of/lib/of.lib.php');
+dol_include_once('/asset/class/asset.class.php');
+dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
-//Interface qui renvoie les emprunts de ressources d'un utilisateur
 $PDOdb=new TPDOdb;
 
 $get = __get('get','emprunt');

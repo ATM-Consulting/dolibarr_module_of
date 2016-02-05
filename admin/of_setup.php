@@ -273,7 +273,7 @@ function showParameters(&$form) {
 					<input type="file" name="template" />
 					<?php 
 				
-					 echo ' <a href="'.dol_buildpath('/asset/exempleTemplate/templateOF.odt',1).'">'.$langs->trans('Download').'</a>';
+					 echo ' <a href="'.dol_buildpath('/of/exempleTemplate/templateOF.odt',1).'">'.$langs->trans('Download').'</a>';
 				 ?></td>
 			</tr> 
 			

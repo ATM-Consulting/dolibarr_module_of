@@ -155,8 +155,8 @@ class modof extends DolibarrModules
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
         $this->tabs = array(
-			'product:+tabOF2:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_product=__ID__'
-			,'order:+tabOF3:OF:asset@asset:$user->rights->asset->of->lire:/asset/liste_of.php?fk_commande=__ID__'
+			'product:+tabOF2:OF:asset@asset:$user->rights->of->of->lire:/of/liste_of.php?fk_product=__ID__'
+			,'order:+tabOF3:OF:asset@asset:$user->rights->of->of->lire:/of/liste_of.php?fk_commande=__ID__'
 			
 		);
 

@@ -1317,7 +1317,7 @@ class TAssetOF extends TObjetStd{
 	/*
 	 * Fonction qui vérifie si la quantité des équipement est suffisante pour lancer la production
 	 * Alimente $this->errors 
-	 * return true if OK else false 
+	 * return true if OK else false NULL
 	 */
 	function checkQtyAsset(&$PDOdb, &$conf)
 	{
@@ -1466,13 +1466,13 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
 
     	$this->TChamps = array(); 	  
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide','type=entier;index;');
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp','type=float;');
-		$this->add_champs('type,lot_number,measuring_units','type=chaine;');
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide',array('type'=>'integer','index'=>true));
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp',array('type'=>'float'));
+		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
         $this->add_champs('note_private',array('type'=>'text'));
 
 		//clé étrangère
-		parent::add_champs('fk_assetOf_line_parent','type=entier;index;');
+		parent::add_champs('fk_assetOf_line_parent',array('type'=>'integer','index'=>true));
 		
 		$this->TType=array('NEEDED','TO_MAKE');
 		
@@ -1530,9 +1530,9 @@ class TAssetOFLine extends TObjetStd{
 		$labelMvt = 'Utilisation via Ordre de Fabrication';
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
 		
-        if(!$conf->global->USE_LOT_IN_OF) 
+        if(!$conf->global->USE_LOT_IN_OF || empty($conf->asset->enabled)) 
         {
-            $asset=new TAsset;
+            $asset=new TAsset; //TODO if asset not implemented
 			
             $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
 	
@@ -1702,8 +1702,13 @@ class TAssetOFLine extends TObjetStd{
 	 */
 	function checkAddAssetLink(&$PDOdb, $Tab, $qty_needed, $forReal, $addLink=true)
 	{
-		$break = false;
+		global $conf;
 		
+		if(empty($conf->asset->enabled)) return false;
+		
+		
+		$break = false;
+	
 		foreach($Tab as $row) 
 	   	{
     	 	$asset=new TAsset;
@@ -1748,7 +1753,9 @@ class TAssetOFLine extends TObjetStd{
 
 
     function getAssetLinkedLinks(&$PDOdb, $r='<br />', $sep='<br />') {
-        
+        global $conf;
+		if(empty($conf->asset->enabled)) return '';
+		
         $TAsset = $this->getAssetLinked($PDOdb);
         
         foreach($TAsset as &$asset) {

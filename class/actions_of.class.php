@@ -85,8 +85,8 @@ class Actionsof
                 
                 define('INC_FROM_DOLIBARR',true);
                 
-                dol_include_once("/asset/config.php");
-                dol_include_once("/asset/of/ordre_fabrication_asset.class.php");   
+                dol_include_once("/of/config.php");
+                dol_include_once("/of/of/ordre_fabrication_asset.class.php");   
                             
                 if($obj = $db->fetch_object($res)) {
                     // of lié à la commande
@@ -196,17 +196,6 @@ class Actionsof
 	
 	function formCreateThirdpartyOptions($parameters, &$object, &$action, $hookmanager){
 			
-		if (in_array('pricesuppliercard',explode(':',$parameters['context']))) {
-			dol_include_once("/core/class/html.form.class.php");
-
-			$form = new Form($this->db);
-			?>
-			<tr id="newField">
-				<td class="fieldrequired">Composé fourni</td>
-				<td><?php print $form->selectarray('selectOuiNon', array(1=>"Oui",0=>"Non")); ?></td>
-			</tr>
-			<?php
-        }
 		
 	}
 	

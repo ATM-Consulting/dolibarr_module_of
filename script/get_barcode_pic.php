@@ -1,5 +1,5 @@
 <?php
-  dol_include_once('/asset/php_barcode/php-barcode.php');
+  dol_include_once('/of/php_barcode/php-barcode.php');
 
   // -------------------------------------------------- //
   //                  PROPERTIES

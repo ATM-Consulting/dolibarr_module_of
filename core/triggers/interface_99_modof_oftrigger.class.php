@@ -224,7 +224,7 @@ class Interfaceoftrigger
 						
 						if($of->status != 'CLOSE') {
 							$of->closeOF($ATMdb);
-							setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
+							setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
 						}
 					}
 					
