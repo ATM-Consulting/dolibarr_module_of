@@ -56,7 +56,15 @@ function traite_get(&$PDOdb, $case) {
 			break;
 	}
 }
-
+function _addofworkstation($PDOdb, $fk_of, $fk_ws) {
+	
+	$o=new TAssetOF;
+	if($o->load($PDOdb, $fk_of)) {
+		$o->addofworkstation($PDOdb, $fk_ws);
+		$o->save($PDOdb);
+	}
+	
+}
 function _validerNomenclature(&$PDOdb, $id_assetOF, $fk_product, $fk_of_line, $fk_nomenclature, $qty) {
 	// Récupération de l'OF
 	$of=new TAssetOF;
