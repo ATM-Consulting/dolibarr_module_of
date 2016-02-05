@@ -234,19 +234,21 @@ class modof extends DolibarrModules
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
 		$r=0;
-		$this->menu[$r]=array('fk_menu'=>0,			// Put 0 if this is a top menu
-				'type'=>'top',			// This is a Top menu entry
-				'titre'=>$langs->trans('GPAO'),
-				'mainmenu'=>'gpao',
-				'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-				'url'=>'/of/liste_of.php',
-				'position'=>100,
-				'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-				'enabled'=>'',
-				'target'=>'',
-				'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		
+		$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
+					'type'=>'top',			// This is a Top menu entry
+					'titre'=>$langs->trans('GPAO'),
+					'mainmenu'=>'gpao',
+					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+					'url'=>'/asset/index.php',
+					'langs'=>'of@of',
+					'position'=>100,
+					'enabled'=>'$user->rights->of->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'target'=>'',
+					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-
+	
 		
 		//WORKSTATION module
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao',			// Put 0 if this is a top menu
