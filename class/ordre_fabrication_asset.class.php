@@ -1524,6 +1524,7 @@ class TAssetOFLine extends TObjetStd{
 		$asset=new TAsset; //TODO if asset not implemented
 		$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
 	
+	   $this->qty_stock += - $sens * $qty_to_destock_rest;
 	}
 	
 	/**
@@ -1570,7 +1571,10 @@ class TAssetOFLine extends TObjetStd{
 					echo $this->lot_number;exit;
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
-	                $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+				
+					$this->destockProduct( $sens * $qty_to_destock_rest);
+				
+	              //  $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
 				}
                 
             }
@@ -1597,10 +1601,10 @@ class TAssetOFLine extends TObjetStd{
                 }
                 
             }
-        	
+        	if ($update_qty_stock) $this->qty_stock += $sens * $qty_to_destock;
 		}
         //exit;
-    	if ($update_qty_stock) $this->qty_stock += -$sens * $qty_to_destock;
+    	
         return $this->save($PDOdb);
     }
     
@@ -2157,17 +2161,19 @@ class TAssetOFLine extends TObjetStd{
 	{
     	//Ne pas prendre en compte le ->qty_stock dans le calcul car avec le destockage partiel le module ne destock pas le prévisionnel (Quantité réelle) lors du lancement en production
     	//Cette donnée devient donc un simple indicateur
-		$qty_to_destock = $this->qty_used - $this->old_qty_used;
+		$qty_to_destock = $this->qty_used - $this->qty_stock;
 		$this->destockAsset($PDOdb, $qty_to_destock); // Tant qu'on utilise l'attribut qty_used via le formulaire on as pas besoin de passer le 4eme param à false
 	}
 	
 	function stockQtyToMakeAsset(&$PDOdb, &$of)
 	{
-		$qty_make = ($this->qty_stock - $this->old_qty_stock) / -1;
+		global $conf,$langs;
+		
+		$qty_make = $this->qty_used - $this->qty_stock;
 		
 		//var_dump($this->qty_stock, $this->old_qty_stock);
 		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
-		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->destockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
+		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->destockAsset($PDOdb, -$qty_make, true, false); // On stock les nouveaux équipements
 		else {
 			$this->destockProduct(-$qty_make);
 			setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');

@@ -110,7 +110,7 @@ dol_fiche_head(
     0,
     "of@of"
 );
-
+$formCore=new TFormcore;
 // Setup page goes here
 $form=new Form($db);
 $var=false;
@@ -158,8 +158,49 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_CONCAT_PDF');
 print '</td></tr>';
 
-print '</table>';
-
+$var=!$var;
+	print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->transnoentitiesnoconv("AssetUseDestockagePartiel").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_USE_DESTOCKAGE_PARTIEL');
+    print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OfShowQtytheorique").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_SHOW_QTY_THEORIQUE_MOINS_OF');
+    print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
+    print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+    print '<input type="hidden" name="action" value="set_OF_NB_TICKET_PER_PAGE">';
+    print $formCore->number("", "OF_NB_TICKET_PER_PAGE",$conf->global->OF_NB_TICKET_PER_PAGE,10,1,-1);
+    print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+    print '</form>';
+    print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("set_ABRICOT_WKHTMLTOPDF_CMD").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="right" width="300" style="white-space:nowrap;">';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="action" value="set_ABRICOT_WKHTMLTOPDF_CMD">';
+	print $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</form>';
+	print '</td></tr>';
+	
+	print '</table>';
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
