@@ -196,7 +196,7 @@ function _action() {
 			$assetOf->delete($PDOdb);
 			
 			
-			header('Location: '.dol_buildpath('/asset/liste_of.php?delete_ok=1',1));
+			header('Location: '.dol_buildpath('/of/liste_of.php?delete_ok=1',1));
 			exit;
 			
 			break;
