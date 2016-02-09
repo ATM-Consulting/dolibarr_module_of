@@ -220,10 +220,10 @@ function _liste(&$PDOdb)
 		
 		$r2 = new TSSRenderControler($assetOf);
 
-		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee";
-		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c INNER JOIN ".MAIN_DB_PREFIX."product p";
+		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee, c.desc";
+		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c LEFT JOIN ".MAIN_DB_PREFIX."product p";
 		$sql.= " ON c.fk_product = p.rowid";
-		$sql.= " WHERE c.fk_commande = ".$fk_commande;
+		$sql.= " WHERE c.product_type=1 AND  c.fk_commande = ".$fk_commande;
 		
 		$resql = $db->query($sql);
 
@@ -254,13 +254,26 @@ function _liste(&$PDOdb)
 			$prod = $db->fetch_object($resql);
 			//$var=!$var;
 			//print "<tr ".$bc[$var].">";
-			print "<tr>";
-			print "<td>";
-			print $prod->refProd;
-			print "</td>\n";
-			print '<td>';
-			print $prod->nomProd;
-			print '</td>';
+			
+			if(empty($prod->rowid)) {
+				// ligne libre
+							print "<tr>";
+							print "<td colspan=\"2\">";
+							print $prod->desc;
+							print '</td>';
+								
+			}
+			else {
+				
+				print "<tr>";
+				print "<td>";
+				print $prod->refProd;
+				print "</td>\n";
+				print '<td>';
+				print $prod->nomProd;
+				print '</td>';
+				
+			}
 			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.$prod->rowid.']', false);
 			print "</td>";
 			print "<td>";
