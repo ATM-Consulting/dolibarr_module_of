@@ -71,7 +71,25 @@ if (preg_match('/del_(.*)/',$action,$reg))
 		dol_print_error($db);
 	}
 }
-
+	if($action=='save') {
+		
+		if(isset($_REQUEST['TOF']))
+		{
+			foreach($_REQUEST['TOF'] as $name=>$param) {
+				
+				dolibarr_set_const($db, $name, $param, 'chaine', 0, '', $conf->entity);
+				
+			}
+		}
+		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name'])) {
+			
+			copy($_FILES['template']['tmp_name'],'../exempleTemplate/templateOF.odt');
+			
+		}
+		
+		setEventMessage("Configuration enregistrée");
+		
+	}
 /*
  * View
  */
@@ -259,11 +277,11 @@ function showParameters(&$form) {
 			</tr> 
 			
 			<tr class="pair" id="WAREHOUSE_TO_MAKE" class="pair" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
-				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
+				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
 			
 			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
-				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TAsset[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
+				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr> 
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>

@@ -761,7 +761,8 @@ class TAssetOF extends TObjetStd{
 							$AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
 						}
 		                else{
-		                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
+		                   $AssetOFLine->destockProduct(-($AssetOFLine->qty-$AssetOFLine->qty_stock));
+						   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
 		                }	
 					}
 					
@@ -1510,6 +1511,21 @@ class TAssetOFLine extends TObjetStd{
         }
 	}
 	
+	function destockProduct($qty_to_destock) {
+		global $conf;
+		
+		$sens = ($qty_to_destock>0) ? -1 : 1;
+		$qty_to_destock_rest =  abs($qty_to_destock);
+		$labelMvt = 'Utilisation via Ordre de Fabrication';
+		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
+		
+		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
+		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		$asset=new TAsset; //TODO if asset not implemented
+		$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+	
+	}
+	
 	/**
 	 * @param $update_qty_stock 	bool	comportement standard on maj la qté produite mais avec la notion de stockage partiel cet attribut a déjà été maj avant via le formulaire d'edition
 	 */
@@ -1532,12 +1548,8 @@ class TAssetOFLine extends TObjetStd{
 		
         if(!$conf->global->USE_LOT_IN_OF || empty($conf->asset->enabled)) 
         {
-            $asset=new TAsset; //TODO if asset not implemented
-			
-            $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
-	
-            //$asset->contenancereel_value -= $qty_to_destock_rest;
-			//TODO Manque le destockage de $asset->contenancereel_value
+            	
+			$this->destockProduct($sens * $qty_to_destock_rest);
 			
         }
 		else 
@@ -1811,7 +1823,7 @@ class TAssetOFLine extends TObjetStd{
 	   	//INFO : si on utilise pas les lots on a pas besoin de créer des équipements => on gère uniquement des mvt de stock
         if(!$conf->global->USE_LOT_IN_OF) return true;
        
-		include_once 'asset.class.php';
+		dol_include_once('/asset/class/asset.class.php');
 
         $assetType = new TAsset_type;
         if($assetType->load_by_fk_product($PDOdb, $fk_product)) 
@@ -2154,8 +2166,12 @@ class TAssetOFLine extends TObjetStd{
 		$qty_make = ($this->qty_stock - $this->old_qty_stock) / -1;
 		
 		//var_dump($this->qty_stock, $this->old_qty_stock);
+		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
 		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->destockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
-		else setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
+		else {
+			$this->destockProduct(-$qty_make);
+			setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
+		}
 	}
 }
 
