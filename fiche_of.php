@@ -254,7 +254,7 @@ function _action() {
 				ob_clean();
 			}
 
-			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
+			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			
 			break;
 			
@@ -473,7 +473,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	}
 	
 	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
+	$dir = DOL_DATA_ROOT.'/of/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
 	
@@ -494,7 +494,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	
 	$barcode_pic = getBarCodePicture($assetOf);
 	
-	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
+	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
@@ -530,7 +530,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	
 	return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
 }
