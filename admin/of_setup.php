@@ -120,14 +120,16 @@ print '<td>'.$langs->trans("Parameters").'</td>'."\n";
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 
-print '<tr class="pair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_CHILDREN_OF', array('alert' => array('method'=>'fnHideOPCAAdrr' ,'del' => array('content'=>$langs->trans('AssetOFConfirmChangeState'), 'title'=>$langs->trans('AssetOFConfirmChangeStateTitle'))), 'del' => array('CREATE_CHILDREN_OF_COMPOSANT', 'CREATE_OF_ON_ORDER_VALIDATE', 'DELETE_OF_ON_ORDER_CANCEL')));
 print '</td></tr>';	
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("CreateAssetChildrenOFWithComposant").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
@@ -136,7 +138,8 @@ print '</td></tr>';
 
 if(!empty($conf->asset->enabled)) {
 	
-	print '<tr class="pair">';
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -144,14 +147,33 @@ if(!empty($conf->asset->enabled)) {
 	print '</td></tr>';	
 	
 }
-print '<tr class="pair">';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("AssetAddNeededQtyZero").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
+print '</td></tr>';	
+
+$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("AssetNegativeDestock").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
+	print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
 print '</td></tr>';
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
@@ -208,35 +230,40 @@ print '<td>'.$langs->trans("ParametersWorkstation").'</td>'."\n";
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 
-print '<tr class="pair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("UseProjectTask").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
 print '</td></tr>'; 
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("UseProjectTaskHierarchique").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_TASK_HIERARCHIQUE_BY_RANK');
 print '</td></tr>'; 
 
-print '<tr class="pair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetDefinedUserByWorkstation").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_DEFINED_USER_BY_WORKSTATION');
 print '</td></tr>';
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetDefinedTaskByWorkstation").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_DEFINED_OPERATION_BY_WORKSTATION');
 print '</td></tr>';
 
-print '<tr class="pair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
@@ -253,35 +280,40 @@ print '<td>'.$langs->trans("ParametersWorkflow").'</td>'."\n";
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 print '</td></tr>';	
 
-print '<tr class="pair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 print '</td></tr>';	
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetUseControl").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_USE_CONTROL');
 print '</td></tr>';	
 
-print '<tr class="pair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetAutoCreateProjectOnOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_AUTO_CREATE_PROJECT_ON_OF');
 print '</td></tr>';	
 
-print '<tr class="impair">';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetAuthorizeAddWorkstationTime0OnOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
