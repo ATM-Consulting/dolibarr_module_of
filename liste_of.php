@@ -133,8 +133,8 @@ function _liste(&$PDOdb)
 	$sql.=" GROUP BY ofe.rowid ";
 	
 	// TODO je me rappelle plus pourquoi j'ai fait cette merde mais ça fait planter le tri, donc à virer. 
-	if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
-	else $orderBy['ofe.date_cre']='DESC';
+	/*if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
+	else $orderBy['ofe.date_cre']='DESC';*/
 	
 	$TMath=array();
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
@@ -193,6 +193,9 @@ function _liste(&$PDOdb)
 			,'nb_product_to_make'=>'Nb produits à fabriquer'
 			,'total_cost'=>'Coût'
 			,'printTicket' => 'impression<br />étiquette'
+		)
+		,'orderBy'=>array(
+			'rowid'=>'DESC'
 		)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
