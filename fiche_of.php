@@ -640,7 +640,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
-				,'qty_used'=>(($of->status=='OPEN') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
+				,'qty_used'=>(($of->status=='OPEN' && !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
 				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 				,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
@@ -1001,7 +1001,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'user_id'=>$user->id
 				,'workstation_module_activate'=>(int) $conf->workstation->enabled
 				,'show_cost'=>(int)$user->rights->asset->of->price
-				,'OF_USE_DESTOCKAGE_PARTIEL'=>!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 1 : 0
 			)
 		)
 	);

@@ -87,6 +87,7 @@ class TAssetOF extends TObjetStd{
 				if(!empty($_REQUEST['TAssetOFLine'])) {
 					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
 						$of->TAssetOFLine[$k]->set_values($row);
+					//	if (empty($of->TAssetOFLine[$k]->qty)) $of->TAssetOFLine[$k]->qty = $of->TAssetOFLine[$k]->qty_needed;
 					}
 				}
 			}
@@ -209,7 +210,7 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		//Sécurité sur la maj de l'objet, si on supprime les lignes d'un OF en mode edit, lors de l'enregistrement les infos sont ré-insert avec un fk_product à 0
-		foreach ($this->TAssetOFLine as $k => $ofLine)
+		foreach ($this->TAssetOFLine as $k => &$ofLine)
 		{
 			if (!$ofLine->fk_product)
 			{
@@ -217,7 +218,7 @@ class TAssetOF extends TObjetStd{
 			}
 		}
 		
-		if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockOrStockPartialQty($PDOdb, $this);
+		$this->destockOrStockPartialQty($PDOdb, $this);
 		
 		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
@@ -533,7 +534,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->type = $type;
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
-		$TAssetOFLine->qty_used = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED') ? 0 : $quantite;
+		$TAssetOFLine->qty_used = ($conf->global->ASSET_ADD_NEEDED_QTY_ZERO && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
 		$TAssetOFLine->note_private = $note_private;
 		
         $TAssetOFLine->fk_product_fournisseur_price = -2;
@@ -723,12 +724,13 @@ class TAssetOF extends TObjetStd{
 	{
 	    global $langs, $conf, $db, $user;
         
-		$TIDOFToValidate = array($this->rowid);
+		dol_include_once('/projet/class/task.class.php');
 		
+		$TIDOFToValidate = array($this->rowid);
 		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
 		
-		foreach ($TIDOFToValidate as $id_of) {
-			
+		foreach ($TIDOFToValidate as $id_of) 
+		{
 			$of = new TAssetOF;
 			$of->load($PDOdb, $id_of);
 			
@@ -741,47 +743,27 @@ class TAssetOF extends TObjetStd{
 			
 	        if (!$of->checkCommandeFournisseur($PDOdb))
 	        {
-	                setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
-	                return false;
+                setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
+                return false;
 	        }
-			    
-			if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
-			else $fk_entrepot = $asset->fk_entrepot;
 			
 			foreach($of->TAssetOFLine as &$AssetOFLine)
 			{
-				$asset = new TAsset;
-				
 				if($AssetOFLine->type == "TO_MAKE")
 				{
-					if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
-					else {
-						if($AssetOFLine->makeAsset($PDOdb, $of, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
-							//exit('1');
-							$AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
-						}
-		                else{
-		                   $AssetOFLine->destockProduct(-($AssetOFLine->qty-$AssetOFLine->qty_stock));
-						   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
-		                }	
-					}
+					 if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $AssetOFLine->qty;
 					
+					 $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of); 
 				} 
 				else 
 				{
-					
 					$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
+					if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $qty_needed;
 					
-					if($AssetOFLine->qty_used == 0) {
-						$AssetOFLine->qty_used = $qty_needed;
-					}
-					
-					//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-					if (empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
+					$AssetOFLine->destockQtyUsedAsset($PDOdb);
 				}
 			}
 		
-			dol_include_once('/projet/class/task.class.php');
 			
 			foreach($of->TAssetWorkstationOF as &$wsof) {
 				
@@ -809,6 +791,7 @@ class TAssetOF extends TObjetStd{
         return true;
 	}
 	
+	
 	/*
 	 * Permet le lancer l'OF pour la production et de faire le destockage des NEEDED
 	 */
@@ -834,34 +817,51 @@ class TAssetOF extends TObjetStd{
 			
 	        if($of->launchOF($PDOdb)) 
 	        {
-				if (empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockAssetByOf($PDOdb, $of);
+				if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) {
+					
+					
+					foreach($of->TAssetOFLine as &$AssetOFLine)
+					{
+						if($AssetOFLine->type == 'TO_MAKE')
+						{
+							 $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of); 
+						} 
+						else 
+						{
+							$AssetOFLine->destockQtyUsedAsset($PDOdb);
+						}
+					}
+					
+				}
+				else {
+					foreach($of->TAssetOFLine as &$AssetOFLine)
+					{
+						if($AssetOFLine->type=='NEEDED') $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty - $AssetOFLine->qty_stock);
+					}
+				}
 	        }
 		
 		}
 		
 	}
 	
-	function destockAssetByOf(&$PDOdb, &$of)
-	{
-		foreach($of->TAssetOFLine as $AssetOFLine)
-        {
-            if($AssetOFLine->type == 'NEEDED')
-            {
-            	list($qty,$qty_stock) = $AssetOFLine->convertQty();
-                //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-                $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
-            }
-        }
-	}
 	
 	function destockOrStockPartialQty(&$PDOdb, &$of)
 	{
-		if ($of->status != 'OPEN' && $of->status != 'CLOSE') return false;
-		foreach($of->TAssetOFLine as $AssetOFLine)
-        {
-            if($AssetOFLine->type == 'NEEDED') $AssetOFLine->destockQtyUsedAsset($PDOdb);
-			else $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
+		global $conf;
+		
+		if ($of->status == 'OPEN' || $of->status == 'CLOSE') 
+		{
+			foreach($of->TAssetOFLine as &$AssetOFLine)
+	        {
+	            if ($AssetOFLine->type == 'NEEDED') $AssetOFLine->destockQtyUsedAsset($PDOdb);
+				else $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of, 1);
+			}
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
 	private function getEnfantsDirects() {
@@ -1488,6 +1488,7 @@ class TAssetOFLine extends TObjetStd{
 	}
 	
 	//$qty_to_re_stock est normalement tjr positif
+	//TODO remove useless
 	function reStockAsset(&$PDOdb, $qty_to_re_stock)
 	{
 		global $conf;
@@ -1511,11 +1512,17 @@ class TAssetOFLine extends TObjetStd{
         }
 	}
 	
+	function stockProduct($qty_to_stock) {
+		
+		return $this->destockProduct(-$qty_to_stock) ;
+	}
+	
 	function destockProduct($qty_to_destock) {
 		global $conf;
 		
 		$sens = ($qty_to_destock>0) ? -1 : 1;
 		$qty_to_destock_rest =  abs($qty_to_destock);
+		
 		$labelMvt = 'Utilisation via Ordre de Fabrication';
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
 		
@@ -1523,17 +1530,24 @@ class TAssetOFLine extends TObjetStd{
 		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 		$asset=new TAsset; //TODO if asset not implemented
 		$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+		
+		$this->update_qty_stock($sens * $qty_to_destock_rest);
+
+	}
 	
-	   $this->qty_stock += - $sens * $qty_to_destock_rest;
+	function stockAsset(&$PDOdb, $qty_to_stock, $add_only_qty_to_contenancereel=false) {
+		
+		return $this->destockAsset($PDOdb, -$qty_to_stock, $add_only_qty_to_contenancereel);
+		
 	}
 	
 	/**
-	 * @param $update_qty_stock 	bool	comportement standard on maj la qté produite mais avec la notion de stockage partiel cet attribut a déjà été maj avant via le formulaire d'edition
+	 * @param 	$qty_to_destock		if < 0 = stockage, if > 0 = destockage
 	 */
-    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false, $update_qty_stock=true) 
+    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false) 
     {
         global $conf;
-		
+
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout 
         
         $sens = ($qty_to_destock>0) ? -1 : 1;
@@ -1549,16 +1563,12 @@ class TAssetOFLine extends TObjetStd{
 		
         if(!$conf->global->USE_LOT_IN_OF || empty($conf->asset->enabled)) 
         {
-            	
-			$this->destockProduct($sens * $qty_to_destock_rest);
-			
+			$this->stockProduct($sens * $qty_to_destock_rest);
         }
 		else 
 		{
 			$TAsset = $this->getAssetLinked($PDOdb);
-            
-			//echo 'assetLinked = '.count($TAsset).'<br>';
-			
+
             if(empty($TAsset)) {
 				$asset=new TAsset;
 
@@ -1571,10 +1581,7 @@ class TAssetOFLine extends TObjetStd{
 					echo $this->lot_number;exit;
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
-				
-					$this->destockProduct( $sens * $qty_to_destock_rest);
-				
-	              //  $asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+					$this->stockProduct( $sens * $qty_to_destock_rest);
 				}
                 
             }
@@ -1590,6 +1597,7 @@ class TAssetOFLine extends TObjetStd{
 					 }
 
 					 //echo $sens." x ".$qty_asset_to_destock.'<br>';
+					 $this->update_qty_stock($sens * $qty_asset_to_destock);
 					 
                      $asset->save($PDOdb,$user
                              ,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
@@ -1599,15 +1607,22 @@ class TAssetOFLine extends TObjetStd{
                     
                     if($qty_to_destock_rest<=0)break;
                 }
-                
+				
             }
-        	if ($update_qty_stock) $this->qty_stock += $sens * $qty_to_destock;
+			
 		}
-        //exit;
-    	
+		
         return $this->save($PDOdb);
     }
     
+	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
+	function update_qty_stock($qty) {
+	
+		if($this->type=='TO_MAKE') $this->qty_stock += $qty; // Je destock la quantité prise unitairement dans l'équipement
+		else $this->qty_stock -= $qty; // Je destock la quantité prise unitairement dans l'équipement
+					 
+	}
+	
 	//Affecte les équipements à la ligne de l'OF
 	function setAsset(&$PDOdb,&$AssetOf, $forReal = false)
 	{
@@ -1921,10 +1936,6 @@ class TAssetOFLine extends TObjetStd{
 		$this->loadFournisseurPrice($PDOdb);
 		
 		$this->load_product();
-		
-		//Utilisé pour le destockage/stockage partiel
-		$this->old_qty_stock = $this->qty_stock;
-		$this->old_qty_used = $this->qty_used;
 	}
 	
 	function load_product() {
@@ -1954,15 +1965,7 @@ class TAssetOFLine extends TObjetStd{
 		}
 		
 		//La fonction destockAsset en utilisant les lot ne permet pas de remettre la contenancereel_value dans chaque asset utilisés
-		if ($conf->global->USE_LOT_IN_OF)
-		{
-			$this->type == 'NEEDED' ? $this->reStockAsset($PDOdb, $this->qty_stock) : $this->destockAsset($PDOdb, $this->qty_stock);
-		}
-		else
-		{
-			$sens = $this->type == 'NEEDED' ? -1 : 1;
-			$this->destockAsset($PDOdb, $sens * $this->qty_stock); // On restock les produits utilisé
-		} 
+		($this->type == 'NEEDED') ? $this->stockAsset($PDOdb, $this->qty_stock) : $this->destockAsset($PDOdb, $this->qty_stock);
 		
 	    // TODO dbdelete()
         $sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
@@ -2159,23 +2162,21 @@ class TAssetOFLine extends TObjetStd{
 	//Fonction pour le destockage partiel
 	function destockQtyUsedAsset(&$PDOdb)
 	{
-    	//Ne pas prendre en compte le ->qty_stock dans le calcul car avec le destockage partiel le module ne destock pas le prévisionnel (Quantité réelle) lors du lancement en production
-    	//Cette donnée devient donc un simple indicateur
+    	// qty_used (saisie via l'interface) - qty_stock (ce qui a déjà été fabriqué)
 		$qty_to_destock = $this->qty_used - $this->qty_stock;
 		$this->destockAsset($PDOdb, $qty_to_destock); // Tant qu'on utilise l'attribut qty_used via le formulaire on as pas besoin de passer le 4eme param à false
 	}
 	
-	function stockQtyToMakeAsset(&$PDOdb, &$of)
+	function stockQtyToMakeAsset(&$PDOdb, &$of, $fromCloseOf=0)
 	{
 		global $conf,$langs;
 		
 		$qty_make = $this->qty_used - $this->qty_stock;
 		
-		//var_dump($this->qty_stock, $this->old_qty_stock);
 		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
-		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->destockAsset($PDOdb, -$qty_make, true, false); // On stock les nouveaux équipements
+		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->stockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
 		else {
-			$this->destockProduct(-$qty_make);
+			$this->stockProduct($qty_make);
 			setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
 		}
 	}

@@ -74,9 +74,7 @@
 									[onshow;block=end]
 									<td>Produit</td>
 									<td>Quantité à produire</td>
-									[onshow;block=begin;when [view.OF_USE_DESTOCKAGE_PARTIEL]=='1']
-										<td>Quantité produite</td>
-									[onshow;block=end]
+									<td>Quantité produite</td>
 									<td>Fournisseur</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">Entrepôt</td>
@@ -96,9 +94,7 @@
 										
 									</td>
 									<td>[TTomake.qty;strconv=no]</td>
-									[onshow;block=begin;when [view.OF_USE_DESTOCKAGE_PARTIEL]=='1']
-										<td>[TTomake.qty_used;strconv=no]</td>
-									[onshow;block=end]
+									<td>[TTomake.qty_used;strconv=no]</td>
 									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
