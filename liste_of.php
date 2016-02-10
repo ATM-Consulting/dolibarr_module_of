@@ -10,7 +10,7 @@
 	dol_include_once("/core/class/html.formother.class.php");
 	dol_include_once("/core/lib/company.lib.php");
 	
-	$langs->load('asset@asset');
+	$langs->load('of@of');
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
 	
@@ -452,7 +452,7 @@ function _printTicket(&$PDOdb)
 	global $db,$conf,$langs;
 	
 	$dirName = 'OF_TICKET('.date("Y_m_d").')';
-	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
+	$dir = DOL_DATA_ROOT.'/of/'.$dirName.'/';
 	$fileName = date('YmdHis').'_ETIQUETTE';
 	
 	$TPrintTicket = GETPOST('printTicket', 'array');
@@ -464,7 +464,7 @@ function _printTicket(&$PDOdb)
 	else $template = "etiquette.html";
 	
 	$TBS=new TTemplateTBS();
-	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
+	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
 		,array(
 			'TInfoEtiquette'=>$TInfoEtiquette
 		)
@@ -478,7 +478,7 @@ function _printTicket(&$PDOdb)
 		)
 	);
 	
-	header("Location: ".dol_buildpath("/document.php?modulepart=asset&entity=1&file=".$dirName."/".$fileName.".pdf", 1));
+	header("Location: ".dol_buildpath("/document.php?modulepart=of&entity=1&file=".$dirName."/".$fileName.".pdf", 1));
 	exit;
 }
 
@@ -493,13 +493,17 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	$cmd = new Commande($db);
 	$product = new Product($db);
 	$pos = 1;
+	
 	foreach ($TPrintTicket as $fk_assetOf => $qty)
 	{
 		if ($qty <= 0) continue;
 		
 		$load = $assetOf->load($PDOdb, $fk_assetOf);
-		if ($load === true && $assetOf->fk_commande > 0 && $cmd->fetch($assetOf->fk_commande) > 0)
+		
+		if ($load === true)
 		{
+			$cmd->fetch($assetOf->fk_commande);
+			
 			foreach ($assetOf->TAssetOFLine as &$assetOfLine)
 			{
 				if ($assetOfLine->type == 'TO_MAKE' && $product->fetch($assetOfLine->fk_product) > 0)
