@@ -83,11 +83,14 @@ if (preg_match('/del_(.*)/',$action,$reg))
 		}
 		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name'])) {
 			
-			copy($_FILES['template']['tmp_name'],'../exempleTemplate/templateOF.odt');
+			$res = copy($_FILES['template']['tmp_name'], dol_buildpath('/of/exempleTemplate/templateOF.odt'));
+			if($res === false) $mess = "Attention, fichier non chargé ! (Droits 777 à donner sur fichier templateOF.odt)";
+			else $mess = "Fichier chargé avec succès";
 			
 		}
 		
 		setEventMessage("Configuration enregistrée");
+		setEventMessage($mess);
 		
 	}
 /*
