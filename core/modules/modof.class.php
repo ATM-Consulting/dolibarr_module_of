@@ -155,8 +155,8 @@ class modof extends DolibarrModules
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
         $this->tabs = array(
-			'product:+tabOF2:OF:asset@asset:$user->rights->of->of->lire:/of/liste_of.php?fk_product=__ID__'
-			,'order:+tabOF3:OF:asset@asset:$user->rights->of->of->lire:/of/liste_of.php?fk_commande=__ID__'
+			'product:+tabOF2:OF:of@of:$user->rights->of->of->lire:/of/liste_of.php?fk_product=__ID__'
+			,'order:+tabOF3:OF:of@of:$user->rights->of->of->lire:/of/liste_of.php?fk_commande=__ID__'
 			
 		);
 
@@ -241,7 +241,7 @@ class modof extends DolibarrModules
 					'titre'=>$langs->trans('GPAO'),
 					'mainmenu'=>'gpao',
 					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/asset/index.php',
+					'url'=>'/of/liste_of.php',
 					'langs'=>'of@of',
 					'position'=>100,
 					'enabled'=>'$user->rights->of->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
