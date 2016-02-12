@@ -980,8 +980,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
 				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
 				
+				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2)
+				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2)
 				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2)
+				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2)
 				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2)
+				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2)
+				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2)
 			)
 			,'view'=>array(
 				'mode'=>$mode

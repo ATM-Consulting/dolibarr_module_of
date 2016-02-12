@@ -34,6 +34,13 @@
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
+				[onshow;block=begin;when [view.show_cost]=='1']
+				<tr><td>Coût estimé de fabrication</td><td>[assetOf.total_estimated_cost;strconv=no]</td></tr>
+				<tr><td>Coût réel de fabrication</td><td>[assetOf.total_cost;strconv=no]</td></tr>
+				<tr><td>Coût du produit fini</td><td>[assetOf.current_cost_for_to_make;strconv=no]</td></tr>
+					
+				
+				[onshow;block=end]
 				<tr><td>Statut</td><td>[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
 					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
 						<span class="viewmode notinparentview">
@@ -156,7 +163,7 @@
 						</tr>
 						[onshow;block=begin;when [view.show_cost]=='1']
 						<tr style="background-color:#dedede;">
-							<td>&nbsp;</td>
+							<td align="center">Coût</td>
 							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
 								<td align="left">&nbsp;</td>
 							[onshow;block=end]
@@ -166,7 +173,7 @@
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 								<td align='center'>&nbsp;</td>
 							[onshow;block=end]
-							<td align="center">Coût</td>
+							<td align="right">[assetOf.mo_estimated_cost;strconv=no]</td>
 							<td align="right">[assetOf.mo_cost;strconv=no]</td>
 							<td class="draftedit">&nbsp;</td>
 							<td class="draftedit">&nbsp;</td>
@@ -237,11 +244,11 @@
 										<td>&nbsp;</td>
 									[onshow;block=end]
 									
-									<td>&nbsp;</td>
+									<td>Coût</td>
 									
 									<td>&nbsp;</td>
-									<td>Coût</td>
-									<td class="nodraft">[assetOf.compo_cost;strconv=no]</td>
+									<td class="nodraft" align="right">[assetOf.compo_estimated_cost;strconv=no]</td>
+									<td class="nodraft" align="right">[assetOf.compo_cost;strconv=no]</td>
 									
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
 										<td width="20%">&nbsp;</td>

@@ -26,7 +26,7 @@ class TAssetOF extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 	  
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project','type=entier;index;');
-		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,compo_cost,total_cost','type=float;');
+		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
 		$this->add_champs('note','type=text;');
@@ -46,6 +46,19 @@ class TAssetOF extends TObjetStd{
 		
 		//Tableau d'erreurs
 		$this->errors = array();
+		
+		$this->current_cost_for_to_make = 0; // montant utilisé pour les entrées de stock
+	}
+	
+	function set_current_cost_for_to_make() {
+		$qty = 0;	
+			
+		foreach($this->TAssetOFLine as &$line) {
+            if($line->type=='TO_MAKE') $qty+=$line->qty_used;
+        }
+		
+		$this->current_cost_for_to_make = $this->total_cost / $qty;
+		
 	}
 	
 	function load(&$db, $id/*, $loadOFChild=true*/) {
@@ -53,10 +66,15 @@ class TAssetOF extends TObjetStd{
 		
 		$res = parent::load($db,$id,true);
 		
-        
+    	$this->set_temps_fabrication(true);
+		$this->set_fourniture_cost();
+	    $this->set_current_cost_for_to_make();
+		
         foreach($this->TAssetOFLine as &$line) {
             $line->of_numero = $this->numero;
+			$line->current_cost_for_to_make = $this->current_cost_for_to_make;
         }
+		
         foreach($this->TAssetWorkstationOF as &$ws) {
             $ws->of_status = $this->status;
             $ws->of_fk_project = $this->fk_project;
@@ -135,9 +153,12 @@ class TAssetOF extends TObjetStd{
 	function set_fourniture_cost() {
 		
 		$this->compo_cost = 0;
+		$this->compo_estimated_cost = 0;
 		
 		foreach($this->TAssetOFLine as &$line) {
+			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
 			$this->compo_cost+= $line->qty_used * $line->pmp;
+			$this->compo_estimated_cost+= $line->qty_needed * $line->pmp;
 		}
 		
 	}
@@ -164,13 +185,13 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 	
-	function set_temps_fabrication() {
+	function set_temps_fabrication($justPrice=false) {
 		global $db, $user, $conf;
         dol_include_once('/projet/class/task.class.php');
 			
 		$this->temps_estime_fabrication=0;
 		$this->temps_reel_fabrication=0;
-		$this->mo_cost = 0;
+		$this->mo_cost = $this->mo_estimated_cost = 0;
 		
 		$night = $this->isNight();
 		
@@ -183,8 +204,9 @@ class TAssetOF extends TObjetStd{
 			else $thm = $ws->ws->thm;
 			
 			$this->mo_cost+= $ws->nb_hour_real * ($thm + $ws->ws->thm_machine);
+			$this->mo_estimated_cost+= $ws->nb_hour * ($thm + $ws->ws->thm_machine);
 			
-            if($ws->fk_project_task>0) {
+            if(!$justPrice && $ws->fk_project_task>0) {
                
                $task = new Task($db); 
                $task->fetch($ws->fk_project_task);
@@ -222,6 +244,7 @@ class TAssetOF extends TObjetStd{
 		$this->set_temps_fabrication();
 		$this->set_fourniture_cost();
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
+		$this->total_estimated_cost = $this->compo_estimated_cost + $this->mo_estimated_cost;
 		
 		
 		$this->entity = $conf->entity;
@@ -1556,7 +1579,12 @@ class TAssetOFLine extends TObjetStd{
 		*/
 		
 		$price = 0;
-		TAssetOF::addStockMouvementDolibarr($fk_product, $qty, $description,$fk_entrepot, $price);
+		
+		if($this->type=='TO_MAKE') {
+			$price = $this->current_cost_for_to_make;
+		}
+		
+		TAssetOF::addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest, $labelMvt,$fk_entrepot, $price);
 		
 		$this->update_qty_stock($sens * $qty_to_destock_rest);
 
