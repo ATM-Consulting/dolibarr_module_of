@@ -1000,7 +1000,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'hasChildren' => (int) !empty($Tid)
 				,'user_id'=>$user->id
 				,'workstation_module_activate'=>(int) $conf->workstation->enabled
-				,'show_cost'=>(int)$user->rights->asset->of->price
+				,'show_cost'=>(int)$user->rights->of->of->price
 			)
 		)
 	);

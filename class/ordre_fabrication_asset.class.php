@@ -142,6 +142,28 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
+	static function addStockMouvementDolibarr($fk_product,$qty,$description, $fk_entrepot,$price = 0)
+	{
+		global $db, $user,$conf;
+
+		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
+
+		$mouvS = new MouvementStock($db);
+		
+		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
+		
+		if($fk_entrepot > 0)
+		{			
+				if($qty > 0) {
+					$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, $price, $description);
+				} else {
+					$result=$mouvS->livraison($user,$fk_product, $fk_entrepot, -$qty, $price, $description);
+					
+				}
+		}
+	}
+	
 	function set_temps_fabrication() {
 		global $db, $user, $conf;
         dol_include_once('/projet/class/task.class.php');
@@ -1528,8 +1550,13 @@ class TAssetOFLine extends TObjetStd{
 		
 		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
 		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
-		$asset=new TAsset; //TODO if asset not implemented
+		
+		/*$asset=new TAsset; //TODO if asset not implemented
 		$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
+		*/
+		
+		$price = 0;
+		TAssetOF::addStockMouvementDolibarr($fk_product, $qty, $description,$fk_entrepot, $price);
 		
 		$this->update_qty_stock($sens * $qty_to_destock_rest);
 
