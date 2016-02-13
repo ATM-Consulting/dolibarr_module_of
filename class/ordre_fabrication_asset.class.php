@@ -42,7 +42,7 @@ class TAssetOF extends TObjetStd{
 		$this->setChild('TAssetOFControl','fk_assetOf');
 		
 		$this->date_besoin = time();
-		$this->date_lancement = time();
+		$this->date_lancement = 0;
 		
 		//Tableau d'erreurs
 		$this->errors = array();
@@ -57,7 +57,7 @@ class TAssetOF extends TObjetStd{
             if($line->type=='TO_MAKE') $qty+=$line->qty_used;
         }
 		
-		$this->current_cost_for_to_make = $this->total_cost / $qty;
+		if($qty>0) $this->current_cost_for_to_make = $this->total_cost / $qty;
 		
 	}
 	
@@ -238,8 +238,38 @@ class TAssetOF extends TObjetStd{
 		return $night;
 	}
 	
+	function setDelaiLancement() {
+		
+		if(empty($this->date_lancement) && $this->status != 'DRAFT') {
+			
+			$nb_day_prod = 0;
+			$nb_day_service = 0;
+			
+			foreach ($this->TAssetOFLine as $k => &$ofLine)
+			{
+				
+				if($ofLine->type == 'NEEDED') {
+					$nb = $ofLine->getNbDayForReapro();
+					if($ofLine->product->type == 1) {
+						$nb_day_service+=$nb;
+					}
+					else {
+						if($nb_day_prod<$nb)$nb_day_prod = $nb;
+					}
+					
+				}
+			}	
+			
+			$delai = $nb_day_prod + $nb_day_service;
+			$this->date_lancement = strtotime('+'.$delai.' day midnight');
+			
+		}
+	}
+	
 	function save(&$PDOdb) {
 		global $user,$langs,$conf, $db;
+
+		$this->setDelaiLancement();
 
 		$this->set_temps_fabrication();
 		$this->set_fourniture_cost();
@@ -525,6 +555,7 @@ class TAssetOF extends TObjetStd{
 	 * retourne le stock restant du produit
 	 */
 	static function getProductStock($fk_product, $fk_warehouse=0, $include_draft_of=true) {
+	//TODO finish ! or not
 		global $db;
 		dol_include_once('/product/class/product.class.php');
 		
@@ -1678,6 +1709,27 @@ class TAssetOFLine extends TObjetStd{
 					 
 	}
 	
+	/*
+	 * Donne le délai en jour avant réapprovisionnement
+	 */
+	function getNbDayForReapro() {
+		global $db, $user, $conf;	
+		
+		if($conf->supplierorderfromorder->enabled && $this->type=='NEEDED') {
+			
+			$stock_needed = TAssetOF::getProductStock($this->fk_product);
+			if($stock_needed > 0) return 0;
+			
+			dol_include_once('/supplierorderfromorder/class/sofo.class.php');
+			
+			$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
+		
+			return $nb;
+		}
+		
+		return 0;
+	}
+	
 	//Affecte les équipements à la ligne de l'OF
 	function setAsset(&$PDOdb,&$AssetOf, $forReal = false)
 	{
@@ -1686,7 +1738,7 @@ class TAssetOFLine extends TObjetStd{
 		
         if(!$conf->global->USE_LOT_IN_OF || empty($this->lot_number)) return true;
 		
-		include_once 'asset.class.php';
+		dol_include_once('/asset/class/asset.class.php');
 		
 		$completeSql = '';
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
