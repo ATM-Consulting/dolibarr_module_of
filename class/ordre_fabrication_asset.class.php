@@ -238,18 +238,20 @@ class TAssetOF extends TObjetStd{
 		return $night;
 	}
 	
-	function setDelaiLancement() {
+	function setDelaiLancement($time = 0) {
 		
-		if(empty($this->date_lancement) && $this->status != 'DRAFT') {
+		if((empty($this->date_lancement) && $this->status != 'DRAFT')
+		 || ( $this->date_lancement < $time ))
+		 {
 			
 			$nb_day_prod = 0;
 			$nb_day_service = 0;
 			
 			foreach ($this->TAssetOFLine as $k => &$ofLine)
 			{
-				
+				//Methode 1, le MAX(appro) + SUM(service)
 				if($ofLine->type == 'NEEDED') {
-					$nb = $ofLine->getNbDayForReapro();
+					$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
 					if($ofLine->product->type == 1) {
 						$nb_day_service+=$nb;
 					}
@@ -263,7 +265,31 @@ class TAssetOF extends TObjetStd{
 			$delai = $nb_day_prod + $nb_day_service;
 			$this->date_lancement = strtotime('+'.$delai.' day midnight');
 			
+			if( $this->date_lancement < $time ) $this->date_lancement = $time;
+			
+			$this->setDelaiLancementForParent();
 		}
+	}
+	
+	function setDelaiLancementForParent() {
+		
+		if($this->fk_assetOf_parent>0) {
+			
+			$PDOdb=new TPDOdb;
+			
+			$of=new TAssetOF;
+			if($of->load($PDOdb, $this->fk_assetOf_parent)) {
+				$of->setDelaiLancement($this->date_lancement);
+				$of->save($PDOdb);
+			}
+			
+			
+			$PDOdb->close();
+			
+			
+		}
+		
+		
 	}
 	
 	function save(&$PDOdb) {
