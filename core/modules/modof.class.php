@@ -224,8 +224,14 @@ class modof extends DolibarrModules
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'price';
 		
+		$r++;
+		$this->rights[$r][0] = $this->numero+$r;
+		$this->rights[$r][1] = 'Voir le temps prévus d\'un poste de travail sur un OF';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'of';
+		$this->rights[$r][5] = 'show_ws_time';
 		
-
+		
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
 		$r=0;

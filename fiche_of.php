@@ -1007,6 +1007,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'workstation_module_activate'=>(int) $conf->workstation->enabled
 				,'show_cost'=>(int)$user->rights->of->of->price
 			)
+			,'rights'=>array(
+				'show_ws_time'=>$user->rights->of->of->show_ws_time
+			)
 		)
 	);
 	

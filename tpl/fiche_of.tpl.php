@@ -137,7 +137,9 @@
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 								<th>Tâche associé</th>
 							[onshow;block=end]
-							<th>Nb. heures prévues</th>
+							[onshow;block=begin;when [rights.show_ws_time]==1]
+								<th>Nb. heures prévues</th>
+							[onshow;block=end]
 							<th>Nb. heures réelles</th>
 							<th>Rang</th>
 							<th class="draftedit">Action</th>
@@ -153,7 +155,9 @@
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 								<td align='center'>[workstation.fk_task;strconv=no]</td>
 							[onshow;block=end]
-							<td align='center'>[workstation.nb_hour;strconv=no]</td>
+							[onshow;block=begin;when [rights.show_ws_time]==1]
+								<td align='center'>[workstation.nb_hour;strconv=no]</td>
+							[onshow;block=end]
 							<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
 							<td align='center'>[workstation.rang;strconv=no]</td>
 							<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
@@ -173,7 +177,9 @@
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 								<td align='center'>&nbsp;</td>
 							[onshow;block=end]
-							<td align="right">[assetOf.mo_estimated_cost;strconv=no]</td>
+							[onshow;block=begin;when [rights.show_ws_time]==1]
+								<td align="right">[assetOf.mo_estimated_cost;strconv=no]</td>
+							[onshow;block=end]
 							<td align="right">[assetOf.mo_cost;strconv=no]</td>
 							<td class="draftedit">&nbsp;</td>
 							<td class="draftedit">&nbsp;</td>
