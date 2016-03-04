@@ -15,6 +15,8 @@ dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
+dol_include_once('/asset/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
+
 if(!$user->rights->of->of->lire) accessforbidden();
 
 // Load traductions files requiredby by page
