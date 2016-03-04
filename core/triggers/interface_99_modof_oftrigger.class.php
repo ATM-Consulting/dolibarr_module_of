@@ -203,6 +203,7 @@ class Interfaceoftrigger
 			
 		}
 		elseif($action === 'ORDERSUPPLIER_ADD_LIVRAISON') {
+			global $db;
 			if($conf->of->enabled) {
 				define('INC_FROM_DOLIBARR',true);
 		    	dol_include_once('/of/config.php');
