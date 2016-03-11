@@ -1930,35 +1930,53 @@ class TAssetOFLine extends TObjetStd{
         return $r;
     }
     function getAssetLinked(&$PDOdb, $only_ids=false) {
-        
-        $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
-        if ($only_ids) return $TId;
-		//pre($TId,true);
+        global $conf;
 		
-        $Tab = array();
-        
-        foreach($TId as $id) {
-            $asset = new TAsset;
-            if($asset->load($PDOdb, $id)) {
-                $Tab[] = $asset;    
-            }
-        }
-        
-        return $Tab;
+		if(!empty($conf->asset->enabled)) {
+	        $Tab = $TId = array();
+			
+	        $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
+	        if ($only_ids) return $TId;
+			//pre($TId,true);
+			
+	        foreach($TId as $id) {
+	            $asset = new TAsset;
+	            if($asset->load($PDOdb, $id)) {
+	                $Tab[] = $asset;    
+	            }
+	        }
+			
+			return $Tab;
+		}
+		
+        return array();
     }
 
     function addAssetLink(&$asset) 
     {
-        TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
+    	global $conf;
+    	if(!empty($conf->asset->enabled)) {
+        	TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
+        }
     }
 	
 	function initConditionnement(&$PDOdb) 
 	{
-        $assetType = new TAsset_type;
-        $assetType->load_by_fk_product($PDOdb, $this->fk_product);
-        $this->conditionnement = $assetType->getDefaultContenance($this->fk_product);
-        $this->conditionnement_unit = $assetType->contenance_units;
-        $this->measuring_units = $assetType->measuring_units;
+		global $conf;
+		 
+		if(!empty($conf->asset->enabled)) {
+	        $assetType = new TAsset_type;
+	        $assetType->load_by_fk_product($PDOdb, $this->fk_product);
+	        $this->conditionnement = $assetType->getDefaultContenance($this->fk_product);
+	        $this->conditionnement_unit = $assetType->contenance_units;
+	        $this->measuring_units = $assetType->measuring_units;
+			
+		}
+		else{
+			$this->measuring_units = 'unit';
+			$this->gestion_stock = 'UNIT';
+			$this->conditionnement = 1;
+		}	
 	}
     
     function libUnite() 
@@ -1973,9 +1991,9 @@ class TAssetOFLine extends TObjetStd{
 	   	global $user,$conf;
        
 	   	//INFO : si on utilise pas les lots on a pas besoin de créer des équipements => on gère uniquement des mvt de stock
-        if(!$conf->global->USE_LOT_IN_OF) return true;
-       
-		dol_include_once('/asset/class/asset.class.php');
+        if(empty($conf->asset->enabled) || empty($conf->global->USE_LOT_IN_OF)) return true;
+       	
+		if(!dol_include_once('/asset/class/asset.class.php')) return true;
 
         $assetType = new TAsset_type;
         if($assetType->load_by_fk_product($PDOdb, $fk_product)) 

@@ -387,12 +387,15 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		
 		$qty = !empty($v->qty_needed) ? $v->qty_needed : $v->qty; 
 		
-		$TAssetType = new TAsset_type;
-		$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
-		
-		//echo $TAssetType->measuring_units.'<br>';
-		
-		$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
+		if(!empty($conf->asset->enabled)) {
+			$TAssetType = new TAsset_type;
+			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
+			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
+			
+		}
+		else{
+			$unitLabel = 'unité(s)';
+		}
 	
 		if($v->type == "TO_MAKE") {
 			
@@ -408,16 +411,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 		}
 		else if($v->type == "NEEDED") {
-			
-			//pre($prod,true);exit;
-			$TAssetType = new TAsset_type;
-			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
-			
-			//echo $TAssetType->measuring_units.'<br>';
-			
-			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
-			
-			//echo $unitLabel.'<br>';
 			
 			$TNeeded[] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
@@ -597,7 +590,7 @@ function get_tab_file_path($TRes) {
 
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs;
-
+//TODO rules guys ! To Facto ! AA
 	$formProduct = new FormProduct($db);
 
     $PDOdb=new TPDOdb;
@@ -613,12 +606,14 @@ function _fiche_ligne(&$form, &$of, $type){
 		
 		$conditionnement = $TAssetOFLine->conditionnement;
 		
-		$TAssetType = new TAsset_type;
-		$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
-		
-		//echo $TAssetType->measuring_units.'<br>';
-		
-		$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
+		if(!empty($conf->asset->enabled)) {
+			$TAssetType = new TAsset_type;
+			$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
+			$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
+		}
+		else{
+			$conditionnement_unit = 'unité(s)'; // TODO translate
+		}
 		//$conditionnement_unit = $TAssetOFLine->libUnite(); 
 		
 		if($TAssetOFLine->measuring_units!='unit' && !empty($TAssetOFLine->measuring_units)) {
@@ -754,7 +749,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
 		        ,'nomenclature'=>$nomenclature
-				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
+				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'object_technic.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
@@ -771,7 +766,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 {
     global $conf;
     
-    if(!$conf->global->USE_LOT_IN_OF) return '';
+    if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled) ) return '';
     
     $TAsset = $assetOFLine->getAssetLinked($PDOdb);
     
@@ -998,7 +993,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
 				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation			
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-				,'use_lot_in_of'=>(int) $conf->global->USE_LOT_IN_OF
+				,'use_lot_in_of'=>(int)(!empty($conf->asset->enabled) && !empty($conf->global->USE_LOT_IN_OF))
 				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
