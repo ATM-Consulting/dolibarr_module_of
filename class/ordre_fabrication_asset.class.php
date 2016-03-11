@@ -238,6 +238,13 @@ class TAssetOF extends TObjetStd{
 		return $night;
 	}
 	
+	function getNomUrl($picto=0) {
+		return '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
+				.($picto ? img_picto('','object_list.png','',0).' ' : '')
+				.$this->numero
+				.'</a>';
+	}
+	
 	function setDelaiLancement($time = 0) {
 		
 		if((empty($this->date_lancement) && $this->status != 'DRAFT')

@@ -25,7 +25,7 @@
 		default:
 			_liste($PDOdb);
 			break;
-	}	
+	}
 	
 /*
  * Créé des Of depuis un tableau de product
@@ -246,10 +246,11 @@ function _liste(&$PDOdb)
 	
 		$i = 0;
 		
-		$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
+		$form=new TFormCore($_SERVER['PHP_SELF'], 'formMakeOk', 'post');
 		echo $form->hidden('fk_commande', __get('fk_commande',0,'int'));
 		echo $form->hidden('action', 'createOFCommande');
 		echo $form->hidden('fk_soc', $commande->socid);
+		echo $form->hidden('token', $_SESSION['newtoken']); 
 		
 		print '<table class="noborder" width="100%">';
 	
@@ -298,10 +299,13 @@ function _liste(&$PDOdb)
 	
 		print "</table>";
 		
+		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm')
+		.' '.$form->btsubmit('Créer un seul OF', 'subFormAlone').'</p>';
+		
+		$form->end();
+		
 		echo '</div>';
 		
-		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm').' '.$form->btsubmit('Créer un seul OF', 'subFormAlone').'</p>';
-		$form->end();
 		
 		$db->free($resql);
 
