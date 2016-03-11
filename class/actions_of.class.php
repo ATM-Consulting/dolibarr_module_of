@@ -86,7 +86,7 @@ class Actionsof
                 define('INC_FROM_DOLIBARR',true);
                 
                 dol_include_once("/of/config.php");
-                dol_include_once("/of/of/ordre_fabrication_asset.class.php");   
+                dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
                             
                 if($obj = $db->fetch_object($res)) {
                     // of lié à la commande
