@@ -65,10 +65,10 @@
 			</table>
 			
 			<div class="of-details" style="margin-top: 25px;">
-				<table width="100%" class="border">
+				<table width="100%" class="border" style="border:2px solid #b2ea97;">
 					
 					<tr height="40px;">
-						<td style="border-right: none; " colspan="4">&nbsp;&nbsp;<b>Produits à créer</b></td>
+						<td style="border-right: none; background-color:#b2ea97;" colspan="4">&nbsp;&nbsp;<b>Produits à créer</b></td>
 					</tr>
 					<tr style="background-color:#fff;">
 						<td colspan="4" valign="top">
@@ -125,8 +125,8 @@
 			
 			[onshow;block=begin;when [view.workstation_module_activate]==1]
 				<div class="of-details" style="margin-top: 25px;">
-					<table width="100%" class="border workstation">
-						<tr style="background-color:#dedede;">
+					<table width="100%" class="border workstation" style="border:2px solid #f5893f;">
+						<tr style="background-color:#f5893f; color:#fff;">
 							<th>Poste de travail</th>
 							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
 								<th>Utilisateur associé</th>
@@ -163,7 +163,7 @@
 							<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
 						</tr>
 						<tr>
-							<td colspan="4" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
+							<td colspan="5" align="center">[workstation;block=tr;nodata]Aucun poste de travail défini</td>
 						</tr>
 						[onshow;block=begin;when [view.show_cost]=='1']
 						<tr style="background-color:#dedede;">
@@ -195,9 +195,9 @@
 			[onshow;block=end]
 	
 			<div class="of-details" style="margin-top: 25px;">
-				<table width="100%" class="border">
+				<table width="100%" class="border" style="border:2px solid #269393;">
 					<tr height="40px;">
-						<td style="border-right: none;" colspan="4">&nbsp;&nbsp;<b>Produits nécessaires à la fabrication</b></td>
+						<td style="border-right: none; background-color:#269393; color:#fff;" colspan="4">&nbsp;&nbsp;<b>Produits nécessaires à la fabrication</b></td>
 					</tr>
 					<tr style="background-color:#fff;">
 						<td colspan="4" valign="top">
