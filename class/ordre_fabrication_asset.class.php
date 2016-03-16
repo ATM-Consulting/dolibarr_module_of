@@ -1972,11 +1972,12 @@ class TAssetOFLine extends TObjetStd{
 		global $conf;
 		 
 		if(!empty($conf->asset->enabled)) {
-	        $assetType = new TAsset_type;
-	        $assetType->load_by_fk_product($PDOdb, $this->fk_product);
-	        $this->conditionnement = $assetType->getDefaultContenance($this->fk_product);
-	        $this->conditionnement_unit = $assetType->contenance_units;
-	        $this->measuring_units = $assetType->measuring_units;
+			dol_include_once('/asset/class/asset.class.php');
+	        	$assetType = new TAsset_type;
+	        	$assetType->load_by_fk_product($PDOdb, $this->fk_product);
+		        $this->conditionnement = $assetType->getDefaultContenance($this->fk_product);
+		        $this->conditionnement_unit = $assetType->contenance_units;
+		        $this->measuring_units = $assetType->measuring_units;
 			
 		}
 		else{
