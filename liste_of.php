@@ -232,10 +232,10 @@ function _liste(&$PDOdb)
 		
 		$r2 = new TSSRenderControler($assetOf);
 
-		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee, c.description";
-		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c INNER JOIN ".MAIN_DB_PREFIX."product p";
-		$sql.= " ON c.fk_product = p.rowid";
-		$sql.= " WHERE c.product_type=0 AND  c.fk_commande = ".$fk_commande;
+		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee, c.description, c.product_type";
+		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c LEFT JOIN ".MAIN_DB_PREFIX."product p";
+		$sql.= " ON (c.fk_product = p.rowid)";
+		$sql.= " WHERE c.product_type IN (0,9) AND  c.fk_commande = ".$fk_commande;
 		
 		$resql = $db->query($sql);
 //var_dump($db);
@@ -268,12 +268,19 @@ function _liste(&$PDOdb)
 			//$var=!$var;
 			//print "<tr ".$bc[$var].">";
 			
-			if(empty($prod->rowid)) {
+
+			if($prod->product_type == 9) {
+				 print "<tr>";
+                                 print "<td colspan=\"4\"><strong>";
+                                 print $prod->description;
+                                 print '</strong></td>';
+			}
+			else if(empty($prod->rowid)) {
 				// ligne libre
-							print "<tr>";
-							print "<td colspan=\"2\">";
-							print $prod->description;
-							print '</td>';
+				print "<tr>";
+				print "<td colspan=\"4\">";
+				print $prod->description;
+				print '</td>';
 								
 			}
 			else {
@@ -285,14 +292,14 @@ function _liste(&$PDOdb)
 				print '<td>';
 				print $prod->nomProd;
 				print '</td>';
-				
+				 print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false);
+	                        print "</td>";
+                	        print "<td>";
+        	                print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
+                        	print "</td>";
+	                        print "</tr>\n";
+
 			}
-			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false);
-			print "</td>";
-			print "<td>";
-			print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
-			print "</td>";
-			print "</tr>\n";
 	
 			$i++;
 		}
