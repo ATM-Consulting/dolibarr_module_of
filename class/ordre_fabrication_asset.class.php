@@ -66,19 +66,19 @@ class TAssetOF extends TObjetStd{
 		
 		$res = parent::load($db,$id,true);
 		
-    	$this->set_temps_fabrication(true);
+	    	$this->set_temps_fabrication(true);
 		$this->set_fourniture_cost();
-	    $this->set_current_cost_for_to_make();
+		$this->set_current_cost_for_to_make();
 		
-        foreach($this->TAssetOFLine as &$line) {
-            $line->of_numero = $this->numero;
+	        foreach($this->TAssetOFLine as &$line) {
+        		 $line->of_numero = $this->numero;
 			$line->current_cost_for_to_make = $this->current_cost_for_to_make;
-        }
-		
-        foreach($this->TAssetWorkstationOF as &$ws) {
-            $ws->of_status = $this->status;
-            $ws->of_fk_project = $this->fk_project;
-        }
+        	}
+			
+	        foreach($this->TAssetWorkstationOF as &$ws) {
+        	    $ws->of_status = $this->status;
+	            $ws->of_fk_project = $this->fk_project;
+        	}
         
 		return $res;
 	}
@@ -279,13 +279,14 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function setDelaiLancementForParent() {
-		
+//var_dump($this->fk_assetOf_parent);exit;
+//		return false;
 		if($this->fk_assetOf_parent>0) {
 			
 			$PDOdb=new TPDOdb;
 			
 			$of=new TAssetOF;
-			if($of->load($PDOdb, $this->fk_assetOf_parent)) {
+			if($of->load($PDOdb, $this->fk_assetOf_parent)>0) {
 				$of->setDelaiLancement($this->date_lancement);
 				$of->save($PDOdb);
 			}
