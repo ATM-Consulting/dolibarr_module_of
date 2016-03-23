@@ -971,7 +971,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'statustxt'=>TAssetOf::$TStatus[$assetOf->status]
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 				,'url' => dol_buildpath('/of/fiche_of.php', 2)
-				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
+				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/of/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
 				,'fk_nomenclature'=>$fk_nomenclature
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
