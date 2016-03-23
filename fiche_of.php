@@ -960,7 +960,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'temps_reel_fabrication'=>$assetOf->temps_reel_fabrication
 				
 				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
-				,'fk_project'=>(!empty($conf->global->ASSET_USE_PROJECT_TASK)) ? custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode) : ''
+				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
 				
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
 				
