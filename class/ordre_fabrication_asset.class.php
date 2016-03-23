@@ -329,7 +329,7 @@ class TAssetOF extends TObjetStd{
 		
 		$this->destockOrStockPartialQty($PDOdb, $this);
 		
-		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
+		if($this->fk_project == 0 && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
 		parent::save($PDOdb);
 
