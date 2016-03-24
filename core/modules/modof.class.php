@@ -242,10 +242,10 @@ class modof extends DolibarrModules
 		$r=0;
 		
 		if(empty($conf->asset->enabled)) {
-			$this->menu[$r]=array(	'fk_menu'=>0,			// Put 0 if this is a top menu
+			$this->menu[$r]=array('fk_menu'=>0,			// Put 0 if this is a top menu
 					'type'=>'top',			// This is a Top menu entry
 					'titre'=>$langs->trans('GPAO'),
-					'mainmenu'=>'gpao',
+					'mainmenu'=>'gpao', //TODO parce qu'il s'appelle GPAO chercher une image dans /gpao/img/gpao.png
 					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 					'url'=>'/of/liste_of.php',
 					'langs'=>'of@of',
