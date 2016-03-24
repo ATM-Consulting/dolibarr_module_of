@@ -398,7 +398,7 @@ function _liste(&$PDOdb)
 		}
 		
 		echo '<div class="tabsAction">';
-		
+		echo '<a id="bt_createOf" class="butAction" href="fiche_of.php?action=new'.((!empty($fk_product)) ? '&fk_product='.$fk_product : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
 		if ($conf->nomenclature->enabled && !empty($fk_product))
 		{
 			dol_include_once('/core/class/html.form.class.php');
@@ -409,21 +409,19 @@ function _liste(&$PDOdb)
 			echo $doliForm->selectarray('fk_nomenclature', TNomenclature::get($PDOdb, $fk_product, true));
 			
 			echo '<script type="text/javascript">
-				$(function() {
+
 				    var url_create_of = $("#bt_createOf").attr("href");
-                    		$("#bt_createOf").attr("href","#");  
+	                   	    $("#bt_createOf").attr("href","#");  
                         
 					$("#bt_createOf").click(function() {
 						var fk_nomenclature = $("select[name=fk_nomenclature]").val();
 						var href = url_create_of + "&fk_nomenclature=" + fk_nomenclature;
 						$(this).attr("href", href);
 					});
-				});
 			</script>';
 			
 		}
 		
-		echo '<a id="bt_createOf" class="butAction" href="fiche_of.php?action=new'.((!empty($fk_product)) ? '&fk_product='.$fk_product : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
 		echo '</div>';
 
 	}
