@@ -79,6 +79,7 @@ function _validerNomenclature(&$PDOdb, $id_assetOF, $fk_product, $fk_of_line, $f
 	$line->nomenclature_valide = 1;
 	
 	$of->addProductComposition($PDOdb, $fk_product, $qty, $fk_of_line, $fk_nomenclature);
+	$of->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
 	
 	if ($of->fk_assetOf_parent) {
 		_validerOFLigneParent($PDOdb, $of, $fk_nomenclature, $line);

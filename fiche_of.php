@@ -722,6 +722,10 @@ function _fiche_ligne(&$form, &$of, $type){
 						if ($form->type_aff=='edit') {
 							$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">Valider</a>';
 						}
+						else {
+							$nomenclature .= " - Nomenclature à sélectionner";
+						}
+
 						$nomenclature.='</div>';
 					}
 					else{
@@ -748,7 +752,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="TO_MAKE" fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
-		        ,'nomenclature'=>$nomenclature
+			        ,'nomenclature'=>$nomenclature
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'object_technic.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
