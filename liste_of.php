@@ -13,6 +13,8 @@
 	$langs->load('of@of');
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
+
+	if(GETPOST('print'))$action='printTicket';
 	
 	switch ($action) 
 	{
@@ -155,7 +157,7 @@ function _liste(&$PDOdb)
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 	
-	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) echo $form->hidden('action', 'printTicket');
+//	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) echo $form->hidden('action', 'printTicket');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
 	
