@@ -289,12 +289,15 @@ function _liste(&$PDOdb)
 				
 				print "<tr>";
 				print "<td>";
-				print $prod->refProd;
+				$p_static = new Product($db);
+				$p_static->ref = $prod->refProd;
+				$p_static->id = $prod->rowid;
+				print $p_static->getNomUrl(1);
 				print "</td>\n";
 				print '<td>';
 				print $prod->nomProd;
 				print '</td>';
-				 print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false);
+				 print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false,true,'','checkOF' );
 	                        print "</td>";
                 	        print "<td>";
         	                print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
@@ -306,7 +309,22 @@ function _liste(&$PDOdb)
 			$i++;
 		}
 	
+		print '<tr class="liste_titre">';
+		echo '<th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre"><input type="checkbox" id="checkall" checked="checked" value="1"></th><th class="liste_titre">&nbsp;</th>';
+		print '</tr>';
+	
 		print "</table>";
+	
+		?><script type="text/javascript">
+			$('input#checkall').change(function() {
+				
+				$('input.checkOF').prop('checked',$(this).is(':checked'));	
+				
+			});
+			
+		</script>
+		
+		<?php
 		
 		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm')
 		.' '.$form->btsubmit('Créer un seul OF', 'subFormAlone').'</p>';
