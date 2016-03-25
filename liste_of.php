@@ -259,8 +259,8 @@ function _liste(&$PDOdb)
 		print '<tr class="liste_titre">';
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
-		print_liste_field_titre($langs->trans("Produits à ajouter à un OF"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Quantité à produire"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("Produits à ajouter à un OF"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
 		$var=True;
 		
@@ -297,12 +297,14 @@ function _liste(&$PDOdb)
 				print '<td>';
 				print $prod->nomProd;
 				print '</td>';
-				 print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false,true,'','checkOF' );
-	                        print "</td>";
-                	        print "<td>";
+			    	        print "<td>";
         	                print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
                         	print "</td>";
-	                        print "</tr>\n";
+	        
+				 print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false,true,'','checkOF' );
+	                        print "</td>";
+            
+			                print "</tr>\n";
 
 			}
 	
@@ -310,7 +312,9 @@ function _liste(&$PDOdb)
 		}
 	
 		print '<tr class="liste_titre">';
-		echo '<th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre"><input type="checkbox" id="checkall" checked="checked" value="1"></th><th class="liste_titre">&nbsp;</th>';
+		echo '<th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
+		<th class="liste_titre"><input type="checkbox" id="checkall" checked="checked" value="1"></th>
+		';
 		print '</tr>';
 	
 		print "</table>";
