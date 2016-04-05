@@ -331,6 +331,8 @@ class TAssetOF extends TObjetStd{
 		
 		if($this->fk_project == 0 && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
+		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
+		
 		parent::save($PDOdb);
 
         $this->getNumero($PDOdb, true);
