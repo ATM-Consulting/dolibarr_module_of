@@ -1,6 +1,8 @@
 <?php
 	require('config.php');
 	
+	ini_set('memory_limit','512M');
+	
 	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/commande/class/commande.class.php');
@@ -19,6 +21,7 @@
 	switch ($action) 
 	{
 		case 'createOFCommande':
+			set_time_limit(0);
 			_createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
 			_liste($PDOdb);
 			break;
@@ -120,12 +123,13 @@ function _liste(&$PDOdb)
 	
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
 		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
 		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
-		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON p.rowid = ofel.fk_product
-		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = ofe.fk_soc
+		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
+		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)
 		  WHERE ofe.entity=".$conf->entity;
 
 	if($fk_soc>0) $sql.=" AND ofe.fk_soc=".$fk_soc; 
@@ -211,7 +215,7 @@ function _liste(&$PDOdb)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
 			,'status'=>'TAssetOF::status(@val@)'
-			,'product' => 'get_format_libelle_produit(@fk_product@)'
+			,'product' => 'get_format_libelle_produit("@fk_product@")'
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 		)
         ,'search'=>array(
@@ -456,16 +460,21 @@ function _liste(&$PDOdb)
 
 function get_format_libelle_produit($fk_product = null) 
 {
-	global $db;
+	global $db,$langs;
 
 	if (!empty($fk_product)) 
 	{
+	
+		$TId = explode(',',$fk_product);
+		$nb_product = count($TId);
+		
 		$product = new Product($db);
-		$product->fetch($fk_product);
+		$product->fetch($TId[0]);
 	
 		$product->ref.=' '.$product->label;
 	
-		return  $product->getNomUrl(1);
+		$res = $product->getNomUrl(1).($nb_product>1 ? ' + '.($nb_product-1).' '.$langs->trans('products') : '');
+		return $res;
 	} 
 	else 
 	{
