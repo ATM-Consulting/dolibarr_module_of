@@ -16,8 +16,6 @@
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
 
-	if(GETPOST('print'))$action='printTicket';
-	
 	switch ($action) 
 	{
 		case 'createOFCommande':
@@ -167,7 +165,7 @@ function _liste(&$PDOdb)
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 	
-//	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) echo $form->hidden('action', 'printTicket');
+	echo $form->hidden('action', '');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
 	
@@ -232,8 +230,10 @@ function _liste(&$PDOdb)
         )
 	));
 	
-	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) echo '<p align="right"><input class="button" type="submit" name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
-	
+	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
+		echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
+	}
+
 	$form->end();
 	
 	// On n'affiche pas le bouton de création d'OF si on est sur la liste OF depuis l'onglet "OF" de la fiche commande
