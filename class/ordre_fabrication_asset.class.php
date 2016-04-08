@@ -649,7 +649,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_used = (!empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
 		$TAssetOFLine->note_private = $note_private;
 		
-        $TAssetOFLine->fk_product_fournisseur_price = -2;
+        	$TAssetOFLine->fk_product_fournisseur_price = -2;
         
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
 		{
@@ -674,7 +674,7 @@ class TAssetOF extends TObjetStd{
 		
 		$TAssetOFLine->lot_number = $lot_number;
 		
-        $TAssetOFLine->initConditionnement($PDOdb);
+        	$TAssetOFLine->initConditionnement($PDOdb);
 		
 		if($fk_nomenclature>0) {
 			$TAssetOFLine->nomenclature_valide = true;
@@ -693,7 +693,7 @@ class TAssetOF extends TObjetStd{
         
 		if($type=='TO_MAKE') 
 		{
-			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
+			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$quantite);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 		
@@ -747,7 +747,7 @@ class TAssetOF extends TObjetStd{
 	 * Fonction qui permet de mettre à jour les postes de travail liais à un produit
 	 * pour la création d'un OF depuis une fiche produit
 	 */
-	function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0) 
+	function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0, $qty_needed = 1) 
 	{
 		global $conf;
 		
@@ -761,24 +761,20 @@ class TAssetOF extends TObjetStd{
 					$n=new TNomenclature;
 					if($n->load($PDOdb, $fk_nomenclature, true)) {
 						
-						$line_to_make = $this->getLineProductToMake();
-						if(!empty($line_to_make) && $line_to_make->qty_needed > 1) $qty_needed = $line_to_make->qty_needed;
-						else $qty_needed = 1;
-						
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 							
 							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || $conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF) {
 							
 								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
-								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare; // TODO voir si on multiplie le tps de préparation par la quantité à produire : $nws->nb_hour_prepare*$qty_needed;
+								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare; 
 								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
 								$this->TAssetWorkstationOF[$k]->nb_hour = $this->TAssetWorkstationOF[$k]->nb_hour_prepare + $this->TAssetWorkstationOF[$k]->nb_hour_manufacture ;
 								
 								$this->TAssetWorkstationOF[$k]->rang = $nws->rang;
 								
 								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
-                                $this->TAssetWorkstationOF[$k]->note_private = $nws->note_private;
+                                				$this->TAssetWorkstationOF[$k]->note_private = $nws->note_private;
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
 							
 							}

@@ -46,7 +46,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 			$assetOf = new TAssetOF;
 			$assetOf->fk_commande = $fk_commande;
 		}
-		
+
 		foreach($TProduct as $fk_commandedet => $v) 
 		{
 			foreach($v as $fk_product=>$dummy) 
@@ -59,14 +59,20 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				
 				if($assetOf->fk_commande > 0) 
 				{
-					$com = new Commande($db);
+					$com = new Commande($db); //TODO on est pas censé toujours être sur la même commande ? AA 
 					$com->fetch($assetOf->fk_commande);
 					$assetOf->fk_project = $com->fk_project;
 					if(!empty($com->date_livraison)) $assetOf->date_besoin = $com->date_livraison;
 				}
 				
+/*				pre($TQuantites,true);
+				pre($TProduct,true);exit;*/
+
+				$qty = $TQuantites[$fk_commandedet];
+
+//print "$fk_product x $qty<br />";
 				$assetOf->fk_soc = $fk_soc;
-				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $TQuantites[$fk_commandedet], 0, '', 0, $fk_commandedet);
+				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
 				$assetOf->save($PDOdb);
 				
 			}
