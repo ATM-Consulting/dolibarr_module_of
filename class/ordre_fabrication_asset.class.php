@@ -849,7 +849,7 @@ class TAssetOF extends TObjetStd{
 	        
 			include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 			
-	        if (!$of->checkCommandeFournisseur($PDOdb))
+	        if (empty($conf->global->OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER) && !$of->checkCommandeFournisseur($PDOdb))
 	        {
                 setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
                 return false;
