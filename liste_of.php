@@ -246,7 +246,6 @@ function _liste(&$PDOdb)
 		$resql = $db->query($sql);
 //var_dump($db);
 		$num = $db->num_rows($resql);
-		$limit = $conf->liste_limit;
 	
 		print_barre_liste($langs->trans('ListOrderProducts'), $page, "liste.php",$param,$sortfield,$sortorder,'',$num);
 	
@@ -261,22 +260,25 @@ function _liste(&$PDOdb)
 		print '<table class="noborder" width="100%">';
 	
 		print '<tr class="liste_titre">';
+		print_liste_field_titre("#");
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Quantité à produire"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Produits à ajouter à un OF"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
-		$var=True;
+		$var=1;
 		
-		while ($i < min($num,$limit))
+		$bc = array(1=>'class="pair"',-1=>'class="impair"');
+
+		while ($prod = $db->fetch_object($resql))
 		{
-			$prod = $db->fetch_object($resql);
-			//$var=!$var;
+			$var=!$var;
 			//print "<tr ".$bc[$var].">";
 			
 
 			if($prod->product_type == 9) {
 				 print "<tr>";
+				print "<td>&nbsp;</td>";
                                  print "<td colspan=\"4\"><strong>";
                                  print $prod->description;
                                  print '</strong></td>';
@@ -284,6 +286,8 @@ function _liste(&$PDOdb)
 			else if(empty($prod->rowid)) {
 				// ligne libre
 				print "<tr>";
+				  print "<td>&nbsp;</td>";
+
 				print "<td colspan=\"4\">";
 				print $prod->description;
 				print '</td>';
@@ -291,7 +295,9 @@ function _liste(&$PDOdb)
 			}
 			else {
 				
-				print "<tr>";
+				print "<tr ".$bc[$var].">";
+			       print "<td>".($i+1)."</td>";
+
 				print "<td>";
 				$p_static = new Product($db);
 				$p_static->ref = $prod->refProd;
@@ -309,14 +315,15 @@ function _liste(&$PDOdb)
 	                        print "</td>";
             
 			                print "</tr>\n";
+				$i++;
+
 
 			}
 	
-			$i++;
 		}
 	
 		print '<tr class="liste_titre">';
-		echo '<th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
+		echo '<th class="liste_titre" colspan="2">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
 		<th class="liste_titre"><input type="checkbox" id="checkall" checked="checked" value="1"></th>
 		';
 		print '</tr>';
