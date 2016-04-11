@@ -145,3 +145,7 @@ moduleWorkstationNeeded=Module Poste de travail requis
 
 OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER=Permettre de terminer des OF liés à des commandes fournisseur non réceptionnées.
 products=produit(s)
+
+
+# Etiquettes
+CHOOSE_CUSTOM_LABEL = Choisir un type d'étiquettes personalisable

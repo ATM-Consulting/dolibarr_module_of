@@ -25,7 +25,6 @@
 // Dolibarr environment
 
 require '../config.php';
-
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/of.lib.php';
@@ -225,6 +224,63 @@ $var=!$var;
 	print '</form>';
 	print '</td></tr>';
 	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("CHOOSE_CUSTOM_LABEL").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="right" width="300">';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="action" value="set_DEFAULT_ETIQUETTES">';
+	$liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
+	print $form->selectarray('DEFAULT_ETIQUETTES', $liste, $conf->global->DEFAULT_ETIQUETTES);
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</form>';
+	print '</td></tr>';
+	
+	
+	if($conf->global->DEFAULT_ETIQUETTES == 2){
+
+			print '<tr '.$bc[$var].'>';
+			print '<td>'.$langs->trans("DEFINE_MARGIN_TOP").'</td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+			print '<td align="right" width="300">';
+			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_TOP">';
+			print $formCore->texte('', 'DEFINE_MARGIN_TOP', $conf->global->DEFINE_MARGIN_TOP, 10, 10);
+			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+			print '</form>';
+			print '</td></tr>';
+			
+			print '<tr '.$bc[$var].'>';
+			print '<td>'.$langs->trans("DEFINE_MARGIN_LEFT").'</td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+			print '<td align="right" width="300">';
+			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_LEFT">';
+			print $formCore->texte('', 'DEFINE_MARGIN_LEFT', $conf->global->DEFINE_MARGIN_LEFT, 10, 10);
+			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+			print '</form>';
+			print '</td></tr>';
+			
+			print '<tr '.$bc[$var].'>';
+			print '<td>'.$langs->trans("DEFINE_WIDTH_DIV").'</td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+			print '<td align="right" width="300">';
+			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="set_DEFINE_WIDTH_DIV">';
+			print $formCore->texte('', 'DEFINE_WIDTH_DIV', $conf->global->DEFINE_WIDTH_DIV, 10, 10);
+			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+			print '</form>';
+			print '</td></tr>';
+		
+	}
+	
+	
+
 	print '</table>';
 
 print '<table class="noborder" width="100%">';
@@ -317,10 +373,10 @@ print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("AssetAuthorizeAddWorkstationTime0OnOF").'</td>';
+print '<td>'.$langs->trans("OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
-print ajax_constantonoff('ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF');
+print ajax_constantonoff('OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER');
 print '</td></tr>';	
 
 $var=!$var;
