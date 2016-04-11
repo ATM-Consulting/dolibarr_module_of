@@ -149,3 +149,6 @@ products=produit(s)
 
 # Etiquettes
 CHOOSE_CUSTOM_LABEL = Choisir un type d'étiquettes personalisable
+DEFINE_MARGIN_TOP = Définir la marge du haut de page (en px)
+DEFINE_MARGIN_LEFT = Définir la marge de gauche (en px)
+DEFINE_WIDTH_DIV = Définir la largeur de chaque étiquette (en pourcentage)
