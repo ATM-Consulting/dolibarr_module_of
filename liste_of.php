@@ -524,12 +524,11 @@ function _printTicket(&$PDOdb)
 	//var_dump($TInfoEtiquette);exit;
 	@mkdir($dir, 0777, true);
 	
-	if($conf->global->DEFAULT_ETIQUETTES == 2){
-		if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
-		else $template = "etiquette_custom.html";
+	if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
+	else if($conf->global->DEFAULT_ETIQUETTES == 2){
+		$template = "etiquette_custom.html";
 	}else{
-		if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
-		else $template = "etiquette.html";
+		$template = "etiquette.html";
 	}
 
 	$TBS=new TTemplateTBS();
@@ -584,30 +583,18 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 				{
 					for ($i = 0; $i < $qty; $i++)
 					{
-						if ($conf->global->DEFAULT_ETIQUETTES == 2){
-							$TInfoEtiquette[] = array(
-								'numOf' => $assetOf->numero
-								,'refCmd' => $cmd->ref
-								,'refCliCmd' => $cmd->ref_client
-								,'refProd' => $product->ref
-								,'qty_to_print' => $qty
-								,'qty_to_make' => $assetOfLine->qty
-								,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20)
-								,'pos' => ceil($pos/8)		
-							);
-						}else{
-							$TInfoEtiquette[] = array(
-								'numOf' => $assetOf->numero
-								,'refCmd' => $cmd->ref
-								,'refCliCmd' => $cmd->ref_client
-								,'refProd' => $product->ref
-								,'qty_to_print' => $qty
-								,'qty_to_make' => $assetOfLine->qty
-								,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
-								,'pos' => ceil($pos/8)		
-							);
-							
-						}
+						
+						$TInfoEtiquette[] = array(
+							'numOf' => $assetOf->numero
+							,'refCmd' => $cmd->ref
+							,'refCliCmd' => $cmd->ref_client
+							,'refProd' => $product->ref
+							,'qty_to_print' => $qty
+							,'qty_to_make' => $assetOfLine->qty
+							,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, $conf->global->DEFAULT_ETIQUETTES == 2?"\n":"</br>")
+							,'pos' => ceil($pos/8)		
+						);
+					
 						//var_dump($TInfoEtiquette);exit;
 						$pos++;
 					}
