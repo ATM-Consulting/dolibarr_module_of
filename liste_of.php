@@ -521,12 +521,17 @@ function _printTicket(&$PDOdb)
 	
 	$TPrintTicket = GETPOST('printTicket', 'array');
 	$TInfoEtiquette = _genInfoEtiquette($db, $PDOdb, $TPrintTicket);
-	
+	//var_dump($TInfoEtiquette);exit;
 	@mkdir($dir, 0777, true);
 	
-	if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
-	else $template = "etiquette.html";
-	
+	if($conf->global->DEFAULT_ETIQUETTES == 2){
+		if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
+		else $template = "etiquette_custom.html";
+	}else{
+		if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
+		else $template = "etiquette.html";
+	}
+
 	$TBS=new TTemplateTBS();
 	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
 		,array(
@@ -534,7 +539,10 @@ function _printTicket(&$PDOdb)
 		)
 		,array(
 			'date'=>date("d/m/Y")
-		)
+			,'margin_top' =>  intval($conf->global->DEFINE_MARGIN_TOP)
+			, 'margin_left' => intval($conf->global->DEFINE_MARGIN_LEFT)
+			, 'width' => intval($conf->global->DEFINE_WIDTH_DIV)
+			)
 		,array()
 		,array(
 			'outFile'=>$dir.$fileName.".html"
@@ -548,6 +556,8 @@ function _printTicket(&$PDOdb)
 
 function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 {
+	global $conf; 
+	
 	$TInfoEtiquette = array();
 	if (empty($TPrintTicket)) return $TInfoEtiquette;
 	
@@ -574,16 +584,31 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 				{
 					for ($i = 0; $i < $qty; $i++)
 					{
-						$TInfoEtiquette[] = array(
-							'numOf' => $assetOf->numero
-							,'refCmd' => $cmd->ref
-							,'refProd' => $product->ref
-							,'qty_to_print' => $qty
-							,'qty_to_make' => $assetOfLine->qty
-							,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
-							,'pos' => ceil($pos/8)						
-						);
-						
+						if ($conf->global->DEFAULT_ETIQUETTES == 2){
+							$TInfoEtiquette[] = array(
+								'numOf' => $assetOf->numero
+								,'refCmd' => $cmd->ref
+								,'refCliCmd' => $cmd->ref_client
+								,'refProd' => $product->ref
+								,'qty_to_print' => $qty
+								,'qty_to_make' => $assetOfLine->qty
+								,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20)
+								,'pos' => ceil($pos/8)		
+							);
+						}else{
+							$TInfoEtiquette[] = array(
+								'numOf' => $assetOf->numero
+								,'refCmd' => $cmd->ref
+								,'refCliCmd' => $cmd->ref_client
+								,'refProd' => $product->ref
+								,'qty_to_print' => $qty
+								,'qty_to_make' => $assetOfLine->qty
+								,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
+								,'pos' => ceil($pos/8)		
+							);
+							
+						}
+						//var_dump($TInfoEtiquette);exit;
 						$pos++;
 					}
 				}
