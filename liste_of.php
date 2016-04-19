@@ -539,14 +539,18 @@ function _printTicket(&$PDOdb)
 		,array(
 			'date'=>date("d/m/Y")
 			,'margin_top' =>  intval($conf->global->DEFINE_MARGIN_TOP)
-			, 'margin_left' => intval($conf->global->DEFINE_MARGIN_LEFT)
+			, 'margin_left_impair' => intval($conf->global->DEFINE_MARGIN_LEFT)
 			, 'width' => intval($conf->global->DEFINE_WIDTH_DIV)
+			, 'height' => intval($conf->global->DEFINE_HEIGHT_DIV)
+			, 'margin_right_pair' =>intval($conf->global->DEFINE_MARGIN_RIGHT)
+			, 'margin_top_cell' =>intval($conf->global->DEFINE_MARGIN_TOP_CELL)
 			)
 		,array()
 		,array(
 			'outFile'=>$dir.$fileName.".html"
 			,'convertToPDF'=>true
 		)
+		
 	);
 	
 	header("Location: ".dol_buildpath("/document.php?modulepart=of&entity=1&file=".$dirName."/".$fileName.".pdf", 1));
@@ -566,7 +570,7 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	$cmd = new Commande($db);
 	$product = new Product($db);
 	$pos = 1;
-	
+	$cpt=0;
 	foreach ($TPrintTicket as $fk_assetOf => $qty)
 	{
 		if ($qty <= 0) continue;
@@ -579,13 +583,17 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 			
 			foreach ($assetOf->TAssetOFLine as &$assetOfLine)
 			{
+				
 				if ($assetOfLine->type == 'TO_MAKE' && $product->fetch($assetOfLine->fk_product) > 0)
 				{
 					for ($i = 0; $i < $qty; $i++)
 					{
-						
+						$cpt++;
+						if (($cpt%2)==0)$div='pair';
+						else $div='impair';
 						$TInfoEtiquette[] = array(
 							'numOf' => $assetOf->numero
+							,'float' => $div
 							,'refCmd' => $cmd->ref
 							,'refCliCmd' => $cmd->ref_client
 							,'refProd' => $product->ref
@@ -597,12 +605,13 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 					
 						//var_dump($TInfoEtiquette);exit;
 						$pos++;
+						//var_dump($TInfoEtiquette);
 					}
 				}
 			}
 		}
 		
-	}
+	}//exit;
 	
 	return $TInfoEtiquette;
 }

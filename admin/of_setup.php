@@ -254,6 +254,18 @@ $var=!$var;
 			print '</td></tr>';
 			
 			print '<tr '.$bc[$var].'>';
+			print '<td>'.$langs->trans("DEFINE_MARGIN_TOP_CELL").'</td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+			print '<td align="right" width="300">';
+			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_TOP_CELL">';
+			print $formCore->texte('', 'DEFINE_MARGIN_TOP_CELL', $conf->global->DEFINE_MARGIN_TOP_CELL, 10, 10);
+			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+			print '</form>';
+			print '</td></tr>';
+			
+			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_MARGIN_LEFT").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
 			print '<td align="right" width="300">';
@@ -266,6 +278,18 @@ $var=!$var;
 			print '</td></tr>';
 			
 			print '<tr '.$bc[$var].'>';
+			print '<td>'.$langs->trans("DEFINE_MARGIN_RIGHT").'</td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+			print '<td align="right" width="300">';
+			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_RIGHT">';
+			print $formCore->texte('', 'DEFINE_MARGIN_RIGHT', $conf->global->DEFINE_MARGIN_RIGHT, 10, 10);
+			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+			print '</form>';
+			print '</td></tr>';
+			
+			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_WIDTH_DIV").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
 			print '<td align="right" width="300">';
@@ -273,6 +297,18 @@ $var=!$var;
 			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 			print '<input type="hidden" name="action" value="set_DEFINE_WIDTH_DIV">';
 			print $formCore->texte('', 'DEFINE_WIDTH_DIV', $conf->global->DEFINE_WIDTH_DIV, 10, 10);
+			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+			print '</form>';
+			print '</td></tr>';
+			
+			print '<tr '.$bc[$var].'>';
+			print '<td>'.$langs->trans("DEFINE_HEIGHT_DIV").'</td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+			print '<td align="right" width="300">';
+			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="set_DEFINE_HEIGHT_DIV">';
+			print $formCore->texte('', 'DEFINE_HEIGHT_DIV', $conf->global->DEFINE_HEIGHT_DIV, 10, 10);
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';

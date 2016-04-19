@@ -11,19 +11,35 @@
 	
 	<body>
 		<div id="body">
-			<div class="pagebreak" style="float:left;height:125px;width:[width]%;">
-				<p style="font-size:12px"><b><span style="font-size: 15px">N°CMD : [TInfoEtiquette.refCmd;block=div;strconv=no]</span> / [TInfoEtiquette.refCliCmd;block=div;strconv=no] / [TInfoEtiquette.refProd;block=div;strconv=no]</b></p>
-				<p style="font-size:10px;">[TInfoEtiquette.label;block=div;strconv=no]</p>
-				<p><b>Quantité : [TInfoEtiquette.qty_to_make;block=div;strconv=no]</b></p>
+			<div id="[TInfoEtiquette.float]" class="pagebreak" >
+				<p style="font-size:12px;line-height: 1"><b><span style="font-size: 15px">N°CMD : [TInfoEtiquette.refCliCmd;block=div;strconv=no]</span></b></p>
+				<p style="font-size:12px;line-height: 1"><b>[TInfoEtiquette.refProd;block=div;strconv=no]</b></p>
+				<p style="font-size:10px;line-height: 1">[TInfoEtiquette.label;block=div;strconv=no]</p>
+				<p style="font-size:10px;line-height: 1"><b>Quantité : [TInfoEtiquette.qty_to_make;block=div;strconv=no]</b></p>
 			</div>
 		</div>
 		<style type="text/css">
 			#body{
 				position:relative;
-				top: [margin_top];
-				left: [margin_left]px;
+				top: [margin_top]px;
+
 			}
 			
+			#pair{
+				position:relative;
+				right:[margin_right_pair]px;
+				float:left;
+				height:[height]mm;
+				width:[width]%;
+				
+			}
+			#impair{
+				position:relative;
+				left: [margin_left_impair]px;
+				float:left;
+				height:[height]mm;
+				width:[width]%;
+			}
 			
 		</style>
 		
