@@ -567,12 +567,12 @@ class TAssetOF extends TObjetStd{
 	
 	static function getProductNeededQty($fk_product, $include_draft_of=true, $include_of_from_order = false, $date='', $type='NEEDED') {
 		
-		global $db;
+		global $db,$conf;
 		
 		$sql = "SELECT SUM( IF(qty_needed>0,qty_needed - qty_stock, qty-qty_stock) ) as qty 
 				FROM ".MAIN_DB_PREFIX."assetOf_line l 
 					LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON(l.fk_assetOf = of.rowid)
-			WHERE l.fk_product=".$fk_product."
+			WHERE of.entity=".$conf->entity." AND l.fk_product=".$fk_product."
 			AND type='".$type."' AND of.status IN (".($include_draft_of ? "'DRAFT',": '')."'VALID','OPEN')	
 			";
 		if(!empty($date))$sql.=" AND of.date_besoin<='".$date."'";
