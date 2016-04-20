@@ -86,7 +86,7 @@ function _liste(&$PDOdb)
 	global $langs,$db,$user,$conf;
 	
 	llxHeader('',$langs->trans('ListOFAsset'),'','');
-	getStandartJS();
+	//getStandartJS();
 	
 	if(isset($_REQUEST['delete_ok'])) {
 		?>
