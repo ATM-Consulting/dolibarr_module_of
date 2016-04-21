@@ -128,7 +128,7 @@ function _liste(&$PDOdb)
 	$r = new TSSRenderControler($assetOf);
 
 	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
-		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
 		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
@@ -148,7 +148,8 @@ function _liste(&$PDOdb)
 	
 	$TMath=array();
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
-	
+	if($fk_commande>0)  $THide[] = 'fk_commande';
+
 	if ($conf->global->OF_NB_TICKET_PER_PAGE == -1) $THide[] = 'printTicket';
 	
 	if(empty($user->rights->of->of->price)) {
@@ -201,6 +202,7 @@ function _liste(&$PDOdb)
 		)
 		,'title'=>array(
 			'numero'=>'Numéro'
+			,'fk_commande'=>'Commande client'
 			,'ordre'=>'Priorité'
 			,'date_lancement'=>'Date du lancement'
 			,'date_besoin'=>'Date du besoin'
@@ -212,6 +214,7 @@ function _liste(&$PDOdb)
 			,'total_cost'=>'Coût réel'
 			,'total_estimated_cost'=>'Coût prévu'
 			,'printTicket' => 'impression<br />étiquette'
+			,'fk_project'=>'Projet'
 		)
 		,'orderBy'=>array(
 			'rowid'=>'DESC'
@@ -221,6 +224,9 @@ function _liste(&$PDOdb)
 			,'status'=>'TAssetOF::status(@val@)'
 			,'product' => 'get_format_libelle_produit("@fk_product@")'
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
+			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
+			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
+
 		)
         ,'search'=>array(
             'numero'=>array('recherche'=>true, 'table'=>'ofe')
@@ -510,6 +516,34 @@ function get_format_libelle_societe($fk_soc)
     
     return '';
 }
+
+function get_format_libelle_commande($fk) 
+{
+        global $db;
+
+    if($fk>0) 
+    {
+                $o = new Commande($db);
+                if($o->fetch($fk)>0) return $o->getNomUrl(1);
+		else return $fk;
+    }
+   
+    return '';
+}
+function get_format_libelle_projet($fk) {
+    global $db;
+
+    if($fk>0) 
+    {
+		dol_include_once('/projet/class/project.class.php');
+                $o = new Project($db);
+                if($o->fetch($fk)>0) return $o->getNomUrl(1);
+                else return $fk;
+    }
+   
+    return '';
+}
+
 
 function _printTicket(&$PDOdb)
 {
