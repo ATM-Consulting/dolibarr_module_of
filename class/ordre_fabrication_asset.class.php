@@ -1439,7 +1439,7 @@ class TAssetOF extends TObjetStd{
 		{
 			$qtyIsValid &= $TAssetOFLine->setAsset($PDOdb,$this, false);
 		}
-		
+
 		return $qtyIsValid;
 	}
 
@@ -1786,7 +1786,7 @@ class TAssetOFLine extends TObjetStd{
 		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
 		if ($is_cumulate)
 		{
-			$sql.= ' WHERE 1 ';
+			$sql.= ' WHERE status != "USED" ';
 			
 			if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql.= ' AND contenancereel_value > 0 ';
 			
@@ -1795,7 +1795,7 @@ class TAssetOFLine extends TObjetStd{
 		}
 		else 
 		{
-			$sql.= ' WHERE 1 ';
+			$sql.= ' WHERE status != "USED" ';
 			
 			if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql.= ' AND contenancereel_value >= '.($qty - $qty_sotck).' ';// - la quantité déjà utilisé
 			
@@ -1813,7 +1813,7 @@ class TAssetOFLine extends TObjetStd{
 		$sql.= $completeSql;
 		
 		//echo $sql.'<br>';
-		
+				
 		$Tab = $PDOdb->ExecuteAsArray($sql);
 
         $no_error = true;
