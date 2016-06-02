@@ -32,7 +32,9 @@
 				<tr><td>Projet</td><td>[assetOf.fk_project;strconv=no;protect=no]</td></tr>
 				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
 				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
-				<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
+				[onshow;block=begin;when [rights.show_ws_time]==1]
+					<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
+				[onshow;block=end]
 				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
 				[onshow;block=begin;when [view.show_cost]=='1']
 				<tr><td>Coût estimé de fabrication</td><td>[assetOf.total_estimated_cost;strconv=no]</td></tr>
