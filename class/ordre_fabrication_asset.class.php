@@ -697,41 +697,32 @@ class TAssetOF extends TObjetStd{
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 		
-		// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
-		if(!empty($conf->workstation->enabled) && $type == "TO_MAKE") 
-		{
-			//$sql = "SELECT fk_asset_workstation, nb_hour"; 
-			$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-			//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
-			$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-			$sql.= " WHERE fk_product = ".$fk_product;
-			$resql = $db->query($sql);
-			
-			if($resql) 
-			{
-				while($res = $db->fetch_object($resql)) 
-				{
-					$this->addofworkstation($PDOdb, $res->fk_asset_workstation, $res->nb_hour);
-				}
-	
-			}
-			
-			$this->save($PDOdb);
-			$this->load($PDOdb, $this->getId());
-		}
 	}
 	
-	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0) 
+	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '') 
 	{
 		global $conf;
+		 
+		if(empty($nb_hour))$nb_hour = $nb_hour_prepare + $nb_hour_manufacture;
 		 
 		$coef = 1;
 		if (!empty($conf->global->ASSET_COEF_WS)) $coef = $conf->global->ASSET_COEF_WS;
 		
-		$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
+		$k=false;
+		if(!empty($conf->global->OF_CONCAT_WS_ON_ADD) && method_exists($this, 'searchChild')) $k = $this->searchChild('TAssetWorkstationOF',$fk_asset_workstation,'fk_asset_workstation');
+		if($k===false) $k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 		
 		$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
-		$this->TAssetWorkstationOF[$k]->nb_hour = $nb_hour * $coef;
+		$this->TAssetWorkstationOF[$k]->nb_hour_prepare += $nb_hour_prepare* $coef; 
+		$this->TAssetWorkstationOF[$k]->nb_hour_manufacture += $nb_hour_manufacture* $coef;
+		$this->TAssetWorkstationOF[$k]->nb_hour += $nb_hour * $coef ;
+		
+		$this->TAssetWorkstationOF[$k]->rang = $rang;
+		
+		$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+    	$this->TAssetWorkstationOF[$k]->note_private = $private_note;
+		
+		return $k;
 	}
 	
 	function updateLines(&$PDOdb,$TQty)
@@ -760,21 +751,19 @@ class TAssetOF extends TObjetStd{
 					
 					$n=new TNomenclature;
 					if($n->load($PDOdb, $fk_nomenclature, true)) {
-						
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 							
 							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || $conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF) {
 							
-								$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
-								$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $nws->fk_workstation;
-								$this->TAssetWorkstationOF[$k]->nb_hour_prepare = $nws->nb_hour_prepare; 
-								$this->TAssetWorkstationOF[$k]->nb_hour_manufacture = $nws->nb_hour_manufacture*$qty_needed;
-								$this->TAssetWorkstationOF[$k]->nb_hour = $this->TAssetWorkstationOF[$k]->nb_hour_prepare + $this->TAssetWorkstationOF[$k]->nb_hour_manufacture ;
-								
-								$this->TAssetWorkstationOF[$k]->rang = $nws->rang;
-								
-								$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
-                                				$this->TAssetWorkstationOF[$k]->note_private = $nws->note_private;
+								$k = $this->addofworkstation($PDOdb
+										,$nws->fk_workstation
+										,$nws->nb_hour_prepare + $nws->nb_hour_manufacture
+										,$nws->nb_hour_prepare
+										,$nws->nb_hour_manufacture*$qty_needed
+										,$nws->rang
+										,$nws->note_private
+								);
+							
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
 							
 							}
@@ -794,12 +783,12 @@ class TAssetOF extends TObjetStd{
 				
 				while($res = $PDOdb->Get_line()) 
 				{
-					$ws = new TAssetWorkstation;
-					$ws->load($PDOdb, $res->fk_asset_workstation);
-					$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
-					$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $res->fk_asset_workstation;
-					$this->TAssetWorkstationOF[$k]->nb_hour = $res->nb_hour;
-					$this->TAssetWorkstationOF[$k]->nb_hour_real = 0;
+					
+					$k = $this->addofworkstation($PDOdb
+							,$nws->fk_workstation
+							,$res->nb_hour
+					);
+					
 					$this->TAssetWorkstationOF[$k]->ws = $ws;
 				}
 				
