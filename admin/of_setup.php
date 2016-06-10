@@ -347,6 +347,14 @@ print '<td>'.$langs->trans("UseProjectTaskHierarchique").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_TASK_HIERARCHIQUE_BY_RANK');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_CONCAT_WS_ON_ADD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_CONCAT_WS_ON_ADD');
 print '</td></tr>'; 
 
 $var=!$var;
