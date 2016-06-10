@@ -48,6 +48,16 @@ function traite_get(&$PDOdb, $case) {
 			
 			__out($Tid);
 			break;
+		case 'getchildlisthtml':
+			$Tid = array();
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, __get('id',0,'integer'));
+			
+			$assetOf->getListeOFEnfants($PDOdb, $Tid);
+			echo _listOFEnfantHtml($PDOdb, $Tid);			
+			
+			break;
+			
 		case 'getnomenclatures':
 			__out(_getNomenclatures($PDOdb, GETPOST('fk_product')), 'json');
 			break;
@@ -56,6 +66,31 @@ function traite_get(&$PDOdb, $case) {
 			break;
 	}
 }
+
+function _listOFEnfantHtml(&$PDOdb, $Tid) {
+	global $langs;
+	
+	$html = '';
+	
+	$html.='<table class="border" width="100%">';
+	$html.='<tr class="liste_titre"><td>'.$langs->trans('OF').'</td><td>'.$langs->trans('DateBesoin').'</td><td>'.$langs->trans('DateLaunch').'</td><td>'.$langs->trans('Status').'</td></tr>';
+		
+	foreach($Tid as $id) {
+		
+		$of=new TAssetOF;
+		$of->withChild = false;
+		$of->load($PDOdb, $id);
+		
+		$html.='<tr><td>'.$of->getNomUrl(1).'</td><td>'.$of->get_date('date_besoin').'</td><td>'.$of->get_date('date_lancement').'</td><td>'.$of->getLibStatus().'</td></tr>';
+		
+	}
+	
+	$html.='</table>';
+	
+	
+	return $html;
+}
+
 function _addofworkstation($PDOdb, $fk_of, $fk_ws) {
 	
 	$o=new TAssetOF;

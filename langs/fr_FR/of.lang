@@ -155,3 +155,8 @@ DEFINE_WIDTH_DIV = Définir la largeur de chaque étiquette (en pourcents)
 DEFINE_MARGIN_RIGHT = Définir la marge de droite de la colonne de droite (en px)
 DEFINE_MARGIN_TOP_CELL = Définir la marge du haut de chaque cellule (en px)
 DEFINE_HEIGHT_DIV = Définir la hauteur de chaque étiquette (en mm)
+
+MinimalViewForChilOF=Vue minimale pour les OFs enfants
+
+DateLaunch=Date de lancement
+DateBesoin=Date du besoin

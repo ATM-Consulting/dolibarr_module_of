@@ -1330,7 +1330,11 @@ class TAssetOF extends TObjetStd{
 
 		return $res;
 	}
-
+	
+	function getLibStatus() {
+		return self::status($this->status);
+	}
+	
 	static function status($status='DRAFT'){
 		
 			

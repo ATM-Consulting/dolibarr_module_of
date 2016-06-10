@@ -415,99 +415,117 @@
 			$('#assetChildContener > *:not("#titleOFEnfants")').remove();
 			$('#assetChildContener').append('<p align="center" style="padding:10px; background:#fff;display:block;"><img src="img/loading.gif" /></p>');
 			$('#assetChildContener').show();
-			$.ajax({
+			
+			if([view.OF_MINIMAL_VIEW_CHILD_OF]==1) {
 				
-				url:'script/interface.php?get=getofchildid&id=[assetOf.id]&json=1'
-				,dataType:'json'
+				$.ajax({
+					
+					url:'script/interface.php?get=getchildlisthtml&id=[assetOf.id]'
+					,dataType:'html'
+					
+				}).done(function(data) {
+					$('#assetChildContener').html(data);
+				});
+					
+					
+			}
+			else{
 				
-				,success: function(Tid) {
+				$.ajax({
+					
+					url:'script/interface.php?get=getofchildid&id=[assetOf.id]&json=1'
+					,dataType:'json'
+					
+					,success: function(Tid) {
+								
+						if(Tid.length==0) {
+							$('#assetChildContener').hide();
+						}
+						else {
+							$('#assetChildContener > *:not("#titleOFEnfants")').remove();
+							for(x in Tid ){
 							
-					if(Tid.length==0) {
-						$('#assetChildContener').hide();
-					}
-					else {
-						$('#assetChildContener > *:not("#titleOFEnfants")').remove();
-						for(x in Tid ){
-						
-							$.ajax({
-								url : "[assetOf.url]"
-								,async: false
-								,data:{
-									action:"[view.actionChild]"
-									,id:Tid[x]
-								}
-								,type: 'POST'
-							}).done(function(data) {
-								
-								var html = $(data).find('div.OFMaster');
-								html.find('.buttonsAction').remove();
-								
-								var TAssetOFLineLot = html.find('input.TAssetOFLineLot');
-								for (var i = 0; i < TAssetOFLineLot.length; i++)
-								{
-									$(TAssetOFLineLot).attr('disabled', 'true').css('border', 'none').css('background', 'none');
-								}
-								
-								var id_form = html.find('form').attr('id');
-								
-								$('#assetChildContener').append(html);
-								
-								refreshDisplay();
-								
-								$('select[name^=TAssetOFLine]').change(function(){
-									compose_fourni = $(this).find('option:selected').attr('compose_fourni');
-									//alert(compose_fourni);
-									assetOf_id = $(this).closest('.OFMaster').attr('assetof_id');
-									//alert(assetOf_id);
-									if(compose_fourni == 0){
-										//alert($('.OFMaster[fk_assetOf_parent='+assetOf_id+']').length);
-										$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '5px solid red');
+								$.ajax({
+									url : "[assetOf.url]"
+									,async: false
+									,data:{
+										action:"[view.actionChild]"
+										,id:Tid[x]
 									}
-									else{
-										$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '0px none');
+									,type: 'POST'
+								}).done(function(data) {
+									
+									var html = $(data).find('div.OFMaster');
+									html.find('.buttonsAction').remove();
+									
+									var TAssetOFLineLot = html.find('input.TAssetOFLineLot');
+									for (var i = 0; i < TAssetOFLineLot.length; i++)
+									{
+										$(TAssetOFLineLot).attr('disabled', 'true').css('border', 'none').css('background', 'none');
 									}
-								});
-								
-								$("#"+id_form).submit(function() {
-									var targetForm = this;
 									
-									if ($(this).attr('rel') == 'noajax') return true;
+									var id_form = html.find('form').attr('id');
 									
-									var oldInputAction = $(targetForm).children('input[name=action]').val();
-									//Soumission du formulaire en ajax, je force manuellement l'action à save pour le bouton Enregistrer
-									$(targetForm).children('input[name=action]').val('save');
-									$.ajax({
-										url: $(targetForm).attr('action'),
-										data: $(targetForm).serialize(),
-										type: 'POST',
-										async: false,
-										success: function () {
-											$(targetForm).css('border' , '5px solid green');
-											
-											$(targetForm).animate({ "border": "5px solid green" }, 'slow');
-											$(targetForm).animate({ "border": "0px" }, 'slow');
-																						
-											$.jnotify('Modifications enregistr&eacute;es', "ok");
-											
-											//Maj de l'affichage du formulaire en question
-											refreshTab($(targetForm).children('input[name=id]').val(), 'edit');									     	
-										},
-										error: function () {
-											$.jnotify('Une erreur c\'est produite', "error");
+									$('#assetChildContener').append(html);
+									
+									refreshDisplay();
+									
+									$('select[name^=TAssetOFLine]').change(function(){
+										compose_fourni = $(this).find('option:selected').attr('compose_fourni');
+										//alert(compose_fourni);
+										assetOf_id = $(this).closest('.OFMaster').attr('assetof_id');
+										//alert(assetOf_id);
+										if(compose_fourni == 0){
+											//alert($('.OFMaster[fk_assetOf_parent='+assetOf_id+']').length);
+											$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '5px solid red');
+										}
+										else{
+											$('.OFMaster[fk_assetOf_parent='+assetOf_id+']').css('border' , '0px none');
 										}
 									});
-								
-									$(targetForm).children('input[name=action]').val(oldInputAction);
-									return false;
+									
+									$("#"+id_form).submit(function() {
+										var targetForm = this;
+										
+										if ($(this).attr('rel') == 'noajax') return true;
+										
+										var oldInputAction = $(targetForm).children('input[name=action]').val();
+										//Soumission du formulaire en ajax, je force manuellement l'action à save pour le bouton Enregistrer
+										$(targetForm).children('input[name=action]').val('save');
+										$.ajax({
+											url: $(targetForm).attr('action'),
+											data: $(targetForm).serialize(),
+											type: 'POST',
+											async: false,
+											success: function () {
+												$(targetForm).css('border' , '5px solid green');
+												
+												$(targetForm).animate({ "border": "5px solid green" }, 'slow');
+												$(targetForm).animate({ "border": "0px" }, 'slow');
+																							
+												$.jnotify('Modifications enregistr&eacute;es', "ok");
+												
+												//Maj de l'affichage du formulaire en question
+												refreshTab($(targetForm).children('input[name=id]').val(), 'edit');									     	
+											},
+											error: function () {
+												$.jnotify('Une erreur c\'est produite', "error");
+											}
+										});
+									
+										$(targetForm).children('input[name=action]').val(oldInputAction);
+										return false;
+									});
 								});
-							});
+								
+							}
 							
 						}
-						
+				
 					}
-			
-				}
-			});
+				});
+				
+			}
 		
 		}
 
