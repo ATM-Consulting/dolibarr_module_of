@@ -9,6 +9,8 @@ dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
 $PDOdb=new TPDOdb;
 
+$langs->load('of@of');
+
 $get = __get('get','emprunt');
 
 traite_get($PDOdb, $get);
@@ -71,6 +73,8 @@ function _listOFEnfantHtml(&$PDOdb, $Tid) {
 	global $langs;
 	
 	$html = '';
+
+	if(empty($Tid)) return '';
 	
 	$html.='<table class="border" width="100%">';
 	$html.='<tr class="liste_titre"><td>'.$langs->trans('OF').'</td><td>'.$langs->trans('DateBesoin').'</td><td>'.$langs->trans('DateLaunch').'</td><td>'.$langs->trans('Status').'</td></tr>';
