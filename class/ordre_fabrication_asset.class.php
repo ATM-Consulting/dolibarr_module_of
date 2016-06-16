@@ -521,12 +521,12 @@ class TAssetOF extends TObjetStd{
 			
 			if (!empty($conf->global->CREATE_CHILDREN_OF))
 			{
-				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
+				/*if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
 				{
 					if(!$createOF) {
 						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty);
 					}
-				}
+				}*/
 				
 				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 				{
@@ -546,9 +546,8 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
-
+//return false;
 		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
-
 
 		if($reste>=0) {
 			return null;
