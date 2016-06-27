@@ -2418,6 +2418,8 @@ class TAssetWorkstationOF extends TObjetStd{
 						
 		$projectTask->date_start = $OF->date_lancement;
 		$projectTask->date_end = $OF->date_besoin;
+		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
+		
 		$projectTask->planned_workload = $this->nb_hour*3600;
 		
         $projectTask->array_options['options_grid_use']=1;
@@ -2450,6 +2452,10 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
+		
+		$projectTask->date_start = $OF->date_lancement;
+		$projectTask->date_end = $OF->date_besoin;
+		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
 		
 		$projectTask->update($user);
 		
