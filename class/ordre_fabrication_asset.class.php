@@ -756,9 +756,9 @@ class TAssetOF extends TObjetStd{
 							
 								$k = $this->addofworkstation($PDOdb
 										,$nws->fk_workstation
-										,$nws->nb_hour_prepare + $nws->nb_hour_manufacture
+										,$nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
 										,$nws->nb_hour_prepare
-										,$nws->nb_hour_manufacture*$qty_needed
+										,$nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
 										,$nws->rang
 										,$nws->note_private
 								);
