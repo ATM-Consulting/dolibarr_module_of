@@ -501,6 +501,14 @@ class modof extends DolibarrModules
 
 		$result=$this->_load_tables('/of/sql/');
 
+		dol_include_once('/core/class/extrafields.class.php');
+        $extrafields=new ExtraFields($this->db);
+        $res = $extrafields->addExtraField('fk_of', 'Ordre de Fabrication', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('assetOf:numero:rowid'=>null))));
+
+        $extrafields=new ExtraFields($this->db);
+        $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
+
+
 		return $this->_init($sql, $options);
 	}
 
