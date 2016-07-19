@@ -157,8 +157,12 @@ class TAssetOF extends TObjetStd{
 		
 		foreach($this->TAssetOFLine as &$line) {
 			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
-			$this->compo_cost+= $line->qty_used * $line->pmp;
-			$this->compo_estimated_cost+= $line->qty_needed * $line->pmp;
+			
+			if($line->type == 'NEEDED') {
+				$this->compo_cost+= $line->qty_used * $line->pmp;
+				$this->compo_estimated_cost+= $line->qty_needed * $line->pmp;
+			}
+			
 		}
 		
 	}
@@ -1637,6 +1641,7 @@ class TAssetOFLine extends TObjetStd{
 		
 		if($this->type=='TO_MAKE') {
 			$price = $this->current_cost_for_to_make;
+			$this->pmp = $this->current_cost_for_to_make;
 		}
 		
 		TAssetOF::addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest, $labelMvt,$fk_entrepot, $price);
