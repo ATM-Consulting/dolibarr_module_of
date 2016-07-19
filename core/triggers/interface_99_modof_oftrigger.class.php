@@ -193,6 +193,14 @@ class Interfaceoftrigger
 					$wsof=new TAssetWorkstationOF;
 					$wsof->load($PDOdb, $obj->rowid);
 					$wsof->nb_hour_real = ($object->duration_effective + $object->timespent_duration) / 3600;
+					
+					// Parce que Dolibarr mets le THM à jour après la création de la tâche :/
+					$sql = "UPDATE ".MAIN_DB_PREFIX."projet_task_time";
+		            $sql.= " SET thm = (SELECT thm FROM ".MAIN_DB_PREFIX."user WHERE rowid = ".$object->timespent_fk_user.")";	// set average hour rate of user
+		            $sql.= " WHERE rowid = ".$object->timespent_id;
+					$object->db->query($sql);
+					
+					$wsof->db = &$object->db;
 					$wsof->save($PDOdb);
 					
 				}

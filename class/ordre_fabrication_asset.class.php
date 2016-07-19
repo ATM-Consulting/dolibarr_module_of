@@ -2527,9 +2527,20 @@ class TAssetWorkstationOF extends TObjetStd{
 	}
 	
 	function setTHM() {
-		global $db,$conf;
+		
+		if(empty($this->nb_hour_real)) {
+			$this->thm = 0;
+			return $this->thm;
+		}
 		
 		if(!empty($this->ws->thm) || !empty($this->ws->thm_machine)) $this->thm = $this->ws->thm + $this->ws->thm_machine;
+		
+		if(empty($this->db)) {
+			global $db,$conf;
+		}
+		else{
+			$db = &$this->db;
+		}
 		
 		$sql="SELECT (SUM(tt.thm * tt.task_duration) / SUM(tt.task_duration)) as thm 
 			FROM ".MAIN_DB_PREFIX."projet_task_time tt
@@ -2537,12 +2548,12 @@ class TAssetWorkstationOF extends TObjetStd{
 			WHERE tex.fk_of = ".$this->fk_assetOf." AND tex.fk_workstation=".$this->fk_asset_workstation." AND tt.thm>0"; 
 		
 		$res = $db->query($sql);
-		if($res && $obj = $db->fetch_object($res) && $obj->thm>0) {
-			
-			$this->thm = $obj->thm;
-			
+		if($obj = $db->fetch_object($res)) {
+			if($obj->thm>0)	$this->thm = (float)$obj->thm;
 		}
-		//var_dump($sql,$this->thm ,$this->ws->thm);exit;
+		//var_dump($sql,$this->thm);
+		return $this->thm;
+		
 	}
 	
 	function save(&$PDOdb)
