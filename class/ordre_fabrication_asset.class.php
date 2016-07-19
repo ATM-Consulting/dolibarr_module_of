@@ -2364,10 +2364,10 @@ class TAssetWorkstationOF extends TObjetStd{
 	
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
-    		$this->TChamps = array(); 	  
-		$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task','type=entier;index;');
-		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang','type=float;'); // nombre d'heure associé au poste de charge sur un OF
+    	$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task',array('type'=>'integer', 'index'=>true) );
+		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
 		$this->add_champs('note_private',array('type'=>'text'));
+		
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
 		// celui ci peut être différent ligne par ligne si on a plusieurs fois un même poste de travail sur une nomenclature.
 		// as you wish buddy ! AA 
@@ -2526,9 +2526,30 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 	}
 	
+	function setTHM() {
+		global $db,$conf;
+		
+		if(!empty($this->ws->thm) || !empty($this->ws->thm_machine)) $this->thm = $this->ws->thm + $this->ws->thm_machine;
+		
+		$sql="SELECT (SUM(tt.thm * tt.task_duration) / SUM(tt.task_duration)) as thm 
+			FROM ".MAIN_DB_PREFIX."projet_task_time tt
+				LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (tex.fk_object = tt.fk_task)
+			WHERE tex.fk_of = ".$this->fk_assetOf." AND tex.fk_workstation=".$this->fk_asset_workstation." AND tt.thm>0"; 
+		
+		$res = $db->query($sql);
+		if($res && $obj = $db->fetch_object($res) && $obj->thm>0) {
+			
+			$this->thm = $obj->thm;
+			
+		}
+		//var_dump($sql,$this->thm ,$this->ws->thm);exit;
+	}
+	
 	function save(&$PDOdb)
 	{
 	 	global $conf;
+		
+		$this->setTHM();
 		
         if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
