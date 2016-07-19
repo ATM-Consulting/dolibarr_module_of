@@ -705,7 +705,7 @@ class TAssetOF extends TObjetStd{
 		if(empty($nb_hour))$nb_hour = $nb_hour_prepare + $nb_hour_manufacture;
 		 
 		$coef = 1;
-		if (!empty($conf->global->ASSET_COEF_WS)) $coef = $conf->global->ASSET_COEF_WS;
+		if (!empty($conf->global->OF_COEF_WS)) $coef = $conf->global->OF_COEF_WS;
 		
 		$k=false;
 		if(!empty($conf->global->OF_CONCAT_WS_ON_ADD) && method_exists($this, 'searchChild')) $k = $this->searchChild('TAssetWorkstationOF',$fk_asset_workstation,'fk_asset_workstation');

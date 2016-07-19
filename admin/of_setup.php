@@ -381,6 +381,19 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
 print '</td></tr>';	
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("set_OF_COEF_WS").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300" style="white-space:nowrap;">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_COEF_WS">';
+print $formCore->texte('', 'OF_COEF_WS', (empty($conf->global->OF_COEF_WS) ? '' : $conf->global->OF_COEF_WS), 5,255);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
 print '</table>';
 
 
