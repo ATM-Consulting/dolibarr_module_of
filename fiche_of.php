@@ -589,7 +589,7 @@ function get_tab_file_path($TRes) {
 }
 
 function _fiche_ligne(&$form, &$of, $type){
-	global $db, $conf, $langs;
+	global $db, $conf, $langs,$hookmanager;
 //TODO rules guys ! To Facto ! AA
 	$formProduct = new FormProduct($db);
 
@@ -628,7 +628,7 @@ function _fiche_ligne(&$form, &$of, $type){
         if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 			$stock_needed = TAssetOF::getProductStock($product->id);
 
-			$TRes[]= array(
+			$TLine = array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
@@ -637,7 +637,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
-				,'qty_used'=>(($of->status=='OPEN' && !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
+				,'qty_used'=>(($of->status=='OPEN' || $of->status == 'CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
 				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 				,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
@@ -645,6 +645,18 @@ function _fiche_ligne(&$form, &$of, $type){
                 ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
                 
 			);
+			
+			$action = $form->type_aff;
+			$parameter=array('of'=>&$of, 'line'=>&$TLine);
+			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
+			
+			if($res>0 && !empty($hookmanager->resArray)) {
+				
+				$line = $hookmanager->resArray;
+				
+			}
+			
+			$TRes[] = $TLine;
 		}
 		elseif($TAssetOFLine->type == "TO_MAKE" && $type == "TO_MAKE"){
 			if(empty($TAssetOFLine->TFournisseurPrice)) {
