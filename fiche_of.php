@@ -647,12 +647,12 @@ function _fiche_ligne(&$form, &$of, $type){
 			);
 			
 			$action = $form->type_aff;
-			$parameter=array('of'=>&$of, 'line'=>&$TLine);
+			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'NEEDED');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
 			
 			if($res>0 && !empty($hookmanager->resArray)) {
 				
-				$line = $hookmanager->resArray;
+				$TLine = $hookmanager->resArray;
 				
 			}
 			
@@ -758,7 +758,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			//($of->status=='DRAFT') ? $form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', _getArrayNomenclature($PDOdb, $TAssetOFLine), $TAssetOFLine->fk_nomenclature) : _getTitleNomenclature($PDOdb, $TAssetOFLine->fk_nomenclature)
 			$stock_tomake = TAssetOF::getProductStock($product->id);
 			
-			$TRes[]= array(
+			$TLine= array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="TO_MAKE" fk_product="'.$product->id.'"','TAssetOFLineLot') : $TAssetOFLine->lot_number
@@ -772,6 +772,20 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			);
+			
+			
+			
+			$action = $form->type_aff;
+			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'TO_MAKE');
+			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
+			
+			if($res>0 && !empty($hookmanager->resArray)) {
+				
+				$TLine = $hookmanager->resArray;
+				
+			}
+			
+			$TRes[] = $TLine;
 		}
 	}
 	
