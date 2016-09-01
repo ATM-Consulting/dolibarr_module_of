@@ -468,7 +468,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	}
 	
 	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.'/of/'.$dirName.'/';
+	$dir = DOL_DATA_ROOT.( $conf->entity>1 ? '/'.$conf->entity : ''  ).'/of/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
 	
