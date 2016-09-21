@@ -163,3 +163,5 @@ DateLaunch=Date de lancement
 DateBesoin=Date du besoin
 
 ofSetup=Configuration 
+QtyUsed=Quantité utilisée
+
