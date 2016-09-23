@@ -1,7 +1,8 @@
 <?php
 	require('config.php');
-	require('./class/asset.class.php');
-	require('./class/ordre_fabrication_asset.class.php');
+	
+	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+	if(!$user->rights->of->of->lire) accessforbidden();
 	
 	$langs->load('asset@asset');
 	
@@ -118,7 +119,7 @@ function _fiche(&$ATMdb, &$control, $mode='view', $editValue=false) {
 	llxHeader('',$langs->trans('AssetAddControl'),'','');
 	$TBS=new TTemplateTBS;
 	
-	$form=new TFormCore('auto', '', 'post', true);
+	$form=new TFormCore();
 	$form->Set_typeaff($mode);
 	
 	$TForm=array(
@@ -142,10 +143,12 @@ function _fiche(&$ATMdb, &$control, $mode='view', $editValue=false) {
 				'mode'=>$mode
 				,'editValue'=>$editValue
 				,'type'=>$control->type
-				,'url'=>dol_buildpath('/asset/control.php', 1)
+				,'url'=>dol_buildpath('/of/control.php', 1)
 			)
 		)
 	);
+	
+	
 	
 	llxFooter();
 }

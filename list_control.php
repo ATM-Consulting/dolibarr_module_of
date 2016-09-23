@@ -1,9 +1,8 @@
 <?php
 	require('config.php');
-	require('./class/asset.class.php');
-	require('./class/ordre_fabrication_asset.class.php');
+	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 	
-	if(!$user->rights->asset->of->lire) accessforbidden();
+	if(!$user->rights->of->of->lire) accessforbidden();
 	
 	dol_include_once("/core/class/html.formother.class.php");
 	
