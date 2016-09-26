@@ -1,4 +1,6 @@
 <?php
+
+ //TODO move this to Quality mod
 	require('config.php');
 	
 	dol_include_once('/of/class/ordre_fabrication_asset.class.php');

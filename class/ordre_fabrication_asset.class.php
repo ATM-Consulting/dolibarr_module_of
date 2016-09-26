@@ -2857,7 +2857,7 @@ class TAssetWorkstationTask extends TObjetStd
 }
 
 
-class TAssetControl extends TObjetStd
+class TAssetControl extends TObjetStd //TODO move this to Quality mod
 {
 	static $TType=array(
 			'text'=>'Texte libre'
@@ -2881,7 +2881,7 @@ class TAssetControl extends TObjetStd
 	}
 }
 
-class TAssetControlMultiple extends TObjetStd
+class TAssetControlMultiple extends TObjetStd //TODO move this to Quality mod
 {
 	function __construct()
 	{
