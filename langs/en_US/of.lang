@@ -35,6 +35,7 @@ workstation=poste de travail
 ListOrderProducts=Liste des produits de la commande
 AssetProductionOrder=Ordre de Fabrication
 AssetNewProductionOrder=Nouvel ordre de Fabrication
+ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

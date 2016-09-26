@@ -141,6 +141,7 @@ function _action() {
 			break;
 
 		case 'valider':
+			$error = 0;
 			$assetOf=new TAssetOF;
             $id = GETPOST('id');
             if(empty($id)) exit('Where is Waldo ?');
@@ -156,11 +157,25 @@ function _action() {
 				}
 			}
 			
-			$assetOf->validate($PDOdb);
+			// Check si chaque ligne des produits à fabriquer et nécessaire à la fabrication ont bien un fk_entrepot
+			foreach ($assetOf->TAssetOFLine as &$ofLine)
+			{
+				if (empty($ofLine->fk_entrepot))
+				{
+					$error++;
+					setEventMessages($langs->trans('ofError_fk_entrepot_missing'), array(), 'errors');
+					break;
+				}
+			}
 			
-			//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
-			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			if (!$error)
+			{
+				$assetOf->validate($PDOdb);
+				
+				//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);	
+			}
 			
 			_fiche($PDOdb,$assetOf, 'view');
 

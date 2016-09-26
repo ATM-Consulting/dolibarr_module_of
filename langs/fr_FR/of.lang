@@ -61,6 +61,7 @@ ofPrintTicket=Impression étiquette
 ofListProductNeeded=<strong>Liste OF ayant besoin du produit</strong>
 set_ABRICOT_WKHTMLTOPDF_CMD=Commande pour la génération PDF des étiquettes (WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/)
 OfNbTicketrPerPage=Valeur par défaut d'impression étiquette par page (-1 pour désactiver la fonctionnalité)
+ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
