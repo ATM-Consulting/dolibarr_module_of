@@ -231,6 +231,13 @@ class modof extends DolibarrModules
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'show_ws_time';
 		
+		$r++;
+		$this->rights[$r][0] = $this->numero+$r;
+		$this->rights[$r][1] = 'Autoriser la suppression d\'un OF à l\'état "Terminé"';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'of';
+		$this->rights[$r][5] = 'allow_delete_of_finish';
+		
 		
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
