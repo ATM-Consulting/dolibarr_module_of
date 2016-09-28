@@ -1018,6 +1018,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'view'=>array(
 				'mode'=>$mode
 				,'status'=>$assetOf->status
+				,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
 				,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
 				,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
 				,'select_product'=>$select_product
