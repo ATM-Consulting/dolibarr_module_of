@@ -104,7 +104,7 @@ class TAssetOF extends TObjetStd{
 		$TOf = array();
 
 		$TIdOfEnfant = array();
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId());
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false 
 		
 		foreach ($TIdOfEnfant as $i => $id_of) 
 		{
