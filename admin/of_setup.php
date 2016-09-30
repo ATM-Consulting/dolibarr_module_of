@@ -182,6 +182,14 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
 print '</td></tr>';
 
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OF_CHECK_IF_WAREHOUSE_ON_OF_LINE").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');
+    print '</td></tr>';
+	
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("AssetConcatPDF").'</td>';

@@ -35,7 +35,8 @@ workstation=poste de travail
 ListOrderProducts=Liste des produits de la commande
 AssetProductionOrder=Ordre de Fabrication
 AssetNewProductionOrder=Nouvel ordre de Fabrication
-ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté
+ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté sur l'of : %s
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Vérifier qu'un entrepôt est saisie sur chaque ligne de l'OF sur l'action "Valider", si la configuration du changement de status peuple les OFs enfants alors la vérification ce fera aussi sur les enfants
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
