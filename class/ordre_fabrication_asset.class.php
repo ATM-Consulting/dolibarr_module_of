@@ -83,39 +83,82 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 
+	function checkWharehouseOnLines()
+	{
+		foreach ($this->TAssetOFLine as &$ofLine)
+		{
+			if (empty($ofLine->fk_entrepot))
+			{
+				return false;
+			}	
+		}
+		
+		return true;
+	}
+
 	function validate(&$PDOdb) {
 
-		global $conf;
+		global $conf,$langs;
+		
+		$error = 0;
+		$TOf = array();
 
-		$TIDOFToValidate = array($this->rowid);
-
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
-
-		foreach ($TIDOFToValidate as $id_of) {
-
-			$of = new TAssetOF;
-			$of->load($PDOdb, $id_of);
-
-			// On valide pas une of qui est déjà validé ou supérieur
-			if($of->rowid <= 0 || $of->status != 'DRAFT') continue;
-
-			$of->status = 'VALID';
-
-			if($this->rowid == $id_of) { // Ca c'est juste pour l'of sur lequel on se trouve.
-				if(!empty($_REQUEST['TAssetOFLine'])) {
-					foreach($_REQUEST['TAssetOFLine'] as $k=>$row) {
-						$of->TAssetOFLine[$k]->set_values($row);
-					//	if (empty($of->TAssetOFLine[$k]->qty)) $of->TAssetOFLine[$k]->qty = $of->TAssetOFLine[$k]->qty_needed;
-					}
+		$TIdOfEnfant = array();
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId());
+		
+		foreach ($TIdOfEnfant as $i => $id_of) 
+		{
+			$TOf[$i] = new TAssetOF;
+			$TOf[$i]->load($PDOdb, $id_of);
+		}
+		
+		$TOf[] = &$this;
+		
+		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
+		{
+			// Check si un fk_entrepot est saisie sur chaque ligne de l'OF courrant et sur les OFs enfants
+			foreach ($TOf as &$of)
+			{
+				if (!$of->checkWharehouseOnLines())
+				{
+					$error++;
+					$this->errors[] = $langs->trans('ofError_fk_entrepot_missing', $of->numero);
 				}
 			}
-			$of->createOfAndCommandesFourn($PDOdb);
-			$of->unsetChildDeleted = true;
-
-			$of->save($PDOdb);
-
 		}
-
+		
+		if (!$error)
+		{
+			foreach ($TOf as &$of)
+			{
+				// On valide pas un of qui est déjà validé ou supérieur
+				if($of->getId() <= 0 || $of->status != 'DRAFT') continue;
+				
+				$of->status = 'VALID';
+				
+				if($this->getId() == $of->getId()) { // Ca c'est juste pour l'of sur lequel on se trouve.
+					if(!empty($_REQUEST['TAssetOFLine']))
+					{
+						foreach($_REQUEST['TAssetOFLine'] as $k => $row)
+						{
+							$of->TAssetOFLine[$k]->set_values($row);
+						}
+					}
+				}
+				
+				$of->createOfAndCommandesFourn($PDOdb);
+				$of->unsetChildDeleted = true;
+	
+				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
+				$of->withChild = false;
+	
+				$of->save($PDOdb);
+			}
+			
+			return 1;
+		}
+		
+		return -1;
 	}
 
 	function create_new_project() {
@@ -313,7 +356,6 @@ class TAssetOF extends TObjetStd{
 		$this->set_fourniture_cost();
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
 		$this->total_estimated_cost = $this->compo_estimated_cost + $this->mo_estimated_cost;
-
 
 		$this->entity = $conf->entity;
 

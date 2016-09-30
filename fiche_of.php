@@ -141,6 +141,7 @@ function _action() {
 			break;
 
 		case 'valider':
+			$error = 0;
 			$assetOf=new TAssetOF;
             $id = GETPOST('id');
             if(empty($id)) exit('Where is Waldo ?');
@@ -156,13 +157,17 @@ function _action() {
 				}
 			}
 			
-			$assetOf->validate($PDOdb);
+			$res = $assetOf->validate($PDOdb);
 			
-			//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
-			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			if ($res > 0)
+			{
+				//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
+
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);	
+			}
 			
-			_fiche($PDOdb,$assetOf, 'view');
+			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
 
