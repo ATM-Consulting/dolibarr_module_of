@@ -224,13 +224,14 @@ function _action() {
 			$TOFToGenerate = array($assetOf->rowid);
 			
 			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
-			
+			//var_dump($TOFToGenerate);
 			foreach($TOFToGenerate as $id_of) {
 			
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $id_of, false);
+				//echo $id_of;
 				$TRes[] = generateODTOF($PDOdb, $assetOf);
-				
+				//echo '...ok<br />';
 			}
 			
 			$TFilePath = get_tab_file_path($TRes);
@@ -345,12 +346,8 @@ function _action() {
 
 function generateODTOF(&$PDOdb, &$assetOf) {
 	
-	global $db,$conf;
+	global $db,$conf, $TProductCache;
 
-	foreach($assetOf as $k => $v) {
-		print $k."<br />";
-	}
-	
 	$TBS=new TTemplateTBS();
 	dol_include_once("/product/class/product.class.php");
 
@@ -372,13 +369,23 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		$TControl = $assetOf->getControlPDF($PDOdb);
 	}
 	
+	if(empty($TProductCache))$TProductCache=array();
+		
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>&$v) {
 
-		$prod = new Product($db);
-		$prod->fetch($v->fk_product);
-		$prod->fetch_optionals($prod->id);
+		if(!isset($TProductCache[$v->fk_product])) {
+			
+			$prod = new Product($db);
+			$prod->fetch($v->fk_product);
+			$prod->fetch_optionals($prod->id);
 		
+			
+			$TProductCache[$v->fk_product]=$prod;
+		}
+		
+		$prod = &$TProductCache[$v->fk_product];
+
 		if($conf->nomenclature->enabled){
 				
 				$n = new TNomenclature;
@@ -484,7 +491,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		$template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
-	
+
 	$refcmd = '';
 	if(!empty($assetOf->fk_commande)) {
 		$cmd = new Commande($db);
