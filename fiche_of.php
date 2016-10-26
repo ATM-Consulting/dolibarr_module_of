@@ -224,7 +224,7 @@ function _action() {
 			$TOFToGenerate = array($assetOf->rowid);
 			
 			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
-			//var_dump($TOFToGenerate);
+//			var_dump($TOFToGenerate);exit;
 			foreach($TOFToGenerate as $id_of) {
 			
 				$assetOf=new TAssetOF;
@@ -235,7 +235,7 @@ function _action() {
 			}
 			
 			$TFilePath = get_tab_file_path($TRes);
-			//var_dump($TFilePath);exit;
+		//	var_dump($TFilePath);exit;
 			if($conf->global->ASSET_CONCAT_PDF) {
 				ob_start();
 				$pdf=pdf_getInstance();
@@ -346,7 +346,7 @@ function _action() {
 
 function generateODTOF(&$PDOdb, &$assetOf) {
 	
-	global $db,$conf, $TProductCache;
+	global $db,$conf, $TProductCachegenerateODTOF;
 
 	$TBS=new TTemplateTBS();
 	dol_include_once("/product/class/product.class.php");
@@ -369,22 +369,24 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		$TControl = $assetOf->getControlPDF($PDOdb);
 	}
 	
-	if(empty($TProductCache))$TProductCache=array();
+	if(empty($TProductCachegenerateODTOF))$TProductCachegenerateODTOF=array();
 		
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>&$v) {
 
-		if(!isset($TProductCache[$v->fk_product])) {
+		if(!isset($TProductCachegenerateODTOF[$v->fk_product])) {
 			
-			$prod = new Product($db);
-			$prod->fetch($v->fk_product);
-			$prod->fetch_optionals($prod->id);
-		
-			
-			$TProductCache[$v->fk_product]=$prod;
+			$prod_cache = new Product($db);
+			if($prod_cache->fetch($v->fk_product)>0) {
+				$prod_cache->fetch_optionals($prod_cache->id);
+				$TProductCachegenerateODTOF[$v->fk_product]=$prod_cache;
+			}
+		}
+		else{
+			//echo 'cache '.$v->fk_product.':'.$TProductCachegenerateODTOF[$v->fk_product]->ref.' / '.$TProductCachegenerateODTOF[$v->fk_product]->id.'<br />';
 		}
 		
-		$prod = &$TProductCache[$v->fk_product];
+		$prod = &$TProductCachegenerateODTOF[$v->fk_product];
 
 		if($conf->nomenclature->enabled){
 				
@@ -500,7 +502,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	}
 	
 	$barcode_pic = getBarCodePicture($assetOf);
-	
+//var_dump($TToMake);	
 	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
