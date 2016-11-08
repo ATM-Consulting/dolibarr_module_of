@@ -265,13 +265,7 @@ class TAssetOF extends TObjetStd{
                    $update=true;
                }
 			   
-			   if($ws->nb_days_before_beginning > 0) {
-			   		$task->date_start = strtotime(date('Y-m-d H:i:s', $task->date_start).' +'.$ws->nb_days_before_beginning.'days');
-					
-					$update=true;
-			   }
-			   
-			   if($update) echo $task->update($user);
+			   if($update) $task->update($user);
 
             }
 
@@ -1803,12 +1797,12 @@ class TAssetOFLine extends TObjetStd{
 
 			$stock_needed = TAssetOF::getProductStock($this->fk_product);
 			if($stock_needed > 0) return 0;
+			
+			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
+				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
+				return $nb;
+			}
 
-			dol_include_once('/supplierorderfromorder/class/sofo.class.php');
-
-			$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
-
-			return $nb;
 		}
 
 		return 0;
@@ -2475,9 +2469,9 @@ class TAssetWorkstationOF extends TObjetStd{
         else{
             $projectTask->fk_task_parent = 0;
         }
-
-
-		$projectTask->date_start = $OF->date_lancement;
+			   
+		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);	   
+		
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
 
@@ -2514,7 +2508,8 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
 
-		$projectTask->date_start = $OF->date_lancement;
+		
+		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
 
