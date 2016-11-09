@@ -258,15 +258,11 @@ class TAssetOF extends TObjetStd{
                $task = new Task($db);
                $task->fetch($ws->fk_project_task);
 			   
-			   $update=false;
-			   
-			   if($task->date_start<$this->date_lancement) {
+	       if($task->date_start<$this->date_lancement) {
                    $task->date_start = $this->date_lancement;
-                   $update=true;
+		   $task->update($user);
                }
 			   
-			   if($update) $task->update($user);
-
             }
 
 		}
