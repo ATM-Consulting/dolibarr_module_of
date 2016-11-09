@@ -257,11 +257,12 @@ class TAssetOF extends TObjetStd{
 
                $task = new Task($db);
                $task->fetch($ws->fk_project_task);
-               if($task->date_start<$this->date_lancement) {
+			   
+	       if($task->date_start<$this->date_lancement) {
                    $task->date_start = $this->date_lancement;
-                   $task->update($user);
+		   $task->update($user);
                }
-
+			   
             }
 
 		}
@@ -744,7 +745,7 @@ class TAssetOF extends TObjetStd{
 
 	}
 
-	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '')
+	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0)
 	{
 		global $conf;
 
@@ -760,7 +761,8 @@ class TAssetOF extends TObjetStd{
 		$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
 		$this->TAssetWorkstationOF[$k]->nb_hour_prepare += $nb_hour_prepare* $coef;
 		$this->TAssetWorkstationOF[$k]->nb_hour_manufacture += $nb_hour_manufacture* $coef;
-		$this->TAssetWorkstationOF[$k]->nb_hour += $nb_hour * $coef ;
+		$this->TAssetWorkstationOF[$k]->nb_hour += $nb_hour * $coef;
+		$this->TAssetWorkstationOF[$k]->nb_days_before_beginning = $nb_days_before_beginning;
 
 		$this->TAssetWorkstationOF[$k]->rang = $rang;
 
@@ -807,6 +809,7 @@ class TAssetOF extends TObjetStd{
 										,$nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
 										,$nws->rang
 										,$nws->note_private
+										,$nws->nb_days_before_beginning
 								);
 
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
@@ -1790,12 +1793,12 @@ class TAssetOFLine extends TObjetStd{
 
 			$stock_needed = TAssetOF::getProductStock($this->fk_product);
 			if($stock_needed > 0) return 0;
+			
+			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
+				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
+				return $nb;
+			}
 
-			dol_include_once('/supplierorderfromorder/class/sofo.class.php');
-
-			$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
-
-			return $nb;
 		}
 
 		return 0;
@@ -2407,7 +2410,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task',array('type'=>'integer', 'index'=>true) );
-		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
+		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm,nb_days_before_beginning',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
 		$this->add_champs('note_private',array('type'=>'text'));
 
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
@@ -2461,9 +2464,9 @@ class TAssetWorkstationOF extends TObjetStd{
         else{
             $projectTask->fk_task_parent = 0;
         }
-
-
-		$projectTask->date_start = $OF->date_lancement;
+			   
+		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);	   
+		
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
 
@@ -2500,7 +2503,8 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
 
-		$projectTask->date_start = $OF->date_lancement;
+		
+		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
 
@@ -2603,14 +2607,13 @@ class TAssetWorkstationOF extends TObjetStd{
 	 	global $conf;
 
 		$this->setTHM();
-
+		
         if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
 			$of=new TAssetOF;
         	$of->load($PDOdb, $this->fk_assetOf);
 			if ($of->status === 'VALID') $this->manageProjectTask($PDOdb, $of);
 		}
-
 		parent::save($PDOdb);
 	}
 
