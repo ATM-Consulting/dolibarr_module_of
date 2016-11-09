@@ -2410,8 +2410,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task',array('type'=>'integer', 'index'=>true) );
-		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
-		$this->add_champs('nb_days_before_beginning',array('type'=>'integer')); // nombre d'heure associé au poste de charge sur un OF
+		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm,nb_days_before_beginning',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
 		$this->add_champs('note_private',array('type'=>'text'));
 
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
