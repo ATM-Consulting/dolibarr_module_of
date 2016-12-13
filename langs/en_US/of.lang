@@ -1,100 +1,165 @@
-# Dolibarr language file - fr_FR
-CHARSET=UTF-8
-
-CreateAssetLot=Créer un lot d'équipement
-CreateAsset=Créer un équipement
-AssetSetup=Configuration du module Equipement
-LotDisabled=L'option pour utiliser des lots dans OF est désactiver
-ficheOF=Fiche
+Module104161Name=OF
+Module104161Desc=Production Order Management (CAM)
+CreateAssetLot=Create a batch of equipment
+CreateAsset=Creating equipment
+AssetSetup=Configuration of the Equipment module
+LotDisabled=The option to use batches in OF is disabled
+ficheOF=Card
+ParametersWorkstation=Workstation Settings
+ParametersWorkflow=Workflow Settings
 
 # EQUIPEMENT
-GPAO=GPAO
-Asset=Equipement
-ListAsset=Liste des équipements installés
-AssetDeleted=Equipement supprimé
-AssetType=Type d'Equipement
-AssetListType=Liste des types d'équipements
-AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher
-AssetListFields=Champs des équipements
-AssetAddType=Ajouter un type d'équipement
-AssetCreateType=Création type d'équipement
-AssetToComplete=A completer
-AssetLotsList=Liste des Lots
-AssetLoaned=Prêté
+GPAO=CAM
+Asset=Asset
+ListAsset=List of asset
+ListAssetLent=List of asset loaned
+AssetDeleted=Asset removed
+AssetType=Type of Asset
+AssetListType=List of asset types
+AssetTypeMsgNothing=There is no type of asset to display
+AssetListFields=Asset Fields
+AssetAddType=Add asset type
+AssetCreateType=Create asset type
+AssetToComplete=To complete
+AssetLotsList=List of Lots
+AssetLoaned=Loaned
+AssetDescDLUO=Optimal Limit of Use
 ImpossibleToCreateAsset=Unable to create asset
-AssetDefaultDLUO=The date interval for optimal use (in days)
+AssetDefaultDLUO=Delay in days of optimal use date
 
 # ORDRE DE FABRICATION
-OFAsset=Ordre de fabrication
-CreateOFAsset=Créer un Ordre de Fabrication
-ListOFAsset=Liste des ordres de fabrication
-OFAssetDeleted=Ordre de fabrication supprimé
-createOFFile = Générer document papier
-WorkStation=Poste de travail
-workstation=poste de travail
-ListOrderProducts=Liste des produits de la commande
-AssetProductionOrder=Ordre de Fabrication
-AssetNewProductionOrder=Nouvel ordre de Fabrication
-ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté sur l'of : %s
-OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Vérifier qu'un entrepôt est saisie sur chaque ligne de l'OF sur l'action "Valider", si la configuration du changement de status peuple les OFs enfants alors la vérification ce fera aussi sur les enfants
+OFAsset=Manufacturing order
+CreateOFAsset=Create a Manufacturing Order
+ListOFAsset=List of production orders
+OFAssetDeleted=Production order deleted
+createOFFile=Generate paper document
+WorkStation=Workstation
+workstation=workplace
+ListOrderProducts=List of products of the order
+AssetProductionOrder=Fabrication order
+AssetProductionOrderDraft=Draft copy
+AssetProductionOrderVALID=Valid
+AssetProductionOrderNEEDOFFER=Price Waiting
+AssetProductionOrderONORDER=Waiting for supply
+AssetProductionOrderOPEN=In progress
+AssetProductionOrderCLOSE=Completed
+AssetNewProductionOrder=New Manufacturing Order
+OFAttachedClosedAutomatically=Production order% s automatically closed
+AssetAddNeededQtyZero=Add components with an amount to 0
+AssetNegativeDestock=Allow destocking of equipment in OF even if quantity is insufficient
+AssetChildOfStatusFollowParentStatus=When changing the status of the OF parent, populate the latter on the status of children's OF if not superior
+AssetConcatPDF=Concatenate the PDF documents of manufacture OFs children with that of parent OF
+NotConcatQtyForNeeded=Dissociate quantities of products, necessary for manufacture, for the same reference
+AssetUseDestockagePartiel=Use destocking / partial storage. <br />- The products to be manufactured will be added in stock when the "Quantity used" is updated on an OF in the state "Production in progress".
+ofLabelQtyTheoriqueMoinsOf=Theoretical stock - OF quantity
+ofResultQty=% S (Qty to be produced:% s / Qty used:% s)
+OfShowQtytheorique=Show theoretical stock - OF stock on the stock tab of a product
+ofPrintTicket=Label printing
+ofListProductNeeded=<Strong> OF list needing the product </ strong>
+set_ABRICOT_WKHTMLTOPDF_CMD=Order for the PDF generation of labels (WkHTMLtoPDF must be installed on the server http://wkhtmltopdf.org/)
+OfNbTicketrPerPage=Default print label value per page (-1 to disable functionality)
+ofError_fk_entrepot_missing=Error: One or more warehouse lines not affected on:% s
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Check that a warehouse is entered on each line of OF on the action "Validate", if the configuration of the change of status people the OFs children then the check will also do on the children
 
 #LOT
-ListAssetLot=Liste des lots d'équipement
-AssetLotDeleted=Lot supprimé
-AssetInLot=Equipements du lot
-OFAssetLotEmpty=Erreur de saisie sur les lots
-OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
+ListAssetLot=List of Equipment Lots
+AssetLotDeleted=Lot deleted
+AssetInLot=Equipment of the lot
+OFAssetLotEmpty=No lot entered for the product:% s (% s)
+OFAssetCmdFournNotFinish=Unable to complete this OF as long as the vendor order is not received partially or totally
 
 
 # POSTE DE TRAVAIL
 AssetWorkstation=Poste de travail
 AssetNewWorkstation=Nouveau poste de travail
+AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
+set_OF_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste depuis une nomenclature produit
+AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
 
 # TYPES D'EQUIPEMENT
 AssetType=Types d'équipement
 AssetNewType=Nouveau type d'équipement
 AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
 AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
-AssetDescDLUO=Date Limite d'Utilisation Optimale
 
 #Contrôle
-AssetControl=Contrôle
-AssetNewControl=Ajouter un contrôle
-ListControl=Liste des contrôles
-AssetEmptyControl=Aucun contrôle à afficher
-AssetCreateControl=Créer un contrôle
-AssetAddControl=Ajout d'un contrôle
-AssetAddControlEvent=Ajout du contrôle enregistré
-AssetSaveControlEvent=Modifications du contrôle enregistrées
-AssetDeleteControlEvent=Suppression du contrôle enregistrée
-AssetListControl=Liste des contrôles
-AssetAddValueMultiple=Ajouter une valeur
-AssetAddControlValue=Ajouter une valeur pour un choix multiple
-AssetSaveControlValueEvent=Valeur enregistrée
-ListControlMultiple=Liste des valeurs
-AssetDeleteControlValueEvent=Suppression de la valeur enregistrée
-AssetEmptyControlMultiple=Aucune valeur à afficher
-AssetCreateControlMultiple=Créer une valeur
-AssetListValueMultiple=Liste des valeurs
+AssetControl=Control
+AssetNewControl=Add Control
+ListControl=List of controls
+AssetEmptyControl=No controls to display
+AssetCreateControl=Create a control
+AssetAddControl=Adding a Control
+AssetAddControlEvent=Adding the saved control
+AssetSaveControlEvent=Changes to the Registered Control
+AssetDeleteControlEvent=Deleting the saved control
+AssetListControl=List of controls
+AssetAddControlValue=Add value for multiple choices
+AssetSaveControlValueEvent=Recorded value
+ListControlMultiple=List of values
+AssetDeleteControlValueEvent=Deleting the saved value
+AssetEmptyControlMultiple=No value to display
+AssetCreateControlMultiple=Create a value
 
 #Configuration
-DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
-DefaultWarehouseIdToMake=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits à fabriquer)
-DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
-UseDefinedWarehouse=Permet de définir si on doit utiliser les entrepôts définis ci-dessous pour le stockage/destockage des équipements ou utiliser l'entrepôt renseigné sur chaque équipement
-ParametersWarehouse=Warehouses
-CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
-CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
-UsetAssetProductionAttributs = Utiliser les champs de productions
-CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
-DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
-AssetDefinedUserByWorkstation=Permettre l'association d'un ou plusieurs utilisateurs d'être assigné à un poste de travail sur un OF
-AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail sur un OF
-AssetUseControl=Permet de définir des contrôles à appliquer lors du processus de l'OF
+DefaultWarehouseId=Inventory Default Inventory Warehouse
+DefaultWarehouseIdToMake=Default Inventory Warehouse for Manufacturing Order and Equipment (products to be manufactured)
+DefaultWarehouseIdNeeded=Default inventory warehouse for Manufacturing Order and Equipment (required products)
+UseDefinedWarehouse=Allows you to define default warehouses for storage / destocking of equipment
+ParametersWarehouse=Warehouses (if no options are used, the storage / destocking behavior will take the warehouse defined on each equipment)
+CreateAssetChildrenOF=Allow the creation of child FOs for non-stock products needed for manufacturing
+CreateAssetChildrenOFWithComposant=Restrict creation of child OF to products to be manufactured having components and no stock
+UsetAssetProductionAttributs= Use production fields
+CreteAssetOFOnOrderValidation= Automatically create the Manufacturing order when validating an order
+DeleteAssetOFOnOrderCancel= Automatically remove Manufacturing Orders when canceling an order
+UseBatchNumberInOf= Use batch management in OF
+AllBatchNumberAreMandatory= Lot obligatory on all elements of OF
+AssetDefinedUserByWorkstation=Allowing the association of one or more users to be assigned to a workstation on an OF
+AssetUseWorkstationByNeededInOF=Allow the ventilation of products of composition by workstation on an OF
+AssetUseControl=Allows to define controls to be applied during the OF process
+AssetDefinedTaskByWorkstation=Defines an operating protocol for each workstation
+UseProjectTask=Each workstation associated with an OF will create a task for the associated project
+AssetAutoCreateProjectOnOF=Create and automatically associate a project with the OF if none is associated (the project will have the name of the command from which the OF comes from)
+AssetDefaultLocatlisation=Default location of equipment created via OF
+
+CreateAssetFromProductDescListProduct=The list contains only products with a status "On sale"
+CreateAssetFromProductErrorBadMask=If the default is "ErrorBadMask", your product is not associated with a device type. <br /> Go back to the product sheet and change its value.
+CreateAssetFromProductNumLot=This field corresponds to the batch number created in the "Equipment" menu > "List of Lots"> "Create a batch of equipment". To select a batch, type the beginning of the number and one or more proposals will appear.
+
+AssetOFConfirmChangeStateTitle=537/5000 Disable the creation of child OF
+AssetOFConfirmChangeState=If you disable this feature, the parameters related to the creation / deletion of OFs will also be disabled
+AssetMsgSaveTask=Recorded Job
+AssetErrSaveTask=Error Saving
+AssetMsgDeleteTask=Deleted task
+AssetErrDeleteTask=Error while deleting
+AssetMsgSaveControlValue=Recorded value
+AssetErrSaveControlValue=Error Saving
+AssetMsgDeleteControlValue=Deleted value
+AssetErrDeleteControlValue=Error while deleting
+AssetListWorkstation=List of workstations
+UseManualWarehouse=Allows to define manually the warehouses to be used for the storage / destocking of the equipment on each OF
+UseProjectTaskHierarchique=Create tasks hierarchically
+
+NewWorkStation=New workstation
+moduleWorkstationNeeded=Required Workstation Module
+
+OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER=Enable to terminate OFs linked to unacknowledged supplier orders.
+products=Product (s)
 
 
-CreateAssetFromProductDescListProduct=La liste contient uniquement les produits avec un état "En vente"
-CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.
-CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement" => "Liste des Lots" => "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
+# Etiquettes
+CHOOSE_CUSTOM_LABEL=Choose a customizable label type
+DEFINE_MARGIN_TOP=  Define the top margin (in px)
+DEFINE_MARGIN_LEFT=  Define the left margin of the left column (in px)
+DEFINE_WIDTH_DIV=  Define the width of each label (in percent)
+DEFINE_MARGIN_RIGHT=  Set the right margin of the right column (in px)
+DEFINE_MARGIN_TOP_CELL=  Set the top margin of each cell (in px)
+DEFINE_HEIGHT_DIV=  Set the height of each label (in mm)
 
+OF_CONCAT_WS_ON_ADD=Concatenating load times
+MinimalViewForChilOF=Minimal view for children OFs
 
+DateLaunch=Release date
+DateBesoin=Date of need
+
+ofSetup=Configuration
+QtyUsed=Quantity used
