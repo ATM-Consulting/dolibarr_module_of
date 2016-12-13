@@ -58,7 +58,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module of";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.0';
+		$this->version = '1.2';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -231,6 +231,13 @@ class modof extends DolibarrModules
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'show_ws_time';
 		
+		$r++;
+		$this->rights[$r][0] = $this->numero+$r;
+		$this->rights[$r][1] = 'Autoriser la suppression d\'un OF à l\'état "Terminé"';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'of';
+		$this->rights[$r][5] = 'allow_delete_of_finish';
+		
 		
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
@@ -241,57 +248,30 @@ class modof extends DolibarrModules
 		$this->menus = array();			// List of menus to add
 		$r=0;
 		
-		if(empty($conf->asset->enabled)) {
-			$this->menu[$r]=array('fk_menu'=>0,			// Put 0 if this is a top menu
-					'type'=>'top',			// This is a Top menu entry
-					'titre'=>$langs->trans('GPAO'),
-					'mainmenu'=>'gpao', //TODO parce qu'il s'appelle GPAO chercher une image dans /gpao/img/gpao.png
-					'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/of/liste_of.php',
-					'langs'=>'of@of',
-					'position'=>100,
-					'enabled'=>'$user->rights->of->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-			$r++;
-		}
+	
+		$this->menu[$r]=array('fk_menu'=>0,			// Put 0 if this is a top menu
+				'type'=>'top',			// This is a Top menu entry
+				'titre'=>$langs->trans('GPAO'),
+				'mainmenu'=>'of',
+				'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+				'url'=>'/of/liste_of.php',
+				'langs'=>'of@of',
+				'position'=>100,
+				'enabled'=>'$user->rights->of->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+				'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+	
 		
-		//WORKSTATION module
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('WorkStation'),
-					'mainmenu'=>'gpao',
-					'leftmenu'=>'workstationList',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/workstation/workstation.php',
-					'position'=>201,
-					'enabled'=>'$conf->workstation->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->workstation->all->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'lang'=>'workstation@workstation',
-					'user'=>2);
-		$r++;
-
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=workstationList',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('NewWorkStation'),
-					'mainmenu'=>'newworkstation',
-					'leftmenu'=>'workstationList',// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
-					'url'=>'/workstation/workstation.php?action=new',
-					'position'=>202,
-					'enabled'=>'$conf->workstation->enabled',// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->workstation->all->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'lang'=>'workstation@workstation',
-					'user'=>2);
-		$r++;
+		
 		/***/
 		
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetProductionOrder'),
-					'mainmenu'=>'gpao',
+					'mainmenu'=>'of',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/of/liste_of.php',
 					'position'=>300,
@@ -301,7 +281,7 @@ class modof extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 	   
-        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>$langs->trans('AssetProductionOrderDraft'),
                     'mainmenu'=>'assetOFlistDraft',
@@ -314,7 +294,7 @@ class modof extends DolibarrModules
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
         
-        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>$langs->trans('AssetProductionOrderNEEDOFFER'),
                     'mainmenu'=>'assetOFlistDraft',
@@ -327,7 +307,7 @@ class modof extends DolibarrModules
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
         
-        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>$langs->trans('AssetProductionOrderONORDER'),
                     'mainmenu'=>'assetOFlistDraft',
@@ -340,7 +320,7 @@ class modof extends DolibarrModules
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
         
-        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>$langs->trans('AssetProductionOrderVALID'),
                     'mainmenu'=>'assetOFlistDraft',
@@ -353,7 +333,7 @@ class modof extends DolibarrModules
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
         
-        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>$langs->trans('AssetProductionOrderOPEN'),
                     'mainmenu'=>'assetOFlistDraft',
@@ -365,7 +345,7 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>$langs->trans('AssetProductionOrderCLOSE'),
                     'mainmenu'=>'assetOFlistDraft',
@@ -378,7 +358,7 @@ class modof extends DolibarrModules
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
         
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetNewProductionOrder'),
 					'mainmenu'=>'newAssetOF',
@@ -391,10 +371,10 @@ class modof extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetControl'),
-					'mainmenu'=>'gpao',
+					'mainmenu'=>'of',
 					'leftmenu'=>'assetControlList',
 					'url'=>'/of/list_control.php',
 					'position'=>302,
@@ -404,7 +384,7 @@ class modof extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetListControl'),
 					'mainmenu'=>'assetControlList',
@@ -417,7 +397,7 @@ class modof extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=gpao,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>$langs->trans('AssetNewControl'),
 					'mainmenu'=>'assetControlList',

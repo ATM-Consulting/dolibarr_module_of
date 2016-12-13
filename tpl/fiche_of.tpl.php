@@ -140,6 +140,9 @@
 								<th>Tâche associé</th>
 							[onshow;block=end]
 							[onshow;block=begin;when [rights.show_ws_time]==1]
+								<th>Délai avant démarrage</th>
+							[onshow;block=end]
+							[onshow;block=begin;when [rights.show_ws_time]==1]
 								<th>Nb. heures prévues</th>
 							[onshow;block=end]
 							<th>Nb. heures réelles</th>
@@ -156,6 +159,9 @@
 							[onshow;block=end]
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
 								<td align='center'>[workstation.fk_task;strconv=no]</td>
+							[onshow;block=end]
+							[onshow;block=begin;when [rights.show_ws_time]==1]
+								<td align='center'>[workstation.nb_days_before_beginning;strconv=no]</td>
 							[onshow;block=end]
 							[onshow;block=begin;when [rights.show_ws_time]==1]
 								<td align='center'>[workstation.nb_hour;strconv=no]</td>
@@ -180,6 +186,7 @@
 								<td align='center'>&nbsp;</td>
 							[onshow;block=end]
 							[onshow;block=begin;when [rights.show_ws_time]==1]
+								<td align='center'>&nbsp;</td>
 								<td align="right">[assetOf.mo_estimated_cost;strconv=no]</td>
 							[onshow;block=end]
 							<td align="right">[assetOf.mo_cost;strconv=no]</td>
@@ -286,10 +293,15 @@
 			[onshow;block=begin;when [view.mode]=='view']
 				<div class="tabsAction notinparentview buttonsAction">
 					
-					[onshow;block=begin;when [view.status]=='CLOSE']
-						<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">Supprimer</a>
+					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
+						[onshow;block=begin;when [view.status]=='CLOSE']
+							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">Supprimer</a>
+						[onshow;block=end]
 					[onshow;block=end]
 					[onshow;block=begin;when [view.status]!='CLOSE']
+						<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
+					[onshow;block=end]
+					[onshow;block=begin;when [view.allow_delete_of_finish]=='1']
 						<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
 					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>

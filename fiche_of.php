@@ -141,6 +141,7 @@ function _action() {
 			break;
 
 		case 'valider':
+			$error = 0;
 			$assetOf=new TAssetOF;
             $id = GETPOST('id');
             if(empty($id)) exit('Where is Waldo ?');
@@ -156,13 +157,17 @@ function _action() {
 				}
 			}
 			
-			$assetOf->validate($PDOdb);
+			$res = $assetOf->validate($PDOdb);
 			
-			//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
-			$assetOf=new TAssetOF;
-			if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);
+			if ($res > 0)
+			{
+				//Relaod de l'objet OF parce que createOfAndCommandesFourn() fait tellement de truc que c'est le bordel
+
+				$assetOf=new TAssetOF;
+				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);	
+			}
 			
-			_fiche($PDOdb,$assetOf, 'view');
+			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
 
@@ -219,17 +224,18 @@ function _action() {
 			$TOFToGenerate = array($assetOf->rowid);
 			
 			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
-			
+//			var_dump($TOFToGenerate);exit;
 			foreach($TOFToGenerate as $id_of) {
 			
 				$assetOf=new TAssetOF;
 				$assetOf->load($PDOdb, $id_of, false);
+				//echo $id_of;
 				$TRes[] = generateODTOF($PDOdb, $assetOf);
-				
+				//echo '...ok<br />';
 			}
 			
 			$TFilePath = get_tab_file_path($TRes);
-			//var_dump($TFilePath);exit;
+		//	var_dump($TFilePath);exit;
 			if($conf->global->ASSET_CONCAT_PDF) {
 				ob_start();
 				$pdf=pdf_getInstance();
@@ -340,12 +346,8 @@ function _action() {
 
 function generateODTOF(&$PDOdb, &$assetOf) {
 	
-	global $db,$conf;
+	global $db,$conf, $TProductCachegenerateODTOF;
 
-	foreach($assetOf as $k => $v) {
-		print $k."<br />";
-	}
-	
 	$TBS=new TTemplateTBS();
 	dol_include_once("/product/class/product.class.php");
 
@@ -367,13 +369,25 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		$TControl = $assetOf->getControlPDF($PDOdb);
 	}
 	
+	if(empty($TProductCachegenerateODTOF))$TProductCachegenerateODTOF=array();
+		
 	// On charge les tableaux de produits à fabriquer, et celui des produits nécessaires
 	foreach($assetOf->TAssetOFLine as $k=>&$v) {
 
-		$prod = new Product($db);
-		$prod->fetch($v->fk_product);
-		$prod->fetch_optionals($prod->id);
+		if(!isset($TProductCachegenerateODTOF[$v->fk_product])) {
+			
+			$prod_cache = new Product($db);
+			if($prod_cache->fetch($v->fk_product)>0) {
+				$prod_cache->fetch_optionals($prod_cache->id);
+				$TProductCachegenerateODTOF[$v->fk_product]=$prod_cache;
+			}
+		}
+		else{
+			//echo 'cache '.$v->fk_product.':'.$TProductCachegenerateODTOF[$v->fk_product]->ref.' / '.$TProductCachegenerateODTOF[$v->fk_product]->id.'<br />';
+		}
 		
+		$prod = &$TProductCachegenerateODTOF[$v->fk_product];
+
 		if($conf->nomenclature->enabled){
 				
 				$n = new TNomenclature;
@@ -468,7 +482,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	}
 	
 	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.'/of/'.$dirName.'/';
+	$dir = DOL_DATA_ROOT.( $conf->entity>1 ? '/'.$conf->entity : ''  ).'/of/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
 	
@@ -479,7 +493,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		$template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
-	
+
 	$refcmd = '';
 	if(!empty($assetOf->fk_commande)) {
 		$cmd = new Commande($db);
@@ -488,7 +502,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	}
 	
 	$barcode_pic = getBarCodePicture($assetOf);
-	
+//var_dump($TToMake);	
 	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
@@ -640,7 +654,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'qty_used'=>(($of->status=='OPEN' || $of->status == 'CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
 				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 				,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
-				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
+				,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
                 ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
                 
@@ -928,8 +942,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
 			,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
 			,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
-			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) )  
+			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) )
 			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real))
+			,'nb_days_before_beginning'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
 			,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 			,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
 			,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang 
@@ -1018,6 +1033,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'view'=>array(
 				'mode'=>$mode
 				,'status'=>$assetOf->status
+				,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
 				,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
 				,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
 				,'select_product'=>$select_product
