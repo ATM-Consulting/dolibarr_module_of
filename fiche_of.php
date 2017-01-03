@@ -165,7 +165,7 @@ function _action() {
 				$assetOf=new TAssetOF;
 				if(!empty($_REQUEST['id'])) $assetOf->load($PDOdb, $_REQUEST['id'], false);	
 			}
-			$assetOf->save($PDOdb);
+			
 			_fiche($PDOdb, $assetOf, 'view');
 
 			break;
