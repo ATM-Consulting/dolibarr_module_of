@@ -452,14 +452,6 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER');
 print '</td></tr>';	
 
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER');
-print '</td></tr>';	
-
 print "</table>";
 
 

@@ -113,7 +113,6 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		$TOf[] = &$this;
-		
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
 		{
 			// Check si un fk_entrepot est saisie sur chaque ligne de l'OF courrant et sur les OFs enfants
@@ -150,7 +149,8 @@ class TAssetOF extends TObjetStd{
 				$of->unsetChildDeleted = true;
 	
 				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
-				$of->withChild = false;
+				$of->TAssetOf = array();
+				
 	
 				$of->save($PDOdb);
 			}
@@ -349,6 +349,7 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function save(&$PDOdb) {
+	
 		global $user,$langs,$conf, $db;
 
 		$this->setDelaiLancement();

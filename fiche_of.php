@@ -45,9 +45,8 @@ function _action() {
 	*
 	* Put here all code to do according to value of "action" parameter
 	********************************************************************/
-
+		
 	$action=__get('action','view');
-	
 	switch($action) {
 		case 'new':
 		case 'add':
@@ -71,12 +70,12 @@ function _action() {
 		case 'create':
 		case 'save':
 			$assetOf=new TAssetOF;
-			
 			if(!empty($_REQUEST['id'])) {
 				$assetOf->load($PDOdb, $_REQUEST['id'], false);
 				$mode = 'view';
 			}
 			else {
+				
 				$mode = $action == 'create' ? 'view' : 'edit';
 			}
 
@@ -88,7 +87,7 @@ function _action() {
 			if($fk_product > 0) {
 				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE',$quantity_to_create,0,'',$fk_nomenclature);	
 			}
-
+			
 			if(!empty($_REQUEST['TAssetOFLine'])) 
 			{
 				foreach($_REQUEST['TAssetOFLine'] as $k=>$row) 
@@ -108,7 +107,7 @@ function _action() {
 					$line->TAssetOFLine=array();
 				}
 			}
-
+		
 			if(!empty($_REQUEST['TAssetWorkstationOF'])) {
 				foreach($_REQUEST['TAssetWorkstationOF'] as $k=>$row) 
 				{
@@ -129,7 +128,7 @@ function _action() {
 					$assetOf->TAssetWorkstationOF[$k]->set_values($row);
 				}
 			}
-
+			
 			$assetOf->entity = $conf->entity;
 
 			//Permet de mettre à jour le lot de l'OF parent
@@ -824,7 +823,6 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 			.'<a href="" base-href="'.$url.'">'.img_right('lier').'</a>'
 			.'<br/>';
     }
-   
     foreach($TAsset as &$asset) 
     {
         $r .= $asset->getNomUrl(1,1);
