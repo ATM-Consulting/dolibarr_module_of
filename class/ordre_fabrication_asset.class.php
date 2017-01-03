@@ -349,6 +349,7 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function save(&$PDOdb) {
+	
 		global $user,$langs,$conf, $db;
 
 		$this->setDelaiLancement();
