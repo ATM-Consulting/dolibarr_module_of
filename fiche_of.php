@@ -823,7 +823,6 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 			.'<a href="" base-href="'.$url.'">'.img_right('lier').'</a>'
 			.'<br/>';
     }
-   
     foreach($TAsset as &$asset) 
     {
         $r .= $asset->getNomUrl(1,1);
