@@ -517,7 +517,8 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 			,'numeroOF'=>$assetOf->numero
 			,'statutOF'=>utf8_decode(TAssetOF::$TStatus[$assetOf->status])
 			,'prioriteOF'=>utf8_decode(TAssetOF::$TOrdre[$assetOf->ordre])
-			,'date'=>date("d/m/Y")
+			,'date_lancement'=>date("d/m/Y", $assetOf->date_lancement)
+			,'date_besoin'=>date("d/m/Y", $assetOf->date_besoin)
 			,'refcmd'=>$refcmd
 			,'societe'=>$societe->name
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
