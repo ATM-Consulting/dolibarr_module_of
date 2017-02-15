@@ -411,7 +411,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		}
 	
 		if($v->type == "TO_MAKE") {
-			
 			$TToMake[] = array(
 				'type' => $v->type
 				, 'qte' => $qty." ".utf8_decode($unitLabel)
@@ -641,14 +640,21 @@ function _fiche_ligne(&$form, &$of, $type){
 		
         if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 			$stock_needed = TAssetOF::getProductStock($product->id);
+			
+			$product->load_stock();
+			list($total_qty_tomake, $total_qty_needed) = _calcQtyOfProductInOf($db, $conf, $product);
+			$stock_theo = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
+			
+			$label = $product->getNomUrl(1).' '.$product->label;
+			$label.= ' - '.$langs->trans("Stock") . ' : ' . ($stock_needed>0 ? $stock_needed : '<span style="color:red;font-weight:bold;">'.$stock_needed.'</span>');
+			$label.= ' - '.$langs->trans("StockTheo") . ' : ' . ($stock_theo>0 ? $stock_theo : '<span style="color:red;font-weight:bold;">'.$stock_theo.'</span>');
+			$label.= _fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED');
 
 			$TLine = array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
-				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '
-				            .($stock_needed>0 ? $langs->trans("Stock")." : ".$stock_needed : '<span style="color:red;font-weight:bold;">'.$langs->trans("Stock")." : ".$stock_needed.'</span>'  )._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
-				
+				,'libelle'=>$label
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 				,'qty_used'=>(($of->status=='OPEN' || $of->status == 'CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
