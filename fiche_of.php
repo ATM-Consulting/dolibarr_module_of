@@ -423,7 +423,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 		}
 		else if($v->type == "NEEDED") {
-			
 			$TNeeded[] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $qty
@@ -435,6 +434,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'finished' => $prod->finished?"PM":"MP"
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
+				, 'note_private' => utf8_decode($v->note_private)
 			);
 			
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
@@ -451,7 +451,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 //exit;
 	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
-		
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
 			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
@@ -459,6 +458,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 			,'nb_hour_real' => utf8_decode($v->nb_hour_real)
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
+			,'note_private' => utf8_decode($v->note_private)
 		);
 		
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
