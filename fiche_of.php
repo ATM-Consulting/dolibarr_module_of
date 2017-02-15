@@ -411,7 +411,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		}
 	
 		if($v->type == "TO_MAKE") {
-			
 			$TToMake[] = array(
 				'type' => $v->type
 				, 'qte' => $qty." ".utf8_decode($unitLabel)
@@ -424,7 +423,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 		}
 		else if($v->type == "NEEDED") {
-			
 			$TNeeded[] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $qty
@@ -436,6 +434,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'finished' => $prod->finished?"PM":"MP"
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
+				, 'note_private' => utf8_decode($v->note_private)
 			);
 			
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
@@ -452,7 +451,6 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 //exit;
 	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
-		
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
 			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
@@ -460,6 +458,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 			,'nb_hour_real' => utf8_decode($v->nb_hour_real)
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
+			,'note_private' => utf8_decode($v->note_private)
 		);
 		
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
@@ -641,14 +640,21 @@ function _fiche_ligne(&$form, &$of, $type){
 		
         if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
 			$stock_needed = TAssetOF::getProductStock($product->id);
+			
+			$product->load_stock();
+			list($total_qty_tomake, $total_qty_needed) = _calcQtyOfProductInOf($db, $conf, $product);
+			$stock_theo = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
+			
+			$label = $product->getNomUrl(1).' '.$product->label;
+			$label.= ' - '.$langs->trans("Stock") . ' : ' . ($stock_needed>0 ? $stock_needed : '<span style="color:red;font-weight:bold;">'.$stock_needed.'</span>');
+			$label.= ' - '.$langs->trans("StockTheo") . ' : ' . ($stock_theo>0 ? $stock_theo : '<span style="color:red;font-weight:bold;">'.$stock_theo.'</span>');
+			$label.= _fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED');
 
 			$TLine = array(
 				'id'=>$TAssetOFLine->getId()
 				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
-				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '
-				            .($stock_needed>0 ? $langs->trans("Stock")." : ".$stock_needed : '<span style="color:red;font-weight:bold;">'.$langs->trans("Stock")." : ".$stock_needed.'</span>'  )._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED')
-				
+				,'libelle'=>$label
 				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
 				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 				,'qty_used'=>(($of->status=='OPEN' || $of->status == 'CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
