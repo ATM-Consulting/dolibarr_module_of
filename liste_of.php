@@ -169,7 +169,7 @@ function _liste(&$PDOdb)
 	echo $form->hidden('action', '');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
-	
+
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'nbLine'=>$conf->liste_limit
@@ -197,24 +197,24 @@ function _liste(&$PDOdb)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-			,'messageNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
+			,'messageNothing'=>$langs->trans('noOfFound')
 			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
 		,'title'=>array(
-			'numero'=>'Numéro'
-			,'fk_commande'=>'Commande client'
-			,'ordre'=>'Priorité'
-			,'date_lancement'=>'Date du lancement'
-			,'date_besoin'=>'Date du besoin'
-			,'status'=>'Status'
-			,'login'=>'Utilisateur en charge'
-			,'product'=>'Produit'
-			,'client'=>'Client'
-			,'nb_product_to_make'=>'Nb produits à fabriquer'
-			,'total_cost'=>'Coût réel'
-			,'total_estimated_cost'=>'Coût prévu'
-			,'printTicket' => 'impression<br />étiquette'
-			,'fk_project'=>'Projet'
+			'numero'=>$langs->trans('OfNumber')
+			,'fk_commande'=>$langs->trans('CustomerOrder')
+			,'ordre'=>$langs->trans('CustomerOrder')
+			,'date_lancement'=>$langs->trans('DateStart')
+			,'date_besoin'=>$langs->trans('DateNeeded')
+			,'status'=>$langs->trans('Statut')
+			,'login'=>$langs->trans('UserAssign')
+			,'product'=>$langs->trans('Product')
+			,'client'=>$langs->trans('Customer')
+			,'nb_product_to_make'=>$langs->trans('NumberProductToMake')
+			,'total_cost'=>$langs->trans('RealCost')
+			,'total_estimated_cost'=>$langs->trans('EstimatedCost')
+			,'printTicket' =>$langs->trans('PrintTicket')
+			,'fk_project'=>$langs->trans('Project')
 		)
 		,'orderBy'=>array(
 			'rowid'=>'DESC'
@@ -232,7 +232,7 @@ function _liste(&$PDOdb)
             'numero'=>array('recherche'=>true, 'table'=>'ofe')
             ,'date_lancement'=>array('recherche'=>'calendars', 'table'=>'ofe')
             ,'date_besoin'=>array('recherche'=>'calendars', 'table'=>'ofe')
-            ,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe')
+            ,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe', 'to_translate' => true)
         )
 	));
 	
@@ -275,8 +275,8 @@ function _liste(&$PDOdb)
 		print_liste_field_titre("#");
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
-		print_liste_field_titre($langs->trans("Quantité à produire"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
-		print_liste_field_titre($langs->trans("Produits à ajouter à un OF"),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans('QtyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
 		$var=1;
 		
@@ -353,8 +353,8 @@ function _liste(&$PDOdb)
 		
 		<?php
 		
-		echo '<p align="right">'.$form->btsubmit('Créer OFs', 'subForm')
-		.' '.$form->btsubmit('Créer un seul OF', 'subFormAlone').'</p>';
+		echo '<p align="right">'.$form->btsubmit($langs->trans('CreateAnyOf'), 'subForm')
+		.' '.$form->btsubmit($langs->trans('CreateOnceOf'), 'subFormAlone').'</p>';
 		
 		$form->end();
 		
@@ -400,7 +400,6 @@ function _liste(&$PDOdb)
                 ,'link'=>array(
                     'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 2).'">'.img_picto('','object_user.png','',0).' @val@</a>'
                     ,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@', 2).'">'.img_picto('','object_list.png','',0).' @val@</a>'
-                    ,'product'=>'<a href="'.dol_buildpath('/product/card.php?id=@fk_product@', 2).'">'.img_picto('','object_product.png','',0).' @val@</a>'
                     ,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 2).'">'.img_picto('','object_company.png','',0).' @val@</a>'
                 )
                 ,'translate'=>array()
@@ -418,20 +417,20 @@ function _liste(&$PDOdb)
                     ,'picto_precedent'=>img_picto('','back.png', '', 0)
                     ,'picto_suivant'=>img_picto('','next.png', '', 0)
                     ,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-                    ,'messa geNothing'=>"Il n'y a aucun ".$langs->trans('OFAsset')." à afficher"
+                    ,'messa geNothing'=>$langs->trans('noOfFound')
                     ,'picto_search'=>img_picto('','search.png', '', 0)
                 )
                 ,'title'=>array(
-                    'numero'=>'Numéro'
-                    ,'ordre'=>'Priorité'
-                    ,'date_lancement'=>'Date du lancement'
-                    ,'date_besoin'=>'Date du besoin'
-                    ,'status'=>'Status'
-                    ,'login'=>'Utilisateur en charge'
-                    ,'product'=>'Produit'
-                    ,'client'=>'Client'
-                    ,'nb_product_needed'=>'Nb produits nécessaire'
-                    ,'total_cost'=>'Coût'
+                    'numero'=>$langs->trans('OfNumber')
+                    ,'ordre'=>$langs->trans('Priority')
+                    ,'date_lancement'=>$langs->trans('DateStart')
+                    ,'date_besoin'=>$langs->trans('DateNeeded')
+                    ,'status'=>$langs->trans('Statut')
+                    ,'login'=>$langs->trans('UserAssign')
+                    ,'product'=>$langs->trans('Product')
+                    ,'client'=>$langs->trans('Customer')
+                    ,'nb_product_needed'=>$langs->trans('NbProductNeeded')
+                    ,'total_cost'=>$langs->trans('Cost')
                 )
                 ,'eval'=>array(
                     'ordre'=>'TAssetOF::ordre(@val@)'
@@ -440,7 +439,6 @@ function _liste(&$PDOdb)
                     ,'client' => 'get_format_libelle_societe(@fk_soc@)'
                 )
             ));
-            
             
 		}
 		
@@ -497,7 +495,7 @@ function get_format_libelle_produit($fk_product = null)
 	} 
 	else 
 	{
-		return 'Produit non défini.';
+		return $langs->trans('ProductUndefined');
 	}
 }
 
@@ -578,6 +576,7 @@ function _printTicket(&$PDOdb)
 			, 'height' => intval($conf->global->DEFINE_HEIGHT_DIV)
 			, 'margin_right_pair' =>intval($conf->global->DEFINE_MARGIN_RIGHT)
 			, 'margin_top_cell' =>intval($conf->global->DEFINE_MARGIN_TOP_CELL)
+			, 'langs' => $langs
 			)
 		,array()
 		,array(
