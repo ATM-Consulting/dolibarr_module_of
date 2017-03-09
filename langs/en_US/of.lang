@@ -1,3 +1,6 @@
+# Dolibarr language file - en_US
+
+
 Module104161Name=OF
 Module104161Desc=Production Order Management (CAM)
 CreateAssetLot=Create a batch of equipment
@@ -163,3 +166,50 @@ DateBesoin=Date of need
 
 ofSetup=Configuration
 QtyUsed=Quantity used
+
+
+
+
+
+OfNumber=Number
+CustomerOrder=Customer order
+DateStart=Release data
+DateNeeded=Date of need
+Statut=Statut
+UserAssign=User assigned
+Product=Product
+Customer=Customer
+NumberProductToMake=Number of products to manufactured
+RealCost=Real cost
+EstimatedCost=Estimated cost
+PrintTicket=label<br />printing
+Project=Project
+Priority=Priority
+Cost=Cost
+NbProductNeeded=Number product needed
+
+noOfFound=No Manufacturing available
+ProductUndefined=Product undefined
+
+Draft=Draft
+WaitingSupplierPrice=Waiting supplier price
+WaitingProductsOrdered=Waiting products ordered
+ValidForProduction=Valid for production
+InProduction=In production
+Done=Done
+
+QtyToMake=Quantity to make
+ProductToAddToOf=Product to add to manufacturing
+CreateAnyOf=Create any manufacturing
+CreateOnceOf=Create once manufacturing
+
+NumCMD=N°ORD
+Quantity=Quantity
+Ref=Ref
+Desc=Desc
+
+error_of_on_id_asset=Error on the asset id
+error_of_wrong_id_asset=Error wrong asset id
+error_of_no_ids=Error on one of the id
+
+unit_s_=Unit(s)

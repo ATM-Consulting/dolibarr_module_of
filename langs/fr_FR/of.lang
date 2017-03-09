@@ -167,3 +167,49 @@ DateBesoin=Date du besoin
 ofSetup=Configuration 
 QtyUsed=Quantité utilisée
 
+
+
+
+
+OfNumber=Numéro
+CustomerOrder=Commande client
+DateStart=Date du lancement
+DateNeeded=Date du besoin
+Statut=Status
+UserAssign=Utilisateur en charge
+Product=Produit
+Customer=Client
+NumberProductToMake=Nb produits à fabriquer
+RealCost=Coût réel
+EstimatedCost=Coût prévu
+PrintTicket=impression<br />étiquette
+Project=Projet
+Priority=Priorité
+Cost=Coût
+NbProductNeeded=Nb produits nécessaire
+ProductUndefined=Produit non défini.
+
+noOfFound=Il n'y a aucun ordre de facrication à afficher
+
+Draft=Brouillon
+WaitingSupplierPrice=En attente de prix fournisseur
+WaitingProductsOrdered=En attente de produit(s) en commande
+ValidForProduction=Valide pour production
+InProduction=En cours de production
+Done=Terminé
+
+QtyToMake=Quantité à produire
+ProductToAddToOf=Produits à ajouter à un OF
+CreateAnyOf=Créer OFs
+CreateOnceOf=Créer un seul OF
+
+NumCMD=N°CMD
+Quantity=Quantité
+Ref=Réf
+Desc=Desc
+
+error_of_on_id_asset=Erreur sur l'identifiant de l'équipement
+error_of_wrong_id_asset=Erreur sur la saisie de l'équipement
+error_of_no_ids=Erreur sur un des identifiants
+
+unit_s_=Unité(s)

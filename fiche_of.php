@@ -299,11 +299,11 @@ function _action() {
 					}
 				}
 				
-				if (!$find) setEventMessage('Erreur sur l\'identifiant de l\'équipement', 'errors');
+				if (!$find) setEventMessage($langs->trans('error_of_on_id_asset'), 'errors');
 			}
 			else 
 			{
-				setEventMessage('Erreur sur la saisie de l\'équipement.', 'errors');	
+				setEventMessage($langs->trans('error_of_wrong_id_asset'), 'errors');	
 			}
 			
            _fiche($PDOdb, $assetOf, 'edit'); 
@@ -323,7 +323,7 @@ function _action() {
 			}
 			else
 			{
-				setEventMessage('Erreur sur un des identifiants', 'errors');
+				setEventMessage($langs->trans('error_of_no_ids'), 'errors');
 			}
 			
            _fiche($PDOdb, $assetOf, 'edit'); 
@@ -345,7 +345,7 @@ function _action() {
 
 function generateODTOF(&$PDOdb, &$assetOf) {
 	
-	global $db,$conf, $TProductCachegenerateODTOF;
+	global $db,$conf, $TProductCachegenerateODTOF,$langs;
 
 	$TBS=new TTemplateTBS();
 	dol_include_once("/product/class/product.class.php");
@@ -403,17 +403,17 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		if(!empty($conf->asset->enabled)) {
 			$TAssetType = new TAsset_type;
 			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
-			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
+			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? $langs->transnoentities('unit_s_') : measuring_units_string($prod->weight_units,'weight');
 			
 		}
 		else{
-			$unitLabel = 'unité(s)';
+			$unitLabel = $langs->transnoentities('unit_s_');
 		}
 	
 		if($v->type == "TO_MAKE") {
 			$TToMake[] = array(
 				'type' => $v->type
-				, 'qte' => $qty." ".utf8_decode($unitLabel)
+				, 'qte' => $qty.' '.utf8_decode($unitLabel)
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
