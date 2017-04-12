@@ -46,6 +46,7 @@ class modof extends DolibarrModules
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
+		$this->editor_name = 'ATM-Consulting';
 		$this->numero = 104161; // 104000 to 104999 for ATM CONSULTING
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'of';
