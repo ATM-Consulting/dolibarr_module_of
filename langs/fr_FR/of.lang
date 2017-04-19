@@ -228,6 +228,12 @@ Rank=Rang
 ProductsNeeded=Produits nécessaires à la fabrication
 QtyNeeded=Qté nécessaire
 PlannedQty=Qté plannifiée
+ASAP=Au plus tôt
+ForToday=Dans la journée
+ForTomorrow=Pour demain
+Print=Imprimer
+ForWeek=Dans la semaine
+ForMonth=Dans le mois
 
 ValidForProduction=Valide pour production
 ProductToProduce=Produit à produire

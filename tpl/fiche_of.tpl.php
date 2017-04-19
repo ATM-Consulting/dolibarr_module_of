@@ -314,7 +314,7 @@
 				<p align="center">
 					[onshow;block=begin;when [view.mode]!='add']
 						<br />
-						<input type="submit" value="Enregistrer" name="save" class="button">
+						<input type="submit" value="[view.langs.transnoentities(Save)]" name="save" class="button">
 						&nbsp; &nbsp; <input type="button" value="[view.langs.transnoentities(Cancel)]" name="cancel" class="button" onclick="document.location.href='[assetOf.url_liste]'">
 						<br /><br />
 					[onshow;block=end]

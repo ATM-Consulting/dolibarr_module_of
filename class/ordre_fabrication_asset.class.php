@@ -4,16 +4,17 @@ class TAssetOF extends TObjetStd{
 /*
  * Ordre de fabrication d'équipement
  * */
+	
  	static $TOrdre=array(
-			'ASAP'=>'Au plus tôt'
-			,'TODAY'=>'Dans la journée'
-			,'TOMORROW'=> 'Demain'
-			,'WEEK'=>'Dans la semaine'
-			,'MONTH'=>'Dans le mois'
+			'ASAP'=>'ASAP'
+			,'TODAY'=>'ForToday'
+			,'TOMORROW'=> 'ForTomorrow'
+			,'WEEK'=>'ForWeek'
+			,'MONTH'=>'ForMonth'
 
 		);
 
-	static $TStatus=array(
+ 	static $TStatus=array(
 			'DRAFT'=>'Draft'
             ,'NEEDOFFER'=>'WaitingSupplierPrice'
             ,'ONORDER'=>'WaitingProductsOrdered'

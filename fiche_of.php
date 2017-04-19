@@ -989,6 +989,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$quantity_to_create = '';
 	}
 	
+	$TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
+	
+	$TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
 	
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -1000,7 +1003,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			'assetOf'=>array(
 				'id'=> $assetOf->getId()
 				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
-				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)
+					,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
 				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
 				//,'statut_commande'=> $commande->getLibStatut(0)
 				,'commande_fournisseur'=>$HtmlCmdFourn
@@ -1017,8 +1020,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'quantity_to_create'=>$quantity_to_create
 				,'product_to_create'=>$link_product_to_add
 				
-				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
-				,'statustxt'=>TAssetOf::$TStatus[$assetOf->status]
+				,'status'=>$form->combo('','status',$TTransStatus,$assetOf->status)
+				,'statustxt'=>$TTransStatus[$assetOf->status]
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 				,'url' => dol_buildpath('/of/fiche_of.php', 2)
 				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/of/liste_of.php', 2)
