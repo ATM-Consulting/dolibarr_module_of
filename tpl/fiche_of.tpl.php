@@ -19,50 +19,50 @@
 				
 			<table width="100%" class="border">
 				
-				<tr><td width="20%">Numéro</td><td>[assetOf.numero;strconv=no]</td></tr>
-				<tr><td>Ordre</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
+				<tr><td width="20%">[view.langs.transnoentities(NumberOf)]</td><td>[assetOf.numero;strconv=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(Ordre)]</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
 				[onshow;block=begin;when [assetOf.id]=0]
-				<tr><td>Produit à produire</td><td>[assetOf.product_to_create;strconv=no;protect=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(ProductToProduce)]</td><td>[assetOf.product_to_create;strconv=no;protect=no]</td></tr>
 				<tr><td>Quantité à produire</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
 				[onshow;block=end]
-				<tr class="notinparentview"><td>OF Parent</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
-				<tr class="notinparentview"><td>Commande</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
-				<tr class="notinparentview"><td>Commande Fournisseur</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
-				<tr><td>Client</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
-				<tr><td>Projet</td><td>[assetOf.fk_project;strconv=no;protect=no]</td></tr>
-				<tr><td>Date du besoin</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
-				<tr><td>Date de lancement</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
+				<tr class="notinparentview"><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
+				<tr class="notinparentview"><td>[view.langs.transnoentities(Order)]</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
+				<tr class="notinparentview"><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
+				<tr><td>[view.langs.transnoentities(Customer)]</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(Project)]</td><td>[assetOf.fk_project;strconv=no;protect=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(DateNeeded)]</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(DateLaunch)]</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
 				[onshow;block=begin;when [rights.show_ws_time]==1]
-					<tr><td>Temps estimé de fabrication</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
+					<tr><td>[view.langs.transnoentities(EstimatedMakeTime)]</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
 				[onshow;block=end]
-				<tr><td>Temps réel de fabrication</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
+				<tr><td>[view.langs.transnoentities(RealMakeTime)]</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
 				[onshow;block=begin;when [view.show_cost]=='1']
-				<tr><td>Coût estimé de fabrication</td><td>[assetOf.total_estimated_cost;strconv=no]</td></tr>
-				<tr><td>Coût réel de fabrication</td><td>[assetOf.total_cost;strconv=no]</td></tr>
-				<tr><td>Coût du produit fini</td><td>[assetOf.current_cost_for_to_make;strconv=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(EstimatedProducCost)]</td><td>[assetOf.total_estimated_cost;strconv=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(RealProducCost)]</td><td>[assetOf.total_cost;strconv=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(FinalProducCost)]</td><td>[assetOf.current_cost_for_to_make;strconv=no]</td></tr>
 					
 				
 				[onshow;block=end]
-				<tr><td>Statut</td><td>[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
+				<tr><td>[view.langs.transnoentities(Statut)]</td><td>[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
 					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
 						<span class="viewmode notinparentview">
 							
 				
 						[onshow;block=begin;when [view.status]=='DRAFT']
-							, passer à l'état :<input type="button" onclick="if (confirm('Valider cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'valider'); }" class="butAction" name="valider" value="Valider">
+							,[view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('Valider cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'valider'); }" class="butAction" name="valider" value="Valider">
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]=='VALID']
-							, passer à l'état :<input type="button" onclick="if (confirm('Lancer cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'lancer'); }" class="butAction" name="lancer" value="Production en cours">
+							, [view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('Lancer cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'lancer'); }" class="butAction" name="lancer" value="Production en cours">
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]=='OPEN']
-							, passer à l'état :<input type="button" onclick="if (confirm('Terminer cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'terminer'); }" class="butAction" name="terminer" value="Terminer">
+							, [view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('Terminer cet Ordre de Fabrication ?')) { submitForm([assetOf.id],'terminer'); }" class="butAction" name="terminer" value="Terminer">
 							<!-- <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication ?');" class="butAction">Terminer</a> -->
 						[onshow;block=end]
 					[onshow;block=end]
 					</span>
 				</td></tr>
 				
-				<tr><td>Note</td><td>[assetOf.note;strconv=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(Comments)]</td><td>[assetOf.note;strconv=no]</td></tr>
 				
 			</table>
 			
@@ -70,25 +70,25 @@
 				<table width="100%" class="border" style="border:2px solid #b2ea97;">
 					
 					<tr height="40px;">
-						<td style="border-right: none; background-color:#b2ea97;" colspan="4">&nbsp;&nbsp;<b>Produits à créer</b></td>
+						<td style="border-right: none; background-color:#b2ea97;" colspan="4">&nbsp;&nbsp;<strong>[view.langs.transnoentities(ProductsToCreate)]</strong></td>
 					</tr>
 					<tr style="background-color:#fff;">
 						<td colspan="4" valign="top">
 							<!-- TO_MAKE -->
 							<table width="100%" class="border tomake">
 								<tr style="background-color:#dedede;">
-									<td class="draftedit" style="width:20px;">Action</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td>Lot</td>
+										<td>[view.langs.transnoentities(Lot)]</td>
 									[onshow;block=end]
-									<td>Produit</td>
-									<td>Quantité à produire</td>
-									<td>Quantité produite</td>
-									<td>Fournisseur</td>
+									<td>[view.langs.transnoentities(Product)]</td>
+									<td>[view.langs.transnoentities(QtyToProduce)]</td>
+									<td>[view.langs.transnoentities(ProduceQty)]</td>
+									<td>[view.langs.transnoentities(Supplier)]</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">Entrepôt</td>
 									[onshow;block=end]
-									<td class="draftedit" style="width:20px;">Action</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
 									
 								</tr>
 								<tr id="[TTomake.id]">
@@ -117,7 +117,7 @@
 					<tr>
 						<td colspan="4" style="height:40px; border-left: none; text-align: right;">
 							[onshow;block=begin;when [view.mode]!='view']
-								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">Ajouter produit</a>
+								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">[view.langs.transnoentities(AddProduct)]</a>
 							[onshow;block=end]
 						</td>
 					</tr>
@@ -129,25 +129,25 @@
 				<div class="of-details" style="margin-top: 25px;">
 					<table width="100%" class="border workstation" style="border:2px solid #f5893f;">
 						<tr style="background-color:#f5893f; color:#fff;">
-							<th>Poste de travail</th>
+							<th>[view.langs.transnoentities(Workstation)]</th>
 							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-								<th>Utilisateur associé</th>
+								<th>[view.langs.transnoentities(Users)]</th>
 							[onshow;block=end]
 							[onshow;block=begin;when [view.use_project_task]=='1']
-								<th>Tâche</th>
+								<th>[view.langs.transnoentities(Task)]</th>
 							[onshow;block=end]
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-								<th>Tâche associé</th>
+								<th>[view.langs.transnoentities(AssociatedTask)]</th>
 							[onshow;block=end]
 							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<th>Délai avant démarrage</th>
+								<th>[view.langs.transnoentities(TimeBeforeStart)]</th>
 							[onshow;block=end]
 							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<th>Nb. heures prévues</th>
+								<th>[view.langs.transnoentities(NbPlannedHour)]</th>
 							[onshow;block=end]
-							<th>Nb. heures réelles</th>
-							<th>Rang</th>
-							<th class="draftedit">Action</th>
+							<th>[view.langs.transnoentities(NbRealHour)]</th>
+							<th>[view.langs.transnoentities(Rank)]</th>
+							<th class="draftedit">[view.langs.transnoentities(Action)]</th>
 						</tr>
 						<tr id="WS[workstation.id]" style="background-color:#fff;">
 							<td>[workstation.libelle;strconv=no;block=tr]<br />[workstation.note_private;strconv=no;]</td>
@@ -175,7 +175,7 @@
 						</tr>
 						[onshow;block=begin;when [view.show_cost]=='1']
 						<tr style="background-color:#dedede;">
-							<td align="center">Coût</td>
+							<td align="center">[view.langs.transnoentities(Cost)]</td>
 							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
 								<td align="left">&nbsp;</td>
 							[onshow;block=end]
@@ -206,7 +206,7 @@
 			<div class="of-details" style="margin-top: 25px;">
 				<table width="100%" class="border" style="border:2px solid #269393;">
 					<tr height="40px;">
-						<td style="border-right: none; background-color:#269393; color:#fff;" colspan="4">&nbsp;&nbsp;<b>Produits nécessaires à la fabrication</b></td>
+						<td style="border-right: none; background-color:#269393; color:#fff;" colspan="4">&nbsp;&nbsp;<strong>[view.langs.transnoentities(ProductsNeeded)]</strong></td>
 					</tr>
 					<tr style="background-color:#fff;">
 						<td colspan="4" valign="top">
@@ -214,22 +214,22 @@
 							<table width="100%" class="border needed">
 								<tr style="background-color:#dedede;">
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td width="20%">Lot</td>
+										<td width="20%">[view.langs.transnoentities(Lot)]</td>
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
-									<td>Produit</td>
+									<td>[view.langs.transnoentities(Products)]</td>
 									
-									<td>Quantité nécessaire</td>
-									<td>Quantité prévue</td>
+									<td>[view.langs.transnoentities(QtyNeeded)]</td>
+									<td>[view.langs.transnoentities(PlannedQty)]</td>
 									<td class="nodraft">Quantité utilisée</td>
 									<!-- <td class="draft">Delta</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
-										<td width="20%">Poste</td>
+										<td width="20%">[view.langs.transnoentities(Workstation)]</td>
 									[onshow;block=end]
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
-										<td width="20%">Entrepôt</td>
+										<td width="20%">[view.langs.transnoentities(Warehouse)]</td>
 									[onshow;block=end]
-									<td class="draftedit" style="width:20px;">Action</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
 									
 								</tr>
 								<tr id="[TNeeded.id]">
@@ -259,7 +259,7 @@
 										<td>&nbsp;</td>
 									[onshow;block=end]
 									
-									<td>Coût</td>
+									<td>[view.langs.transnoentities(Cost)]</td>
 									
 									<td>&nbsp;</td>
 									<td class="nodraft" align="right">[assetOf.compo_estimated_cost;strconv=no]</td>
@@ -283,7 +283,7 @@
 					<tr>
 						<td colspan="4" style="border-left: none;height:40px;text-align: right;">
 							[onshow;block=begin;when [view.mode]!='view']
-								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">Ajouter produit</a>						
+								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">[view.langs.transnoentities(AddProduct)]</a>						
 							[onshow;block=end]
 						</td>
 					</tr>
@@ -295,17 +295,17 @@
 					
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
-							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">Supprimer</a>
+							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[view.langs.transnoentities(Delete)]</a>
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]!='CLOSE']
-							<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
+							<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
 						[onshow;block=end]
 					[onshow;block=end]
 					[onshow;block=begin;when [view.allow_delete_of_finish]=='1']
-						<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">Supprimer</a>
+						<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
 					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
-					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">Imprimer</a>
+					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">[view.langs.transnoentities(Print)]</a>
 					
 				</div>
 			[onshow;block=end]
@@ -315,7 +315,7 @@
 					[onshow;block=begin;when [view.mode]!='add']
 						<br />
 						<input type="submit" value="Enregistrer" name="save" class="button">
-						&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='[assetOf.url_liste]'">
+						&nbsp; &nbsp; <input type="button" value="[view.langs.transnoentities(Cancel)]" name="cancel" class="button" onclick="document.location.href='[assetOf.url_liste]'">
 						<br /><br />
 					[onshow;block=end]
 				</p>
@@ -327,7 +327,7 @@
 	<div id="dialog" title="Ajout de Produit" style="display:none;width: 100%;">
 		<table>
 			<tr>
-				<td>Produit : </td>
+				<td>[view.langs.transnoentities(Product)] : </td>
 				<td>
 					[view.select_product;strconv=no]
 				</td>
@@ -339,7 +339,7 @@
 				</tr>
 			[onshow;block=end]
 			<tr>
-				<td style="width:80px;">Quantité : </td>
+				<td style="width:80px;">[view.langs.transnoentities(Quantity)] : </td>
 				<td><input type='text' size='4' value='1' name='default_qty_to_make' /></td>
 			</tr>
 		</table>
@@ -348,7 +348,7 @@
 		<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">
 			<table>
 				<tr>
-					<td>Postes de travail : </td>
+					<td>[view.langs.transnoentities(Workstation)] : </td>
 					<td>
 						[view.select_workstation;strconv=no]
 					</td>

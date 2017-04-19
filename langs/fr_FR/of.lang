@@ -213,3 +213,32 @@ error_of_wrong_id_asset=Erreur sur la saisie de l'équipement
 error_of_no_ids=Erreur sur un des identifiants
 
 unit_s_=Unité(s)
+
+ProductsToCreate=Produits à créer
+QtyToProduce=Quantité à produire
+ProduceQty=Quantité produite
+AddProduct=Ajouter un produit
+ParentOF=Ordre de fabrication parent
+Workstation=Poste de charge
+AssociatedTask=Tâche associée
+TimeBeforeStart=Délai avant démarrage
+NbPlannedHour=Nb. heures plannifiées
+NbRealHour=Heures réelles
+Rank=Rang
+ProductsNeeded=Produits nécessaires à la fabrication
+QtyNeeded=Qté nécessaire
+PlannedQty=Qté plannifiée
+
+ValidForProduction=Valide pour production
+ProductToProduce=Produit à produire
+NumberOf=Of n°
+SetStateTo=passer à l'état 
+FinalProducCost=Coût du produit fini
+EstimatedMakeTime=Temps estimé de fabrication
+RealMakeTime=Temps réel de fabrication
+EstimatedProducCost=Coût estimé de fabrication
+RealProducCost=Coût réel de fabrication
+
+
+
+
