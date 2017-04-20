@@ -690,7 +690,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
 		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
-		$TAssetOFLine->fk_asset = 0;
+		$TAssetOFLine->fk_asset = 0; //TODO remove ? 
 		$TAssetOFLine->type = $type;
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = (!empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
@@ -745,6 +745,7 @@ class TAssetOF extends TObjetStd{
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
 
+		return $idAssetOFLine;
 	}
 
 	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0)
