@@ -35,7 +35,7 @@
  */	
 function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_soc, $oneOF = false) 
 {
-	global $db, $langs;
+	global $db, $langs, $conf;
 	
 	if(!empty($TProduct)) 
 	{
@@ -72,6 +72,21 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				$assetOf->fk_soc = $fk_soc;
 				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
 				$assetOf->save($PDOdb);
+				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+					
+					$line = & $assetOf->TAssetOFLine[count($assetOf->TAssetOFLine) - 1 ]; //denrière ligne créée
+					
+					$TAsset = GETPOST('TAsset');
+					if(!empty($TAsset[$fk_commandedet])) {
+						dol_include_once('/asset/class/asset.class.php');
+						
+						$asset=new TAsset();
+						if($asset->load($PDOdb, $TAsset[$fk_commandedet])) {
+							$line->addAssetLink($asset);
+						}
+					}
+				}	
+				
 				
 			}
 		}
@@ -320,14 +335,33 @@ function _liste(&$PDOdb)
 				print "</td>\n";
 				print '<td>';
 				print $prod->nomProd;
+				
+				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+					$line = new OrderLine($db);
+					$line->fetch($prod->fk_commandedet);
+					$line->fetch_optionals($prod->fk_commandedet);
+					
+					echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
+					if($line->array_options['options_fk_asset']>0) {
+						dol_include_once('/asset/class/asset.class.php');
+						
+						$asset=new TAsset();
+						$asset->load($PDOdb, $line->array_options['options_fk_asset']);
+					
+						echo ' '.$asset->getNomUrl(true,true,true);
+					}
+					
+				}
+				
 				print '</td>';
 			    	        print "<td>";
         	                print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
                         	print "</td>";
 	        
-				 print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false,true,'','checkOF' );
+				 			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false,true,'','checkOF' );
 	                        print "</td>";
             
+	                        
 			                print "</tr>\n";
 				$i++;
 

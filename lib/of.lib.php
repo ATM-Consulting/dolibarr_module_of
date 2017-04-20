@@ -45,7 +45,7 @@
 	{
 		$include = array();
 		
-		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user 
+		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user, u.statut 
 		  FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) 
 		  WHERE uu.fk_usergroup = '.(int) $group;
 		$PDOdb->Execute($sql);
@@ -54,12 +54,20 @@
 		if ($status == 'DRAFT' && $form->type_aff == 'edit') {
 		    $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
         }
-            
-		while ($PDOdb->Get_line()) 
-		{
-			if ($status == 'DRAFT' || (in_array($PDOdb->Get_field('fk_user'), $TUsers))) {
+           
+		while ($obj = $PDOdb->Get_line()) 
+		{				
+				$label = $obj->lastname.' '.$obj->firstname;
+				if($obj->statut == 0) {
+					$label='<span style="text-decoration : line-through;">'.$label.'</span>';
+					
+					if(!in_array($obj->fk_user, $TUsers)) continue;
+					
+				}
+			
+				if ($status == 'DRAFT' || (in_array($obj->fk_user, $TUsers))) {
 			    $res .= '<p style="margin:4px 0">'
-			                 .$form->checkbox1($PDOdb->Get_field('lastname').' '.$PDOdb->Get_field('firstname'), $name, $PDOdb->Get_field('fk_user'), (in_array($PDOdb->Get_field('fk_user'), $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_after', array('no'=>'', 'yes'=>img_picto('', 'tick.png'))).'</p>';
+			    		.$form->checkbox1($label, $name, $obj->fk_user, (in_array($obj->fk_user, $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_after', array('no'=>'', 'yes'=>img_picto('', 'tick.png'))).'</p>';
             }
 		}
 		
