@@ -1302,6 +1302,21 @@ class TAssetOF extends TObjetStd{
 		}
 
 	}
+	
+	public function addAssetLink(&$asset, $id_line) {
+		
+		
+		foreach($this->TAssetOFLine as $k=>&$ofLigne){
+			
+			if($ofLigne->getId() == $id_line){
+				$ofLigne->addAssetLink($asset);
+				
+				break;
+			}
+		}
+		
+		
+	}
 
 	function getOFEnfantWithProductToMake(&$PDOdb, &$res, $fk_product, $level=0, $recursive = true)
 	{

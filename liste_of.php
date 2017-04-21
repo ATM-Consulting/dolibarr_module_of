@@ -70,11 +70,9 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 //print "$fk_product x $qty<br />";
 				$assetOf->fk_soc = $fk_soc;
-				$assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
+				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
 				$assetOf->save($PDOdb);
 				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
-					
-					$line = & $assetOf->TAssetOFLine[count($assetOf->TAssetOFLine) - 1 ]; //denrière ligne créée
 					
 					$TAsset = GETPOST('TAsset');
 					if(!empty($TAsset[$fk_commandedet])) {
@@ -82,7 +80,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 						
 						$asset=new TAsset();
 						if($asset->load($PDOdb, $TAsset[$fk_commandedet])) {
-							$line->addAssetLink($asset);
+							$assetOf->addAssetLink($asset, $idLine);
 						}
 					}
 				}	
