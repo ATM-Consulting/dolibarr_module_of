@@ -833,7 +833,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     }
     foreach($TAsset as &$asset) 
     {
-        $r .= $asset->getNomUrl(1,1);
+        $r .= $asset->getNomUrl(1, 1, 2);
     
         if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED') 
         {
