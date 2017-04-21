@@ -81,15 +81,29 @@
 		
 		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $fk_workstation;
 		$PDOdb->Execute($sql);
-
+		
 		//Cette input doit être présent que si je suis en brouillon, si l'OF est lancé la présence de cette input va réinitialiser à vide les associations précédentes
-		if ($status == 'DRAFT' && $form->type_aff == 'edit') $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
-		while ($PDOdb->Get_line())
-		{			 
-			if ($status == 'DRAFT' || (in_array($PDOdb->Get_field('rowid'), $TTasks))) $res .= '<p style="margin:4px 0">'.$form->checkbox1($PDOdb->Get_field('libelle'), $name, $PDOdb->Get_field('rowid'), (in_array($PDOdb->Get_field('rowid'), $TTasks)), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_before').'</p>';
+		if ($status == 'DRAFT' && $form->type_aff != 'edit') $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
+		while ($obj = $PDOdb->Get_line())
+		{
+			if ($status == 'DRAFT' && $form->type_aff == 'edit') {
+				$res .= $form->checkbox1('', $name, $obj->rowid, (in_array($obj->rowid, $TTasks)), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'));
+			}
+			
+			if($status == 'DRAFT' || in_array($obj->rowid, $TTasks)) {
+				$res.=$obj->libelle;
+			}
+			
+			if(in_array($obj->rowid, $TTasks)) {
+				$res.=img_picto('', 'tick.png');
+			}
+			
+			$res.='<br />';
+			
 		}
 		
 		return $res;
+	
 	}
 	
 	function visu_project_task(&$db, $fk_project_task, $mode, $name)

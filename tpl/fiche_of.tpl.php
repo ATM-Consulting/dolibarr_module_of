@@ -158,7 +158,7 @@
 								<td align='center'>[workstation.fk_project_task;strconv=no]</td>
 							[onshow;block=end]
 							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-								<td align='center'>[workstation.fk_task;strconv=no]</td>
+								<td align='left'>[workstation.fk_task;strconv=no]</td>
 							[onshow;block=end]
 							[onshow;block=begin;when [rights.show_ws_time]==1]
 								<td align='center'>[workstation.nb_days_before_beginning;strconv=no]</td>

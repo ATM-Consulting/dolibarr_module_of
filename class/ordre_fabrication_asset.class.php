@@ -2910,9 +2910,9 @@ class TAssetWorkstationTask extends TObjetStd
 	{
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_task');
 		$this->TChamps = array();
-		$this->add_champs('fk_workstation','type=entier;index;');
-		$this->add_champs('libelle','type=chaine;');
-		$this->add_champs('description','type=text;');
+		$this->add_champs('fk_workstation',array('type'=>'integer','index'=>true));
+		$this->add_champs('libelle',array('type'=>'string'));
+		$this->add_champs('description',array('type'=>'text'));
 
 	    $this->start();
 	}
