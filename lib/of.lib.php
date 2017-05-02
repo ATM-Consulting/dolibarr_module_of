@@ -108,6 +108,7 @@
 	
 	function visu_project_task(&$db, $fk_project_task, $mode, $name)
 	{
+		global $langs;
 		if (!$fk_project_task) return ' - ';
 			
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
@@ -118,9 +119,9 @@
 		
 		$link = '<a href="'.DOL_URL_ROOT.'/projet/tasks/task.php?id='.$fk_project_task.'">'.img_picto('', 'object_projecttask.png').$projectTask->ref.'</a>';
 		
-		if ($projectTask->progress == 0) $imgStatus = img_picto('En attente', 'statut0.png');
-		elseif ($projectTask->progress < 100) $imgStatus = img_picto('En cours', 'statut3.png');
-		else $imgStatus = img_picto('Terminée', 'statut4.png');
+		if ($projectTask->progress == 0) $imgStatus = img_picto($langs->trans('OFWaiting'), 'statut0.png');
+		elseif ($projectTask->progress < 100) $imgStatus = img_picto($langs->trans('OFInProgress'), 'statut3.png');
+		else $imgStatus = img_picto($langs->trans('OFFinish'), 'statut4.png');
 		
 		if ($mode == 'edit')
 		{
@@ -169,7 +170,7 @@
 				$return.= ' selected="selected"';
 			}
 			//$return.= '>'.$value.'</option>';
-			if ($measuring_style == 'unit') $return.= '>unité(s)</option>';
+			if ($measuring_style == 'unit') $return.= '>'.$langs->trans('unit_s_').'</option>';
 			else $return.= '>'.measuring_units_string($key,$measuring_style).'</option>';
 		}
 		$return.= '</select>';

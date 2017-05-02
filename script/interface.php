@@ -164,7 +164,9 @@ function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of)
 }
 
 function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
-    global $conf;   
+    global $conf,$langs;   
+	
+	$langs->load('of@of');
 	
     //$sql = 'SELECT DISTINCT(a.serial_number) ';
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
@@ -185,7 +187,7 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
 		/* Merci de conserver les crochets autour de l'ID et de le laisser en début de chaine
 		 * je m'en sert pour matcher côté js pour retrouver facilement l'ID dans la chaîne pour le lien d'ajout
 		 */
-        $TResult[] = '['.$PDOdb->Get_field('rowid').'] Numéro : '.($serial ? $serial : '(vide)').', contenance actuelle : '.$PDOdb->Get_field('contenancereel_value');
+        $TResult[] = $langs->trans('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $PDOdb->Get_field('contenancereel_value'));
     }
     
     $PDOdb->close();
@@ -312,14 +314,14 @@ function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_pr
 
 function _measuringUnits($type, $name)
 {
-	global $db;
+	global $db,$langs;
 	
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	
 	$html=new FormProduct($db);
 	
-	if($type == 'unit') return array(' unité(s)');
+	if($type == 'unit') return array(' '.$langs->trans('unit_s_'));
 	else return array($html->load_measuring_units($name, $type, 0));
 }
 
