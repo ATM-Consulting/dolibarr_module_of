@@ -709,28 +709,28 @@ function _fiche_ligne(&$form, &$of, $type){
 				//Si on a un prix fournisseur pour le produit
 				if($objPrice->price > 0)
 				{
-					$unit = $objPrice->quantity == 1 ? 'Unité' : 'Unités';
+					$unit = $objPrice->quantity == 1 ? $langs->trans('OFUnit') : $langs->trans('OFUnits');
 					$label .= floatval($objPrice->price).' '.$conf->currency.' - '.$objPrice->quantity.' '.$unit.' -';
 				}
 				
 				//Affiche le nom du fournisseur
-				$label .= ' (Fournisseur "'.utf8_encode ($objPrice->name).'"';
+				$label .= ' ('.$langs->trans('OFSupplierLineName', utf8_encode ($objPrice->name));
 
 				//Prix unitaire minimum si renseigné dans le PF
 				if($objPrice->quantity > 0){
-					' '.$objPrice->quantity.' pièce(s) min,';
+					$label .= ' '.$langs->trans('OFSupplierLineMinQty', $objPrice->quantity);
 				} 
 				
 				//Affiche le type du PF :
 				if($objPrice->compose_fourni){//			soit on fabrique les composants
-					$label .= ' => Fabrication interne';
+					$label .= ' =>'.$langs->trans('OFSupplierLineComp');
 				}
 				elseif($objPrice->quantity <= 0){//			soit on a le produit finis déjà en stock
-					$label .= ' => Sortie de stock';
+					$label .= ' =>'.$langs->trans('OFSupplierLineStockRemoval');
 				}
 
 				if($objPrice->quantity > 0){//				soit on commande a un fournisseur
-					$label .= ' => Commande fournisseur';
+					$label .= ' =>'.$langs->trans('OFSupplierLineSupOrder');
 				}
 				
 				$label .= ")";
@@ -752,10 +752,10 @@ function _fiche_ligne(&$form, &$of, $type){
 						$nomenclature = '<div>'.$form->combo('', 'TAssetOFLine['.$k.'][fk_nomenclature]', $TNomenclature, $TAssetOFLine->fk_nomenclature);
 					
 						if ($form->type_aff=='edit') {
-							$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">Valider</a>';
+							$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">'.$langs->trans('OFValidate').'</a>';
 						}
 						else {
-							$nomenclature .= " - Nomenclature à sélectionner";
+							$nomenclature .= " - ".$langs->trans('NomenclatureToSelect');
 						}
 
 						$nomenclature.='</div>';
@@ -789,7 +789,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
-				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
+				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			);
 			
@@ -828,7 +828,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     	$url = dol_buildpath('/of/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 2);
 		// Pour le moment au limite au besoin, la création reste en dure, à voir
 		$r.=$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 10,255,' title="Ajouter un équipement" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
-			.'<a href="" base-href="'.$url.'">'.img_right('lier').'</a>'
+			.'<a href="" base-href="'.$url.'">'.img_right($langs->trans('Link')).'</a>'
 			.'<br/>';
     }
     foreach($TAsset as &$asset) 
@@ -837,7 +837,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     
         if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED') 
         {
-            $r.=' <a href="?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&idAsset='.$asset->getId().'&action=deleteAssetLink">'.img_delete('Suppresion du lien').'</a>';   
+            $r.=' <a href="?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&idAsset='.$asset->getId().'&action=deleteAssetLink">'.img_delete($langs->trans('DeleteLink')).'</a>';   
         } 
     }
     
@@ -951,7 +951,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) )
 			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real))
 			,'nb_days_before_beginning'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
-			,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
+			,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 			,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
 			,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang 
 			,'id'=>$ws->getId()

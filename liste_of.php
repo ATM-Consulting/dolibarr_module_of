@@ -89,7 +89,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 			}
 		}
 		
-		setEventMessage($langs->trans('OFAsset')." créé(s) avec succès", 'mesgs');
+		setEventMessage($langs->trans('OFAssetCreated'), 'mesgs');
 	}
 			
 }
