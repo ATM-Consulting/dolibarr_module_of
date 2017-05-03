@@ -128,9 +128,10 @@ class TAssetOF extends TObjetStd{
 		}
 		
 		if (!$error)
-		{
+		{//$PDOdb->debug =true;
 			foreach ($TOf as &$of)
 			{
+				//var_dump($of->id, $of->status );
 				// On valide pas un of qui est déjà validé ou supérieur
 				if($of->getId() <= 0 || $of->status != 'DRAFT') continue;
 				
@@ -150,12 +151,12 @@ class TAssetOF extends TObjetStd{
 				$of->unsetChildDeleted = true;
 	
 				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
-				$of->TAssetOf = array();
+				$of->TAssetOF= array();
 				
 	
 				$of->save($PDOdb);
 			}
-			
+			//exit('la');
 			return 1;
 		}
 		
@@ -294,7 +295,7 @@ class TAssetOF extends TObjetStd{
 				.'</a>';
 	}
 
-	function setDelaiLancement($time = 0) {
+	function setDelaiLancement(&$PDOdb, $time = 0) {
 
 		if((empty($this->date_lancement) && $this->status != 'DRAFT')
 		 || ( $this->date_lancement < $time ))
@@ -323,25 +324,21 @@ class TAssetOF extends TObjetStd{
 
 			if( $this->date_lancement < $time ) $this->date_lancement = $time;
 
-			$this->setDelaiLancementForParent();
+			$PDOdb->dbupdate($this->get_table(), array('date_lancement'=>date('Y-m-d', $this->date_lancement),'rowid'=>$this->getId()),array('rowid'));
+			
+			$this->setDelaiLancementForParent($PDOdb);
 		}
 	}
 
-	function setDelaiLancementForParent() {
+	function setDelaiLancementForParent(&$PDOdb) {
 //var_dump($this->fk_assetOf_parent);exit;
 //		return false;
 		if($this->fk_assetOf_parent>0) {
 
-			$PDOdb=new TPDOdb;
-
 			$of=new TAssetOF;
 			if($of->load($PDOdb, $this->fk_assetOf_parent)>0) {
-				$of->setDelaiLancement($this->date_lancement);
-				$of->save($PDOdb);
+				$of->setDelaiLancement($PDOdb, $this->date_lancement);
 			}
-
-
-			$PDOdb->close();
 
 
 		}
@@ -352,9 +349,8 @@ class TAssetOF extends TObjetStd{
 	function save(&$PDOdb) {
 	
 		global $user,$langs,$conf, $db;
-
-		$this->setDelaiLancement();
-
+	//	var_dump( $this->status, debug_backtrace());
+		
 		$this->set_temps_fabrication();
 		$this->set_fourniture_cost();
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
@@ -384,6 +380,8 @@ class TAssetOF extends TObjetStd{
 
 		parent::save($PDOdb);
 
+		$this->setDelaiLancement($PDOdb);
+		
         $this->getNumero($PDOdb, true);
 
 		// Appel des triggers
@@ -2578,7 +2576,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		if ($of->fk_project > 0 && $this->fk_project_task == 0) $action = 'createTask';
 		elseif ($of->fk_project > 0 && $this->fk_project_task > 0) $action = 'updateTask';
 		elseif ($of->fk_project == 0 && $this->fk_project_task > 0) $action = 'deleteTask';
-
+		//echo 'manageProjectTask > '.$of->id.' '.$action.'<br />';
 		switch ($action)
 		{
 			case 'createTask':
