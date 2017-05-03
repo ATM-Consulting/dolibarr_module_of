@@ -2562,10 +2562,14 @@ class TAssetWorkstationOF extends TObjetStd{
 		$this->fk_project_task = 0;
 	}
 
-	function manageProjectTask(&$PDOdb, &$of)
+	function manageProjectTask(&$PDOdb)
 	{
 		global $db,$conf,$user;
 
+		$of=new TAssetOF;
+		$of->load($PDOdb, $this->fk_assetOf);
+		if ($of->status !== 'VALID') return false; // of non valide on ne créé par les tâches 
+		
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
 
@@ -2629,9 +2633,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		
         if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
-			$of=new TAssetOF;
-        	$of->load($PDOdb, $this->fk_assetOf);
-			if ($of->status === 'VALID') $this->manageProjectTask($PDOdb, $of);
+			$this->manageProjectTask($PDOdb);
 		}
 		parent::save($PDOdb);
 	}
