@@ -1067,7 +1067,7 @@ class TAssetOF extends TObjetStd{
 		if(!$done) {
 
 			// Si le produit n'existe pas déjà dans la commande, on l'ajoute à cette commande
-			$com->addline($desc, $resultatSQL->price/$resultatSQL->quantity, $ofLigne->qty, $txtva, 0, 0, $resultatSQL->fk_product, $resultatSQL->rowid);
+			$com->addline($desc, $resultatSQL->price/$resultatSQL->quantity, $ofLigne->qty, $resultatSQL->tva_tx, 0, 0, $resultatSQL->fk_product, $resultatSQL->rowid);
 
 		}
 
@@ -1161,7 +1161,7 @@ class TAssetOF extends TObjetStd{
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
 
 						// On récupère la ligne prix fournisseur correspondante
-						$sql = "SELECT rowid, fk_soc, fk_product, price, compose_fourni, quantity, ref_fourn";
+						$sql = "SELECT rowid, fk_soc, fk_product, price, compose_fourni, quantity, ref_fourn, tva_tx";
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
 						$sql.= " WHERE rowid = ".$ofLigne->fk_product_fournisseur_price;
 						$resql = $db->query($sql);

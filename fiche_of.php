@@ -814,7 +814,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED') 
 {
-    global $conf;
+    global $conf,$langs;
     
     if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled) ) return '';
     
