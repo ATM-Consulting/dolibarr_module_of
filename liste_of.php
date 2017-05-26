@@ -140,8 +140,8 @@ function _liste(&$PDOdb)
 	
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
-		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
+	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, GROUP_CONCAT( ofel.qty SEPARATOR ',' ) as nb_product_to_make
+		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket
 		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
 		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
@@ -153,7 +153,7 @@ function _liste(&$PDOdb)
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
 	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande;
 	
-	$sql.=" GROUP BY ofe.rowid,ofe.numero, ofe.fk_soc, s.nom ,p.label, ofe.ordre, ofe.date_lancement , ofe.date_besoin 
+	$sql.=" GROUP BY ofe.rowid,ofe.numero, ofe.fk_soc, s.nom , ofe.ordre, ofe.date_lancement , ofe.date_besoin 
 		,ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost ";
 	
@@ -162,7 +162,7 @@ function _liste(&$PDOdb)
 	else $orderBy['ofe.date_cre']='DESC';*/
 	
 	$TMath=array();
-	$THide = array('rowid','fk_user','fk_product','fk_soc');
+	$THide = array('rowid','fk_user','fk_soc');
 	if($fk_commande>0)  $THide[] = 'fk_commande';
 
 	if ($conf->global->OF_NB_TICKET_PER_PAGE == -1) $THide[] = 'printTicket';
@@ -177,7 +177,8 @@ function _liste(&$PDOdb)
 		$TMath['total_cost']='sum';
 	}
 	
-	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
+	// TODO on perd le total mais il est encore possible de le retrouver avec une variable global + la fonction get_format_qty_to_make()
+//	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 	
@@ -203,7 +204,7 @@ function _liste(&$PDOdb)
 			,'date_besoin'=>'date'
 			,'total_cost'=>'money'
 			,'total_estimated_cost'=>'money'
-			,'nb_product_to_make'=>'number'
+//			,'nb_product_to_make'=>'number'
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
@@ -237,11 +238,11 @@ function _liste(&$PDOdb)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
 			,'status'=>'TAssetOF::status(@val@)'
-			,'product' => 'get_format_libelle_produit("@fk_product@")'
+			,'product' => 'get_format_libelle_produit("@val@", true)'
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
-
+			,'nb_product_to_make'=>'get_format_qty_to_make("@val@")'
 		)
         ,'search'=>array(
             'numero'=>array('recherche'=>true, 'table'=>'ofe')
@@ -509,7 +510,7 @@ function _liste(&$PDOdb)
 	llxFooter('');
 }
 
-function get_format_libelle_produit($fk_product = null) 
+function get_format_libelle_produit($fk_product = null, $all_name = false) 
 {
 	global $db,$langs;
 
@@ -519,12 +520,25 @@ function get_format_libelle_produit($fk_product = null)
 		$TId = explode(',',$fk_product);
 		$nb_product = count($TId);
 		
-		$product = new Product($db);
-		$product->fetch($TId[0]);
-	
-		$product->ref.=' '.$product->label;
-	
-		$res = $product->getNomUrl(1).($nb_product>1 ? ' + '.($nb_product-1).' '.$langs->trans('products') : '');
+		$res = '';
+		foreach ($TId as $id)
+		{
+			$product = new Product($db);
+			$product->fetch($id);
+
+			$product->ref.=' '.$product->label;
+
+			$res .= $product->getNomUrl(1);
+			
+			if (!$all_name && $nb_product > 1)
+			{
+				$res .= ' + '.($nb_product-1).' '.$langs->trans('products');
+				break;
+			}
+			
+			$res .= '<br />';
+		}
+		
 		return $res;
 	} 
 	else 
@@ -576,6 +590,18 @@ function get_format_libelle_projet($fk) {
     return '';
 }
 
+function get_format_qty_to_make($qty_string)
+{
+	$TQty = explode(',', $qty_string);
+	$res = '';
+	
+	foreach ($TQty as $qty)
+	{
+		$res.= number_format($qty, 2, ',').'<br />';
+	}
+	
+	return $res;
+}
 
 function _printTicket(&$PDOdb)
 {
