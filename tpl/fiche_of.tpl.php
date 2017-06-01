@@ -20,7 +20,10 @@
 			<table width="100%" class="border">
 				
 				<tr><td width="20%">[view.langs.transnoentities(NumberOf)]</td><td>[assetOf.numero;strconv=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(Ordre)]</td><td>[assetOf.ordre;strconv=no;protect=no]</td></tr>
+				<tr rel="ordre">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Ordre)]</td>
+					<td class="editableField">[assetOf.ordre;strconv=no;protect=no]</td>
+				</tr>
 				[onshow;block=begin;when [assetOf.id]=0]
 				<tr><td>[view.langs.transnoentities(ProductToProduce)]</td><td>[assetOf.product_to_create;strconv=no;protect=no]</td></tr>
 				<tr><td>Quantité à produire</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
@@ -28,10 +31,22 @@
 				<tr class="notinparentview"><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>[view.langs.transnoentities(Order)]</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
 				<tr class="notinparentview"><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
-				<tr><td>[view.langs.transnoentities(Customer)]</td><td>[assetOf.fk_soc;strconv=no;protect=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(Project)]</td><td>[assetOf.fk_project;strconv=no;protect=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(DateNeeded)]</td><td>[assetOf.date_besoin;strconv=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(DateLaunch)]</td><td>[assetOf.date_lancement;strconv=no]</td></tr>
+				<tr rel="fk_soc">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Customer)]</td>
+					<td class="editableField">[assetOf.fk_soc;strconv=no;protect=no]</td>
+				</tr>
+				<tr rel="fk_project">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Project)]</td>
+					<td class="editableField">[assetOf.fk_project;strconv=no;protect=no]</td>
+				</tr>
+				<tr rel="date_besoin">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(DateNeeded)]</td>
+					<td class="editableField">[assetOf.date_besoin;strconv=no]</td>
+				</tr>
+				<tr rel="date_lancement">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(DateLaunch)]</td>
+					<td class="editableField">[assetOf.date_lancement;strconv=no]</td>
+				</tr>
 				[onshow;block=begin;when [rights.show_ws_time]==1]
 					<tr><td>[view.langs.transnoentities(EstimatedMakeTime)]</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
 				[onshow;block=end]
@@ -43,7 +58,9 @@
 					
 				
 				[onshow;block=end]
-				<tr><td>[view.langs.transnoentities(Statut)]</td><td>[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
+				<tr rel="status">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Statut)]</td>
+					<td class="editableField">[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
 					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
 						<span class="viewmode notinparentview">
 							
@@ -60,9 +77,13 @@
 						[onshow;block=end]
 					[onshow;block=end]
 					</span>
-				</td></tr>
+					</td>
+				</tr>
 				
-				<tr><td>[view.langs.transnoentities(Comments)]</td><td>[assetOf.note;strconv=no]</td></tr>
+				<tr rel="note">
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Comments)]</td>
+					<td class="editableField">[assetOf.note;strconv=no]</td>
+				</tr>
 				
 			</table>
 			
@@ -304,7 +325,7 @@
 					[onshow;block=begin;when [view.allow_delete_of_finish]=='1']
 						<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
 					[onshow;block=end]
-					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">Modifier</a>
+					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">[view.langs.transnoentities(Modify)]</a>
 					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">[view.langs.transnoentities(Print)]</a>
 					
 				</div>
@@ -816,6 +837,32 @@
 					alert("[view.langs.transnoentities(OFIsNotDraftStatus)]");
 				}
 			[onshow;block=end]
+		}
+
+		function quickEditField(idOf,a) {
+			var $a = $(a);
+
+			var $tr = $a.closest('tr[rel]');
+
+			var field = $tr.attr('rel');
+
+			$('a.quickEditButton').hide();
+			
+			$.ajax({
+				url:"fiche_of.php"
+				,data:{
+					action:"edit"
+					,id:idOf
+				}
+			}).done(function(html) {
+				$input = $(html).find('tr[rel='+field+']>td.editableField');
+
+				$input.append('<input class="button" value="[view.langs.transnoentities(Modify)]" type="submit">');
+
+				$tr.find('td.editableField').replaceWith( $input );
+
+			});
+			
 		}
 		
 </script>
