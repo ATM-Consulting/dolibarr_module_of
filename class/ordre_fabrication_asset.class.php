@@ -204,8 +204,11 @@ class TAssetOF extends TObjetStd{
 			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
 
 			if($line->type == 'NEEDED') {
-				$this->compo_cost+= $line->qty_used * $line->pmp;
-				$this->compo_estimated_cost+= $line->qty_needed * $line->pmp;
+				$line->compo_cost = $line->pmp;
+				$line->compo_estimated_cost= $line->pmp; //TODO affiner
+				
+				$this->compo_cost+= $line->qty_used * $line->compo_cost;
+				$this->compo_estimated_cost+= $line->qty_needed * $line->compo_estimated_cost;
 			}
 
 		}
@@ -252,17 +255,22 @@ class TAssetOF extends TObjetStd{
 			if ($night) $thm = $ws->ws->thm_night;
 			else $thm = $ws->ws->thm;
 
-			$this->mo_cost+= $ws->nb_hour_real * ($thm + $ws->ws->thm_machine);
-			$this->mo_estimated_cost+= $ws->nb_hour * ($thm + $ws->ws->thm_machine);
+			$ws->thm = $thm;
+			
+			$ws->mo_cost = $ws->nb_hour_real * ($thm + $ws->ws->thm_machine);
+			$ws->mo_estimated_cost= $ws->nb_hour * ($thm + $ws->ws->thm_machine);
+			
+			$this->mo_cost+= $ws->mo_cost;
+			$this->mo_estimated_cost+= $ws->mo_estimated_cost;
 
             if(!$justPrice && $ws->fk_project_task>0) {
 
                $task = new Task($db);
                $task->fetch($ws->fk_project_task);
 			   
-	       if($task->date_start<$this->date_lancement) {
+	       		if($task->date_start<$this->date_lancement) {
                    $task->date_start = $this->date_lancement;
-		   $task->update($user);
+		   		   $task->update($user);
                }
 			   
             }

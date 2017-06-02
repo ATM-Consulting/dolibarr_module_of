@@ -602,7 +602,7 @@ function get_tab_file_path($TRes) {
 }
 
 function _fiche_ligne(&$form, &$of, $type){
-	global $db, $conf, $langs,$hookmanager;
+	global $db, $conf, $langs,$hookmanager,$user;
 //TODO rules guys ! To Facto ! AA
 	$formProduct = new FormProduct($db);
 
@@ -638,7 +638,7 @@ function _fiche_ligne(&$form, &$of, $type){
             $conditionnement_label=$conditionnement_label_edit='';
         }
 		
-        if($TAssetOFLine->type == "NEEDED" && $type == "NEEDED"){
+        if($TAssetOFLine->type == 'NEEDED' && $type == 'NEEDED'){
 			$stock_needed = TAssetOF::getProductStock($product->id);
 			
 			$product->load_stock();
@@ -651,19 +651,18 @@ function _fiche_ligne(&$form, &$of, $type){
 			$label.= _fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED');
 
 			$TLine = array(
-				'id'=>$TAssetOFLine->getId()
-				,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-				,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
-				,'libelle'=>$label
-				,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
-				,'qty'=>(($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
-				,'qty_used'=>(($of->status=='OPEN' || $of->status == 'CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used)
-				,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
-				,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
-				,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
-				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
-                ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
-                
+					'id'=>$TAssetOFLine->getId()
+					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
+					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
+					,'libelle'=>$label
+					,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
+					,'qty'=>(($of->status=='DRAFT' && $form->type_view == "edit") ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty .(empty($user->rights->of->of->price) ? '' : ' x '.price($TAssetOFLine->compo_estimated_cost,0,'',1,-1,-1,$conf->currency)))  
+					,'qty_used'=>((($of->status=='OPEN' || $of->status == 'CLOSE') && $form->type_view) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used.(empty($user->rights->of->of->price) ? '' : ' x '.price($TAssetOFLine->compo_cost,0,'',1,-1,-1,$conf->currency)))
+					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
+					,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
+					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
+					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
+                	,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
 			);
 			
 			$action = $form->type_aff;
@@ -944,17 +943,17 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$ws = &$TAssetWorkstationOF->ws;
 		
 		$TWorkstation[]=array(
-			'libelle'=>'<a href="'.dol_buildpath('workstation/workstation.php?id='.$ws->rowid.'&action=view', 2).'">'.$ws->name.'</a>'
-			,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
-			,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
-			,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
-			,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) )
-			,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : ($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real))
-			,'nb_days_before_beginning'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
-			,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
-			,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
-			,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang 
-			,'id'=>$ws->getId()
+				'libelle'=>'<a href="'.dol_buildpath('workstation/workstation.php?id='.$ws->rowid.'&action=view', 2).'">'.$ws->name.'</a>'
+				,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
+				,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
+				,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
+				,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) ). (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ))
+				,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real)) . (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ) )
+				,'nb_days_before_beginning'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
+				,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
+				,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
+				,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang 
+				,'id'=>$ws->getId()
 		);
 		
 	}
@@ -1002,42 +1001,42 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		)
 		,array(
 			'assetOf'=>array(
-				'id'=> $assetOf->getId()
-				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
-					,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-				,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
-				//,'statut_commande'=> $commande->getLibStatut(0)
-				,'commande_fournisseur'=>$HtmlCmdFourn
-				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
-				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
-				,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
-				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
-				
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
-				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
-				
-				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
-				
-				,'quantity_to_create'=>$quantity_to_create
-				,'product_to_create'=>$link_product_to_add
-				
-				,'status'=>$form->combo('','status',$TTransStatus,$assetOf->status)
-				,'statustxt'=>$TTransStatus[$assetOf->status]
-				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
-				,'url' => dol_buildpath('/of/fiche_of.php', 2)
-				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/of/liste_of.php', 2)
-				,'fk_product_to_add'=>$fk_product_to_add
-				,'fk_nomenclature'=>$fk_nomenclature
-				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
-				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
-				
-				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2)
-				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2)
-				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2)
-				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2)
-				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2)
-				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2)
-				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2)
+					'id'=> $assetOf->getId()
+					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
+						,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
+					,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
+					//,'statut_commande'=> $commande->getLibStatut(0)
+					,'commande_fournisseur'=>$HtmlCmdFourn
+					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
+					,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
+					,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
+					,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
+					
+					,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
+					,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
+					
+					,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
+					
+					,'quantity_to_create'=>$quantity_to_create
+					,'product_to_create'=>$link_product_to_add
+					
+					,'status'=>$form->combo('','status',$TTransStatus,$assetOf->status)
+					,'statustxt'=>$TTransStatus[$assetOf->status]
+					,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
+					,'url' => dol_buildpath('/of/fiche_of.php', 2)
+					,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/of/liste_of.php', 2)
+					,'fk_product_to_add'=>$fk_product_to_add
+					,'fk_nomenclature'=>$fk_nomenclature
+					,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
+					,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
+					
+					,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
+					,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
+					,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
+					,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
+					,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
+					,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
+					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
 			)
 			,'view'=>array(
 				'mode'=>$mode
