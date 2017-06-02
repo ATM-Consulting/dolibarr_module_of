@@ -81,7 +81,22 @@ class TAssetOF extends TObjetStd{
 	            $ws->of_fk_project = $this->fk_project;
         	}
 
+		usort($this->TAssetWorkstationOF, array($this,'sortWorkStationByRank'));
+
+
 		return $res;
+	}
+
+	function sortWorkStationByRank(&$a,&$b) {
+
+		if($a->rang < $b->rang) {
+			return -1;
+		}
+		else if($a->rang > $b->rang) {
+                        return 1;
+                }
+		else return 0;
+
 	}
 
 	function checkWharehouseOnLines()

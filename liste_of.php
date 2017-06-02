@@ -155,9 +155,7 @@ function _liste(&$PDOdb)
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
 	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande;
 	
-	$sql.=" GROUP BY ofe.rowid,ofe.numero, ofe.fk_soc, s.nom ,p.label, ofe.ordre, ofe.date_lancement , ofe.date_besoin 
-		,ofe.fk_commande,ofe.fk_project
-		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost ";
+	$sql.=" GROUP BY ofe.rowid ";
 	
 	// TODO je me rappelle plus pourquoi j'ai fait cette merde mais ça fait planter le tri, donc à virer. 
 	/*if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
