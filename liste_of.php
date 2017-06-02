@@ -140,6 +140,8 @@ function _liste(&$PDOdb)
 	
 	$r = new TSSRenderControler($assetOf);
 
+	$mode = GETPOST('mode');
+	
 	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket
