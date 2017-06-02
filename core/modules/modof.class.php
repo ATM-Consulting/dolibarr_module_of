@@ -59,7 +59,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module of";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.2';
+		$this->version = '1.3';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -252,7 +252,7 @@ class modof extends DolibarrModules
 	
 		$this->menu[$r]=array('fk_menu'=>0,			// Put 0 if this is a top menu
 				'type'=>'top',			// This is a Top menu entry
-				'titre'=>$langs->trans('GPAO'),
+				'titre'=>'GPAO',
 				'mainmenu'=>'of',
 				'leftmenu'=>'',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 				'url'=>'/of/liste_of.php',
@@ -271,7 +271,7 @@ class modof extends DolibarrModules
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetProductionOrder'),
+					'titre'=>'AssetProductionOrder',
 					'mainmenu'=>'of',
 					'leftmenu'=>'assetOFlist',
 					'url'=>'/of/liste_of.php',
@@ -284,9 +284,9 @@ class modof extends DolibarrModules
 	   
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
-                    'titre'=>$langs->trans('AssetProductionOrderDraft'),
-                    'mainmenu'=>'assetOFlistDraft',
-                    'leftmenu'=>'assetOFlist',
+                    'titre'=>'AssetProductionOrderDraft',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
                     'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=DRAFT',
                     'position'=>310+$r,
                     'enabled'=>'',           // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -297,9 +297,9 @@ class modof extends DolibarrModules
         
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
-                    'titre'=>$langs->trans('AssetProductionOrderNEEDOFFER'),
-                    'mainmenu'=>'assetOFlistDraft',
-                    'leftmenu'=>'assetOFlist',
+                    'titre'=>'AssetProductionOrderNEEDOFFER',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
                     'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=NEEDOFFER',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -310,9 +310,9 @@ class modof extends DolibarrModules
         
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
-                    'titre'=>$langs->trans('AssetProductionOrderONORDER'),
-                    'mainmenu'=>'assetOFlistDraft',
-                    'leftmenu'=>'assetOFlist',
+                    'titre'=>'AssetProductionOrderONORDER',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'AssetProdSOrder',
                     'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=ONORDER',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -321,11 +321,26 @@ class modof extends DolibarrModules
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
         
+        
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=AssetProdSOrder',         // Put 0 if this is a top menu
+        		'type'=>'left',         // This is a Top menu entry
+        		'titre'=>'AssetProductionSupplierOrder',
+        		'mainmenu'=>'of',
+        		'leftmenu'=>'AssetProductionOrderONORDER',
+        		'url'=>'/of/liste_of.php?mode=supplier_order',
+        		'position'=>310+$r,
+        		'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+        		'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+        		'target'=>'',
+        		'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+        
+        
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
-                    'titre'=>$langs->trans('AssetProductionOrderVALID'),
-                    'mainmenu'=>'assetOFlistDraft',
-                    'leftmenu'=>'assetOFlist',
+                    'titre'=>'AssetProductionOrderVALID',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
                     'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=VALID',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -336,9 +351,9 @@ class modof extends DolibarrModules
         
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
-                    'titre'=>$langs->trans('AssetProductionOrderOPEN'),
-                    'mainmenu'=>'assetOFlistDraft',
-                    'leftmenu'=>'assetOFlist',
+                    'titre'=>'AssetProductionOrderOPEN',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
                     'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=OPEN',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -348,9 +363,9 @@ class modof extends DolibarrModules
         $r++;
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
-                    'titre'=>$langs->trans('AssetProductionOrderCLOSE'),
-                    'mainmenu'=>'assetOFlistDraft',
-                    'leftmenu'=>'assetOFlist',
+                    'titre'=>'AssetProductionOrderCLOSE',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
                     'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=CLOSE',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -361,9 +376,9 @@ class modof extends DolibarrModules
         
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetNewProductionOrder'),
-					'mainmenu'=>'newAssetOF',
-					'leftmenu'=>'assetOFlist',
+					'titre'=>'AssetNewProductionOrder',
+					'mainmenu'=>'of',
+					'leftmenu'=>'',
 					'url'=>'/of/fiche_of.php?action=new',
 					'position'=>310+$r,
 					'enabled'=>'',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.

@@ -6,6 +6,7 @@
 	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/commande/class/commande.class.php');
+	dol_include_once('/fourn/class/fournisseur.commande.class.php');
 	
 	if(!$user->rights->of->of->lire) accessforbidden();
 	
@@ -140,26 +141,56 @@ function _liste(&$PDOdb)
 	
 	$r = new TSSRenderControler($assetOf);
 
-	$sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+	$mode = GETPOST('mode');
+	
+	$sql="SELECT ";
+	
+	if($mode =='supplier_order') {
+		$sql.=" cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
-		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket
-		  FROM ".MAIN_DB_PREFIX."assetOf as ofe 
+		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket ";
+		
+	}
+	else {
+		$sql.=" ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
+		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost, '' AS printTicket ";
+		
+	}
+	
+	if($mode =='supplier_order') {
+		$sql.=" FROM ".MAIN_DB_PREFIX."commande_fournisseur cf 
+		  INNER JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target=cf.rowid AND ee.sourcetype='ordre_fabrication' AND targettype='order_supplier' ) 
+		  INNER JOIN ".MAIN_DB_PREFIX."assetOf as ofe ON (ofe.rowid=ee.fk_source)
 		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
-		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)
-		  WHERE ofe.entity=".$conf->entity;
-
+		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
+		
+	}
+	else {
+		
+		$sql.=" FROM ".MAIN_DB_PREFIX."assetOf as ofe
+		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
+		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
+		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
+		
+	}
+	
+	$sql.="  WHERE ofe.entity=".$conf->entity;
+	
 	if($fk_soc>0) $sql.=" AND ofe.fk_soc=".$fk_soc; 
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
 	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande;
+
 	
-	$sql.=" GROUP BY ofe.rowid,ofe.numero, ofe.fk_soc, s.nom ,p.label, ofe.ordre, ofe.date_lancement , ofe.date_besoin 
-		,ofe.fk_commande,ofe.fk_project
-		, ofe.status, ofe.fk_user,ofe.total_estimated_cost, ofe.total_cost ";
+	if($mode =='supplier_order') {
+		$sql.=" AND cf.fk_statut IN (2,4) ";
+		$sql.=" GROUP BY cf.rowid ";
+	}
+	else{
+		$sql.=" GROUP BY ofe.rowid ";
+	}
 	
-	// TODO je me rappelle plus pourquoi j'ai fait cette merde mais ça fait planter le tri, donc à virer. 
-	/*if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
-	else $orderBy['ofe.date_cre']='DESC';*/
 	
 	$TMath=array();
 	$THide = array('rowid','fk_user','fk_product','fk_soc');
@@ -175,6 +206,22 @@ function _liste(&$PDOdb)
 		
 		$TMath['total_estimated_cost']='sum';
 		$TMath['total_cost']='sum';
+	}
+	
+	$TSearch=array();
+	if($mode =='supplier_order') {
+		$THide[] = 'date_lancement';
+		$THide[] = 'nb_product_to_make';
+		//$THide[] = 'status';
+		$THide[] = 'ordre';
+	}
+	else{
+		$TSearch=array(
+				'numero'=>array('recherche'=>true, 'table'=>'ofe')
+				,'date_lancement'=>array('recherche'=>'calendars', 'table'=>'ofe')
+				,'date_besoin'=>array('recherche'=>'calendars', 'table'=>'ofe')
+				,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe', 'to_translate' => true)
+		);
 	}
 	
 	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
@@ -193,10 +240,11 @@ function _liste(&$PDOdb)
 		,'subQuery'=>array()
 		,'link'=>array(
 			'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 2).'">'.img_picto('','object_user.png','',0).' @val@</a>'
-			,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@"', 2).'>'.img_picto('','object_list.png','',0).' @val@</a>'
 			,'printTicket'=>'<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket[@rowid@]" min="0" />'
 		)
-		,'translate'=>array()
+		,'translate'=>array(
+			'ordre'=>TAssetOF::$TOrdre
+		)
 		,'hide'=>$THide
 		,'type'=>array(
 			'date_lancement'=>'date'
@@ -204,10 +252,11 @@ function _liste(&$PDOdb)
 			,'total_cost'=>'money'
 			,'total_estimated_cost'=>'money'
 			,'nb_product_to_make'=>'number'
+		  	,'date_livraison'=>'date'
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
-			'titre'=>$langs->trans('ListOFAsset')
+			'titre'=>($mode =='supplier_order' ? $langs->trans('AssetProductionSupplierOrder') : $langs->trans('ListOFAsset'))
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
@@ -218,7 +267,7 @@ function _liste(&$PDOdb)
 		,'title'=>array(
 			'numero'=>$langs->trans('OfNumber')
 			,'fk_commande'=>$langs->trans('CustomerOrder')
-			,'ordre'=>$langs->trans('CustomerOrder')
+			,'ordre'=>$langs->trans('Rank')
 			,'date_lancement'=>$langs->trans('DateStart')
 			,'date_besoin'=>$langs->trans('DateNeeded')
 			,'status'=>$langs->trans('Statut')
@@ -230,6 +279,8 @@ function _liste(&$PDOdb)
 			,'total_estimated_cost'=>$langs->trans('EstimatedCost')
 			,'printTicket' =>$langs->trans('PrintTicket')
 			,'fk_project'=>$langs->trans('Project')
+			,'supplierOrderId'=>$langs->trans('AssetProductionSupplierOrder')
+			,'date_livraison'=>$langs->trans('DeliveryDate')
 		)
 		,'orderBy'=>array(
 			'rowid'=>'DESC'
@@ -241,14 +292,11 @@ function _liste(&$PDOdb)
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
+			,'numero'=>'get_format_link_of("@val@")'
+			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
 
 		)
-        ,'search'=>array(
-            'numero'=>array('recherche'=>true, 'table'=>'ofe')
-            ,'date_lancement'=>array('recherche'=>'calendars', 'table'=>'ofe')
-            ,'date_besoin'=>array('recherche'=>'calendars', 'table'=>'ofe')
-            ,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe', 'to_translate' => true)
-        )
+        ,'search'=>$TSearch
 	));
 	
 	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
@@ -532,6 +580,19 @@ function get_format_libelle_produit($fk_product = null)
 		return $langs->trans('ProductUndefined');
 	}
 }
+function get_format_link_of($numeros) {
+	
+	$TNumero = explode(',', $numeros);
+	
+	$TReturn=array();
+	foreach($TNumero as $numero) {
+		
+		$TReturn[] = '<a href="'.dol_buildpath('/of/fiche_of.php', 2).'?ref='.$numero.'">'.img_picto('','object_list.png','',0).' '.$numero.'</a>';
+		
+	}
+	
+	return implode(', ',$TReturn);	
+}
 
 function get_format_libelle_societe($fk_soc) 
 {
@@ -549,14 +610,28 @@ function get_format_libelle_societe($fk_soc)
     return '';
 }
 
+function get_format_label_supplier_order($fk){
+	global $db;
+	
+	if($fk>0)
+	{
+		$o = new CommandeFournisseur($db);
+		if($o->fetch($fk)>0) return $o->getNomUrl(1).' - '.$o->getLibStatut(0);
+		else return $fk;
+	}
+	
+	return '';
+	
+}
+
 function get_format_libelle_commande($fk) 
 {
-        global $db;
+    global $db;
 
     if($fk>0) 
     {
-                $o = new Commande($db);
-                if($o->fetch($fk)>0) return $o->getNomUrl(1);
+        $o = new Commande($db);
+        if($o->fetch($fk)>0) return $o->getNomUrl(1);
 		else return $fk;
     }
    

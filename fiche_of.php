@@ -207,12 +207,6 @@ function _action() {
 			
 			break;
 
-		case 'view':
-			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id']);
-			_fiche($PDOdb, $assetOf, 'view');
-
-			break;
 		case 'createDocOF':
 			
 			$id_of = $_REQUEST['id'];
@@ -331,8 +325,10 @@ function _action() {
            break;    
             
 		default:
+			
 			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id'], false);
+			if(GETPOST('id')>0) $assetOf->load($PDOdb, GETPOST('id'), false);
+			else if(GETPOST('ref')!='') $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
 			
 			_fiche($PDOdb, $assetOf, 'view');
 			
