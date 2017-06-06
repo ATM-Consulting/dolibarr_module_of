@@ -113,8 +113,26 @@ class Interfaceoftrigger
      */
     public function run_trigger($action, $object, $user, $langs, $conf)
     {
-    	
-        if($action === 'ORDER_VALIDATE') {
+    	if($action === 'RELATED_ADD_LINK' && $object->type_related_object == 'ordre_fabrication') {
+    		
+    		global $conf;
+    		
+    		if(!empty($conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS)) {
+	    		
+	    		define('INC_FROM_DOLIBARR',true);
+	    		dol_include_once('/of/config.php');
+	    		dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+	    		$PDOdb=new TPDOdb;	
+	    		
+	    		$of = new TAssetOF;
+	    		if($of->load($PDOdb, $object->id_related_object) && $of->status!='CLOSE') {
+	    			$of->setStatus($PDOdb, 'ONORDER');
+	    			
+	    		}
+	    		
+    		}
+    	}
+    	else if($action === 'ORDER_VALIDATE') {
 				
         	global $conf, $db;
 			
@@ -210,36 +228,49 @@ class Interfaceoftrigger
 				
 			
 		}
-		elseif($action === 'ORDERSUPPLIER_ADD_LIVRAISON') {
-			global $db;
-			if($conf->of->enabled) {
+		elseif($action === 'ORDERSUPPLIER_ADD_LIVRAISON' || $action==='ORDER_SUPPLIER_RECEIVE') {
+			global $db, $conf;
+			
+			if(!empty($conf->of->enabled)) {
 				define('INC_FROM_DOLIBARR',true);
 		    	dol_include_once('/of/config.php');
 				dol_include_once('/of/class/ordre_fabrication_asset.class.php');
-				$resql =$db->query('SELECT fk_statut FROM llx_commande_fournisseur WHERE rowid = '.$_REQUEST['id']);
+				
+				$PDOdb=new TPDOdb();
+				
+				$resql =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.(int)GETPOST('id') );
 				$res = $db->fetch_object($resql);
 				if($res->fk_statut == 5) { // La livraison est totale
 					//On cherche l'OF lié
 					$resql = $db->query("SELECT fk_source 
 											FROM ".MAIN_DB_PREFIX."element_element 
-											WHERE fk_target = ".$_REQUEST['id']." 
+											WHERE fk_target = ".(int)GETPOST('id')." 
 												AND sourcetype = 'ordre_fabrication' 
 												AND targettype = 'order_supplier'");
 	
-					$res = $db->fetch_object($resql);
-					
-					$id_of = $res->fk_source;
-					
-					if($id_of > 0) {
-						$of = new TAssetOF;
-						$of->load($PDOdb, $id_of);
+					while($res = $db->fetch_object($resql)) {
 						
-						if($of->status != 'CLOSE') {
-							$of->closeOF($PDOdb);
-							setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
+						$id_of = (int)$res->fk_source;
+						if($id_of > 0) {
+							$of = new TAssetOF;
+							$of->load($PDOdb, $id_of);
+						//	var_dump($of->getId(), $of->status, $conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS);	
+							if($of->status != 'CLOSE') {
+							
+								if(!empty($conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS)) {
+									$of->setStatus($PDOdb, 'VALID');
+								}
+								else{
+									$of->closeOF($PDOdb);
+									setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
+								}
+							
+							}
+							
 						}
 					}
 					
+					//exit;
 				}
 			}
 			

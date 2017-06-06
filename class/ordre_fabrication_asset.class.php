@@ -444,6 +444,12 @@ class TAssetOF extends TObjetStd{
         return $numero;
 
     }
+    
+    function setStatus(TPDOdb &$PDOdb, $status) {
+    	
+    	$PDOdb->dbupdate($this->get_table(),array('rowid'=>$this->getId(),'status'=>$status ),array('rowid'));
+    	
+    }
 
 	function setLotWithParent(&$PDOdb)
 	{

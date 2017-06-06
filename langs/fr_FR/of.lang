@@ -285,6 +285,8 @@ EstimatedProducCost=Coût estimé de fabrication
 RealProducCost=Coût réel de fabrication
 
 AssetProductionSupplierOrder=Commandes fournisseurs
+OF_FOLLOW_SUPPLIER_ORDER_STATUS=L'ordre de fabrication lié manuellement à une commande fournisseur suit son statut
+
 UpdateNeededQty=Mettre à jour les produits nécessaires
 SomeQtyCantBeUpdated=Certaines quantités n'ont pu être mis à jour
 
