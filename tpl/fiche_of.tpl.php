@@ -789,55 +789,41 @@
 			});
 			
 		}
-		
-		function addAllLines(id_assetOf,idLine,btnadd){
+
+		function updateQtyNeededForMaking(id_assetOf,idLine,btnadd) {
+
 			[onshow;block=begin;when [view.mode]=='view']
 				return alert("[view.langs.transnoentities(OFMustBeDraftAndEditMode)]");
 			[onshow;block=end]
 			
 			[onshow;block=begin;when [view.mode]!='view']
 				if ($(btnadd).attr('statut') == 'DRAFT') {
-					qty = $(btnadd).parent().parent().find("input[id*='qty']").val();
-					
+					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
+
 					$.ajax({
-						url: "script/interface.php?get=addlines&idLine="+idLine+"&qty="+qty+"&type=json"
+						url: "script/interface.php?get=updateQtyMaking&id=[assetOf.id]&idLine="+idLine+"&qty="+qty+"&type=json"
 						,dataType: 'json'
-					}).done(function(data){	
-						var nbOFModified = data[0].length;
-						var nbOFCreate = data[1].length;
-						
-						if (nbOFModified > 0 || nbOFCreate > 0)
-						{
-							if (data[0].length > 0) $.jnotify('[view.langs.transnoentities(QtyUpdated)]', "ok");
-							
-							if (nbOFCreate > 0)
-							{
-								if (nbOFCreate == 1) $.jnotify('[view.langs.transnoentities(OneOFCreated)]', "ok");
-								else if (nbOFCreate > 1) $.jnotify('[view.langs.transnoentities(SeveralOFCreated)]', "ok");
-								
-								//Si des OF sont créés, je met à jour l'affichage de l'OF courant et j'actualise la totalité des OF enfants
-								refreshTab($('.OFContent').attr('rel'), 'edit');
-								getChild();
-								refreshDisplay();
-							}
-							else
-							{
-								//Si il n'y a que des OF modifiés, j'actualise les affichages de chacun
-								if(nbOFModified > 0) {
-									for (i in data[0])
-									{
-										refreshTab(data[0][i], 'edit');
-									}
-								}
-							}
+					}).done(function(result){	
+
+						if(result) {
+							 $.jnotify("[view.langs.transnoentities(QtyUpdated)]", "ok");
 						}
+						else{
+							$.jnotify("[view.langs.transnoentities(SomeQtyCantBeUpdated)]", "warning");
+						}
+
+						refreshTab($('.OFContent').attr('rel'), 'edit');
+						getChild();
+						refreshDisplay();
 						
 					});
 				} else {
-					alert("[view.langs.transnoentities(OFIsNotDraftStatus)]");
+					$.jnotify("[view.langs.transnoentities(OFIsNotDraftStatus)]","errors");
 				}
 			[onshow;block=end]
+
 		}
+		
 
 		function quickEditField(idOf,a) {
 			var $a = $(a);
