@@ -29,8 +29,8 @@ function traite_get(&$PDOdb, $case) {
 		case 'deletelineof':
 			__out(_deletelineof($PDOdb,GETPOST('idLine'),GETPOST('type')), 'json');
 			break;
-		case 'addlines':
-			__out(_addlines($PDOdb,GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
+		case 'updateqtymaking':
+			__out((int)_updateQtyMaking($PDOdb,GETPOST('id'),GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
 			break;
 		case 'addofworkstation':
 			__out(_addofworkstation($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_asset_workstation')));
@@ -252,33 +252,19 @@ function _deletelineof(&$PDOdb,$idLine,$type){
 	return $id_of_deleted;
 }
 
-function _addlines(&$PDOdb,$idLine,$qty)
+function _updateQtyMaking(&$PDOdb, $fk_of,$idLine,$qty)
 {
 	global $db, $conf;
 	
 	dol_include_once('product/class/product.class.php');
 	
-	//On met à jour la 1ère ligne des TO_MAKE
-	$TAssetOFLine = new TAssetOFLine;
-	//$PDOdb->debug = true;
-	$TAssetOFLine->load($PDOdb, $idLine);
-	$TAssetOFLine->qty = $_REQUEST['qty'];
-	if ($TAssetOFLine->type == 'TO_MAKE') { $TAssetOFLine->qty_needed = $TAssetOFLine->qty_used = $TAssetOFLine->qty; }
+	$of = new TAssetOF;
+	$of->load($PDOdb, $fk_of);
 	
-	$TAssetOFLine->save($PDOdb);
-
-	//On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
-	$TAssetOF = new TAssetOF;
-	$TAssetOF->load($PDOdb, $TAssetOFLine->fk_assetOf);
+	$res =  $of->updateToMakeLineQty($PDOdb, $idLine,$qty);
+		
+	return $res;
 	
-	//Id des lignes modifiés
-	$TIdLineModified = array($TAssetOFLine->fk_assetOf);
-	//Id des nouveaux OF créés
-	$TNewIdAssetOF = array();
-	
- 	_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $TAssetOFLine->fk_product, $_REQUEST['qty'], $TIdLineModified, $TNewIdAssetOF, $TAssetOFLine);
-
-	return array($TIdLineModified, $TNewIdAssetOF);
 }
 
 function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
