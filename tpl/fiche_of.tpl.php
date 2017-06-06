@@ -805,7 +805,6 @@
 						,dataType: 'json'
 					}).done(function(result){	
 
-console.log(result);
 						if(result) {
 							 $.jnotify("[view.langs.transnoentities(QtyUpdated)]", "ok");
 						}
