@@ -458,9 +458,9 @@ class TAssetOF extends TObjetStd{
 			$ofParent = new TAssetOF;
 			$ofParent->load($PDOdb, $this->fk_assetOf_parent);
 
-			foreach($ofParent->TAssetOFLine as $ofLigneParent)
+			foreach($ofParent->TAssetOFLine as &$ofLigneParent)
 			{
-				foreach($this->TAssetOFLine as $ofLigne)
+				foreach($this->TAssetOFLine as &$ofLigne)
 				{
 					if($ofLigne->fk_product == $ofLigneParent->fk_product)
 					{
@@ -1351,7 +1351,7 @@ class TAssetOF extends TObjetStd{
 
 		$tab = array();
 
-		$sql = "SELECT a.rowid";
+		$sql = "SELECT a.rowid, al.rowid as fk_line";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf a";
 		$sql.= " INNER JOIN ".MAIN_DB_PREFIX."assetOf_line al ON (a.rowid = al.fk_assetOf AND al.type = 'TO_MAKE' AND al.fk_product = ".(int) $fk_product.")";
 		$sql.= " WHERE fk_assetOf_parent = ".$this->getId();
@@ -1370,15 +1370,90 @@ class TAssetOF extends TObjetStd{
 				}
 			}
 
-			$res[] = array('id_assetOf' => $val->rowid, 'level' => $level);
+			$res[] = array('id_assetOf' => $val->rowid, 'level' => $level, 'id_assetOfLine'=>$val->fk_line);
 		}
 
 	}
 
+	public function updateToMakeLineQty(&$PDOdb, $idLine,$qty_new, $coef = 0) {
+		
+		$res = false;
+		
+		$nb_to_make = 0;
+		
+		if(!empty($this->TAssetOFLine) && empty($coef)) {
+			
+			foreach ($this->TAssetOFLine as &$line) {
+				if($line->type === 'TO_MAKE' && $idLine === $line->getId() && $line->qty>0) {
+					$coef = $qty_new / $line->qty;
+					
+					$res = true;
+					
+					$nb_to_make++;
+					
+				}
+			}
+		}
+		else if(!empty($coef)) {
+			$nb_to_make = 1;
+			$res = true;
+		}
+	//var_dump($coef);
+		if($res && $nb_to_make == 1) { // On applique le coef que s'il y a 1 seul produit à fabriquer
+			
+			if(!empty($this->TAssetOFLine)) {
+			
+				foreach ($this->TAssetOFLine as &$line) {
+			//	var_dump('$line', $line->qty);
+					$line->qty*=$coef;
+					$line->qty_needed*=$coef;
+			//	var_dump('$line>', $line->qty);
+					
+					$line->saveQty($PDOdb);
+					
+					$TOF=array();
+					$this->getOFEnfantWithProductToMake($PDOdb, $TOF, $line->fk_product,0, false);
+					if(!empty($TOF)) {
+						
+						foreach($TOF as &$data) {
+							
+							$of = new TAssetOF;
+							if($of->load($PDOdb, $data['id_assetOf'])) {
+		//						var_dump('OFCHILD', $of->getId());
+								if(!$of->updateToMakeLineQty($PDOdb, 0, 0, $coef)) $res = false;
+								
+							}
+							
+						}
+						
+					}
+					
+				}
+				
+			}
+			
+			if(!empty($this->TAssetWorkstationOF)) {
+			
+				foreach ($this->TAssetWorkstationOF as &$ws) {
+					
+					$ws->nb_hour*=$coef;
+					$ws->nb_hour_prepare*=$coef;
+					
+					$ws->save($PDOdb);
+				}
+				
+			}
+			
+		}
+		
+		return $res;
+		
+	}
+	
 	function getLineProductToMake() {
 
 		if(!empty($this->TAssetOFLine)) {
-			foreach ($this->TAssetOFLine as $line) {
+			foreach ($this->TAssetOFLine as &$line) {
 				if($line->type === 'TO_MAKE') return $line;
 			}
 		}
@@ -2341,6 +2416,13 @@ class TAssetOFLine extends TObjetStd{
 
 	}
 
+	function saveQty(TPDOdb &$PDOdb) {
+		
+		$PDOdb->dbupdate($this->get_table(), array( 'qty'=>$this->qty, 'qty_needed'=>$this->qty_needed, 'rowid'=>$this->getId()),array('rowid'));
+		
+		
+	}
+	
 	function save(&$PDOdb)
 	{
 		global $user,$langs,$conf,$db;
@@ -2506,7 +2588,7 @@ class TAssetWorkstationOF extends TObjetStd{
             $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
 
         }
-        else{
+        else {
             $projectTask->fk_task_parent = 0;
         }
 			   
