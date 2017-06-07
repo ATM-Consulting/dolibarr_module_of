@@ -184,7 +184,7 @@ function _liste(&$PDOdb)
 
 	
 	if($mode =='supplier_order') {
-		$sql.=" AND cf.fk_statut IN (2,4) ";
+		$sql.=" AND cf.fk_statut IN (2,3,4) ";
 		$sql.=" GROUP BY cf.rowid ";
 	}
 	else{
