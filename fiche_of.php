@@ -651,8 +651,8 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
 					,'libelle'=>$label
-					,'qty_needed'=>$TAssetOFLine->qty_needed.$conditionnement_label
-					,'qty'=>(($of->status=='DRAFT' && $form->type_view == "edit") ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty .(empty($user->rights->of->of->price) ? '' : ' x '.price($TAssetOFLine->compo_estimated_cost,0,'',1,-1,-1,$conf->currency)))  
+					,'qty_needed'=>$TAssetOFLine->qty_needed .' x '.price($TAssetOFLine->compo_estimated_cost,0,'',1,-1,-1,$conf->currency).$conditionnement_label
+					,'qty'=>(($of->status=='DRAFT' && $form->type_view == "edit") ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty .(empty($user->rights->of->of->price) ? '' : ' x '.price($TAssetOFLine->compo_planned_cost,0,'',1,-1,-1,$conf->currency)))  
 					,'qty_used'=>((($of->status=='OPEN' || $of->status == 'CLOSE') && $form->type_view) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used.(empty($user->rights->of->of->price) ? '' : ' x '.price($TAssetOFLine->compo_cost,0,'',1,-1,-1,$conf->currency)))
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 					,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
@@ -1032,6 +1032,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
 					,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
 					,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
+					,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
 					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
 			)
 			,'view'=>array(

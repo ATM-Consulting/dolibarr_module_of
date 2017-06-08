@@ -282,8 +282,8 @@
 									
 									<td>[view.langs.transnoentities(Cost)]</td>
 									
-									<td>&nbsp;</td>
 									<td class="nodraft" align="right">[assetOf.compo_estimated_cost;strconv=no]</td>
+									<td class="nodraft" align="right">[assetOf.compo_planned_cost;strconv=no]</td>
 									<td class="nodraft" align="right">[assetOf.compo_cost;strconv=no]</td>
 									
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']

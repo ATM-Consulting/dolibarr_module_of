@@ -214,6 +214,7 @@ class TAssetOF extends TObjetStd{
 
 		$this->compo_cost = 0;
 		$this->compo_estimated_cost = 0;
+		$this->compo_planned_cost = 0;
 
 		foreach($this->TAssetOFLine as &$line) {
 			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
@@ -221,9 +222,11 @@ class TAssetOF extends TObjetStd{
 			if($line->type == 'NEEDED') {
 				$line->compo_cost = $line->pmp;
 				$line->compo_estimated_cost= $line->pmp; //TODO affiner
-				
+				$line->compo_planned_cost= $line->pmp; //TODO affiner
+
 				$this->compo_cost+= $line->qty_used * $line->compo_cost;
 				$this->compo_estimated_cost+= $line->qty_needed * $line->compo_estimated_cost;
+				$this->compo_planned_cost+= $line->qty * $line->compo_planned_cost;
 			}
 
 		}
@@ -270,10 +273,9 @@ class TAssetOF extends TObjetStd{
 			if ($night) $thm = $ws->ws->thm_night;
 			else $thm = $ws->ws->thm;
 
-			$ws->thm = $thm;
-			
-			$ws->mo_cost = $ws->nb_hour_real * ($thm + $ws->ws->thm_machine);
-			$ws->mo_estimated_cost= $ws->nb_hour * ($thm + $ws->ws->thm_machine);
+			$ws->thm = $thm + $ws->ws->thm_machine;
+			$ws->mo_cost = $ws->nb_hour_real * $ws->thm ;
+			$ws->mo_estimated_cost= $ws->nb_hour * $ws->thm;
 			
 			$this->mo_cost+= $ws->mo_cost;
 			$this->mo_estimated_cost+= $ws->mo_estimated_cost;
