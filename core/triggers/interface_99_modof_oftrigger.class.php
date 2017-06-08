@@ -258,7 +258,7 @@ class Interfaceoftrigger
 							if($of->status != 'CLOSE') {
 							
 								if(!empty($conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS)) {
-									$of->setStatus($PDOdb, 'VALID');
+									$of->setStatus($PDOdb, 'OPEN');
 								}
 								else{
 									$of->closeOF($PDOdb);
