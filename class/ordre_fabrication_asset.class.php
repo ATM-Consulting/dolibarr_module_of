@@ -67,15 +67,15 @@ class TAssetOF extends TObjetStd{
 
 		$res = parent::load($db,$id,true);
 
-	    	$this->set_temps_fabrication(true);
+	    $this->set_temps_fabrication(true);
 		$this->set_fourniture_cost();
 		$this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
         		 $line->of_numero = $this->numero;
-			$line->current_cost_for_to_make = $this->current_cost_for_to_make;
+				$line->current_cost_for_to_make = $this->current_cost_for_to_make;
         	}
-
+        	
 	        foreach($this->TAssetWorkstationOF as &$ws) {
         	    $ws->of_status = $this->status;
 	            $ws->of_fk_project = $this->fk_project;
@@ -1324,7 +1324,7 @@ class TAssetOF extends TObjetStd{
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf";
 		$sql.= " WHERE fk_assetOf_parent = ".$id_parent;
-		$sql.= " ORDER BY fk_assetOf_parent, rowid";
+		$sql.= " ORDER BY rowid";
 
 		$Tab = $PDOdb->ExecuteAsArray($sql);
 		foreach($Tab as $row) {
@@ -2568,7 +2568,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 	}
 
-	function createTask(&$PDOdb, &$db, &$conf, &$user, &$OF)
+	function createTask(&$PDOdb, &$db, &$conf, &$user, TAssetOF &$OF)
 	{
 		//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
 		if (!$user->id)	$user->id = GETPOST('user_id');
@@ -2585,12 +2585,16 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->label = $ws->libelle;
 
         if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
-            $PDOdb->Execute("SELECT MAX(t.rowid) as rowid
+        	
+        	$TIdOf = array($this->fk_assetOf);
+        	$OF->getListeOFEnfants($PDOdb,$TIdOf);
+        	
+        	$resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
             FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)
-            WHERE t.fk_projet=".$this->of_fk_project." AND tex.fk_of=".$this->fk_assetOf);
-            $PDOdb->Get_line();
-            $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
-
+            WHERE t.fk_projet=".$OF->fk_project." AND tex.fk_of IN (".implode(',',$TIdOf).")");
+        	$objTask = $db->fetch_object($resIdTask);
+        	$projectTask->fk_task_parent = (int)$objTask->rowid;
+            
         }
         else {
             $projectTask->fk_task_parent = 0;
@@ -2691,7 +2695,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		if ($of->fk_project > 0 && $this->fk_project_task == 0) $action = 'createTask';
 		elseif ($of->fk_project > 0 && $this->fk_project_task > 0) $action = 'updateTask';
 		elseif ($of->fk_project == 0 && $this->fk_project_task > 0) $action = 'deleteTask';
-		//echo 'manageProjectTask > '.$of->id.' '.$action.'<br />';
+		
 		switch ($action)
 		{
 			case 'createTask':
