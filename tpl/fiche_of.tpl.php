@@ -29,8 +29,8 @@
 				<tr><td>Quantité à produire</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
 				[onshow;block=end]
 				<tr class="notinparentview"><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
-				<tr class="notinparentview"><td>[view.langs.transnoentities(Order)]</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
-				<tr class="notinparentview"><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
+				<tr><td>[view.langs.transnoentities(Order)]</td><td>[assetOf.fk_commande;strconv=no;magnet=tr]</td></tr>
+				<tr><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
 				<tr rel="fk_soc">
 					<td>[view.editField;strconv=no][view.langs.transnoentities(Customer)]</td>
 					<td class="editableField">[assetOf.fk_soc;strconv=no;protect=no]</td>
@@ -489,7 +489,7 @@
 								}).done(function(data) {
 									
 									var html = $(data).find('div.OFMaster');
-									html.find('.buttonsAction').remove();
+									html.find('.buttonsAction,.notinparentview').remove();
 									
 									var TAssetOFLineLot = html.find('input.TAssetOFLineLot');
 									for (var i = 0; i < TAssetOFLineLot.length; i++)

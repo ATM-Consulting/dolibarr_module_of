@@ -351,8 +351,10 @@ class TAssetOF extends TObjetStd{
 
 			$PDOdb->dbupdate($this->get_table(), array('date_lancement'=>date('Y-m-d', $this->date_lancement),'rowid'=>$this->getId()),array('rowid'));
 			
-			$this->setDelaiLancementForParent($PDOdb);
 		}
+		
+		$this->setDelaiLancementForParent($PDOdb);
+		
 	}
 
 	function setDelaiLancementForParent(&$PDOdb) {
