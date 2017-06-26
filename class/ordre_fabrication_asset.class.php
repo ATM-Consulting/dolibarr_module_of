@@ -51,15 +51,27 @@ class TAssetOF extends TObjetStd{
 		$this->current_cost_for_to_make = 0; // montant utilisé pour les entrées de stock
 	}
 
-	function set_current_cost_for_to_make() {
+	function set_current_cost_for_to_make($compo_planned_cost= false) {
+		
+		$this->set_temps_fabrication(true);
+		$this->set_fourniture_cost();
+		
+		$this->total_cost = (empty($this->compo_cost) && $compo_planned_cost? $this->compo_planned_cost : $this->compo_cost) + ( empty($this->mo_cost) && $compo_planned_cost ? $this->mo_estimated_cost : $this->mo_cost);
+		
 		$qty = 0;
 
 		foreach($this->TAssetOFLine as &$line) {
-            if($line->type=='TO_MAKE') $qty+=$line->qty_used;
+            if($line->type=='TO_MAKE') {
+            	$qty+=empty( $line->qty_used ) ? $line->qty : $line->qty_used;
+            }
         }
-
-		if($qty>0) $this->current_cost_for_to_make = $this->total_cost / $qty;
-
+        
+        if($qty>0) $this->current_cost_for_to_make = $this->total_cost / $qty;
+    //    var_dump($qty, $this->current_cost_for_to_make , $this->total_cost); 
+        foreach($this->TAssetOFLine as &$line) {
+        	$line->current_cost_for_to_make = $this->current_cost_for_to_make;
+        }
+        
 	}
 
 	function load(&$db, $id, $loadChild = true) {
@@ -67,13 +79,10 @@ class TAssetOF extends TObjetStd{
 
 		$res = parent::load($db,$id,true);
 
-	    $this->set_temps_fabrication(true);
-		$this->set_fourniture_cost();
-		$this->set_current_cost_for_to_make();
+	    $this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
         		 $line->of_numero = $this->numero;
-				$line->current_cost_for_to_make = $this->current_cost_for_to_make;
         	}
         	
 	        foreach($this->TAssetWorkstationOF as &$ws) {
@@ -522,7 +531,20 @@ class TAssetOF extends TObjetStd{
 		{
 		    foreach ($TProd as $prod)
 			{
-				$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
+				$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
+				
+				if (!empty($conf->global->CREATE_CHILDREN_OF))
+				{
+					$TabSubProd = $this->getProductComposition($PDOdb,$prod->fk_product, $prod->qty);
+					
+					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
+					{
+						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
+						
+					}
+					
+				}
+				
 			}
 		}
 
@@ -555,8 +577,6 @@ class TAssetOF extends TObjetStd{
 				}
 			}
 
-
-
 		}
 		else
 		{
@@ -572,7 +592,7 @@ class TAssetOF extends TObjetStd{
 		return $Tab;
 	}
 
-	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1, $createOF=true, $fk_assetOf_line_parent = 0)
+	private function getProductComposition_arrayMerge(&$PDOdb,&$Tab, $TRes, $qty_parent=1)
 	{
 		global $conf;
 		//TODO AA c'est de la merde à refaire
@@ -599,24 +619,6 @@ class TAssetOF extends TObjetStd{
 				}
 			}
 
-			if (!empty($conf->global->CREATE_CHILDREN_OF))
-			{
-				/*if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs']))
-				{
-					if(!$createOF) {
-						$this->getProductComposition_arrayMerge($PDOdb, $Tab, $row['childs'], $prod->qty);
-					}
-				}*/
-
-				if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
-				{
-					if($createOF) {
-						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $fk_assetOf_line_parent);
-					}
-				}
-
-			}
-
 		}
 
 	}
@@ -634,7 +636,7 @@ class TAssetOF extends TObjetStd{
 		}
 		else {
 			$k=$this->addChild($PDOdb,'TAssetOF');
-			$this->TAssetOF[$k]->status = "DRAFT";
+			$this->TAssetOF[$k]->status = 'DRAFT';
 			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
@@ -916,7 +918,9 @@ class TAssetOF extends TObjetStd{
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
 
-		    $of->status = "CLOSE";
+			$of->set_current_cost_for_to_make(true);
+			
+		    $of->status = 'CLOSE';
 
 			include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
@@ -928,7 +932,7 @@ class TAssetOF extends TObjetStd{
 
 			foreach($of->TAssetOFLine as &$AssetOFLine)
 			{
-				if($AssetOFLine->type == "TO_MAKE")
+				if($AssetOFLine->type == 'TO_MAKE')
 				{
 					 if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $AssetOFLine->qty;
 
@@ -1792,31 +1796,47 @@ class TAssetOFLine extends TObjetStd{
 
 	function destockProduct($qty_to_destock) {
 		global $conf;
-
+		
 		$sens = ($qty_to_destock>0) ? -1 : 1;
 		$qty_to_destock_rest =  abs($qty_to_destock);
-
+//TODO translate
 		$labelMvt = 'Utilisation via Ordre de Fabrication';
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
 
 		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
 		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 
-		/*$asset=new TAsset; //TODO if asset not implemented
-		$asset->addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest,$labelMvt.' n°'.$this->of_numero, false, 0, $fk_entrepot);
-		*/
-
 		$price = 0;
 
 		if($this->type=='TO_MAKE') {
+			$PDOdb = new TPDOdb();
 			$price = $this->current_cost_for_to_make;
 			$this->pmp = $this->current_cost_for_to_make;
+			
+			$this->setPMP($PDOdb, $this->pmp);
+			if($this->fk_assetOf_line_parent>0) {
+				$line = new TAssetOFLine();
+				if($line->load($PDOdb, $this->fk_assetOf_line_parent)) {
+					$line->setPMP($PDOdb, $this->pmp); // passage par une fonction hors save à cause des intrications
+				}
+			}
+			
 		}
 
 		TAssetOF::addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest, $labelMvt,$fk_entrepot, $price);
 
 		$this->update_qty_stock($sens * $qty_to_destock_rest);
 
+	}
+	
+	/*
+	 * définit le PMP
+	 * 
+	 */
+	function setPMP(&$PDOdb, $pmp) {
+		$this->pmp = (double) $pmp;
+		
+		$PDOdb->Execute("UPDATE ".$this->get_table()." SET pmp = ".$this->pmp." WHERE rowid = ".$this->getId());
 	}
 
 	function stockAsset(&$PDOdb, $qty_to_stock, $add_only_qty_to_contenancereel=false) {
@@ -1845,9 +1865,9 @@ class TAssetOFLine extends TObjetStd{
 		$labelMvt = 'Utilisation via Ordre de Fabrication';
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
 
-        if(!$conf->global->USE_LOT_IN_OF || empty($conf->asset->enabled))
+        if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled))
         {
-			$this->stockProduct($sens * $qty_to_destock_rest);
+        	$this->stockProduct($sens * $qty_to_destock_rest);
         }
 		else
 		{
@@ -2254,12 +2274,14 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	function load(&$PDOdb, $id, $loadChild = true) {
-		parent::load($PDOdb, $id);
+		$res = parent::load($PDOdb, $id);
 		$this->load_workstations($PDOdb);
 
 		$this->loadFournisseurPrice($PDOdb);
 
 		$this->load_product();
+		
+		return $res;
 	}
 
 	function load_product() {
@@ -2504,12 +2526,14 @@ class TAssetOFLine extends TObjetStd{
 
 		$qty_make = $this->qty_used - $this->qty_stock;
 
+		$res = $this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number);
 		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
-		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->stockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
+		if ($res) $this->stockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
 		else {
 			$this->stockProduct($qty_make);
 			setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
 		}
+		
 	}
 }
 
