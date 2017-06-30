@@ -239,7 +239,7 @@ function _liste(&$PDOdb)
 		,'orderBy'=>$orderBy
 		,'subQuery'=>array()
 		,'link'=>array(
-			'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 2).'">'.img_picto('','object_user.png','',0).' @val@</a>'
+			'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 1).'">'.img_picto('','object_user.png','',0).' @val@</a>'
 			,'printTicket'=>'<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket[@rowid@]" min="0" />'
 		)
 		,'translate'=>array(
@@ -480,9 +480,9 @@ function _liste(&$PDOdb)
                 ,'orderBy'=>$orderBy
                 ,'subQuery'=>array()
                 ,'link'=>array(
-                    'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 2).'">'.img_picto('','object_user.png','',0).' @val@</a>'
-                    ,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@', 2).'">'.img_picto('','object_list.png','',0).' @val@</a>'
-                    ,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 2).'">'.img_picto('','object_company.png','',0).' @val@</a>'
+                    'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 1).'">'.img_picto('','object_user.png','',0).' @val@</a>'
+                    ,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@', 1).'">'.img_picto('','object_list.png','',0).' @val@</a>'
+                    ,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 1).'">'.img_picto('','object_company.png','',0).' @val@</a>'
                 )
                 ,'translate'=>array()
                 ,'hide'=>$THide
@@ -587,7 +587,7 @@ function get_format_link_of($numeros) {
 	$TReturn=array();
 	foreach($TNumero as $numero) {
 		
-		$TReturn[] = '<a href="'.dol_buildpath('/of/fiche_of.php', 2).'?ref='.$numero.'">'.img_picto('','object_list.png','',0).' '.$numero.'</a>';
+		$TReturn[] = '<a href="'.dol_buildpath('/of/fiche_of.php', 1).'?ref='.$numero.'">'.img_picto('','object_list.png','',0).' '.$numero.'</a>';
 		
 	}
 	
