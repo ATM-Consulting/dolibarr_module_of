@@ -387,45 +387,6 @@ class modof extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetControl'),
-					'mainmenu'=>'of',
-					'leftmenu'=>'assetControlList',
-					'url'=>'/of/list_control.php',
-					'position'=>302,
-					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetListControl'),
-					'mainmenu'=>'assetControlList',
-					'leftmenu'=>'assetNewControl',
-					'url'=>'/of/list_control.php',
-					'position'=>303,
-					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-		
-		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetControlList',			// Put 0 if this is a top menu
-					'type'=>'left',			// This is a Top menu entry
-					'titre'=>$langs->trans('AssetNewControl'),
-					'mainmenu'=>'assetControlList',
-					'leftmenu'=>'assetNewControl',
-					'url'=>'/of/control.php?action=new',
-					'position'=>304,
-					'enabled'=>'$conf->global->ASSET_USE_CONTROL',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-					'target'=>'',
-					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
-		$r++;
-		
 		
 		// Add here entries to declare new menus
 		//
