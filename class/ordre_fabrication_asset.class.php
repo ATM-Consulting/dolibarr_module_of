@@ -1879,9 +1879,9 @@ class TAssetOFLine extends TObjetStd{
 				if($this->lot_number){
 					$assetOf = new TAssetOF;
 					$assetOf->load($PDOdb, $this->fk_assetOf);
-					$this->setAsset($PDOdb, $assetOf);
-
-					echo $this->lot_number;exit;
+					$res = $this->setAsset($PDOdb, $assetOf);
+					//var_dump($res);
+					//echo 'ERR.L.1884 '.$this->lot_number;exit;
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
 					$this->stockProduct( $sens * $qty_to_destock_rest);
@@ -1962,18 +1962,19 @@ class TAssetOFLine extends TObjetStd{
 
 		$is_cumulate = TAsset_type::getIsCumulate($PDOdb, $this->fk_product);
 		$is_perishable = TAsset_type::getIsPerishable($PDOdb, $this->fk_product);
-
+		$is_unit = TAsset_type::getIsUnit($PDOdb, $this->fk_product);
+		
 		//si on cherche à déstocker 5 * 0.10 Kg alors on ne cherche pas un équipement avec + de 5Kg en stock mais bien + de 0.50Kg
 		list($qty,$qty_stock) = $this->convertQty();
 
 		//echo $this->qty;exit;
 
 		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
-		if ($is_cumulate)
+		if ($is_cumulate || $is_unit) // si traitement unitaire c'est pareil
 		{
 			$sql.= ' WHERE status != "USED" ';
 
-			if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql.= ' AND contenancereel_value > 0 ';
+			if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && !$is_unit) $sql.= ' AND contenancereel_value > 0 ';
 
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
 			else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
@@ -1982,7 +1983,7 @@ class TAssetOFLine extends TObjetStd{
 		{
 			$sql.= ' WHERE status != "USED" ';
 
-			if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql.= ' AND contenancereel_value >= '.($qty - $qty_sotck).' ';// - la quantité déjà utilisé
+			if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && !$is_unit)$sql.= ' AND contenancereel_value >= '.($qty - $qty_sotck).' ';// - la quantité déjà utilisé
 
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
 			else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
