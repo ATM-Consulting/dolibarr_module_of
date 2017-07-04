@@ -127,7 +127,6 @@ class modof extends DolibarrModules
 			,array('ASSET_DEFINED_USER_BY_WORKSTATION', 'chaine', 0,'Permettre l\'association d\'un ou plusieurs utilisateurs d\'être assigné à un poste de travail sur un OF',1)
 			,array('ASSET_DEFINED_OPERATION_BY_WORKSTATION', 'chaine', 0,'Permet de définir un protocole opératoire pour chaque poste de travail',1)
 			,array('ASSET_DEFINED_WORKSTATION_BY_NEEDED', 'chaine', 0,'Permet de ventiler les produits de composition par poste de travail',1)
-			,array('ASSET_USE_CONTROL', 'chaine', 0,'Permet de définir des contrôles à appliquer lors du processus de l\'OF',1)
 		);
 
 

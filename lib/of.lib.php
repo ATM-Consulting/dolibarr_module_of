@@ -7,7 +7,6 @@
 			
 			case 'assetOF':
 				$res = array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
-				if (!empty($conf->global->ASSET_USE_CONTROL)) $res[] = array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId().'&action=control',1), 'Contrôle','controle');
 				
 				return $res;
 				break;

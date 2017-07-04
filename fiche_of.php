@@ -359,7 +359,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	
 	//pre($societe,true); exit;
 	
-	if (!empty($conf->global->ASSET_USE_CONTROL))
+	if (!empty($conf->quality->enabled))
 	{
 		$TControl = $assetOf->getControlPDF($PDOdb);
 	}
@@ -548,7 +548,7 @@ function drawCross($im, $color, $x, $y){
 
 function getBarCodePicture(&$assetOf) {
 	
-	dol_include_once('/asset/php_barcode/php-barcode.php');
+	dol_include_once('/of/php_barcode/php-barcode.php');
 	
 	$code = $assetOf->numero;
 	

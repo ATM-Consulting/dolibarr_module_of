@@ -40,7 +40,6 @@ class TAssetOF extends TObjetStd{
 		$this->setChild('TAssetOFLine','fk_assetOf');
 		$this->setChild('TAssetWorkstationOF','fk_assetOf');
 		$this->setChild('TAssetOF','fk_assetOf_parent');
-		$this->setChild('TAssetOFControl','fk_assetOf');
 
 		$this->date_besoin = time();
 		$this->date_lancement = 0;
@@ -1620,7 +1619,7 @@ class TAssetOF extends TObjetStd{
 
 			foreach ($TControl as $fk_control)
 			{
-				$ofControl = new TAssetOFControl;
+				$ofControl = new TQualityControl;
 				$ofControl->fk_assetOf = $this->getId();
 				$ofControl->fk_control = $fk_control;
 				$ofControl->response = '';
@@ -1694,7 +1693,7 @@ class TAssetOF extends TObjetStd{
 	{
 		$res = array();
 
-		foreach ($this->TAssetOFControl as $ofControl)
+		foreach ($this->TQualityControl as $ofControl)
 		{
 			$control = new TAssetControl;
 			$control->load($PDOdb, $ofControl->fk_control);
