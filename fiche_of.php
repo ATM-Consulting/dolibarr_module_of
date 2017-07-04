@@ -1079,10 +1079,10 @@ function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
 	}
 	else 
 	{
-		if (empty($assetOf->TAssetOFControl)) return $res;
+		if (empty($assetOf->TQualityControlAnswer)) return $res;
 		
 		$ids = array();
-		foreach ($assetOf->TAssetOFControl as $ofControl)
+		foreach ($assetOf->TQualityControlAnswer as $ofControl)
 		{
 			$ids[] = $ofControl->getId();
 		}
@@ -1099,7 +1099,7 @@ function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
 		$res[] = array(
 			'id' => $PDOdb->Get_field('id')
 			,'libelle' => '<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id='.$PDOdb->Get_field('id').'">'.$PDOdb->Get_field('libelle').'</a>'
-			,'type' => TAssetControl::$TType[$PDOdb->Get_field('type')]
+			,'type' => TQualityControl::$TType[$PDOdb->Get_field('type')]
 			,'action' => '<input type="checkbox" value="'.$PDOdb->Get_field('id').'" name="TControl[]" />'
 			,'question' => $PDOdb->Get_field('question')
 			,'response' => ($assetOf == -1 ? '' : $assetOf->generate_visu_control_value($PDOdb->Get_field('id'), $PDOdb->Get_field('type'), $PDOdb->Get_field('response'), 'TControlResponse['.$PDOdb->Get_field('id_assetOf_control').'][]'))
@@ -1126,12 +1126,12 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	$form->Set_typeaff('view');
 	
 	$TControl = _fiche_ligne_control($PDOdb, $assetOf->getId());
-	$TAssetOFControl = _fiche_ligne_control($PDOdb, $assetOf->getId(), $assetOf);
+	$TQualityControlAnswer = _fiche_ligne_control($PDOdb, $assetOf->getId(), $assetOf);
 	
 	print $TBS->render('tpl/fiche_of_control.tpl.php'
 		,array(
 			'TControl'=>$TControl
-			,'TAssetOFControl'=>$TAssetOFControl
+			,'TQualityControlAnswer'=>$TQualityControlAnswer
 		)
 		,array(
 			'assetOf'=>array(
@@ -1139,7 +1139,7 @@ function _fiche_control(&$PDOdb, &$assetOf)
 			)
 			,'view'=>array(
 				'nbTControl'=>count($TControl)
-				,'nbTAssetOFControl'=>count($TAssetOFControl)
+				,'nbTQualityControlAnswer'=>count($TQualityControlAnswer)
 				,'url'=>DOL_URL_ROOT.'/custom/of/fiche_of.php'
 			)
 		)

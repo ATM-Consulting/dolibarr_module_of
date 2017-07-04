@@ -1623,7 +1623,7 @@ class TAssetOF extends TObjetStd{
 				$ofControl->fk_assetOf = $this->getId();
 				$ofControl->fk_control = $fk_control;
 				$ofControl->response = '';
-				$this->TAssetOFControl[] = $ofControl;
+				$this->TQualityControlAnswer[] = $ofControl;
 
 			}
 
@@ -1634,7 +1634,7 @@ class TAssetOF extends TObjetStd{
 		{
 			$TControlDelete = __get('TControlDelete', array());
 			$TResponse = __get('TControlResponse', false);
-			foreach ($this->TAssetOFControl as $ofControl)
+			foreach ($this->TQualityControlAnswer as $ofControl)
 			{
 				//Si la ligne est marqué à supprimer alors on delete l'info et on passe à la suite
 				if (in_array($ofControl->getId(), $TControlDelete))
@@ -1672,10 +1672,10 @@ class TAssetOF extends TObjetStd{
 			case 'checkboxmultiple':
 				$PDOdb = new TPDOdb;
 				$values = explode(',', $value);
-				$control = new TAssetControl;
+				$control = new TQualityControl;
 				$control->load($PDOdb, $fk_control);
 
-				foreach ($control->TAssetControlMultiple as $controlValue)
+				foreach ($control->TQualityControlMultiple as $controlValue)
 				{
 					$res.= '<span style="border:1px solid #A4B2C3;padding:0 4px 0 2px;">';
 					$res.= '<input name="'.$name.'" style="vertical-align:middle" '.(in_array($controlValue->getId(), $values) ? 'checked="checked"' : '').' type="checkbox" value="'.$controlValue->getId().'" />';
@@ -1695,7 +1695,7 @@ class TAssetOF extends TObjetStd{
 
 		foreach ($this->TQualityControl as $ofControl)
 		{
-			$control = new TAssetControl;
+			$control = new TQualityControl;
 			$control->load($PDOdb, $ofControl->fk_control);
 
 			switch ($control->type) {
@@ -1716,7 +1716,7 @@ class TAssetOF extends TObjetStd{
 
 				case 'checkboxmultiple':
 					$res2 = '';
-					foreach ($control->TAssetControlMultiple as $controlVal)
+					foreach ($control->TQualityControlMultiple as $controlVal)
 					{
 						$res2 .= $controlVal->value.', ';
 					}

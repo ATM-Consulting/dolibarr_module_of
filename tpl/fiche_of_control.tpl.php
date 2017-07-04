@@ -44,19 +44,19 @@
 				<th width="5%">Supprimer</th>
 			</tr>
 			<tr style="background-color:#fff;">
-				<td>&nbsp;&nbsp;[TAssetOFControl.libelle;strconv=no;block=tr]</td>
-				<td>&nbsp;&nbsp;[TAssetOFControl.question;strconv=no;block=tr]</td>
-				<td>[TAssetOFControl.response;strconv=no;block=tr]</td>
-				<td align="center">[TAssetOFControl.delete;strconv=no;block=tr]</td>
+				<td>&nbsp;&nbsp;[TQualityControlAnswer.libelle;strconv=no;block=tr]</td>
+				<td>&nbsp;&nbsp;[TQualityControlAnswer.question;strconv=no;block=tr]</td>
+				<td>[TQualityControlAnswer.response;strconv=no;block=tr]</td>
+				<td align="center">[TQualityControlAnswer.delete;strconv=no;block=tr]</td>
 			</tr>
 			<tr>
-				<td colspan="4" align="center">[TAssetOFControl;block=tr;nodata]Aucun contrôle associé</td>
+				<td colspan="4" align="center">[TQualityControlAnswer;block=tr;nodata]Aucun contrôle associé</td>
 			</tr>
 		</table>
 		
 		<div class="tabsAction">
 			<div class="inline-block divButAction">
-				<input [view.nbTAssetOFControl;noerr;if [val]==0;then 'disabled="disabled"';else ''] class="butAction" type="submit" value="Modifier les contrôles" />
+				<input [view.nbTQualityControlAnswer;noerr;if [val]==0;then 'disabled="disabled"';else ''] class="butAction" type="submit" value="Modifier les contrôles" />
 			</div>
 		</div>
 	</form>
