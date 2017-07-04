@@ -2178,7 +2178,7 @@ class TAssetOFLine extends TObjetStd{
     }
 
 	//Utilise l'équipement affecté à la ligne de l'OF
-	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty_to_make, $idAsset = 0, $lot_number = '')
+	function makeAsset(&$PDOdb, &$AssetOf, $fk_product, $qty_to_make, $idAsset = 0, $lot_number = '' ,$fk_entrepot = 0)
 	{
 	   	global $user,$conf;
 
@@ -2239,9 +2239,9 @@ class TAssetOFLine extends TObjetStd{
                 $TAsset->contenancereel_value = $qty_to_make_asset;
                 $TAsset->lot_number = $lot_number;
 
-                if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
+                if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE) && empty($fk_entrepot)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
 
-				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module');
+				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module. ERR.L.2244');
 
                 $TAsset->fk_entrepot = $fk_entrepot;
 
@@ -2525,7 +2525,7 @@ class TAssetOFLine extends TObjetStd{
 
 		$qty_make = $this->qty_used - $this->qty_stock;
 
-		$res = $this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number);
+		$res = $this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number, $this->fk_entrepot);
 		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
 		if ($res) $this->stockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
 		else {
