@@ -2297,7 +2297,7 @@ class TAssetOFLine extends TObjetStd{
 			if(empty($pmp) && !empty($this->product->cost_price)) {
 				$pmp = (double) $this->product->cost_price;
 			}
-			if(empty($pmp) && !empty($this->product->cost_price)) {
+			if(empty($pmp)) {
 				dol_include_once('/fourn/class/fournisseur.product.class.php');
 				$fournProd = new ProductFournisseur($db);
 				$fournProd->find_min_price_product_fournisseur($this->fk_product, $this->qty>0 ? $this->qty : 1);
