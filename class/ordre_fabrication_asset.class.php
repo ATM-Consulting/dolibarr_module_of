@@ -2292,8 +2292,17 @@ class TAssetOFLine extends TObjetStd{
 
 			$this->product = new Product($db);
 			$this->product->fetch($this->fk_product);
-
-			$this->pmp = $this->product->pmp;
+			
+			$pmp = (double) $this->product->pmp; //TODO set parameters to select prefered rank
+			if(empty($pmp) && !empty($this->product->cost_price)) {
+				$pmp = (double) $this->product->cost_price;
+			}
+			if(empty($pmp) && !empty($this->product->cost_price)) {
+				$this->product->get_buyprice(-1, $this->qty>0 ? $this->qty : 1, $this->fk_product,'none');
+				$pmp = (double) $this->product->fourn_pu;
+			}
+			
+			$this->pmp = $pmp;
 		}
 
 	}
