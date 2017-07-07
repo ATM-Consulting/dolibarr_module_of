@@ -339,7 +339,7 @@ function _liste(&$PDOdb)
 		print_liste_field_titre("#");
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
-		print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of.php","", "", $param,'align="left"',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans('QtyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
