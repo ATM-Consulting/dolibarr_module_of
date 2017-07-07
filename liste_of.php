@@ -14,6 +14,7 @@
 	dol_include_once("/core/lib/company.lib.php");
 	
 	$langs->load('of@of');
+	$langs->load('stocks');
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
 
@@ -338,6 +339,7 @@ function _liste(&$PDOdb)
 		print_liste_field_titre("#");
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans('QtyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
@@ -350,7 +352,6 @@ function _liste(&$PDOdb)
 			$var=!$var;
 			//print "<tr ".$bc[$var].">";
 			
-
 			if($prod->product_type == 9) {
 				 print "<tr>";
 				print "<td>&nbsp;</td>";
@@ -375,6 +376,8 @@ function _liste(&$PDOdb)
 
 				print "<td>";
 				$p_static = new Product($db);
+				$p_static->fetch($prod->rowid);
+				$p_static->load_stock();
 				$p_static->ref = $prod->refProd;
 				$p_static->id = $prod->rowid;
 				print $p_static->getNomUrl(1);
@@ -400,6 +403,9 @@ function _liste(&$PDOdb)
 				}
 				
 				print '</td>';
+				print '<td>';
+				print $p_static->stock_reel;
+				print '</td>';
 			    	        print "<td>";
         	                print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
                         	print "</td>";
@@ -417,7 +423,7 @@ function _liste(&$PDOdb)
 		}
 	
 		print '<tr class="liste_titre">';
-		echo '<th class="liste_titre" colspan="2">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
+		echo '<th class="liste_titre" colspan="3">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
 		<th class="liste_titre"><input type="checkbox" id="checkall" checked="checked" value="1"></th>
 		';
 		print '</tr>';
