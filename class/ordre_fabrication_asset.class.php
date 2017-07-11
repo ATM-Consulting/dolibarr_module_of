@@ -26,7 +26,7 @@ class TAssetOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
-		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project','type=entier;index;');
+		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement','type=date;');
@@ -729,6 +729,8 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->qty_used = (!empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
 		$TAssetOFLine->note_private = $note_private;
 
+		$TAssetOFLine->fk_commandedet = $fk_commandedet;
+		
         	$TAssetOFLine->fk_product_fournisseur_price = -2;
 
 		if ($conf->nomenclature->enabled && !$fk_nomenclature)
@@ -1743,7 +1745,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
 
     	$this->TChamps = array();
-		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide',array('type'=>'integer','index'=>true));
+		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide,fk_commandedet',array('type'=>'integer','index'=>true));
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp',array('type'=>'float'));
 		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
         $this->add_champs('note_private',array('type'=>'text'));

@@ -307,17 +307,18 @@ function _liste(&$PDOdb)
 	$form->end();
 	
 	// On n'affiche pas le bouton de création d'OF si on est sur la liste OF depuis l'onglet "OF" de la fiche commande
-	if($fk_commande) 
+	if($fk_commande>0) 
 	{
 		$commande=new Commande($db);
 		$commande->fetch($fk_commande);	
 		
 		$r2 = new TSSRenderControler($assetOf);
 
-		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee, c.description, c.product_type";
+		$sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee, c.description, c.label as lineLabel, c.product_type";
 		$sql.= " FROM ".MAIN_DB_PREFIX."commandedet c LEFT JOIN ".MAIN_DB_PREFIX."product p";
 		$sql.= " ON (c.fk_product = p.rowid)";
 		$sql.= " WHERE c.product_type IN (0,9) AND  c.fk_commande = ".$fk_commande;
+		$sql.= " ORDER BY c.rang";
 		
 		$resql = $db->query($sql);
 //var_dump($db);
@@ -340,6 +341,7 @@ function _liste(&$PDOdb)
 		print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of.php","", "", $param,'align="left"',$sortfield,$sortorder);
+		print_liste_field_titre($langs->trans('QtyAlreadyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans('QtyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
 		print "</tr>\n";
@@ -352,12 +354,12 @@ function _liste(&$PDOdb)
 			$var=!$var;
 			//print "<tr ".$bc[$var].">";
 			
-			if($prod->product_type == 9) {
-				 print "<tr>";
+			if($prod->product_type == 9 && !empty($conf->subtotal->enabled)) {
+				print "<tr>";
 				print "<td>&nbsp;</td>";
-                                 print "<td colspan=\"4\"><strong>";
-                                 print $prod->description;
-                                 print '</strong></td>';
+				print '<td colspan="6" '.($prod->qteCommandee>50 ? 'style="text-align:right; padding-right:'.((100 - $prod->qteCommandee)*10).'px;"' : 'style="text-align:left; padding-left:'.(($prod->qteCommandee)*10).'px;"').'><strong>';
+                print empty($prod->description) ? $prod->lineLabel: $prod->description;
+                print '</strong></td>';
 			}
 			else if(empty($prod->rowid)) {
 				// ligne libre
@@ -406,11 +408,27 @@ function _liste(&$PDOdb)
 				print '<td>';
 				print $p_static->stock_reel;
 				print '</td>';
+				
+				$resOf = $db->query("SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
+						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf)
+					WHERE of.fk_commande=".$fk_commande." AND ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet);
+				
+				$objof = $db->fetch_object($resOf);
+				$qtyInOF = $objof->qty;
+				
+				print "<td>";
+				print $qtyInOF;
+				print "</td>";
+				
+				
+				
+				$qtyToMake = $prod->qteCommandee - $qtyInOF;
+				
 			    	        print "<td>";
-        	                print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $prod->qteCommandee,3,255);
+			    	        print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $qtyToMake>0 ? $qtyToMake : 0,3,255);
                         	print "</td>";
 	        
-				 			print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false,true,'','checkOF' );
+                        	print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false, $qtyToMake>0 ,'','checkOF' );
 	                        print "</td>";
             
 	                        
@@ -423,7 +441,7 @@ function _liste(&$PDOdb)
 		}
 	
 		print '<tr class="liste_titre">';
-		echo '<th class="liste_titre" colspan="3">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
+		echo '<th class="liste_titre" colspan="4">&nbsp;</th><th class="liste_titre">&nbsp;</th><th class="liste_titre">&nbsp;</th>
 		<th class="liste_titre"><input type="checkbox" id="checkall" checked="checked" value="1"></th>
 		';
 		print '</tr>';

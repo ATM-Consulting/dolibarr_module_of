@@ -289,4 +289,5 @@ OF_FOLLOW_SUPPLIER_ORDER_STATUS=L'ordre de fabrication lié manuellement à une 
 
 UpdateNeededQty=Mettre à jour les produits nécessaires
 SomeQtyCantBeUpdated=Certaines quantités n'ont pu être mis à jour
+QtyAlreadyToMake=Quantité déjà en production
 
