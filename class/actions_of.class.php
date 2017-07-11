@@ -113,7 +113,8 @@ class Actionsof
                         }    
                    } 
                   
-                        
+                   $TProduct=array_merge(array(0), $TProduct);// Pour éviter ofl.fk_product IN() qui provoque une erreur sql
+
                    $res = $db->query("SELECT DISTINCT of.date_besoin, of.rowid as 'fk_of' 
                             FROM ".MAIN_DB_PREFIX."assetOf_line ofl
                             LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid = ofl.fk_assetOf)
