@@ -113,44 +113,45 @@ class Actionsof
                         }    
                    } 
                   
-                   $TProduct=array_merge(array(0), $TProduct);// Pour éviter ofl.fk_product IN() qui provoque une erreur sql
+                   if(!empty($TProduct)) {
 
-                   $res = $db->query("SELECT DISTINCT of.date_besoin, of.rowid as 'fk_of' 
-                            FROM ".MAIN_DB_PREFIX."assetOf_line ofl
-                            LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid = ofl.fk_assetOf)
-                            WHERE ofl.fk_product IN (".implode(',',$TProduct).")
-                            AND of.status='ONORDER'
-                            ORDER BY of.date_besoin ASC");    
-                   $PDOdb=new TPDOdb;
-                   
-                   if ($res) {
-	                   while($obj = $db->fetch_object($res)) {
-	                       
-	                       $OF = new TAssetOF;
-	                       $OF->load($PDOdb, $obj->fk_of);
-	                       $to_save = false;
-	                       foreach($OF->TAssetOFLine as &$line) {
-	                           
-	                           if(isset($TProd[$line->fk_product]) && $TProd[$line->fk_product]>0) {
-	                               $TProd[$line->fk_product]-= ($line->qty_needed>0 ?  $line->qty_needed : $line->qty );
-	                               
-	                               if($OF->date_lancement<$time_livraison){
-	                                   $OF->date_lancement =  $time_livraison;
-	                                   $to_save = true;
-	                               }
-	                           }
-	                       }
-	                       
-	                       if($to_save) {
-	                          // print 'OF '.$OF->getId().'$time_livraison'.$time_livraison;
-	                           $OF->save($PDOdb);
-	                       }
-	                      
+	                   $res = $db->query("SELECT DISTINCT of.date_besoin, of.rowid as 'fk_of' 
+	                            FROM ".MAIN_DB_PREFIX."assetOf_line ofl
+	                            LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid = ofl.fk_assetOf)
+	                            WHERE ofl.fk_product IN (".implode(',',$TProduct).")
+	                            AND of.status='ONORDER'
+	                            ORDER BY of.date_besoin ASC");    
+	                   $PDOdb=new TPDOdb;
+	                   
+	                   if ($res) {
+		                   while($obj = $db->fetch_object($res)) {
+		                       
+		                       $OF = new TAssetOF;
+		                       $OF->load($PDOdb, $obj->fk_of);
+		                       $to_save = false;
+		                       foreach($OF->TAssetOFLine as &$line) {
+		                           
+		                           if(isset($TProd[$line->fk_product]) && $TProd[$line->fk_product]>0) {
+		                               $TProd[$line->fk_product]-= ($line->qty_needed>0 ?  $line->qty_needed : $line->qty );
+		                               
+		                               if($OF->date_lancement<$time_livraison){
+		                                   $OF->date_lancement =  $time_livraison;
+		                                   $to_save = true;
+		                               }
+		                           }
+		                       }
+		                       
+		                       if($to_save) {
+		                          // print 'OF '.$OF->getId().'$time_livraison'.$time_livraison;
+		                           $OF->save($PDOdb);
+		                       }
+		                      
+		                   }
+	                   } else {
+							setEventMessage($db->lasterror,'errors');
 	                   }
-                   } else {
-						setEventMessage($db->lasterror,'errors');
+                   
                    }
-                    //exit;     
                     
                 }
                 
