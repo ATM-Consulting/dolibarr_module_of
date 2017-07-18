@@ -522,6 +522,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 			,'defined_task'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 			,'use_control'=>(int) $conf->global->ASSET_USE_CONTROL
+			,'note_of'=>$assetOf->note
 		)
 		,array()
 		,array(
