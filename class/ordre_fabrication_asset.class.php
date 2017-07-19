@@ -142,7 +142,7 @@ class TAssetOF extends TObjetStd{
 			// Check si un fk_entrepot est saisie sur chaque ligne de l'OF courrant et sur les OFs enfants
 			foreach ($TOf as &$of)
 			{
-				if (!$of->checkWharehouseOnLines())
+				if (!$of->checkWharehouseOnLines() && $conf->global->ASSET_MANUAL_WAREHOUSE)
 				{
 					$error++;
 					$this->errors[] = $langs->trans('ofError_fk_entrepot_missing', $of->numero);
