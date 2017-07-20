@@ -560,21 +560,26 @@ class TAssetOF extends TObjetStd{
 		if ($conf->nomenclature->enabled)
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
-
-			//$TNomen = TNomenclature::get($PDOdb, $id_product);
 			if ($fk_nomenclature)
 			{
 				$TNomen = new TNomenclature;
 				$TNomen->load($PDOdb, $fk_nomenclature);
-
-				if (!empty($TNomen))
-				{
-
-					$TRes = $TNomen->getDetails($quantite_to_make);
-
-					$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
-				}
 			}
+			else
+			{
+				$Tab = TNomenclature::get($PDOdb, $id_product);
+				if (!empty($Tab[0])); $TNomen = $Tab[0];
+			}
+			
+			
+			if (!empty($TNomen))
+			{
+
+				$TRes = $TNomen->getDetails($quantite_to_make);
+
+				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
+			}
+			
 
 		}
 		else
