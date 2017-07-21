@@ -291,3 +291,9 @@ UpdateNeededQty=Mettre à jour les produits nécessaires
 SomeQtyCantBeUpdated=Certaines quantités n'ont pu être mis à jour
 QtyAlreadyToMake=Quantité déjà en production
 
+UseByOF=Utilisation via Ordre de Fabrication
+CreateByOF=Création via Ordre de Fabrication
+DeletedByOF=Suppression via Ordre de Fabrication
+
+
+
