@@ -1852,7 +1852,7 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	/**
-	 * @param 	$qty_to_destock		if < 0 = stockage, if > 0 = destockage
+	 * @param 	$qty_to_destock		if < 0 = restockage, if > 0 = destockage
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
