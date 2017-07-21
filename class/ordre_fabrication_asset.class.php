@@ -1860,6 +1860,9 @@ class TAssetOFLine extends TObjetStd{
 
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
 
+        $mouvement = 'destockage';
+		if ($this->type=='NEEDED' && $qty_to_destock < 0) $mouvement = 'stockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
+		
         $sens = ($qty_to_destock>0) ? -1 : 1;
         $qty_to_destock_rest =  abs($qty_to_destock);
 
@@ -1899,23 +1902,32 @@ class TAssetOFLine extends TObjetStd{
 
                 foreach($TAsset as $asset)
                 {
-                     $qty_asset_to_destock = ($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : $asset->contenancereel_value;
+					if ($mouvement == 'destockage')
+					{
+						$qty_asset_to_destock = ($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : $asset->contenancereel_value;
+					}
+					else // stockage (uniquement pour le cas des NEEDED)
+					{
+						// dans le cas où l'on "Termine" l'OF avec une sous conso (il faut donc restocker la diff) ($sens => 1; $qty_to_destock => négatif)
+						$qty_asset_to_destock = (!empty($conf->global->ASSET_NEGATIVE_DESTOCK)) ? $qty_to_destock_rest : ($asset->contenance_value - $asset->contenancereel_value);
+					}
+					
+					if($qty_to_destock_rest - $qty_asset_to_destock <= 0)
+					{
+						$qty_asset_to_destock = $qty_to_destock_rest;
+					}
 
-                     if($qty_to_destock_rest - $qty_asset_to_destock <= 0)
-                     {
-                         $qty_asset_to_destock = $qty_to_destock_rest;
-					 }
+					//echo $sens." x ".$qty_asset_to_destock.'<br>';
+					$this->update_qty_stock($sens * $qty_asset_to_destock);
 
-					 //echo $sens." x ".$qty_asset_to_destock.'<br>';
-					 $this->update_qty_stock($sens * $qty_asset_to_destock);
+					$asset->save($PDOdb,$user
+							,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
+							,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
-                     $asset->save($PDOdb,$user
-                             ,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
-                             ,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
+					$qty_to_destock_rest-= $qty_asset_to_destock;
 
-                    $qty_to_destock_rest-= $qty_asset_to_destock;
-
-                    if($qty_to_destock_rest<=0)break;
+					if($qty_to_destock_rest<=0)break;
+                    
                 }
 
             }
@@ -2535,6 +2547,7 @@ class TAssetOFLine extends TObjetStd{
 	{
     	// qty_used (saisie via l'interface) - qty_stock (ce qui a déjà été fabriqué)
 		$qty_to_destock = $this->qty_used - $this->qty_stock;
+
 		$this->destockAsset($PDOdb, $qty_to_destock); // Tant qu'on utilise l'attribut qty_used via le formulaire on as pas besoin de passer le 4eme param à false
 	}
 
