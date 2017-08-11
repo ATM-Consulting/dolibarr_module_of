@@ -1856,7 +1856,7 @@ class TAssetOFLine extends TObjetStd{
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
-        global $conf;
+        global $conf, $langs;
 
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
 
