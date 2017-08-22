@@ -62,6 +62,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 					$com = new Commande($db); //TODO on est pas censé toujours être sur la même commande ? AA 
 					$com->fetch($assetOf->fk_commande);
 					$assetOf->fk_project = $com->fk_project;
+					if(!empty($com->date)) $assetOf->date_lancement=$com->date;
 					if(!empty($com->date_livraison)) $assetOf->date_besoin = $com->date_livraison;
 				}
 				
