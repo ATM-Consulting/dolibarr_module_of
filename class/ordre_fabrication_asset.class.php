@@ -1506,10 +1506,11 @@ class TAssetOF extends TObjetStd{
 		return self::status($this->status);
 	}
 
-	static function status($status='DRAFT'){
+	static function status($status='DRAFT', $to_translate=false){
+		global $langs;
 
-
-		return  TAssetOF::$TStatus[$status];
+		if (!$to_translate) return TAssetOF::$TStatus[$status];
+		else return  $langs->trans(TAssetOF::$TStatus[$status]);
 	}
 
 	function getCanBeParent(&$PDOdb) {

@@ -288,7 +288,7 @@ function _liste(&$PDOdb)
 		)
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre(@val@)'
-			,'status'=>'TAssetOF::status(@val@)'
+			,'status'=>'TAssetOF::status(@val@, true)'
 			,'product' => 'get_format_libelle_produit("@fk_product@")'
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
