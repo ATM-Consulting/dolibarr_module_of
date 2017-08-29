@@ -511,7 +511,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 			'date'=>date("d/m/Y")
 			,'numeroOF'=>$assetOf->numero
 //			,'statutOF'=>utf8_decode(TAssetOF::$TStatus[$assetOf->status])
-			,'statutOF'=>utf8_decode($langs->trans(TAssetOF::$TStatus[$assetOf->status]))
+			,'statutOF'=>$langs->transnoentitiesnoconv(TAssetOF::$TStatus[$assetOf->status])
 			,'prioriteOF'=>utf8_decode(TAssetOF::$TOrdre[$assetOf->ordre])
 			,'date_lancement'=>date("d/m/Y", $assetOf->date_lancement)
 			,'date_besoin'=>date("d/m/Y", $assetOf->date_besoin)
