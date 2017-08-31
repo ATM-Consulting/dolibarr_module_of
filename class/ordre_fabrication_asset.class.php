@@ -890,7 +890,7 @@ class TAssetOF extends TObjetStd{
 
     function launchOF(&$PDOdb)
     {
-        global $conf;
+        global $conf,$langs;
 
         $qtyIsValid = $this->checkQtyAsset($PDOdb, $conf);
 
@@ -903,6 +903,7 @@ class TAssetOF extends TObjetStd{
             return true;
         }
 
+		setEventMessage($langs->trans('ofAllQtyIsNotEnough'), 'errors');
         return false;
     }
 
