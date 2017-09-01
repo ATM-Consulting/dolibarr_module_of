@@ -903,6 +903,7 @@ class TAssetOF extends TObjetStd{
             return true;
         }
 
+		$this->error = 'ofAllQtyIsNotEnough';
         return false;
     }
 
@@ -986,7 +987,7 @@ class TAssetOF extends TObjetStd{
 	 */
 	function openOF(&$PDOdb)
 	{
-		global $db, $user, $conf;
+		global $db, $user, $conf, $langs;
 
 		include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 		dol_include_once("fourn/class/fournisseur.product.class.php");
@@ -1030,8 +1031,8 @@ class TAssetOF extends TObjetStd{
 				}
 	        }
 
+			if (!empty($of->error)) $this->errors[] = $langs->trans($of->error, $of->numero);
 		}
-
 	}
 
 
