@@ -102,7 +102,7 @@ OFSerialNumber=[%s] Numéro : %s, contenance actuelle : %s
 OFWaiting=En attente
 OFInProgress=En cours
 OFFinish=Terminée
-ofAllQtyIsNotEnough=Quantité d'équipement non suffisante, veuillez vérifier vos produits nécessaires à la fabrication
+ofAllQtyIsNotEnough=[%s] - Quantité d'équipement non suffisante, veuillez vérifier vos produits nécessaires à la fabrication
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

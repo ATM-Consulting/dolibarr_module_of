@@ -179,6 +179,9 @@ function _action() {
 
 			$assetOf->openOF($PDOdb);
 
+			// Possibilité qu'un OF reste à l'état VALID si pas assé de quantité en équipement MAIS erreur non bloquante (c'est voulu)
+			if (!empty($assetOf->errors)) setEventMessages(null, $assetOf->errors, 'errors');
+			
 			$assetOf->load($PDOdb,$id);
 			_fiche($PDOdb, $assetOf, 'view');
 

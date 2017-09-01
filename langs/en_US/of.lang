@@ -102,7 +102,7 @@ OFSerialNumber=[%s] Number : %s, current capacity : %s
 OFWaiting=Waiting
 OFInProgress=In progress
 OFFinish=Finished
-ofAllQtyIsNotEnough=Not enough asset quantities, please check your products needed
+ofAllQtyIsNotEnough=[%s] - Not enough asset quantities, please check your products needed
 
 #LOT
 ListAssetLot=List of Equipment Lots
