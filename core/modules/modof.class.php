@@ -504,6 +504,23 @@ class modof extends DolibarrModules
         $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
 
+		// template
+		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
+		$dirodt=DOL_DATA_ROOT.'/doctemplates/of';
+		$dest=$dirodt.'/templateOF.odt';
+
+		if (file_exists($src) && ! file_exists($dest))
+		{
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+			dol_mkdir($dirodt);
+			$result=dol_copy($src,$dest,0,0);
+			if ($result < 0)
+			{
+				$langs->load("errors");
+				$this->error=$langs->trans('ErrorFailToCopyFile',$src,$dest);
+				return 0;
+			}
+		}
 
 		return $this->_init($sql, $options);
 	}

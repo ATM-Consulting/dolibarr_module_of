@@ -484,7 +484,8 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		$template = TEMPLATE_OF;
 	}
 	else{
-		$template = "templateOF.odt";
+		if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
+		else $template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
 
@@ -497,7 +498,11 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 	$barcode_pic = getBarCodePicture($assetOf);
 //var_dump($TToMake);
-	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
+	
+	$locationTemplate = DOL_DATA_ROOT.'/doctemplates/of/'.$template;
+	if (!file_exists($locationTemplate)) $locationTemplate = dol_buildpath('/of/exempleTemplate/'.$template);
+	
+	$file_path = $TBS->render($locationTemplate
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
