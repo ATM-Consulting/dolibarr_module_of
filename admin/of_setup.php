@@ -30,6 +30,7 @@ require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/of.lib.php';
 
 // Translations
+$langs->load('admin');
 $langs->load("of@of");
 
 // Access control
@@ -72,6 +73,8 @@ if (preg_match('/del_(.*)/',$action,$reg))
 }
 	if($action=='save') {
 		
+		$error=0;
+		
 		if(isset($_REQUEST['TOF']))
 		{
 			foreach($_REQUEST['TOF'] as $name=>$param) {
@@ -80,17 +83,32 @@ if (preg_match('/del_(.*)/',$action,$reg))
 				
 			}
 		}
-		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name'])) {
-			
-			$res = copy($_FILES['template']['tmp_name'], dol_buildpath('/of/exempleTemplate/templateOF.odt'));
-			if($res === false) $mess = "Attention, fichier non chargé ! (Droits 777 à donner sur fichier templateOF.odt)";
-			else $mess = "Fichier chargé avec succès";
-			
+		
+		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name']))
+		{
+			$src=$_FILES['template']['tmp_name'];
+			$dirodt=DOL_DATA_ROOT.'/doctemplates/of';
+			$dest=$dirodt.'/'.$_FILES['template']['name'];
+
+			if (file_exists($src))
+			{
+				require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+				dol_mkdir($dirodt);
+				$result=dol_copy($src,$dest,0,0);
+				if ($result < 0)
+				{
+					$error++;
+					$langs->load("errors");
+					setEventMessage($langs->trans('ErrorFailToCopyFile',$src,$dest));
+				}
+				else
+				{
+					dolibarr_set_const($db, 'TEMPLATE_OF', $_FILES['template']['name'], 'chaine', 0, '', $conf->entity);
+				}
+			}
 		}
 		
-		setEventMessage("Configuration enregistrée");
-		setEventMessage($mess);
-		
+		if (!$error) setEventMessage($langs->trans("SetupSaved"));
 	}
 /*
  * View
@@ -496,7 +514,7 @@ function showParameters(&$form) {
 					<input type="file" name="template" />
 					<?php 
 				
-					 echo ' <a href="'.dol_buildpath('/of/exempleTemplate/templateOF.odt',1).'">'.$langs->trans('Download').'</a>';
+					 echo ' - <a href="'.dol_buildpath('/of/exempleTemplate/templateOF.odt',1).'">'.$langs->trans('Download').'</a> '.$conf->global->TEMPLATE_OF;
 				 ?></td>
 			</tr> 
 			
