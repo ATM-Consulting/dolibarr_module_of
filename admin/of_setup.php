@@ -87,14 +87,14 @@ if (preg_match('/del_(.*)/',$action,$reg))
 		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name']))
 		{
 			$src=$_FILES['template']['tmp_name'];
-			$dirodt=DOL_DATA_ROOT.'/doctemplates/of';
+			$dirodt=DOL_DATA_ROOT.'/of/template/';
 			$dest=$dirodt.'/'.$_FILES['template']['name'];
 
 			if (file_exists($src))
 			{
 				require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 				dol_mkdir($dirodt);
-				$result=dol_copy($src,$dest,0,0);
+				$result=dol_copy($src,$dest,0,1);
 				if ($result < 0)
 				{
 					$error++;
@@ -513,8 +513,15 @@ function showParameters(&$form) {
 				<td><?php echo $langs->trans('Template') ?></td><td>
 					<input type="file" name="template" />
 					<?php 
-				
-					 echo ' - <a href="'.dol_buildpath('/of/exempleTemplate/templateOF.odt',1).'">'.$langs->trans('Download').'</a> '.$conf->global->TEMPLATE_OF;
+						if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
+						else $template = "templateOF.odt";
+						
+						$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
+						
+						if (!file_exists($locationTemplate)) $url = dol_buildpath('/of/exempleTemplate/'.$template, 1);
+						else $url = dol_buildpath('document.php', 1).'?modulepart=of&file=/template/'.$template;
+						
+					 echo ' - <a href="'.$url.'">'.$langs->trans('Download').'</a> '.$template;
 				 ?></td>
 			</tr> 
 			

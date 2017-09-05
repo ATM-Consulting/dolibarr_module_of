@@ -466,7 +466,7 @@ class modof extends DolibarrModules
 
 		// template
 		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
-		$dirodt=DOL_DATA_ROOT.'/doctemplates/of';
+		$dirodt=DOL_DATA_ROOT.'/of/template/';
 		$dest=$dirodt.'/templateOF.odt';
 
 		if (file_exists($src) && ! file_exists($dest))

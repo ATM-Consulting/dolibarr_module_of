@@ -408,7 +408,8 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		else{
 			$unitLabel = $langs->transnoentities('unit_s_');
 		}
-
+		
+		$TAsset = $v->getAssetLinked($PDOdb);
 		if($v->type == "TO_MAKE") {
 			$TToMake[] = array(
 				'type' => $v->type
@@ -418,6 +419,8 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
+				, 'TAsset' => $TAsset
+				, 'TAssetStr' => _formatTAsset($TAsset)
 			);
 
 		}
@@ -434,6 +437,8 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
 				, 'note_private' => utf8_decode($v->note_private)
+				, 'TAsset' => $TAsset
+				, 'TAssetStr' => _formatTAsset($TAsset)
 			);
 
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
@@ -502,7 +507,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	$barcode_pic = getBarCodePicture($assetOf);
 //var_dump($TToMake);
 	
-	$locationTemplate = DOL_DATA_ROOT.'/doctemplates/of/'.$template;
+	$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
 	if (!file_exists($locationTemplate)) $locationTemplate = dol_buildpath('/of/exempleTemplate/'.$template);
 	
 	$file_path = $TBS->render($locationTemplate
@@ -547,6 +552,20 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
+}
+
+function _formatTAsset($TAsset)
+{
+	$str = '';
+	if (!empty($TAsset))
+	{
+		foreach ($TAsset as &$asset)
+		{
+			$str.= '- ['.$asset->lot_number.'] '.$asset->serial_number."\n";
+		}
+	}
+		
+	return $str;
 }
 
 function drawCross($im, $color, $x, $y){
