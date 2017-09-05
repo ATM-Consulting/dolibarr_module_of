@@ -420,7 +420,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
 				, 'TAsset' => $TAsset
-				, 'TAssetStr' => _formatTAsset($TAsset)
+				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
 		}
@@ -438,7 +438,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
 				, 'note_private' => utf8_decode($v->note_private)
 				, 'TAsset' => $TAsset
-				, 'TAssetStr' => _formatTAsset($TAsset)
+				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
@@ -554,7 +554,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 }
 
-function _formatTAsset($TAsset)
+function _getSerialNumbers($TAsset)
 {
 	$str = '';
 	if (!empty($TAsset))
