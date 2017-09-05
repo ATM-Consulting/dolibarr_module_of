@@ -476,6 +476,7 @@ class modof extends DolibarrModules
 			$result=dol_copy($src,$dest,0,0);
 			if ($result < 0)
 			{
+				global $langs;
 				$langs->load("errors");
 				$this->error=$langs->trans('ErrorFailToCopyFile',$src,$dest);
 				return 0;
