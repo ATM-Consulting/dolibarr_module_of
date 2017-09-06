@@ -103,6 +103,7 @@ OFWaiting=En attente
 OFInProgress=En cours
 OFFinish=Terminée
 ofAllQtyIsNotEnough=[%s] - Quantité d'équipement non suffisante, veuillez vérifier vos produits nécessaires à la fabrication
+ofQtyLotIsNotEnough=Lot [%s] - %s : quantité d'équipement insuffisante pour la conception du ou des produits à créer
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
