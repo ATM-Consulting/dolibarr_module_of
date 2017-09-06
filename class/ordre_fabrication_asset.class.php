@@ -2036,7 +2036,7 @@ class TAssetOFLine extends TObjetStd{
 			$qty_needed = $qty - $qty_stock; // - la quantité déjà utilisé
 
             if ($nbAssetFound == 0 && !$conf->global->ASSET_NEGATIVE_DESTOCK) {
-                $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->product->label);
+                $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
                 $no_error = false;
             }
             else
@@ -2044,7 +2044,7 @@ class TAssetOFLine extends TObjetStd{
             	//On fait un 1er tour pour vérifier la qté
         		$qtyIsEnough = $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal, false);
 
-				if (!$qtyIsEnough && !$conf->global->ASSET_NEGATIVE_DESTOCK) $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->product->label);
+				if (!$qtyIsEnough && !$conf->global->ASSET_NEGATIVE_DESTOCK) $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
 				else $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal);
 
 				$no_error = $qtyIsEnough;
