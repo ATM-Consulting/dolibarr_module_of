@@ -322,7 +322,9 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function getNomUrl($picto=0) {
-		return '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
+		global $langs;
+		$label = $langs->trans('titleOfToolTip', $this->numero);
+		return '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
 				.($picto ? img_picto('','object_list.png','',0).' ' : '')
 				.$this->numero
 				.'</a>';

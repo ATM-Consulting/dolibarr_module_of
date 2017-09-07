@@ -104,6 +104,7 @@ OFInProgress=En cours
 OFFinish=Terminée
 ofAllQtyIsNotEnough=[%s] - Quantité d'équipement non suffisante, veuillez vérifier vos produits nécessaires à la fabrication
 ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement insuffisante pour la conception du ou des produits à créer
+titleOfToolTip=<u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

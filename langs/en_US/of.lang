@@ -103,6 +103,8 @@ OFWaiting=Waiting
 OFInProgress=In progress
 OFFinish=Finished
 ofAllQtyIsNotEnough=[%s] - Not enough asset quantities, please check your products needed
+ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : asset quantity is not enough to make product
+titleOfToolTip=<u>Show manufacturing instruction</u><br /><b>Ref.:</b> %s
 
 #LOT
 ListAssetLot=List of Equipment Lots
