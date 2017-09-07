@@ -1054,7 +1054,8 @@ class TAssetOF extends TObjetStd{
 				}
 	        }
 
-			if (!empty($of->error)) $this->errors[] = $langs->trans($of->error, $of->numero);
+			if (!empty($of->error)) $this->error = $langs->trans($of->error, $of->numero);
+			if (!empty($of->errors)) $this->errors = $of->errors;
 		}
 	}
 
@@ -1638,6 +1639,7 @@ class TAssetOF extends TObjetStd{
 		foreach($this->TAssetOFLine as $TAssetOFLine)
 		{
 			$qtyIsValid &= $TAssetOFLine->setAsset($PDOdb,$this, false);
+			if (!empty($TAssetOFLine->error)) $this->errors[] = $TAssetOFLine->error;
 		}
 
 		return $qtyIsValid;
@@ -1995,7 +1997,7 @@ class TAssetOFLine extends TObjetStd{
 	function setAsset(&$PDOdb,&$AssetOf, $forReal = false)
 	{
 
-		global $db, $user, $conf;
+		global $db, $user, $conf, $langs;
 
         if(!$conf->global->USE_LOT_IN_OF || empty($this->lot_number)) return true;
 
@@ -2057,7 +2059,7 @@ class TAssetOFLine extends TObjetStd{
 			$qty_needed = $qty - $qty_stock; // - la quantité déjà utilisé
 
             if ($nbAssetFound == 0 && !$conf->global->ASSET_NEGATIVE_DESTOCK) {
-                $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+                $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
                 $no_error = false;
             }
             else
@@ -2065,7 +2067,7 @@ class TAssetOFLine extends TObjetStd{
             	//On fait un 1er tour pour vérifier la qté
         		$qtyIsEnough = $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal, false);
 
-				if (!$qtyIsEnough && !$conf->global->ASSET_NEGATIVE_DESTOCK) $AssetOf->errors[] = "La quantité d'équipement pour le produit ID ".$this->fk_product." dans le lot n°".$this->lot_number.", est insuffisante pour la conception du ou des produits à créer.";
+				if (!$qtyIsEnough && !$conf->global->ASSET_NEGATIVE_DESTOCK) $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
 				else $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal);
 
 				$no_error = $qtyIsEnough;
