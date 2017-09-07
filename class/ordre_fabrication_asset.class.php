@@ -328,6 +328,29 @@ class TAssetOF extends TObjetStd{
 				.'</a>';
 	}
 
+	/**
+	 * Renvoi un tableau contenant les ID des asset associé à l'OF (TO_MAKE ou NEEDED)
+	 * 
+	 * @param type $PDOdb
+	 * @param type $type
+	 * @return array of id asset
+	 */
+	function getTAssetId(&$PDOdb, $type='TO_MAKE')
+	{
+		$sql = 'SELECT ee.fk_target as fk_asset FROM '.MAIN_DB_PREFIX.'element_element ee';
+		$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf_line aol ON (ee.fk_source = aol.rowid)';
+		$sql.= ' WHERE ee.targettype = \'TAsset\'';
+		$sql.= ' AND ee.sourcetype = \'TAssetOFLine\'';
+		$sql.= ' AND aol.fk_assetOf = '.$this->getId();
+		$sql.= ' AND aol.type = \''.$type.'\'';
+		
+		$PDOdb->Execute($sql);
+		$TAssetId = $PDOdb->Get_All();
+		
+		if (!empty($TAssetId)) return $TAssetId;
+		else return array();
+	}
+	
 	function setDelaiLancement(&$PDOdb, $time = 0) {
 
 		if((empty($this->date_lancement) && $this->status != 'DRAFT')
@@ -2563,6 +2586,7 @@ class TAssetOFLine extends TObjetStd{
 		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
 		if ($res) $this->stockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
 		else {
+			// Si on utilise les assets mais qu'on tombe ici, alors il faut vérifier si les produits ont bien un type d'équipement de renseigné sur la fiche
 			$this->stockProduct($qty_make);
 			setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
 		}
