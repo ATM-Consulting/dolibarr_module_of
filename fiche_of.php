@@ -418,6 +418,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'designation' => utf8_decode(dol_string_nohtmltag($prod->label))
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+				, 'value_lot_number' => $v->lot_number
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n".$prod->array_options['options_suivi_ponderal'] : "\n(Aucun)"
 				, 'TAsset' => $TAsset
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
@@ -435,6 +436,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 				, 'unitPoids' => utf8_decode($unitLabel)
 				, 'finished' => $prod->finished?"PM":"MP"
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
+				, 'value_lot_number' => $v->lot_number
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
 				, 'note_private' => utf8_decode($v->note_private)
 				, 'TAsset' => $TAsset
