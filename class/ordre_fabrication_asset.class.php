@@ -4,6 +4,7 @@ class TAssetOF extends TObjetStd{
 /*
  * Ordre de fabrication d'équipement
  * */
+	var $element = 'of';
 	
  	static $TOrdre=array(
 			'ASAP'=>'ASAP'
