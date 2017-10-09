@@ -2687,14 +2687,15 @@ class TAssetWorkstationOF extends TObjetStd{
         }
 			   
 		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);	   
-		
+		if(empty($projectTask->date_start)) $projectTask->date_start=$OF->date_besoin;
+
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
 
 		$projectTask->planned_workload = $this->nb_hour*3600;
 
-        $projectTask->array_options['options_grid_use']=1;
-        $projectTask->array_options['options_fk_workstation']=$ws->getId();
+        	$projectTask->array_options['options_grid_use']=1;
+        	$projectTask->array_options['options_fk_workstation']=$ws->getId();
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
 		$projectTask->date_c=dol_now();
 
