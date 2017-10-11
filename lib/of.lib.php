@@ -359,13 +359,13 @@ function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 			        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
 			        	AND aol.fk_product = '.$product->id.' 
 			        	AND aol.type = "TO_MAKE"  
-			        	AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_to_make
+			        	AND ao.status IN ("DRAFT", "VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_to_make
 			        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
 			        	FROM '.MAIN_DB_PREFIX.'assetOf_line aol
 						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
 						WHERE aol.fk_product = '.$product->id.'
 						AND aol.type = "NEEDED"
-						AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_needed';
+						AND ao.status IN ("DRAFT", "VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_needed';
 	
 	$resql = $db->query($sql);
 	
