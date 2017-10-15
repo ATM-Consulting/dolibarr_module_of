@@ -1616,8 +1616,8 @@ class TAssetOF extends TObjetStd{
 			$cmdf = new CommandeFournisseur($db);
 			$cmdf->fetch($id);
 
-			//4 = livraison partielle # 5 = livraison total
-			if (!in_array($cmdf->statut, array(4,5)))
+			//4 = livraison partielle # 5 = livraison total #8 = facturé
+			if (!in_array($cmdf->statut, array(4,5,8)))
 			{
 				$res = false;
 				break;
