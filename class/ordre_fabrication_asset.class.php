@@ -1,7 +1,5 @@
 <?php
 
-use PMA\libraries\plugins\transformations\output\Text_Plain_Dateformat;
-
 class TAssetOF extends TObjetStd{
 /*
  * Ordre de fabrication d'équipement
