@@ -1,5 +1,7 @@
 <?php
 
+use PMA\libraries\plugins\transformations\output\Text_Plain_Dateformat;
+
 class TAssetOF extends TObjetStd{
 /*
  * Ordre de fabrication d'équipement
@@ -793,6 +795,13 @@ class TAssetOF extends TObjetStd{
 			$TAssetOFLine->nomenclature_valide = true;
 		}
 
+		if ($type=='NEEDED' &&  $TAssetOFLine->fk_product>0) {
+			
+			$nd = new TNomenclatureDet();
+			$nd->fk_product = $TAssetOFLine->fk_product;
+			$TAssetOFLine->pmp = $nd->getSupplierPrice($PDOdb, $quantite, true, true);
+			
+		}
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
 		// Appel des triggers
@@ -808,8 +817,9 @@ class TAssetOF extends TObjetStd{
 		{
 			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$quantite);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
+			$this->set_current_cost_for_to_make();
 		}
-
+		
 		return $idAssetOFLine;
 	}
 
@@ -2334,26 +2344,36 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	function load_product() {
-		global $db;
+		global $db,$conf;
 
 		if($this->fk_product>0) {
 			dol_include_once('/product/class/product.class.php');
 
-			$this->product = new Product($db);
-			$this->product->fetch($this->fk_product);
-			
-			$pmp = (double) $this->product->pmp; //TODO set parameters to select prefered rank
-			if(empty($pmp) && !empty($this->product->cost_price)) {
-				$pmp = (double) $this->product->cost_price;
+			if(!empty($conf->nomenclature->enabled)) {
+				$nd = new TNomenclatureDet();
+				$nd->fk_product = $this->fk_product;
+				$PDOdb=new TPDOdb();
+				$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
+				
 			}
-			if(empty($pmp)) {
-				dol_include_once('/fourn/class/fournisseur.product.class.php');
-				$fournProd = new ProductFournisseur($db);
-				$fournProd->find_min_price_product_fournisseur($this->fk_product, $this->qty>0 ? $this->qty : 1);
-				$pmp = (double) $fournProd->fourn_unitprice;
+			else {
+				$this->product = new Product($db);
+				$this->product->fetch($this->fk_product);
+				
+				$pmp = (double) $this->product->pmp; //TODO set parameters to select prefered rank
+				if(empty($pmp) && !empty($this->product->cost_price)) {
+					$pmp = (double) $this->product->cost_price;
+				}
+				if(empty($pmp)) {
+					dol_include_once('/fourn/class/fournisseur.product.class.php');
+					$fournProd = new ProductFournisseur($db);
+					$fournProd->find_min_price_product_fournisseur($this->fk_product, $this->qty>0 ? $this->qty : 1);
+					$pmp = (double) $fournProd->fourn_unitprice;
+				}
+				
+				$this->pmp = $pmp;
+				
 			}
-			
-			$this->pmp = $pmp;
 		}
 
 	}
