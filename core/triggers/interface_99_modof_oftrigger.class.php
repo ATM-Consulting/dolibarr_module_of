@@ -254,6 +254,16 @@ class Interfaceoftrigger
 						if($id_of > 0) {
 							$of = new TAssetOF;
 							$of->load($PDOdb, $id_of);
+							$TidSupplierOrder = $of->getElementElement($PDOdb);
+							
+							foreach($TidSupplierOrder as $fk_supplierorder) {
+								if($fk_supplierorder == (int)GETPOST('id') ) continue;
+
+								$resql2 =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.$fk_supplierorder );
+                                				$res2 = $db->fetch_object($resql2);
+				                                if($res2->fk_statut != 5) return 0; // toutes les commandes ne sont pas reçu on arrête là
+							}
+
 						//	var_dump($of->getId(), $of->status, $conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS);	
 							if($of->status != 'CLOSE') {
 							
