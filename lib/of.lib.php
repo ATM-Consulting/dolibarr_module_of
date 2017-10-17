@@ -354,7 +354,7 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 {
 	$qty_to_make = $qty_needed = 0;
-	$sql = 'SELECT (SELECT SUM(aol.qty_used) - SUM(aol.qty_stock) 
+	$sql = 'SELECT (SELECT SUM( CASE WHEN aol.qty_used>0 THEN aol.qty_used ELSE aol.qty END ) - SUM(aol.qty_stock) 
 			        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol 
 			        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
 			        	AND aol.fk_product = '.$product->id.' 
@@ -368,7 +368,9 @@ function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 						AND ao.status IN ("DRAFT", "VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_needed';
 	
 	$resql = $db->query($sql);
-	
+	if($resql === false) {
+		var_dump($db);
+	}
 	if ($row = $db->fetch_object($resql)) 
 	{
 		$qty_to_make = is_null($row->qty_to_make) ? 0 : $row->qty_to_make;
