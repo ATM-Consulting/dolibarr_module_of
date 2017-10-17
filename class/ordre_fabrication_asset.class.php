@@ -2348,6 +2348,7 @@ class TAssetOFLine extends TObjetStd{
 			dol_include_once('/product/class/product.class.php');
 
 			if(!empty($conf->nomenclature->enabled)) {
+				dol_include_once('/nomenclature/class/nomenclature.class.php');
 				$nd = new TNomenclatureDet();
 				$nd->fk_product = $this->fk_product;
 				$PDOdb=new TPDOdb();
