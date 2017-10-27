@@ -74,15 +74,25 @@ class TAssetOF extends TObjetStd{
         
 	}
 
+	function lineSort(&$a, &$b) {
+		
+		if($a->type == 'TO_MAKE' && $b->type == 'NEEDED') return 1; // les TO_MAKE en dernier
+		else if($b->type == 'TO_MAKE' && $a->type == 'NEEDED') return -1;
+		else return 0;
+
+	}
+
 	function load(&$db, $id, $loadChild = true) {
 		global $conf;
 
 		$res = parent::load($db,$id,true);
 
-	    $this->set_current_cost_for_to_make();
+		usort($this->TAssetOFLine, array('TAssetOf','lineSort'));
+	        $this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
         		 $line->of_numero = $this->numero;
+//echo $line->type.'<br >';
         	}
         	
 	        foreach($this->TAssetWorkstationOF as &$ws) {
@@ -794,11 +804,7 @@ class TAssetOF extends TObjetStd{
 		}
 
 		if ($type=='NEEDED' &&  $TAssetOFLine->fk_product>0) {
-			
-			$nd = new TNomenclatureDet();
-			$nd->fk_product = $TAssetOFLine->fk_product;
-			$TAssetOFLine->pmp = $nd->getSupplierPrice($PDOdb, $quantite, true, true);
-			
+			$TAssetOFLine->load_product();
 		}
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
@@ -1791,7 +1797,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide,fk_commandedet',array('type'=>'integer','index'=>true));
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp',array('type'=>'float'));
 		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
-        $this->add_champs('note_private',array('type'=>'text'));
+	        $this->add_champs('note_private',array('type'=>'text'));
 
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent',array('type'=>'integer','index'=>true));
@@ -1856,7 +1862,8 @@ class TAssetOFLine extends TObjetStd{
 			$PDOdb = new TPDOdb();
 			$price = $this->current_cost_for_to_make;
 			$this->pmp = $this->current_cost_for_to_make;
-			
+/*var_dump($this->pmp,$this->current_cost_for_to_make);
+			exit;*/
 			$this->setPMP($PDOdb, $this->pmp);
 			if($this->fk_assetOf_line_parent>0) {
 				$line = new TAssetOFLine();
@@ -1879,7 +1886,8 @@ class TAssetOFLine extends TObjetStd{
 	 */
 	function setPMP(&$PDOdb, $pmp) {
 		$this->pmp = (double) $pmp;
-		
+
+//		if($this->fk_product == 14714){	setEventMessage($this->id.','.$this->pmp,'warning');}
 		$PDOdb->Execute("UPDATE ".$this->get_table()." SET pmp = ".$this->pmp." WHERE rowid = ".$this->getId());
 	}
 
@@ -2347,6 +2355,9 @@ class TAssetOFLine extends TObjetStd{
 		if($this->fk_product>0) {
 			dol_include_once('/product/class/product.class.php');
 
+			$this->product = new Product($db);
+                        $this->product->fetch($this->fk_product);
+			if(empty($this->pmp)) {
 			if(!empty($conf->nomenclature->enabled)) {
 				dol_include_once('/nomenclature/class/nomenclature.class.php');
 				$nd = new TNomenclatureDet();
@@ -2372,6 +2383,7 @@ class TAssetOFLine extends TObjetStd{
 				
 				$this->pmp = $pmp;
 				
+			}
 			}
 		}
 
