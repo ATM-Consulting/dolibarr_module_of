@@ -74,25 +74,15 @@ class TAssetOF extends TObjetStd{
         
 	}
 
-	function lineSort(&$a, &$b) {
-		
-		if($a->type == 'TO_MAKE' && $b->type == 'NEEDED') return 1; // les TO_MAKE en dernier
-		else if($b->type == 'TO_MAKE' && $a->type == 'NEEDED') return -1;
-		else return 0;
-
-	}
-
 	function load(&$db, $id, $loadChild = true) {
 		global $conf;
 
 		$res = parent::load($db,$id,true);
 
-		//usort($this->TAssetOFLine, array('TAssetOf','lineSort'));
-	        $this->set_current_cost_for_to_make();
+		$this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
         		 $line->of_numero = $this->numero;
-//echo $line->type.'<br >';
         	}
         	
 	        foreach($this->TAssetWorkstationOF as &$ws) {
@@ -125,7 +115,7 @@ class TAssetOF extends TObjetStd{
 			if (empty($ofLine->fk_entrepot))
 			{
 				return false;
-			}	
+			}
 		}
 		
 		return true;
@@ -347,7 +337,7 @@ class TAssetOF extends TObjetStd{
 
 	/**
 	 * Renvoi un tableau contenant les ID des asset associé à l'OF (TO_MAKE ou NEEDED)
-	 * 
+	 *
 	 * @param type $PDOdb
 	 * @param type $type
 	 * @return array of id asset
@@ -767,7 +757,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
 		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
-		$TAssetOFLine->fk_asset = 0; //TODO remove ? 
+		$TAssetOFLine->fk_asset = 0; //TODO remove ?
 		$TAssetOFLine->type = $type;
 		$TAssetOFLine->qty_needed = $quantite;
 		$TAssetOFLine->qty = (!empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
@@ -1563,8 +1553,8 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 
-	function getLibStatus() {
-		return self::status($this->status);
+	function getLibStatus($to_translate=false) {
+		return self::status($this->status,$to_translate);
 	}
 
 	static function status($status='DRAFT', $to_translate=false){
@@ -2374,7 +2364,8 @@ class TAssetOFLine extends TObjetStd{
 			dol_include_once('/product/class/product.class.php');
 
 			$this->product = new Product($db);
-            $this->product->fetch($this->fk_product);
+           		$this->product->fetch($this->fk_product);
+			
 			if(empty($this->pmp)) {
 				if(!empty($conf->nomenclature->enabled)) {
 					dol_include_once('/nomenclature/class/nomenclature.class.php');
@@ -2735,8 +2726,8 @@ class TAssetWorkstationOF extends TObjetStd{
         else {
             $projectTask->fk_task_parent = 0;
         }
-			   
-		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);	   
+		
+		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
 		if(empty($projectTask->date_start)) $projectTask->date_start=$OF->date_besoin;
 
 		$projectTask->date_end = $OF->date_besoin;
@@ -2776,7 +2767,6 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
 
-		
 		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
@@ -2822,7 +2812,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		$of=new TAssetOF;
 		$of->load($PDOdb, $this->fk_assetOf);
-		if ($of->status !== 'VALID') return false; // of non valide on ne créé par les tâches 
+		if ($of->status !== 'VALID') return false; // of non valide on ne créé par les tâches
 		
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
