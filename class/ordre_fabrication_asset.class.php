@@ -662,7 +662,7 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
-//return false;
+
 		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
@@ -673,6 +673,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->status = 'DRAFT';
 			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
+			$this->TAssetOF[$k]->fk_commande = $this->fk_commande;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed), $fk_assetOfLine_parent);
 
@@ -724,28 +725,10 @@ class TAssetOF extends TObjetStd{
 		return $stock;
 	}
 
-	/*function createCommandeFournisseur($type='externe'){
-		global $db,$conf,$user;
-		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
-
-		$id_fourn = $this->getFournisseur();
-
-		$cmdFour = new CommandeFournisseur($db);
-		$cmdFour->ref_supplier = "";
-       	$cmdFour->note_private = "";
-        $cmdFour->note_public = "";
-        $cmdFour->socid;
-
-		return $id_cmd_four;
-	}
-
-	function getFournisseur(){
-		global $db;
-
-		return 1;
-	}*/
-
-	//Ajoute une ligne de produit à l'OF
+	/* Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
+	 *
+	 * @return id line
+	 */
 	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0, $note_private = '')
 	{
 		global $user,$langs,$conf,$db;
@@ -768,7 +751,7 @@ class TAssetOF extends TObjetStd{
 		
         	$TAssetOFLine->fk_product_fournisseur_price = -2;
 
-		if ($conf->nomenclature->enabled && !$fk_nomenclature)
+		if (!empty($conf->nomenclature->enabled) && !$fk_nomenclature)
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 
@@ -791,7 +774,7 @@ class TAssetOF extends TObjetStd{
 
 		$TAssetOFLine->lot_number = $lot_number;
 
-        	$TAssetOFLine->initConditionnement($PDOdb);
+        $TAssetOFLine->initConditionnement($PDOdb);
 
 		if($fk_nomenclature>0) {
 			$TAssetOFLine->nomenclature_valide = true;
