@@ -181,7 +181,7 @@ function _action() {
 
 			// Possibilité qu'un OF reste à l'état VALID si pas assé de quantité en équipement MAIS erreur non bloquante (c'est voulu)
 			if (!empty($assetOf->error)) setEventMessage($assetOf->error, 'errors'); // ->errors est traité dans _fiche()
-			
+
 			$assetOf->load($PDOdb,$id);
 			_fiche($PDOdb, $assetOf, 'view');
 
@@ -408,7 +408,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		else{
 			$unitLabel = $langs->transnoentities('unit_s_');
 		}
-		
+
 		$TAsset = $v->getAssetLinked($PDOdb);
 		if($v->type == "TO_MAKE") {
 			$TToMake[] = array(
@@ -508,10 +508,10 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 	$barcode_pic = getBarCodePicture($assetOf);
 //var_dump($TToMake);
-	
+
 	$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
 	if (!file_exists($locationTemplate)) $locationTemplate = dol_buildpath('/of/exempleTemplate/'.$template);
-	
+
 	$file_path = $TBS->render($locationTemplate
 		,array(
 			'lignesToMake'=>$TToMake
@@ -566,7 +566,7 @@ function _getSerialNumbers($TAsset)
 			$str.= '- ['.$asset->lot_number.'] '.$asset->serial_number."\n";
 		}
 	}
-		
+
 	return $str;
 }
 
@@ -991,6 +991,19 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	$commande=new Commande($db);
 	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
 
+	$select_commande = '';
+	$resOrder = $db->query("SELECT rowid, ref FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (1,2,3) ORDER BY ref");
+	if($resOrder === false ) {
+		var_dump($db);exit;
+	}
+	$TIdCommande=array();
+	while($obj = $db->fetch_object($resOrder)) {
+		$TIdCommande[$obj->rowid] = $obj->ref;
+	}
+	if(!empty($TIdCommande)) {
+		$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
+	}
+
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 
 	$hasParent = false;
@@ -1031,7 +1044,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					'id'=> $assetOf->getId()
 					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
 						,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-					,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
+					,'fk_commande'=>($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1))
 					//,'statut_commande'=> $commande->getLibStatut(0)
 					,'commande_fournisseur'=>$HtmlCmdFourn
 					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
