@@ -696,7 +696,10 @@ function _printTicket(&$PDOdb)
 	}
 
 	$TBS=new TTemplateTBS();
-	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
+	$templatefile=DOL_DATA_ROOT.'/of/template/'.$template;
+	if(!is_file($templatefile)) $templatefile = dol_buildpath('/of/exempleTemplate/'.$template);
+	
+	$file_path = $TBS->render($templatefile
 		,array(
 			'TInfoEtiquette'=>$TInfoEtiquette
 		)
