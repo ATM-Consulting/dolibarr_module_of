@@ -2741,15 +2741,19 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 		if (!$user->id)	$user->id = GETPOST('user_id');
 
+		global $conf;
+
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
-
-
-		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
-		$projectTask->date_end = $OF->date_besoin;
-		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
-
+		
+		if(empty($conf->gantt->enabled)) {
+			$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
+			$projectTask->date_end = $OF->date_besoin;
+			if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
+			
+		}
+				
 		$projectTask->update($user);
 
 		$this->updateAssociation($PDOdb, $db, $projectTask);
