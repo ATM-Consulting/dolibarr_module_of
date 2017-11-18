@@ -5,7 +5,7 @@ class TAssetOF extends TObjetStd{
  * Ordre de fabrication d'équipement
  * */
 	var $element = 'of';
-
+	
  	static $TOrdre=array(
 			'ASAP'=>'ASAP'
 			,'TODAY'=>'ForToday'
@@ -52,12 +52,12 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function set_current_cost_for_to_make($compo_planned_cost= false) {
-
+		
 		$this->set_temps_fabrication(true);
 		$this->set_fourniture_cost();
-
+		
 		$this->total_cost = (empty($this->compo_cost) && $compo_planned_cost? $this->compo_planned_cost : $this->compo_cost) + ( empty($this->mo_cost) && $compo_planned_cost ? $this->mo_estimated_cost : $this->mo_cost);
-
+		
 		$qty = 0;
 
 		foreach($this->TAssetOFLine as &$line) {
@@ -65,13 +65,13 @@ class TAssetOF extends TObjetStd{
             	$qty+=empty( $line->qty_used ) ? $line->qty : $line->qty_used;
             }
         }
-
+        
         if($qty>0) $this->current_cost_for_to_make = $this->total_cost / $qty;
-    //    var_dump($qty, $this->current_cost_for_to_make , $this->total_cost);
+    //    var_dump($qty, $this->current_cost_for_to_make , $this->total_cost); 
         foreach($this->TAssetOFLine as &$line) {
         	$line->current_cost_for_to_make = $this->current_cost_for_to_make;
         }
-
+        
 	}
 
 	function load(&$db, $id, $loadChild = true) {
@@ -79,12 +79,12 @@ class TAssetOF extends TObjetStd{
 
 		$res = parent::load($db,$id,true);
 
-	    $this->set_current_cost_for_to_make();
+		$this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
         		 $line->of_numero = $this->numero;
         	}
-
+        	
 	        foreach($this->TAssetWorkstationOF as &$ws) {
         	    $ws->of_status = $this->status;
 	            $ws->of_fk_project = $this->fk_project;
@@ -117,26 +117,27 @@ class TAssetOF extends TObjetStd{
 				return false;
 			}
 		}
-
+		
 		return true;
 	}
 
 	function validate(&$PDOdb) {
 
 		global $conf,$langs;
-
+		
 		$error = 0;
 		$TOf = array();
 
 		$TIdOfEnfant = array();
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false
-
-		foreach ($TIdOfEnfant as $i => $id_of)
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false 
+		krsort($TIdOfEnfant);
+		
+		foreach ($TIdOfEnfant as $i => $id_of) 
 		{
 			$TOf[$i] = new TAssetOF;
 			$TOf[$i]->load($PDOdb, $id_of);
 		}
-
+		
 		$TOf[] = &$this;
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
 		{
@@ -150,7 +151,7 @@ class TAssetOF extends TObjetStd{
 				}
 			}
 		}
-
+		
 		if (!$error)
 		{//$PDOdb->debug =true;
 			foreach ($TOf as &$of)
@@ -158,9 +159,9 @@ class TAssetOF extends TObjetStd{
 				//var_dump($of->id, $of->status );
 				// On valide pas un of qui est déjà validé ou supérieur
 				if($of->getId() <= 0 || $of->status != 'DRAFT') continue;
-
+				
 				$of->status = 'VALID';
-
+				
 				if($this->getId() == $of->getId()) { // Ca c'est juste pour l'of sur lequel on se trouve.
 					if(!empty($_REQUEST['TAssetOFLine']))
 					{
@@ -170,20 +171,20 @@ class TAssetOF extends TObjetStd{
 						}
 					}
 				}
-
+				
 				$of->createOfAndCommandesFourn($PDOdb);
 				$of->unsetChildDeleted = true;
-
+	
 				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
 				$of->TAssetOF= array();
-
-
+				
+	
 				$of->save($PDOdb);
 			}
 			//exit('la');
 			return 1;
 		}
-
+		
 		return -1;
 	}
 
@@ -229,6 +230,9 @@ class TAssetOF extends TObjetStd{
 			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
 
 			if($line->type == 'NEEDED') {
+				
+				if(empty($line->pmp)) $line->load_product();
+				
 				$line->compo_cost = $line->pmp;
 				$line->compo_estimated_cost= $line->pmp; //TODO affiner
 				$line->compo_planned_cost= $line->pmp; //TODO affiner
@@ -285,7 +289,7 @@ class TAssetOF extends TObjetStd{
 			$ws->thm = $thm + $ws->ws->thm_machine;
 			$ws->mo_cost = $ws->nb_hour_real * $ws->thm ;
 			$ws->mo_estimated_cost= $ws->nb_hour * $ws->thm;
-
+			
 			$this->mo_cost+= $ws->mo_cost;
 			$this->mo_estimated_cost+= $ws->mo_estimated_cost;
 
@@ -293,12 +297,12 @@ class TAssetOF extends TObjetStd{
 
                $task = new Task($db);
                $task->fetch($ws->fk_project_task);
-
+			   
 	       		if($task->date_start<$this->date_lancement) {
                    $task->date_start = $this->date_lancement;
 		   		   $task->update($user);
                }
-
+			   
             }
 
 		}
@@ -346,14 +350,14 @@ class TAssetOF extends TObjetStd{
 		$sql.= ' AND ee.sourcetype = \'TAssetOFLine\'';
 		$sql.= ' AND aol.fk_assetOf = '.$this->getId();
 		$sql.= ' AND aol.type = \''.$type.'\'';
-
+		
 		$PDOdb->Execute($sql);
 		$TAssetId = $PDOdb->Get_All();
-
+		
 		if (!empty($TAssetId)) return $TAssetId;
 		else return array();
 	}
-
+	
 	function setDelaiLancement(&$PDOdb, $time = 0) {
 
 		if((empty($this->date_lancement) && $this->status != 'DRAFT')
@@ -384,11 +388,11 @@ class TAssetOF extends TObjetStd{
 			if( $this->date_lancement < $time ) $this->date_lancement = $time;
 
 			$PDOdb->dbupdate($this->get_table(), array('date_lancement'=>date('Y-m-d', $this->date_lancement),'rowid'=>$this->getId()),array('rowid'));
-
+			
 		}
-
+		
 		$this->setDelaiLancementForParent($PDOdb);
-
+		
 	}
 
 	function setDelaiLancementForParent(&$PDOdb) {
@@ -408,10 +412,10 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function save(&$PDOdb) {
-
+	
 		global $user,$langs,$conf, $db;
 	//	var_dump( $this->status, debug_backtrace());
-
+		
 		$this->set_temps_fabrication();
 		$this->set_fourniture_cost();
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
@@ -442,7 +446,7 @@ class TAssetOF extends TObjetStd{
 		parent::save($PDOdb);
 
 		$this->setDelaiLancement($PDOdb);
-
+		
         $this->getNumero($PDOdb, true);
 
 		// Appel des triggers
@@ -482,11 +486,11 @@ class TAssetOF extends TObjetStd{
         return $numero;
 
     }
-
+    
     function setStatus(TPDOdb &$PDOdb, $status) {
-
+    	
     	$PDOdb->dbupdate($this->get_table(),array('rowid'=>$this->getId(),'status'=>$status ),array('rowid'));
-
+    	
     }
 
 	function setLotWithParent(&$PDOdb)
@@ -557,19 +561,19 @@ class TAssetOF extends TObjetStd{
 		    foreach ($TProd as $prod)
 			{
 				$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
-
+				
 				if (!empty($conf->global->CREATE_CHILDREN_OF))
 				{
 					$TabSubProd = $this->getProductComposition($PDOdb,$prod->fk_product, $prod->qty);
-
+					
 					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 					{
 						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
-
+						
 					}
-
+					
 				}
-
+				
 			}
 		}
 
@@ -596,8 +600,8 @@ class TAssetOF extends TObjetStd{
 				$Tab = TNomenclature::get($PDOdb, $id_product);
 				if (!empty($Tab[0])); $TNomen = $Tab[0];
 			}
-
-
+			
+			
 			if (!empty($TNomen))
 			{
 
@@ -605,7 +609,7 @@ class TAssetOF extends TObjetStd{
 
 				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
 			}
-
+			
 
 		}
 		else
@@ -658,7 +662,7 @@ class TAssetOF extends TObjetStd{
 	 */
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
-//return false;
+
 		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
@@ -669,6 +673,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->status = 'DRAFT';
 			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
+			$this->TAssetOF[$k]->fk_commande = $this->fk_commande;
 			$this->TAssetOF[$k]->date_besoin = dol_now();
 			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed), $fk_assetOfLine_parent);
 
@@ -720,28 +725,10 @@ class TAssetOF extends TObjetStd{
 		return $stock;
 	}
 
-	/*function createCommandeFournisseur($type='externe'){
-		global $db,$conf,$user;
-		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
-
-		$id_fourn = $this->getFournisseur();
-
-		$cmdFour = new CommandeFournisseur($db);
-		$cmdFour->ref_supplier = "";
-       	$cmdFour->note_private = "";
-        $cmdFour->note_public = "";
-        $cmdFour->socid;
-
-		return $id_cmd_four;
-	}
-
-	function getFournisseur(){
-		global $db;
-
-		return 1;
-	}*/
-
-	//Ajoute une ligne de produit à l'OF
+	/* Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
+	 *
+	 * @return id line
+	 */
 	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0, $note_private = '')
 	{
 		global $user,$langs,$conf,$db;
@@ -761,10 +748,10 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine->note_private = $note_private;
 
 		$TAssetOFLine->fk_commandedet = $fk_commandedet;
-
+		
         	$TAssetOFLine->fk_product_fournisseur_price = -2;
 
-		if ($conf->nomenclature->enabled && !$fk_nomenclature)
+		if (!empty($conf->nomenclature->enabled) && !$fk_nomenclature)
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 
@@ -787,18 +774,14 @@ class TAssetOF extends TObjetStd{
 
 		$TAssetOFLine->lot_number = $lot_number;
 
-        	$TAssetOFLine->initConditionnement($PDOdb);
+        $TAssetOFLine->initConditionnement($PDOdb);
 
 		if($fk_nomenclature>0) {
 			$TAssetOFLine->nomenclature_valide = true;
 		}
 
 		if ($type=='NEEDED' &&  $TAssetOFLine->fk_product>0) {
-
-			$nd = new TNomenclatureDet();
-			$nd->fk_product = $TAssetOFLine->fk_product;
-			$TAssetOFLine->pmp = $nd->getSupplierPrice($PDOdb, $quantite, true, true);
-
+			$TAssetOFLine->load_product();
 		}
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
@@ -817,7 +800,7 @@ class TAssetOF extends TObjetStd{
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 			$this->set_current_cost_for_to_make();
 		}
-
+		
 		return $idAssetOFLine;
 	}
 
@@ -947,10 +930,12 @@ class TAssetOF extends TObjetStd{
 	    global $langs, $conf, $db, $user;
 
 		dol_include_once('/projet/class/task.class.php');
-
+		dol_include_once('/product/class/product.class.php');
+		
 		$TIDOFToValidate = array($this->rowid);
 		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
-
+		krsort($TIDOFToValidate);
+		
 		foreach ($TIDOFToValidate as $id_of)
 		{
 			$of = new TAssetOF;
@@ -959,35 +944,46 @@ class TAssetOF extends TObjetStd{
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
 
+			foreach($of->TAssetOFLine as &$AssetOFLine)
+			{
+				if($AssetOFLine->type == 'NEEDED') {
+					
+					$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
+					if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $qty_needed;
+					
+				}
+				else if($AssetOFLine->type == 'TO_MAKE')
+				{
+					if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $AssetOFLine->qty;
+				}
+				
+			}
+			
 			$of->set_current_cost_for_to_make(true);
-
+			
 		    $of->status = 'CLOSE';
 
-			include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-
-	        if (empty($conf->global->OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER) && !$of->checkCommandeFournisseur($PDOdb))
+		    if (empty($conf->global->OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER) && !$of->checkCommandeFournisseur($PDOdb))
 	        {
                 setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
                 return false;
 	        }
-
+	     
+	     	foreach($of->TAssetOFLine as &$AssetOFLine)
+			{
+				if($AssetOFLine->type == 'NEEDED') {
+					$AssetOFLine->destockQtyUsedAsset($PDOdb);
+				}
+			}
+			
 			foreach($of->TAssetOFLine as &$AssetOFLine)
 			{
 				if($AssetOFLine->type == 'TO_MAKE')
 				{
-					 if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $AssetOFLine->qty;
-
-					 $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
+					$AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
 				}
-				else
-				{
-					$qty_needed = !empty($AssetOFLine->qty_needed) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
-					if($AssetOFLine->qty_used == 0) $AssetOFLine->qty_used = $qty_needed;
-
-					$AssetOFLine->destockQtyUsedAsset($PDOdb);
-				}
+				
 			}
-
 
 			foreach($of->TAssetWorkstationOF as &$wsof) {
 
@@ -1030,7 +1026,8 @@ class TAssetOF extends TObjetStd{
 		$TIDOFToValidate = array($this->rowid);
 
 		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
-
+		krsort($TIDOFToValidate);
+		
 		foreach ($TIDOFToValidate as $id_of) {
 
 			$of = new TAssetOF;
@@ -1221,7 +1218,8 @@ class TAssetOF extends TObjetStd{
 		$TabOF = array();
 		$TabOF[] = $this->rowid;
 		$this->getListeOFEnfants($PDOdb, $TabOF);
-
+		krsort($TabOF);
+		
 		// Boucle pour chaque OF de l'arbre
 		foreach($TabOF as $idOf){
 
@@ -1379,20 +1377,20 @@ class TAssetOF extends TObjetStd{
 		}
 
 	}
-
+	
 	public function addAssetLink(&$asset, $id_line) {
-
-
+		
+		
 		foreach($this->TAssetOFLine as $k=>&$ofLigne){
-
+			
 			if($ofLigne->getId() == $id_line){
 				$ofLigne->addAssetLink($asset);
-
+				
 				break;
 			}
 		}
-
-
+		
+		
 	}
 
 	function getOFEnfantWithProductToMake(&$PDOdb, &$res, $fk_product, $level=0, $recursive = true)
@@ -1426,21 +1424,21 @@ class TAssetOF extends TObjetStd{
 	}
 
 	public function updateToMakeLineQty(&$PDOdb, $idLine,$qty_new, $coef = 0) {
-
+		
 		$res = false;
-
+		
 		$nb_to_make = 0;
-
+		
 		if(!empty($this->TAssetOFLine) && empty($coef)) {
-
+			
 			foreach ($this->TAssetOFLine as &$line) {
 				if($line->type === 'TO_MAKE' && $idLine === $line->getId() && $line->qty>0) {
 					$coef = $qty_new / $line->qty;
-
+					
 					$res = true;
-
+					
 					$nb_to_make++;
-
+					
 				}
 			}
 		}
@@ -1450,56 +1448,56 @@ class TAssetOF extends TObjetStd{
 		}
 	//var_dump($coef);
 		if($res && $nb_to_make == 1) { // On applique le coef que s'il y a 1 seul produit à fabriquer
-
+			
 			if(!empty($this->TAssetOFLine)) {
-
+			
 				foreach ($this->TAssetOFLine as &$line) {
 			//	var_dump('$line', $line->qty);
 					$line->qty*=$coef;
 					$line->qty_needed*=$coef;
 			//	var_dump('$line>', $line->qty);
-
+					
 					$line->saveQty($PDOdb);
-
+					
 					$TOF=array();
 					$this->getOFEnfantWithProductToMake($PDOdb, $TOF, $line->fk_product,0, false);
 					if(!empty($TOF)) {
-
+						
 						foreach($TOF as &$data) {
-
+							
 							$of = new TAssetOF;
 							if($of->load($PDOdb, $data['id_assetOf'])) {
 		//						var_dump('OFCHILD', $of->getId());
 								if(!$of->updateToMakeLineQty($PDOdb, 0, 0, $coef)) $res = false;
-
+								
 							}
-
+							
 						}
-
+						
 					}
-
+					
 				}
-
+				
 			}
-
+			
 			if(!empty($this->TAssetWorkstationOF)) {
-
+			
 				foreach ($this->TAssetWorkstationOF as &$ws) {
-
+					
 					$ws->nb_hour*=$coef;
 					$ws->nb_hour_prepare*=$coef;
-
+					
 					$ws->save($PDOdb);
 				}
-
+				
 			}
-
+			
 		}
-
+		
 		return $res;
-
+		
 	}
-
+	
 	function getLineProductToMake() {
 
 		if(!empty($this->TAssetOFLine)) {
@@ -1791,7 +1789,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide,fk_commandedet',array('type'=>'integer','index'=>true));
 		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp',array('type'=>'float'));
 		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
-        $this->add_champs('note_private',array('type'=>'text'));
+	        $this->add_champs('note_private',array('type'=>'text'));
 
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent',array('type'=>'integer','index'=>true));
@@ -1840,7 +1838,7 @@ class TAssetOFLine extends TObjetStd{
 
 	function destockProduct($qty_to_destock) {
 		global $conf;
-
+		
 		$sens = ($qty_to_destock>0) ? -1 : 1;
 		$qty_to_destock_rest =  abs($qty_to_destock);
 //TODO translate
@@ -1864,7 +1862,7 @@ class TAssetOFLine extends TObjetStd{
 					$line->setPMP($PDOdb, $this->pmp); // passage par une fonction hors save à cause des intrications
 				}
 			}
-
+			
 		}
 
 		TAssetOF::addStockMouvementDolibarr($this->fk_product, $sens * $qty_to_destock_rest, $labelMvt,$fk_entrepot, $price);
@@ -1872,14 +1870,15 @@ class TAssetOFLine extends TObjetStd{
 		$this->update_qty_stock($sens * $qty_to_destock_rest);
 
 	}
-
+	
 	/*
 	 * définit le PMP
-	 *
+	 * 
 	 */
 	function setPMP(&$PDOdb, $pmp) {
 		$this->pmp = (double) $pmp;
 
+//		if($this->fk_product == 14714){	setEventMessage($this->id.','.$this->pmp,'warning');}
 		$PDOdb->Execute("UPDATE ".$this->get_table()." SET pmp = ".$this->pmp." WHERE rowid = ".$this->getId());
 	}
 
@@ -1900,7 +1899,7 @@ class TAssetOFLine extends TObjetStd{
 
         $mouvement = 'destockage';
 		if ($this->type=='NEEDED' && $qty_to_destock < 0) $mouvement = 'restockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
-
+		
         $sens = ($qty_to_destock>0) ? -1 : 1;
         $qty_to_destock_rest =  abs($qty_to_destock);
 
@@ -1965,7 +1964,7 @@ class TAssetOFLine extends TObjetStd{
 					$qty_to_destock_rest-= $qty_asset_to_destock;
 
 					if($qty_to_destock_rest<=0)break;
-
+                    
                 }
 
             }
@@ -1993,7 +1992,7 @@ class TAssetOFLine extends TObjetStd{
 
 			$stock_needed = TAssetOF::getProductStock($this->fk_product);
 			if($stock_needed > 0) return 0;
-
+			
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
 				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
 				return $nb;
@@ -2020,7 +2019,7 @@ class TAssetOFLine extends TObjetStd{
 		$is_cumulate = TAsset_type::getIsCumulate($PDOdb, $this->fk_product);
 		$is_perishable = TAsset_type::getIsPerishable($PDOdb, $this->fk_product);
 		$is_unit = TAsset_type::getIsUnit($PDOdb, $this->fk_product);
-
+		
 		//si on cherche à déstocker 5 * 0.10 Kg alors on ne cherche pas un équipement avec + de 5Kg en stock mais bien + de 0.50Kg
 		list($qty,$qty_stock) = $this->convertQty();
 
@@ -2337,7 +2336,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->loadFournisseurPrice($PDOdb);
 
 		$this->load_product();
-
+		
 		return $res;
 	}
 
@@ -2347,31 +2346,36 @@ class TAssetOFLine extends TObjetStd{
 		if($this->fk_product>0) {
 			dol_include_once('/product/class/product.class.php');
 
-			if(!empty($conf->nomenclature->enabled)) {
-				dol_include_once('/nomenclature/class/nomenclature.class.php');
-				$nd = new TNomenclatureDet();
-				$nd->fk_product = $this->fk_product;
-				$PDOdb=new TPDOdb();
-				$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
-
-			}
-			else {
-				$this->product = new Product($db);
-				$this->product->fetch($this->fk_product);
-
-				$pmp = (double) $this->product->pmp; //TODO set parameters to select prefered rank
-				if(empty($pmp) && !empty($this->product->cost_price)) {
-					$pmp = (double) $this->product->cost_price;
+			$this->product = new Product($db);
+           		$this->product->fetch($this->fk_product);
+			
+			if(empty($this->pmp)) {
+				if(!empty($conf->nomenclature->enabled)) {
+					dol_include_once('/nomenclature/class/nomenclature.class.php');
+					$nd = new TNomenclatureDet();
+					$nd->fk_product = $this->fk_product;
+					$PDOdb=new TPDOdb();
+					$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
+					
 				}
-				if(empty($pmp)) {
-					dol_include_once('/fourn/class/fournisseur.product.class.php');
-					$fournProd = new ProductFournisseur($db);
-					$fournProd->find_min_price_product_fournisseur($this->fk_product, $this->qty>0 ? $this->qty : 1);
-					$pmp = (double) $fournProd->fourn_unitprice;
+				else {
+					$this->product = new Product($db);
+					$this->product->fetch($this->fk_product);
+					
+					$pmp = (double) $this->product->pmp; //TODO set parameters to select prefered rank
+					if(empty($pmp) && !empty($this->product->cost_price)) {
+						$pmp = (double) $this->product->cost_price;
+					}
+					if(empty($pmp)) {
+						dol_include_once('/fourn/class/fournisseur.product.class.php');
+						$fournProd = new ProductFournisseur($db);
+						$fournProd->find_min_price_product_fournisseur($this->fk_product, $this->qty>0 ? $this->qty : 1);
+						$pmp = (double) $fournProd->fourn_unitprice;
+					}
+					
+					$this->pmp = $pmp;
+					
 				}
-
-				$this->pmp = $pmp;
-
 			}
 		}
 
@@ -2522,12 +2526,12 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	function saveQty(TPDOdb &$PDOdb) {
-
+		
 		$PDOdb->dbupdate($this->get_table(), array( 'qty'=>$this->qty, 'qty_needed'=>$this->qty_needed, 'rowid'=>$this->getId()),array('rowid'));
-
-
+		
+		
 	}
-
+	
 	function save(&$PDOdb)
 	{
 		global $user,$langs,$conf,$db;
@@ -2614,7 +2618,7 @@ class TAssetOFLine extends TObjetStd{
 			$this->stockProduct($qty_make);
 			setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
 		}
-
+		
 	}
 }
 
@@ -2690,21 +2694,22 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->label = $ws->libelle;
 
         if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
-
+        	
         	$TIdOf = array($this->fk_assetOf);
         	$OF->getListeOFEnfants($PDOdb,$TIdOf);
-
+        	krsort($TIdOf);
+        	
         	$resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
             FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)
             WHERE t.fk_projet=".$OF->fk_project." AND tex.fk_of IN (".implode(',',$TIdOf).")");
         	$objTask = $db->fetch_object($resIdTask);
         	$projectTask->fk_task_parent = (int)$objTask->rowid;
-
+            
         }
         else {
             $projectTask->fk_task_parent = 0;
         }
-
+		
 		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
 		if(empty($projectTask->date_start)) $projectTask->date_start=$OF->date_besoin;
 
@@ -2796,7 +2801,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$of=new TAssetOF;
 		$of->load($PDOdb, $this->fk_assetOf);
 		if ($of->status !== 'VALID') return false; // of non valide on ne créé par les tâches
-
+		
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
 
@@ -2805,7 +2810,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		if ($of->fk_project > 0 && $this->fk_project_task == 0) $action = 'createTask';
 		elseif ($of->fk_project > 0 && $this->fk_project_task > 0) $action = 'updateTask';
 		elseif ($of->fk_project == 0 && $this->fk_project_task > 0) $action = 'deleteTask';
-
+		
 		switch ($action)
 		{
 			case 'createTask':
@@ -2857,7 +2862,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	 	global $conf;
 
 		$this->setTHM();
-
+		
         if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
 			$this->manageProjectTask($PDOdb);
