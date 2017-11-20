@@ -298,5 +298,5 @@ UseByOF=Utilisation via Ordre de Fabrication
 CreateByOF=Création via Ordre de Fabrication
 DeletedByOF=Suppression via Ordre de Fabrication
 
-
+OF_USE_APPRO_DELAY_FOR_TASK_DELAY=Utiliser le délai d'approvisionnement du produit lié au poste pour délayer la tâche
 

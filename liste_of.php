@@ -149,14 +149,18 @@ function _liste(&$PDOdb)
 	if($mode =='supplier_order') {
 		$sql.=" cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
-		, ofe.status, ofe.fk_user,(SELECT SUM(qty_needed * pmp) as cout  FROM ".MAIN_DB_PREFIX."assetOf_line WHERE fk_assetOf = ofe.rowid AND type != 'TO_MAKE') AS total_estimated_cost, (SELECT SUM(qty_used * pmp) as cout  FROM ".MAIN_DB_PREFIX."assetOf_line WHERE fk_assetOf = ofe.rowid AND type != 'TO_MAKE') AS total_cost, '' AS printTicket ";
+		, ofe.status, ofe.fk_user
+		,total_estimated_cost, total_cost
+		, '' AS printTicket ";
 		
 	}
 	else {
 		$sql.=" ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
-		, ofe.status, ofe.fk_user,(SELECT SUM(qty_needed * pmp) as cout  FROM ".MAIN_DB_PREFIX."assetOf_line WHERE fk_assetOf = ofe.rowid AND type != 'TO_MAKE') AS total_estimated_cost, (SELECT SUM(qty_used * pmp) as cout  FROM ".MAIN_DB_PREFIX."assetOf_line WHERE fk_assetOf = ofe.rowid AND type != 'TO_MAKE') AS total_cost, '' AS printTicket ";
-		
+		, ofe.status, ofe.fk_user
+		,total_estimated_cost, total_cost
+		, '' AS printTicket ";
+				
 	}
 	
 	if($mode =='supplier_order') {

@@ -178,7 +178,24 @@ class TAssetOF extends TObjetStd{
 				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
 				$of->TAssetOF= array();
 				
-	
+				foreach ($of->TAssetOFLine as $k => &$ofLine)
+				{
+					if($ofLine->type == 'NEEDED') {
+						
+						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empy($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
+							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
+							foreach($ofLine->TWorkstation as &$ws) {
+								foreach($of->TAssetWorkstationOF as &$wsof) {
+									if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && $wsof->nb_days_before_beginning<=0) {
+										$wsof->nb_days_before_beginning = $nb;
+									}
+								}
+							}
+							
+						}
+					}
+				}
+				
 				$of->save($PDOdb);
 			}
 			//exit('la');
@@ -372,6 +389,7 @@ class TAssetOF extends TObjetStd{
 				//Methode 1, le MAX(appro) + SUM(service)
 				if($ofLine->type == 'NEEDED') {
 					$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
+
 					if($ofLine->product->type == 1) {
 						$nb_day_service+=$nb;
 					}
