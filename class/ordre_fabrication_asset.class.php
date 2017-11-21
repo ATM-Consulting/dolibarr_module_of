@@ -1947,7 +1947,10 @@ class TAssetOFLine extends TObjetStd{
 					$assetOf->load($PDOdb, $this->fk_assetOf);
 					$res = $this->setAsset($PDOdb, $assetOf);
 					//var_dump($res);
-					//echo 'ERR.L.1884 '.$this->lot_number;exit;
+					if(!$res) {
+						setEventMessages( 'ERR.'.__METHOD__.' > setAsset ' .$this->lot_number, $assetOf->errors ,'errors');
+						
+					}
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
 					$this->stockProduct( $sens * $qty_to_destock_rest);
@@ -2109,7 +2112,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->fk_asset = $idAsset;
 		$this->save($PDOdb, $conf);
 */
-        if(!$no_error && !$conf->global->ASSET_NEGATIVE_DESTOCK) return false;
+        if(!$no_error && empty($conf->global->ASSET_NEGATIVE_DESTOCK)) return false;
         else return true;
 	}
 
@@ -2122,7 +2125,7 @@ class TAssetOFLine extends TObjetStd{
 
 		//TODO : mettre tous sur la même unité de mesure
 		$qty_stock = $this->qty_stock;
-		$qty = $this->qty;
+		$qty = empty( $this->qty ) ?  $this->qty_needed :  $this->qty;
 
 		return array($qty, $qty_stock);
 	}
