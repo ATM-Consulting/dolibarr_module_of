@@ -185,7 +185,7 @@ function _liste(&$PDOdb)
 	
 	if($fk_soc>0) $sql.=" AND ofe.fk_soc=".$fk_soc; 
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
-	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande;
+	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
 
 	
 	if($mode =='supplier_order') {
