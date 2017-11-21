@@ -217,49 +217,56 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $id_of, false);
 
-			$TOFToGenerate = array($assetOf->rowid);
-
-			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
-//			var_dump($TOFToGenerate);exit;
-			foreach($TOFToGenerate as $id_of) {
-
-				$assetOf=new TAssetOF;
-				$assetOf->load($PDOdb, $id_of, false);
-				//echo $id_of;
-				$TRes[] = generateODTOF($PDOdb, $assetOf);
-				//echo '...ok<br />';
+			if(empty($conf->global->OF_PRINT_IN_PDF)) {
+				generateODTOF($PDOdb, $assetOf, true);
+				
 			}
-
-			$TFilePath = get_tab_file_path($TRes);
-		//	var_dump($TFilePath);exit;
-			if($conf->global->ASSET_CONCAT_PDF) {
-				ob_start();
-				$pdf=pdf_getInstance();
-				if (class_exists('TCPDF'))
-				{
-					$pdf->setPrintHeader(false);
-					$pdf->setPrintFooter(false);
+			else {
+			
+				$TOFToGenerate = array($assetOf->rowid);
+				 
+				if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
+	//			var_dump($TOFToGenerate);exit;
+				foreach($TOFToGenerate as $id_of) {
+	
+					$assetOf=new TAssetOF;
+					$assetOf->load($PDOdb, $id_of, false);
+					//echo $id_of;
+					$TRes[] = generateODTOF($PDOdb, $assetOf);
+					//echo '...ok<br />';
 				}
-				$pdf->SetFont(pdf_getPDFFont($langs));
-
-				if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
-				//$pdf->SetCompression(false);
-
-				$pagecount = concatPDFOF($pdf, $TFilePath);
-
-				if ($pagecount)
-				{
-					$pdf->Output($TFilePath[0],'F');
-					if (! empty($conf->global->MAIN_UMASK))
+	
+				$TFilePath = get_tab_file_path($TRes);
+			//	var_dump($TFilePath);exit;
+				if($conf->global->ASSET_CONCAT_PDF) {
+					ob_start();
+					$pdf=pdf_getInstance();
+					if (class_exists('TCPDF'))
 					{
-						@chmod($file, octdec($conf->global->MAIN_UMASK));
+						$pdf->setPrintHeader(false);
+						$pdf->setPrintFooter(false);
 					}
+					$pdf->SetFont(pdf_getPDFFont($langs));
+	
+					if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
+					//$pdf->SetCompression(false);
+	
+					$pagecount = concatPDFOF($pdf, $TFilePath);
+	
+					if ($pagecount)
+					{
+						$pdf->Output($TFilePath[0],'F');
+						if (! empty($conf->global->MAIN_UMASK))
+						{
+							@chmod($file, octdec($conf->global->MAIN_UMASK));
+						}
+					}
+					ob_clean();
 				}
-				ob_clean();
+	
+				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			}
-
-			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
-
+			
 			break;
 
 		case 'control':
@@ -342,7 +349,7 @@ function _action() {
 
 
 
-function generateODTOF(&$PDOdb, &$assetOf) {
+function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 	global $db,$conf, $TProductCachegenerateODTOF,$langs;
 
@@ -543,16 +550,20 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		,array()
 		,array(
 			'outFile'=>$dir.$assetOf->numero.".odt"
-			,"convertToPDF"=>true
+			,"convertToPDF"=>(!empty($conf->global->OF_PRINT_IN_PDF))
 			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 
 	);
-
-	return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
-
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
-	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
+	
+	if($direct) {
+		if (!empty($conf->global->OF_PRINT_IN_PDF)) header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
+		else header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
+		
+	}
+	else {
+		return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
+	}
 
 }
 

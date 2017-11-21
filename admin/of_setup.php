@@ -191,14 +191,14 @@ $var=!$var;
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
 	print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
-print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
+	print '</td></tr>';
 
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
@@ -207,16 +207,24 @@ print '</td></tr>';
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');
     print '</td></tr>';
+    
+    $var=!$var;
+    print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OF_PRINT_IN_PDF").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_PRINT_IN_PDF');
+    print '</td></tr>';
+	    
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('ASSET_CONCAT_PDF');
+	print '</td></tr>';
 	
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('ASSET_CONCAT_PDF');
-print '</td></tr>';
-
-$var=!$var;
+	$var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->transnoentitiesnoconv("AssetUseDestockagePartiel").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
@@ -232,7 +240,7 @@ $var=!$var;
     print ajax_constantonoff('OF_SHOW_QTY_THEORIQUE_MOINS_OF');
     print '</td></tr>';
 	
-	$var=!$var;
+   $var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
     print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
