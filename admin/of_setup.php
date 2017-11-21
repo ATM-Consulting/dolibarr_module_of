@@ -407,6 +407,16 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
 print '</td></tr>';	
 
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_USE_APPRO_DELAY_FOR_TASK_DELAY").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_USE_APPRO_DELAY_FOR_TASK_DELAY');
+print '</td></tr>';
+
+
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("set_OF_COEF_WS").'</td>';
