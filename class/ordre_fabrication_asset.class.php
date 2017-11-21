@@ -1949,7 +1949,9 @@ class TAssetOFLine extends TObjetStd{
 					//var_dump($res);
 					if(!$res) {
 						setEventMessages( 'ERR.'.__METHOD__.' > setAsset ' .$this->lot_number, $assetOf->errors ,'errors');
-						
+					}
+					else {
+						$this->update_qty_stock($sens * $qty_to_destock_rest);
 					}
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
