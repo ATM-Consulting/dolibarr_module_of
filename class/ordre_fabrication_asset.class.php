@@ -182,7 +182,7 @@ class TAssetOF extends TObjetStd{
 				{
 					if($ofLine->type == 'NEEDED') {
 						
-						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empy($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
+						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
 							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
 							foreach($ofLine->TWorkstation as &$ws) {
 								foreach($of->TAssetWorkstationOF as &$wsof) {
