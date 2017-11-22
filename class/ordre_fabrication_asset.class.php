@@ -578,7 +578,7 @@ class TAssetOF extends TObjetStd{
 		{
 		    foreach ($TProd as $prod)
 			{
-				$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
+				$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private , $prod->workstations);
 				
 				if (!empty($conf->global->CREATE_CHILDREN_OF))
 				{
@@ -654,6 +654,7 @@ class TAssetOF extends TObjetStd{
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1] * $qty_parent;
             $prod->note_private = isset($row['note_private']) ? $row['note_private'] : '';
+            $prod->workstations = isset($row['workstations']) ? $row['workstations'] : '';
 
 			if (!empty($conf->global->ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED))
 			{
@@ -747,7 +748,7 @@ class TAssetOF extends TObjetStd{
 	 *
 	 * @return id line
 	 */
-	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0, $note_private = '')
+	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0, $note_private = '', $workstations='')
 	{
 		global $user,$langs,$conf,$db;
 
@@ -798,8 +799,15 @@ class TAssetOF extends TObjetStd{
 			$TAssetOFLine->nomenclature_valide = true;
 		}
 
-		if ($type=='NEEDED' &&  $TAssetOFLine->fk_product>0) {
-			$TAssetOFLine->load_product();
+		if ($type=='NEEDED') {
+			if($TAssetOFLine->fk_product>0) $TAssetOFLine->load_product();
+			
+			if(!empty($workstations)) {
+				
+				$TAssetOFLine->set_workstations($PDOdb, explode(',', $workstations));
+				
+			}
+			
 		}
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
@@ -859,7 +867,7 @@ class TAssetOF extends TObjetStd{
 	}
 
 	/*
-	 * Fonction qui permet de mettre à jour les postes de travail liais à un produit
+	 * Fonction qui permet de mettre à jour les postes de travail liés à un produit
 	 * pour la création d'un OF depuis une fiche produit
 	 */
 	function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0, $qty_needed = 1)
@@ -877,7 +885,7 @@ class TAssetOF extends TObjetStd{
 					if($n->load($PDOdb, $fk_nomenclature, true)) {
 						foreach($n->TNomenclatureWorkstation as &$nws) {
 
-							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || $conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF) {
+							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || !empty($conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF)) {
 
 								$k = $this->addofworkstation($PDOdb
 										,$nws->fk_workstation
