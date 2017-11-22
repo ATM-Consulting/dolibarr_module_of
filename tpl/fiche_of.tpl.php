@@ -850,6 +850,7 @@
 
 				$tr.find('td.editableField').replaceWith( $input );
 
+				$('div.OFMaster > form input[name=action]').val('quick-save');
 			});
 
 		}

@@ -182,12 +182,23 @@ class TAssetOF extends TObjetStd{
 				{
 					if($ofLine->type == 'NEEDED') {
 						
+						$TAllow_modify = array();
+						
 						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
 							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
+							
 							foreach($ofLine->TWorkstation as &$ws) {
 								foreach($of->TAssetWorkstationOF as &$wsof) {
-									if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && $wsof->nb_days_before_beginning<=0) {
-										$wsof->nb_days_before_beginning = $nb;
+									
+									if(!empty($conf->global->ASSET_USE_PROJECT_TASK) && $wsof->fk_project_task <= 0 && $of->fk_project>0) {
+										// a priori la tâche devrait exister, donc on test
+										$wsof->save($PDOdb);
+									}
+									
+									if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
+										if($wsof->nb_days_before_beginning < $nb) $wsof->nb_days_before_beginning = $nb;
+										$TAllow_modify[$wsof->fk_asset_workstation] = true;
+										
 									}
 								}
 							}
@@ -2012,7 +2023,7 @@ class TAssetOFLine extends TObjetStd{
 	function getNbDayForReapro() {
 		global $db, $user, $conf;
 
-		if($conf->supplierorderfromorder->enabled && $this->type=='NEEDED') {
+		if(!empty($conf->supplierorderfromorder->enabled) && $this->type=='NEEDED') {
 
 			$stock_needed = TAssetOF::getProductStock($this->fk_product);
 			if($stock_needed > 0) return 0;
@@ -2823,7 +2834,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		global $db,$conf,$user;
 
 		$of=new TAssetOF;
-		$of->load($PDOdb, $this->fk_assetOf);
+		$of->load($PDOdb, $this->fk_assetOf, false);
 		if ($of->status !== 'VALID') return false; // of non valide on ne créé par les tâches
 		
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
