@@ -285,7 +285,7 @@ class TAssetOF extends TObjetStd{
 
 		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
 
-		if($fk_entrepot > 0)
+		if($fk_entrepot > 0 && !empty($qty))
 		{
 				if($qty > 0) {
 					$result=$mouvS->reception($user, $fk_product, $fk_entrepot, $qty, $price, $description);
@@ -1867,14 +1867,15 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	function destockProduct($qty_to_destock) {
-		global $conf;
+		global $conf,$langs;
 		
 		$sens = ($qty_to_destock>0) ? -1 : 1;
 		$qty_to_destock_rest =  abs($qty_to_destock);
 //TODO translate
-		$labelMvt = 'Utilisation via Ordre de Fabrication';
-		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
 
+		$labelMvt = $langs->trans('UseByOF', $this->of_numero);
+		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = $langs->trans('CreateByOF', $this->of_numero) : $labelMvt = $langs->trans('DeletedByOF', $this->of_numero);
+		
 		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
 		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
 
@@ -1938,8 +1939,8 @@ class TAssetOFLine extends TObjetStd{
 
 		//echo $sens." x ".$qty_to_destock_rest.'<br>';
 
-		$labelMvt = $langs->trans('UseByOF');
-		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = $langs->trans('CreateByOF') : $labelMvt = $langs->trans('DeletedByOF');
+		$labelMvt = $langs->trans('UseByOF', $this->of_numero);
+		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = $langs->trans('CreateByOF', $this->of_numero) : $labelMvt = $langs->trans('DeletedByOF', $this->of_numero);
 
         if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled))
         {
