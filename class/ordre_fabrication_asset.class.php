@@ -745,8 +745,12 @@ class TAssetOF extends TObjetStd{
 		$product->fetch($fk_product);
 		$product->load_stock();
 
-        if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
-        else $stock =$product->stock_reel;
+		if(empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK)) {
+		    if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
+		    else $stock =$product->stock_reel;
+		} else {
+		    $stock = $product->stock_theorique;
+		}
 
       /*  $of_qty = self::getProductNeededQty($fk_product, $include_draft_of);
 
