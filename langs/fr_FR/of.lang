@@ -152,6 +152,7 @@ DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de
 UseDefinedWarehouse=Permet de définir des entrepôts par défaut pour le stockage/destockage des équipements
 ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt définit sur chaque équipement)
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
+CreateAssetChildrenOFOnVirtualStock=Déclencher la création d'OF enfant sur stock théorique négatif (si non, le stock réel est pris en compte)
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
 UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
