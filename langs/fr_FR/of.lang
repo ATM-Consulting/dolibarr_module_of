@@ -152,6 +152,7 @@ DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de
 UseDefinedWarehouse=Permet de définir des entrepôts par défaut pour le stockage/destockage des équipements
 ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt définit sur chaque équipement)
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
+CreateAssetChildrenOFOnVirtualStock=Déclencher la création d'OF enfant sur stock théorique négatif (si non, le stock réel est pris en compte)
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
 UsetAssetProductionAttributs = Utiliser les champs de productions
 CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
@@ -294,9 +295,9 @@ UpdateNeededQty=Mettre à jour les produits nécessaires
 SomeQtyCantBeUpdated=Certaines quantités n'ont pu être mis à jour
 QtyAlreadyToMake=Quantité déjà en production
 
-UseByOF=Utilisation via Ordre de Fabrication
-CreateByOF=Création via Ordre de Fabrication
-DeletedByOF=Suppression via Ordre de Fabrication
+UseByOF=Utilisation via Ordre de Fabrication %s
+CreateByOF=Création via Ordre de Fabrication %s
+DeletedByOF=Suppression via Ordre de Fabrication %s
 
-
-
+OF_USE_APPRO_DELAY_FOR_TASK_DELAY=Utiliser le délai d'approvisionnement du produit lié au poste pour délayer la tâche
+OF_PRINT_IN_PDF=Imprimer en PDF (nécessite la présence de libreoffice sur le serveur)

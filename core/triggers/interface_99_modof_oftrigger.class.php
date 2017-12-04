@@ -254,11 +254,44 @@ class Interfaceoftrigger
 						if($id_of > 0) {
 							$of = new TAssetOF;
 							$of->load($PDOdb, $id_of);
-						//	var_dump($of->getId(), $of->status, $conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS);	
-							if($of->status != 'CLOSE') {
 							
+							if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
+								foreach($of->TAssetOFLine as &$ofLine) {
+									foreach($ofLine->TWorkstation as &$ws) {
+										foreach($of->TAssetWorkstationOF as &$wsof) {
+											
+											if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && $wsof->nb_days_before_beginning>0) {
+												$wsof->nb_days_before_beginning = 0;
+												$wsof->save($PDOdb);
+											}
+										}
+									}
+								}
+								
+							}
+							
+							
+							$TidSupplierOrder = $of->getElementElement($PDOdb);
+							
+							foreach($TidSupplierOrder as $fk_supplierorder) {
+								if($fk_supplierorder == (int)GETPOST('id') ) continue;
+
+								$resql2 =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.$fk_supplierorder );
+                                				$res2 = $db->fetch_object($resql2);
+				                                if($res2->fk_statut != 5) return 0; // toutes les commandes ne sont pas reçu on arrête là
+							}
+
+						//	var_dump($of->getId(), $of->status, $conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS);	
+							if($of->status != 'CLOSE') {								
 								if(!empty($conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS)) {
+									
+									foreach($of->TAssetWorkstationOF as &$wsof) {
+										if($wsof->fk_project_task>0 && $wsof->nb_days_before_beginning>0) {
+											$wsof->nb_days_before_beginning = 0;
+										}
+									}
 									$of->setStatus($PDOdb, 'OPEN');
+									
 								}
 								else{
 									$of->closeOF($PDOdb);
