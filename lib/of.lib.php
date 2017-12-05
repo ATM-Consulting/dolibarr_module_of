@@ -212,6 +212,12 @@
 				return $out;			
 			}
 		}
+
+		if(DOL_VERSION>=6) {
+			dol_include_once('/core/class/html.formprojet.class.php');
+			$formProject=new FormProjets($db);
+			return $formProject->select_projects($socid,$selected, $htmlname,32,0,1,0,0,0,0,'',1);
+		}
 	
 		$hideunselectables = false;
 		if (! empty($conf->global->PROJECT_HIDE_UNSELECTABLES)) $hideunselectables = true;
@@ -312,7 +318,7 @@
 					$selected_value = $p->ref;
 					
 				}
-				
+				if(empty($htmlname))$htmlname='fk_project';
 				$out = ajax_autocompleter($selected, $htmlname, DOL_URL_ROOT.'/projet/ajax/projects.php', $urloption, 1);
 				$out .= '<input type="text" size="20" name="search_'.$htmlname.'" id="search_'.$htmlname.'" value="'.$selected_value.'"'.$placeholder.' />';
 				
