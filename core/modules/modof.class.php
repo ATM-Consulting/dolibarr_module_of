@@ -89,8 +89,8 @@ class modof extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@of')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-			'triggers' => 1,     
-			'hooks'=>array('ordersuppliercard', 'productstock')
+			'triggers' => 1,
+			'hooks'=>array('ordersuppliercard', 'productstock','searchform')
 		);
 
 		// Data directories to create when module is enabled.
@@ -157,7 +157,7 @@ class modof extends DolibarrModules
         $this->tabs = array(
 			'product:+tabOF2:OF:of@of:$user->rights->of->of->lire:/of/liste_of.php?fk_product=__ID__'
 			,'order:+tabOF3:OF:of@of:$user->rights->of->of->lire:/of/liste_of.php?fk_commande=__ID__'
-			
+
 		);
 
         // Dictionaries
@@ -210,7 +210,7 @@ class modof extends DolibarrModules
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'write';
 
-				
+
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Générer les documents';
@@ -223,22 +223,22 @@ class modof extends DolibarrModules
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'price';
-		
+
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Voir le temps prévus sur un OF';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'show_ws_time';
-		
+
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Autoriser la suppression d\'un OF à l\'état "Terminé"';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'allow_delete_of_finish';
-		
-		
+
+
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
 		$r=0;
@@ -247,8 +247,8 @@ class modof extends DolibarrModules
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
 		$r=0;
-		
-	
+
+
 		$this->menu[$r]=array('fk_menu'=>0,			// Put 0 if this is a top menu
 				'type'=>'top',			// This is a Top menu entry
 				'titre'=>'GPAO',
@@ -262,12 +262,12 @@ class modof extends DolibarrModules
 				'target'=>'',
 				'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-	
-		
-		
+
+
+
 		/***/
-		
-		
+
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'AssetProductionOrder',
@@ -280,7 +280,7 @@ class modof extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-	   
+
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>'AssetProductionOrderDraft',
@@ -293,7 +293,7 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        
+
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>'AssetProductionOrderNEEDOFFER',
@@ -306,7 +306,7 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        
+
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>'AssetProductionOrderONORDER',
@@ -319,8 +319,8 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        
-        
+
+
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=AssetProdSOrder',         // Put 0 if this is a top menu
         		'type'=>'left',         // This is a Top menu entry
         		'titre'=>'AssetProductionSupplierOrder',
@@ -333,8 +333,8 @@ class modof extends DolibarrModules
         		'target'=>'',
         		'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        
-        
+
+
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>'AssetProductionOrderVALID',
@@ -347,7 +347,7 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        
+
         $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
                     'type'=>'left',         // This is a Top menu entry
                     'titre'=>'AssetProductionOrderOPEN',
@@ -372,7 +372,7 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
-        
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
 					'titre'=>'AssetNewProductionOrder',
@@ -385,8 +385,8 @@ class modof extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
-		
+
+
 		// Add here entries to declare new menus
 		//
 		// Example to declare a new Top Menu entry and its Left menu entry:
@@ -449,7 +449,7 @@ class modof extends DolibarrModules
 	function init($options='')
 	{
 		$sql = array();
-		
+
 		define('INC_FROM_DOLIBARR',true);
 
 		dol_include_once('/of/config.php');
