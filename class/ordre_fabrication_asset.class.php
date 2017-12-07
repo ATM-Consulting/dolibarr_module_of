@@ -687,6 +687,37 @@ class TAssetOF extends TObjetStd{
 
 	}
 
+	static function qtyFromOF($fk_product, $include_draft = true) {
+		global $db, $conf;
+
+		$qty_to_make = $qty_needed = 0;
+		$sql = 'SELECT (SELECT SUM( CASE WHEN aol.qty_used>0 THEN aol.qty_used ELSE aol.qty END ) - SUM(aol.qty_stock)
+			        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol
+			        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
+			        	AND aol.fk_product = '.$fk_product.'
+			        	AND aol.type = "TO_MAKE"
+			        	AND ao.status IN ('. ($include_draft ? '"DRAFT",':'').' "VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_to_make
+			        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
+			        	FROM '.MAIN_DB_PREFIX.'assetOf_line aol
+						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
+						WHERE aol.fk_product = '.$fk_product.'
+						AND aol.type = "NEEDED"
+						AND ao.status IN ('. ($include_draft ? '"DRAFT",':'').'"VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_needed';
+
+		$resql = $db->query($sql);
+		if($resql === false) {
+			var_dump($db);
+		}
+		if ($row = $db->fetch_object($resql))
+		{
+			$qty_to_make = is_null($row->qty_to_make) ? 0 : $row->qty_to_make;
+			$qty_needed = is_null($row->qty_needed) ? 0 : $row->qty_needed;
+		}
+
+		return array($qty_to_make, $qty_needed);
+
+	}
+
 	/*
 	 * Crée une OF si produit composé pas en stock
 	 */
@@ -747,6 +778,8 @@ class TAssetOF extends TObjetStd{
 
 		if($use_virtual) {
 			$stock = $product->stock_theorique;
+			list($total_qty_tomake, $total_qty_needed) = self::qtyFromOF($product->id, $include_draft_of);
+			$stock = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
 		}
 		else {
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;

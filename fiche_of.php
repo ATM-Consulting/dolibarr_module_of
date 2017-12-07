@@ -687,11 +687,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
         if($TAssetOFLine->type == 'NEEDED' && $type == 'NEEDED'){
 			$stock_needed = TAssetOF::getProductStock($product->id);
-
-			$product->load_stock();
-			list($total_qty_tomake, $total_qty_needed) = _calcQtyOfProductInOf($db, $conf, $product);
-
-			$stock_theo = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
+			$stock_theo = TAssetOF::getProductStock($product->id,0,true,true);
 
 			$label = $product->getNomUrl(1).' '.$product->label;
 			$label.= ' - '.$langs->trans("Stock") . ' : ' . ($stock_needed>0 ? $stock_needed : '<span style="color:red;font-weight:bold;">'.$stock_needed.'</span>');
