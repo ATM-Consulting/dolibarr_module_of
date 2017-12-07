@@ -71,11 +71,11 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, GETPOST('id'), false);
 			$assetOf->set_values($_REQUEST);
-			
+
 			$assetOf->save($PDOdb);
 			_fiche($PDOdb,$assetOf, 'view' );
 			break;
-			
+
 		case 'create':
 		case 'save':
 			$assetOf=new TAssetOF;
@@ -228,23 +228,23 @@ function _action() {
 
 			if(empty($conf->global->OF_PRINT_IN_PDF)) {
 				generateODTOF($PDOdb, $assetOf, true);
-				
+
 			}
 			else {
-			
+
 				$TOFToGenerate = array($assetOf->rowid);
-				 
+
 				if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
 	//			var_dump($TOFToGenerate);exit;
 				foreach($TOFToGenerate as $id_of) {
-	
+
 					$assetOf=new TAssetOF;
 					$assetOf->load($PDOdb, $id_of, false);
 					//echo $id_of;
 					$TRes[] = generateODTOF($PDOdb, $assetOf);
 					//echo '...ok<br />';
 				}
-	
+
 				$TFilePath = get_tab_file_path($TRes);
 			//	var_dump($TFilePath);exit;
 				if($conf->global->ASSET_CONCAT_PDF) {
@@ -256,12 +256,12 @@ function _action() {
 						$pdf->setPrintFooter(false);
 					}
 					$pdf->SetFont(pdf_getPDFFont($langs));
-	
+
 					if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
 					//$pdf->SetCompression(false);
-	
+
 					$pagecount = concatPDFOF($pdf, $TFilePath);
-	
+
 					if ($pagecount)
 					{
 						$pdf->Output($TFilePath[0],'F');
@@ -272,10 +272,10 @@ function _action() {
 					}
 					ob_clean();
 				}
-	
+
 				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			}
-			
+
 			break;
 
 		case 'control':
@@ -564,11 +564,11 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		)
 
 	);
-	
+
 	if($direct) {
 		if (!empty($conf->global->OF_PRINT_IN_PDF)) header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
 		else header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
-		
+
 	}
 	else {
 		return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
@@ -690,6 +690,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 			$product->load_stock();
 			list($total_qty_tomake, $total_qty_needed) = _calcQtyOfProductInOf($db, $conf, $product);
+
 			$stock_theo = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
 
 			$label = $product->getNomUrl(1).' '.$product->label;
