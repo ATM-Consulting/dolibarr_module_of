@@ -296,7 +296,7 @@ function _liste(&$PDOdb)
 			,'client' => 'get_format_libelle_societe(@fk_soc@)'
 			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
-			,'numero'=>'get_format_link_of("@val@")'
+			,'numero'=>'get_format_link_of("@val@",@rowid@)'
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
 
 		)
@@ -607,10 +607,12 @@ function get_format_libelle_produit($fk_product = null)
 		return $langs->trans('ProductUndefined');
 	}
 }
-function get_format_link_of($numeros) {
+function get_format_link_of($numeros,$id) {
 	
 	$TNumero = explode(',', $numeros);
 	
+	if(count($TNumero) == 1) return '<a href="'.dol_buildpath('/of/fiche_of.php', 1).'?id='.$id.'">'.img_picto('','object_list.png','',0).' '.$TNumero[0].'</a>';
+
 	$TReturn=array();
 	foreach($TNumero as $numero) {
 		
