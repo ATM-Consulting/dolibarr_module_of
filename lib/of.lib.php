@@ -340,7 +340,6 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 {
 	global $conf;
 	
-	dol_include_once("/of/config.php");
 	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
 	
 	$TRes = array();
@@ -362,8 +361,6 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 
 function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 {
-	
-	dol_include_once("/of/config.php");
 	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
 	
 	return TAssetOf::qtyFromOF($product->id);
