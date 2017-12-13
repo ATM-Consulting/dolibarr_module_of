@@ -339,7 +339,10 @@
 function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 {
 	global $conf;
-
+	
+	dol_include_once("/of/config.php");
+	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
+	
 	$TRes = array();
 
 	if (!$conf->nomenclature->enabled) return $TRes;
