@@ -235,7 +235,9 @@ class Actionsof
 		if (!empty($conf->global->OF_SHOW_QTY_THEORIQUE_MOINS_OF))
 		{
 			$langs->load('asset@asset');
-			dol_include_once('/product/class/procudt.class.php');
+			define('INC_FROM_DOLIBARR', true);
+			dol_include_once('/of/config.php');
+			dol_include_once('/product/class/product.class.php');
 
 			$product = new Product($db);
 			$fk_product = GETPOST('id', 'int');
