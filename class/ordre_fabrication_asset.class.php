@@ -774,6 +774,9 @@ class TAssetOF extends TObjetStd{
 
 		$product = new Product($db);
 		$product->fetch($fk_product);
+
+		if($product->id<=0) return 0;
+
 		$product->load_stock(); // TODO cache
 
 		if($use_virtual) {
