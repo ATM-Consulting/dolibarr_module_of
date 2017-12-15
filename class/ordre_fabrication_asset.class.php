@@ -724,7 +724,7 @@ class TAssetOF extends TObjetStd{
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
-		$reste = TAssetOF::getProductStock($fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK))-$qty_needed;
+		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
 
 		if($reste>=0) {
 			return null;
@@ -2068,7 +2068,8 @@ class TAssetOFLine extends TObjetStd{
 
 		if(!empty($conf->supplierorderfromorder->enabled) && $this->type=='NEEDED') {
 
-			$stock_needed = TAssetOF::getProductStock($this->fk_product);
+			$stock_needed = TAssetOF::getProductStock($this->fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK));
+			
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
