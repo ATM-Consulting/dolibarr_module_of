@@ -125,10 +125,10 @@
 		if ($mode == 'edit')
 		{
 			$formother = new FormOther($db);
-			return $link.' - '.$formother->select_percent($projectTask->progress, $name).' '.$imgStatus;
+			return $link.' - '.dol_print_date($projectTask->date_start).' - '.$formother->select_percent($projectTask->progress, $name).' '.$imgStatus;
 		}
 		else {
-			return $link.' - '.$projectTask->progress.' % '.$imgStatus;
+			return $link.' - '.dol_print_date($projectTask->date_start).' - '.$projectTask->progress.' % '.$imgStatus;
 		}
 
 	}
