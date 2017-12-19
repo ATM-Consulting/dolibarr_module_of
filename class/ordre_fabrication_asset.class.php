@@ -1131,8 +1131,14 @@ class TAssetOF extends TObjetStd{
 				else {
 					foreach($of->TAssetOFLine as &$AssetOFLine)
 					{
-						$qty = (empty($AssetOFLine->qty) ? $AssetOFLine->qty_needed : $AssetOFLine->qty) - $AssetOFLine->qty_stock;
-						if($AssetOFLine->type=='NEEDED') $AssetOFLine->destockAsset($PDOdb, $qty);
+
+						if($AssetOFLine->type=='NEEDED') {
+							if(!empty($conf->global->OF_IF_NEEDED_QTY_EMPTY_ON_LAUNCH_PUSH_NEEDED)) {
+	                                                        $AssetOFLine->qty = empty($AssetOFLine->qty) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
+                                                        	$AssetOFLine->qty_used = empty($AssetOFLine->qty_used) ? $AssetOFLine->qty : $AssetOFLine->qty_used;
+                                                	}
+							$AssetOFLine->destockQtyUsedAsset($PDOdb);
+						}
 					}
 				}
 	        }
