@@ -626,8 +626,8 @@ class TAssetOF extends TObjetStd{
 			}
 			else
 			{
-				$Tab = TNomenclature::get($PDOdb, $id_product);
-				if (!empty($Tab[0])); $TNomen = $Tab[0];
+				$TabNomen = TNomenclature::get($PDOdb, $id_product);
+				if (!empty($Tab[0])); $TNomen = $TabNomen[0];
 			}
 
 
@@ -635,7 +635,6 @@ class TAssetOF extends TObjetStd{
 			{
 
 				$TRes = $TNomen->getDetails($quantite_to_make);
-
 				$this->getProductComposition_arrayMerge($PDOdb, $Tab, $TRes, 1, true, $fk_assetOf_line_parent);
 			}
 
@@ -664,8 +663,8 @@ class TAssetOF extends TObjetStd{
 			$prod = new stdClass;
 			$prod->fk_product = $row[0];
 			$prod->qty = $row[1] * $qty_parent;
-            $prod->note_private = isset($row['note_private']) ? $row['note_private'] : '';
-            $prod->workstations = isset($row['workstations']) ? $row['workstations'] : '';
+		        $prod->note_private = isset($row['note_private']) ? $row['note_private'] : '';
+		        $prod->workstations = isset($row['workstations']) ? $row['workstations'] : '';
 
 			if (!empty($conf->global->ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED))
 			{
@@ -770,12 +769,17 @@ class TAssetOF extends TObjetStd{
 	static function getProductStock($fk_product, $fk_warehouse=0, $include_draft_of=true, $use_virtual=false) {
 	//TODO finish ! or not
 		global $db;
+
+		if($fk_product<=0) return 0;
+
 		dol_include_once('/product/class/product.class.php');
 
 		$product = new Product($db);
 		$product->fetch($fk_product);
 
-		if($product->id<=0) return 0;
+		if($product->id<=0) {
+			 return 0;
+		}
 
 		$product->load_stock(); // TODO cache
 
