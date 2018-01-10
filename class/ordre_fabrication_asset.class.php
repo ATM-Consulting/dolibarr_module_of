@@ -872,7 +872,7 @@ class TAssetOF extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 
-		if($type=='TO_MAKE')
+		if($type=='TO_MAKE' && ( $fk_nomenclature>0 || empty($conf->nomenclature->enabled) ))
 		{
 			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$quantite);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
