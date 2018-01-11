@@ -3,7 +3,7 @@ require '../../config.php';
 set_time_limit ( 0 );
 
 $db->query ( "SET sql_mode=''");
-$res = $db->query ( "SELECT p.rowid,l.rowid as idLine, l.fk_assetof
+$res = $db->query ( "SELECT p.rowid,p.pmp,l.rowid as idLine, l.fk_assetof
     		FROM " . MAIN_DB_PREFIX . "product p 
     			INNER JOIN " . MAIN_DB_PREFIX . "assetOf_line l ON (l.fk_product=p.rowid)
 					INNER JOIN " . MAIN_DB_PREFIX . "assetOf of ON (l.fk_assetof=of.rowid)
@@ -30,6 +30,10 @@ while ( $obj = $db->fetch_object ( $res ) ) {
 	echo $obj->fk_assetof . ' [' . $of->numero . '] ';
 	if (_check_child_of ( $PDOdb, $of )) {
 		$of->load ( $PDOdb, $obj->fk_assetof );
+	}
+	
+	if(GETPOST('no_pmp_0')!='' && $obj->pmp>0) {
+		echo '<br />';continue;
 	}
 	
 	$of->set_current_cost_for_to_make ();
