@@ -15,6 +15,8 @@ dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
+dol_include_once('/quality/class/quality.class.php'); 
+
 dol_include_once('/asset/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
 if(!$user->rights->of->of->lire) accessforbidden();
@@ -275,17 +277,6 @@ function _action() {
 
 				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			}
-
-			break;
-
-		case 'control':
-			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id']);
-
-			$subAction = __get('subAction', false);
-			if ($subAction) $assetOf->updateControl($PDOdb, $subAction);
-
-			_fiche_control($PDOdb, $assetOf);
 
 			break;
 
@@ -1126,89 +1117,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	);
 
 	echo $form->end_form();
-
-	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
-}
-
-function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
-{
-	$res = array();
-
-	if ($assetOf == -1)
-	{
-		$sql = 'SELECT rowid as id, libelle, question, type, "" as response, "" as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control WHERE rowid NOT IN (SELECT fk_control FROM '.MAIN_DB_PREFIX.'assetOf_control WHERE fk_assetOf ='.(int) $fk_assetOf.')';
-	}
-	else
-	{
-		if (empty($assetOf->TQualityControlAnswer)) return $res;
-
-		$ids = array();
-		foreach ($assetOf->TQualityControlAnswer as $ofControl)
-		{
-			$ids[] = $ofControl->getId();
-		}
-
-		$sql = 'SELECT c.rowid as id, c.libelle, c.question, c.type, ofc.response, ofc.rowid as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control c';
-		$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf_control ofc ON (ofc.fk_control = c.rowid)';
-		$sql.= ' WHERE ofc.rowid IN ('.implode(',', $ids).')';
-
-	}
-
-	$PDOdb->Execute($sql);
-	while ($PDOdb->Get_line())
-	{
-		$res[] = array(
-			'id' => $PDOdb->Get_field('id')
-			,'libelle' => '<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id='.$PDOdb->Get_field('id').'">'.$PDOdb->Get_field('libelle').'</a>'
-			,'type' => TQualityControl::$TType[$PDOdb->Get_field('type')]
-			,'action' => '<input type="checkbox" value="'.$PDOdb->Get_field('id').'" name="TControl[]" />'
-			,'question' => $PDOdb->Get_field('question')
-			,'response' => ($assetOf == -1 ? '' : $assetOf->generate_visu_control_value($PDOdb->Get_field('id'), $PDOdb->Get_field('type'), $PDOdb->Get_field('response'), 'TControlResponse['.$PDOdb->Get_field('id_assetOf_control').'][]'))
-			,'delete' => '<input type="checkbox" value="'.$PDOdb->Get_field('id_assetOf_control').'" name="TControlDelete[]" />'
-		);
-	}
-
-	return $res;
-}
-
-function _fiche_control(&$PDOdb, &$assetOf)
-{
-	global $langs,$db,$conf;
-
-	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'controle', $langs->trans('OFAsset'));
-
-	/******/
-	$TBS=new TTemplateTBS();
-	$TBS->TBS->protect=false;
-	$TBS->TBS->noerr=true;
-
-	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'POST');
-	$form->Set_typeaff('view');
-
-	$TControl = _fiche_ligne_control($PDOdb, $assetOf->getId());
-	$TQualityControlAnswer = _fiche_ligne_control($PDOdb, $assetOf->getId(), $assetOf);
-
-	print $TBS->render('tpl/fiche_of_control.tpl.php'
-		,array(
-			'TControl'=>$TControl
-			,'TQualityControlAnswer'=>$TQualityControlAnswer
-		)
-		,array(
-			'assetOf'=>array(
-				'id'=>(int) $assetOf->getId()
-			)
-			,'view'=>array(
-				'nbTControl'=>count($TControl)
-				,'nbTQualityControlAnswer'=>count($TQualityControlAnswer)
-				,'url'=>DOL_URL_ROOT.'/custom/of/fiche_of.php'
-			)
-		)
-	);
-
-	$form->end();
-
-	/******/
 
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }

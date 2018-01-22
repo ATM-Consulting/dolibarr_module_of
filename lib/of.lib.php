@@ -1,18 +1,24 @@
 <?php
 
-	function ofPrepareHead(&$asset,$type='type-asset') {
-		global $user, $conf;
+	function ofPrepareHead(&$asset,$type='assetOF') {
+		global $user, $conf, $langs;
 
+		$head=array();
+		
 		switch ($type) {
 
 			case 'assetOF':
-				$res = array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
+				$head= array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
 
-				return $res;
 				break;
 
 		}
 
+		$h = count($head);
+		complete_head_from_modules($conf, $langs, $asset, $head, $h, 'of');
+		
+		return $head;
+		
 	}
 	function ofAdminPrepareHead()
 	{
@@ -28,15 +34,7 @@
 	    $head[$h][1] = $langs->trans("About");
 	    $head[$h][2] = 'about';
 	    $h++;
-	    // Show more tabs from modules
-	    // Entries must be declared in modules descriptor with line
-	    //$this->tabs = array(
-	    //	'entity:+tabname:Title:@of:/of/mypage.php?id=__ID__'
-	    //); // to add new tab
-	    //$this->tabs = array(
-	    //	'entity:-tabname:Title:@of:/of/mypage.php?id=__ID__'
-	    //); // to remove a tab
-	    complete_head_from_modules($conf, $langs, $object, $head, $h, 'of');
+	    
 	    return $head;
 	}
 
