@@ -1,17 +1,23 @@
 <?php
 
-	function ofPrepareHead(&$asset,$type='type-asset') {
-		global $user, $conf;
+	function ofPrepareHead(&$asset,$type='assetOF') {
+		global $user, $conf, $langs;
 
+		$head=array();
+		
 		switch ($type) {
-			
+
 			case 'assetOF':
-				$res = array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
-				
-				return $res;
+				$head= array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
+
 				break;
-			
+
 		}
+
+		$h = count($head);
+		complete_head_from_modules($conf, $langs, $asset, $head, $h, 'of');
+		
+		return $head;
 		
 	}
 	function ofAdminPrepareHead()
@@ -28,48 +34,40 @@
 	    $head[$h][1] = $langs->trans("About");
 	    $head[$h][2] = 'about';
 	    $h++;
-	    // Show more tabs from modules
-	    // Entries must be declared in modules descriptor with line
-	    //$this->tabs = array(
-	    //	'entity:+tabname:Title:@of:/of/mypage.php?id=__ID__'
-	    //); // to add new tab
-	    //$this->tabs = array(
-	    //	'entity:-tabname:Title:@of:/of/mypage.php?id=__ID__'
-	    //); // to remove a tab
-	    complete_head_from_modules($conf, $langs, $object, $head, $h, 'of');
+	    
 	    return $head;
 	}
-	
+
 	function visu_checkbox_user(&$PDOdb, &$form, $group, $TUsers, $name, $status)
 	{
 		$include = array();
-		
-		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user, u.statut 
-		  FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid) 
+
+		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user, u.statut
+		  FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid)
 		  WHERE uu.fk_usergroup = '.(int) $group;
 		$PDOdb->Execute($sql);
-		
+
 		//Cette input doit être présent que si je suis en brouillon, si l'OF est lancé la présence de cette input va réinitialiser à vide les associations précédentes
 		if ($status == 'DRAFT' && $form->type_aff == 'edit') {
 		    $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
         }
-           
-		while ($obj = $PDOdb->Get_line()) 
-		{				
+
+		while ($obj = $PDOdb->Get_line())
+		{
 				$label = $obj->lastname.' '.$obj->firstname;
 				if($obj->statut == 0) {
 					$label='<span style="text-decoration : line-through;">'.$label.'</span>';
-					
+
 					if(!in_array($obj->fk_user, $TUsers)) continue;
-					
+
 				}
-			
+
 				if ($status == 'DRAFT' || (in_array($obj->fk_user, $TUsers))) {
 			    $res .= '<p style="margin:4px 0">'
 			    		.$form->checkbox1($label, $name, $obj->fk_user, (in_array($obj->fk_user, $TUsers) ? true : false), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'), '', '', 'case_after', array('no'=>'', 'yes'=>img_picto('', 'tick.png'))).'</p>';
             }
 		}
-		
+
 		return $res;
 	}
 
@@ -77,10 +75,10 @@
 	function visu_checkbox_task(&$PDOdb, &$form, $fk_workstation, $TTasks, $name, $status)
 	{
 		$include = array();
-		
+
 		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $fk_workstation;
 		$PDOdb->Execute($sql);
-		
+
 		//Cette input doit être présent que si je suis en brouillon, si l'OF est lancé la présence de cette input va réinitialiser à vide les associations précédentes
 		if ($status == 'DRAFT' && $form->type_aff != 'edit') $res = '<input checked="checked" style="display:none;" type="checkbox" name="'.$name.'" value="0" />';
 		while ($obj = $PDOdb->Get_line())
@@ -88,49 +86,49 @@
 			if ($status == 'DRAFT' && $form->type_aff == 'edit') {
 				$res .= $form->checkbox1('', $name, $obj->rowid, (in_array($obj->rowid, $TTasks)), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'));
 			}
-			
+
 			if($status == 'DRAFT' || in_array($obj->rowid, $TTasks)) {
 				$res.=$obj->libelle;
 			}
-			
+
 			if(in_array($obj->rowid, $TTasks)) {
 				$res.=img_picto('', 'tick.png');
 			}
-			
+
 			$res.='<br />';
-			
+
 		}
-		
+
 		return $res;
-	
+
 	}
-	
+
 	function visu_project_task(&$db, $fk_project_task, $mode, $name)
 	{
 		global $langs;
 		if (!$fk_project_task) return ' - ';
-			
+
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-		
+
 		$projectTask = new Task($db);
 		$projectTask->fetch($fk_project_task);
-		
+
 		$link = '<a href="'.DOL_URL_ROOT.'/projet/tasks/task.php?id='.$fk_project_task.'">'.img_picto('', 'object_projecttask.png').$projectTask->ref.'</a>';
-		
+
 		if ($projectTask->progress == 0) $imgStatus = img_picto($langs->trans('OFWaiting'), 'statut0.png');
 		elseif ($projectTask->progress < 100) $imgStatus = img_picto($langs->trans('OFInProgress'), 'statut3.png');
 		else $imgStatus = img_picto($langs->trans('OFFinish'), 'statut4.png');
-		
+
 		if ($mode == 'edit')
 		{
 			$formother = new FormOther($db);
-			return $link.' - '.$formother->select_percent($projectTask->progress, $name).' '.$imgStatus;	
+			return $link.' - '.dol_print_date($projectTask->date_start).' - '.$formother->select_percent($projectTask->progress, $name).' '.$imgStatus;
 		}
 		else {
-			return $link.' - '.$projectTask->progress.' % '.$imgStatus;
+			return $link.' - '.dol_print_date($projectTask->date_start).' - '.$projectTask->progress.' % '.$imgStatus;
 		}
-		
+
 	}
 
 	/**
@@ -192,37 +190,43 @@
 	function custom_select_projects($socid=-1, $selected='', $htmlname='projectid', $type_aff = 'view', $maxlength=25, $option_only=0, $show_empty=1)
 	{
 		global $user,$conf,$langs,$db;
-	
+
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	
+
 		$out='';
-	
+
 		if ($type_aff == 'view')
 		{
 			if ($selected > 0)
 			{
 				$project = new Project($db);
 				$project->fetch($selected);
-				
+
 				//return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
 				return $project->getNomUrl(1).' - '.dol_trunc($project->title,$maxlength);
 			}
-			else 
+			else
 			{
-				return $out;			
+				return $out;
 			}
 		}
-	
+
+		if(DOL_VERSION>=6) {
+			dol_include_once('/core/class/html.formprojet.class.php');
+			$formProject=new FormProjets($db);
+			return $formProject->select_projects($socid,$selected, $htmlname,32,0,1,0,0,0,0,'',1);
+		}
+
 		$hideunselectables = false;
 		if (! empty($conf->global->PROJECT_HIDE_UNSELECTABLES)) $hideunselectables = true;
-	
+
 		$projectsListId = false;
 		if (empty($user->rights->projet->all->lire))
 		{
 			$projectstatic=new Project($db);
 			$projectsListId = $projectstatic->getProjectsAuthorizedForUser($user,0,1);
 		}
-	
+
 		// Search all projects
 		$sql = 'SELECT p.rowid, p.ref, p.title, p.fk_soc, p.fk_statut, p.public';
 		$sql.= ' FROM '.MAIN_DB_PREFIX .'projet as p';
@@ -231,8 +235,8 @@
 		if ($socid == 0) $sql.= " AND (p.fk_soc=0 OR p.fk_soc IS NULL)";
 		if ($socid > 0)  $sql.= " AND (p.fk_soc=".$socid." OR p.fk_soc IS NULL)";
 		$sql.= " ORDER BY p.ref ASC";
-	
-	
+
+
 		$resql=$db->query($sql);
 		if ($resql)
 		{
@@ -277,7 +281,7 @@
 								$disabled=1;
 								$labeltoshow.=' - '.$langs->trans("LinkedToAnotherCompany");
 							}
-	
+
 							if ($hideunselectables && $disabled)
 							{
 								$resultat='';
@@ -303,23 +307,23 @@
 			}
 
 			if($conf->cliacropose->enabled) { // TODO c'est naze, à refaire en utilisant la vraie autocompletion dispo depuis dolibarr 3.8 pour utiliser l'auto complete projets de doli si active (j'avais rajouté un script ajax/projects.php pour acropose)
-			
+
 				// Autocomplétion
 				if(isset($selected)) {
-					
+
 					$p = new Project($db);
 					$p->fetch($selected);
 					$selected_value = $p->ref;
-					
+
 				}
-				
+				if(empty($htmlname))$htmlname='fk_project';
 				$out = ajax_autocompleter($selected, $htmlname, DOL_URL_ROOT.'/projet/ajax/projects.php', $urloption, 1);
 				$out .= '<input type="text" size="20" name="search_'.$htmlname.'" id="search_'.$htmlname.'" value="'.$selected_value.'"'.$placeholder.' />';
-				
+
 			}
-			
+
 			$db->free($resql);
-			
+
 			return $out;
 		}
 		else
@@ -334,46 +338,29 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 {
 	global $conf;
 	
+	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
+	
 	$TRes = array();
-	
+
 	if (!$conf->nomenclature->enabled) return $TRes;
-	
+
 	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
-	
+
 	$fk_product = $TAssetOFLine->fk_product ? $TAssetOFLine->fk_product : $fk_product;
-	
+
 	$TNomen = TNomenclature::get($PDOdb, $fk_product);
-	foreach ($TNomen as $TNomenclature) 
+	foreach ($TNomen as $TNomenclature)
 	{
 		$TRes[$TNomenclature->getId()] = !empty($TNomenclature->title) ? $TNomenclature->title : '(sans titre)';
 	}
-	
+
 	return $TRes;
 }
 
 function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 {
-	$qty_to_make = $qty_needed = 0;
-	$sql = 'SELECT (SELECT SUM(aol.qty_used) - SUM(aol.qty_stock) 
-			        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol 
-			        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
-			        	AND aol.fk_product = '.$product->id.' 
-			        	AND aol.type = "TO_MAKE"  
-			        	AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_to_make
-			        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
-			        	FROM '.MAIN_DB_PREFIX.'assetOf_line aol
-						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
-						WHERE aol.fk_product = '.$product->id.'
-						AND aol.type = "NEEDED"
-						AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_needed';
+	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
 	
-	$resql = $db->query($sql);
-	
-	if ($row = $db->fetch_object($resql)) 
-	{
-		$qty_to_make = is_null($row->qty_to_make) ? 0 : $row->qty_to_make;
-		$qty_needed = is_null($row->qty_needed) ? 0 : $row->qty_needed;
-	}
-	
-	return array($qty_to_make, $qty_needed);
+	return TAssetOf::qtyFromOF($product->id);
+
 }

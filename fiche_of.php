@@ -15,6 +15,8 @@ dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
+dol_include_once('/quality/class/quality.class.php'); 
+
 dol_include_once('/asset/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
 if(!$user->rights->of->of->lire) accessforbidden();
@@ -65,6 +67,15 @@ function _action() {
 			$assetOf->load($PDOdb, $_REQUEST['id']);
 
 			_fiche($PDOdb,$assetOf,'edit');
+			break;
+
+		case 'quick-save':
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, GETPOST('id'), false);
+			$assetOf->set_values($_REQUEST);
+
+			$assetOf->save($PDOdb);
+			_fiche($PDOdb,$assetOf, 'view' );
 			break;
 
 		case 'create':
@@ -181,7 +192,7 @@ function _action() {
 
 			// Possibilité qu'un OF reste à l'état VALID si pas assé de quantité en équipement MAIS erreur non bloquante (c'est voulu)
 			if (!empty($assetOf->error)) setEventMessage($assetOf->error, 'errors'); // ->errors est traité dans _fiche()
-			
+
 			$assetOf->load($PDOdb,$id);
 			_fiche($PDOdb, $assetOf, 'view');
 
@@ -217,59 +228,55 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $id_of, false);
 
-			$TOFToGenerate = array($assetOf->rowid);
+			if(empty($conf->global->OF_PRINT_IN_PDF)) {
+				generateODTOF($PDOdb, $assetOf, true);
 
-			if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
-//			var_dump($TOFToGenerate);exit;
-			foreach($TOFToGenerate as $id_of) {
-
-				$assetOf=new TAssetOF;
-				$assetOf->load($PDOdb, $id_of, false);
-				//echo $id_of;
-				$TRes[] = generateODTOF($PDOdb, $assetOf);
-				//echo '...ok<br />';
 			}
+			else {
 
-			$TFilePath = get_tab_file_path($TRes);
-		//	var_dump($TFilePath);exit;
-			if($conf->global->ASSET_CONCAT_PDF) {
-				ob_start();
-				$pdf=pdf_getInstance();
-				if (class_exists('TCPDF'))
-				{
-					$pdf->setPrintHeader(false);
-					$pdf->setPrintFooter(false);
+				$TOFToGenerate = array($assetOf->rowid);
+
+				if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
+	//			var_dump($TOFToGenerate);exit;
+				foreach($TOFToGenerate as $id_of) {
+
+					$assetOf=new TAssetOF;
+					$assetOf->load($PDOdb, $id_of, false);
+					//echo $id_of;
+					$TRes[] = generateODTOF($PDOdb, $assetOf);
+					//echo '...ok<br />';
 				}
-				$pdf->SetFont(pdf_getPDFFont($langs));
 
-				if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
-				//$pdf->SetCompression(false);
-
-				$pagecount = concatPDFOF($pdf, $TFilePath);
-
-				if ($pagecount)
-				{
-					$pdf->Output($TFilePath[0],'F');
-					if (! empty($conf->global->MAIN_UMASK))
+				$TFilePath = get_tab_file_path($TRes);
+			//	var_dump($TFilePath);exit;
+				if($conf->global->ASSET_CONCAT_PDF) {
+					ob_start();
+					$pdf=pdf_getInstance();
+					if (class_exists('TCPDF'))
 					{
-						@chmod($file, octdec($conf->global->MAIN_UMASK));
+						$pdf->setPrintHeader(false);
+						$pdf->setPrintFooter(false);
 					}
+					$pdf->SetFont(pdf_getPDFFont($langs));
+
+					if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
+					//$pdf->SetCompression(false);
+
+					$pagecount = concatPDFOF($pdf, $TFilePath);
+
+					if ($pagecount)
+					{
+						$pdf->Output($TFilePath[0],'F');
+						if (! empty($conf->global->MAIN_UMASK))
+						{
+							@chmod($file, octdec($conf->global->MAIN_UMASK));
+						}
+					}
+					ob_clean();
 				}
-				ob_clean();
+
+				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			}
-
-			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
-
-			break;
-
-		case 'control':
-			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, $_REQUEST['id']);
-
-			$subAction = __get('subAction', false);
-			if ($subAction) $assetOf->updateControl($PDOdb, $subAction);
-
-			_fiche_control($PDOdb, $assetOf);
 
 			break;
 
@@ -342,7 +349,7 @@ function _action() {
 
 
 
-function generateODTOF(&$PDOdb, &$assetOf) {
+function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 	global $db,$conf, $TProductCachegenerateODTOF,$langs;
 
@@ -408,7 +415,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		else{
 			$unitLabel = $langs->transnoentities('unit_s_');
 		}
-		
+
 		$TAsset = $v->getAssetLinked($PDOdb);
 		if($v->type == "TO_MAKE") {
 			$TToMake[] = array(
@@ -508,10 +515,10 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 	$barcode_pic = getBarCodePicture($assetOf);
 //var_dump($TToMake);
-	
+
 	$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
 	if (!file_exists($locationTemplate)) $locationTemplate = dol_buildpath('/of/exempleTemplate/'.$template);
-	
+
 	$file_path = $TBS->render($locationTemplate
 		,array(
 			'lignesToMake'=>$TToMake
@@ -543,16 +550,20 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		,array()
 		,array(
 			'outFile'=>$dir.$assetOf->numero.".odt"
-			,"convertToPDF"=>true
+			,"convertToPDF"=>(!empty($conf->global->OF_PRINT_IN_PDF))
 			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 
 	);
 
-	return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
+	if($direct) {
+		if (!empty($conf->global->OF_PRINT_IN_PDF)) header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
+		else header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".odt");
 
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$dirName."/".$assetOf->numero.".pdf");
-	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
+	}
+	else {
+		return array('file_path'=>$file_path, 'dir_name'=>$dirName, 'num_of'=>$assetOf->numero);
+	}
 
 }
 
@@ -566,7 +577,7 @@ function _getSerialNumbers($TAsset)
 			$str.= '- ['.$asset->lot_number.'] '.$asset->serial_number."\n";
 		}
 	}
-		
+
 	return $str;
 }
 
@@ -667,10 +678,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
         if($TAssetOFLine->type == 'NEEDED' && $type == 'NEEDED'){
 			$stock_needed = TAssetOF::getProductStock($product->id);
-
-			$product->load_stock();
-			list($total_qty_tomake, $total_qty_needed) = _calcQtyOfProductInOf($db, $conf, $product);
-			$stock_theo = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
+			$stock_theo = TAssetOF::getProductStock($product->id,0,true,true);
 
 			$label = $product->getNomUrl(1).' '.$product->label;
 			$label.= ' - '.$langs->trans("Stock") . ' : ' . ($stock_needed>0 ? $stock_needed : '<span style="color:red;font-weight:bold;">'.$stock_needed.'</span>');
@@ -689,7 +697,7 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
-                	,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
+		                	,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
 			);
 
 			$action = $form->type_aff;
@@ -781,7 +789,7 @@ function _fiche_ligne(&$form, &$of, $type){
 							$nomenclature .= '<a href="#" class="valider_nomenclature" data-id_of="' . $of->getId() . '" data-product="' . $TAssetOFLine->fk_product . '" data-of_line="' . $TAssetOFLine->rowid . '">'.$langs->trans('OFValidate').'</a>';
 						}
 						else {
-							$nomenclature .= " - ".$langs->trans('NomenclatureToSelect');
+							$nomenclature .= ' - <span class="error">'.img_picto('','warning').' '.$langs->trans('NomenclatureToSelect').' '.img_picto('','warning').'</span>';
 						}
 
 						$nomenclature.='</div>';
@@ -976,7 +984,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
 				,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) ). (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ))
 				,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real)) . (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ) )
-				,'nb_days_before_beginning'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
+				,'nb_days_before_beginning'=>($assetOf->status!='CLOSE' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
 				,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 				,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
 				,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang
@@ -990,6 +998,19 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 	$commande=new Commande($db);
 	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
+
+	$select_commande = '';
+	$resOrder = $db->query("SELECT rowid, ref,fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
+	if($resOrder === false ) {
+		var_dump($db);exit;
+	}
+	$TIdCommande=array();
+	while($obj = $db->fetch_object($resOrder)) {
+		$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')':'');
+	}
+	if(!empty($TIdCommande)) {
+		$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
+	}
 
 	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
 
@@ -1031,7 +1052,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					'id'=> $assetOf->getId()
 					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
 						,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-					,'fk_commande'=>($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1)
+					,'fk_commande'=>($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1))
 					//,'statut_commande'=> $commande->getLibStatut(0)
 					,'commande_fournisseur'=>$HtmlCmdFourn
 					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
@@ -1096,89 +1117,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	);
 
 	echo $form->end_form();
-
-	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
-}
-
-function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
-{
-	$res = array();
-
-	if ($assetOf == -1)
-	{
-		$sql = 'SELECT rowid as id, libelle, question, type, "" as response, "" as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control WHERE rowid NOT IN (SELECT fk_control FROM '.MAIN_DB_PREFIX.'assetOf_control WHERE fk_assetOf ='.(int) $fk_assetOf.')';
-	}
-	else
-	{
-		if (empty($assetOf->TQualityControlAnswer)) return $res;
-
-		$ids = array();
-		foreach ($assetOf->TQualityControlAnswer as $ofControl)
-		{
-			$ids[] = $ofControl->getId();
-		}
-
-		$sql = 'SELECT c.rowid as id, c.libelle, c.question, c.type, ofc.response, ofc.rowid as id_assetOf_control FROM '.MAIN_DB_PREFIX.'asset_control c';
-		$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf_control ofc ON (ofc.fk_control = c.rowid)';
-		$sql.= ' WHERE ofc.rowid IN ('.implode(',', $ids).')';
-
-	}
-
-	$PDOdb->Execute($sql);
-	while ($PDOdb->Get_line())
-	{
-		$res[] = array(
-			'id' => $PDOdb->Get_field('id')
-			,'libelle' => '<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id='.$PDOdb->Get_field('id').'">'.$PDOdb->Get_field('libelle').'</a>'
-			,'type' => TQualityControl::$TType[$PDOdb->Get_field('type')]
-			,'action' => '<input type="checkbox" value="'.$PDOdb->Get_field('id').'" name="TControl[]" />'
-			,'question' => $PDOdb->Get_field('question')
-			,'response' => ($assetOf == -1 ? '' : $assetOf->generate_visu_control_value($PDOdb->Get_field('id'), $PDOdb->Get_field('type'), $PDOdb->Get_field('response'), 'TControlResponse['.$PDOdb->Get_field('id_assetOf_control').'][]'))
-			,'delete' => '<input type="checkbox" value="'.$PDOdb->Get_field('id_assetOf_control').'" name="TControlDelete[]" />'
-		);
-	}
-
-	return $res;
-}
-
-function _fiche_control(&$PDOdb, &$assetOf)
-{
-	global $langs,$db,$conf;
-
-	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'controle', $langs->trans('OFAsset'));
-
-	/******/
-	$TBS=new TTemplateTBS();
-	$TBS->TBS->protect=false;
-	$TBS->TBS->noerr=true;
-
-	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'POST');
-	$form->Set_typeaff('view');
-
-	$TControl = _fiche_ligne_control($PDOdb, $assetOf->getId());
-	$TQualityControlAnswer = _fiche_ligne_control($PDOdb, $assetOf->getId(), $assetOf);
-
-	print $TBS->render('tpl/fiche_of_control.tpl.php'
-		,array(
-			'TControl'=>$TControl
-			,'TQualityControlAnswer'=>$TQualityControlAnswer
-		)
-		,array(
-			'assetOf'=>array(
-				'id'=>(int) $assetOf->getId()
-			)
-			,'view'=>array(
-				'nbTControl'=>count($TControl)
-				,'nbTQualityControlAnswer'=>count($TQualityControlAnswer)
-				,'url'=>DOL_URL_ROOT.'/custom/of/fiche_of.php'
-			)
-		)
-	);
-
-	$form->end();
-
-	/******/
 
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
