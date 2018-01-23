@@ -3130,3 +3130,5 @@ class TAssetWorkstationTask extends TObjetStd
 
 }
 
+
+
