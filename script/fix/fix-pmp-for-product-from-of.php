@@ -2,6 +2,12 @@
 require '../../config.php';
 set_time_limit ( 0 );
 
+if(GETPOST('forReal')=='') {
+
+        echo '<strong>Pour de vrai : ?forReal=1 </strong>';
+
+}
+
 $db->query ( "SET sql_mode=''");
 $res = $db->query ( "SELECT p.rowid,p.pmp,l.rowid as idLine, l.fk_assetof
     		FROM " . MAIN_DB_PREFIX . "product p 
