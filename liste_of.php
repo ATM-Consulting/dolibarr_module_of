@@ -579,6 +579,38 @@ function _liste(&$PDOdb)
 		echo '</div>';
 
 	}
+	
+	if($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status'] == 'OPEN') {
+	
+		dol_include_once('/of/class/of_amount.class.php');
+		
+		$aa=new AssetOFAmounts($db);
+		
+		$sql = "SELECT date, amount_estimated,amount_real FROM ".MAIN_DB_PREFIX.$aa->table_element;
+		$orderBy['date']='DESC';
+		$l=new TListviewTBS('listOFAmountsHistory');
+		
+		echo $l->render($PDOdb, $sql, array(
+				'limit'=>array(
+						'nbLine'=>$conf->liste_limit
+				)
+				,'liste'=>array(
+					'titre'=>$langs->trans('listOFAmountsHistory')
+						
+				)
+				,'orderBy'=>$orderBy
+				,'type'=>array(
+						'date'=>'date'
+						,'amount_estimated'=>'number'
+						,'amount_real'=>'number'
+				)
+				,'title'=>array(
+						'date'=>$langs->trans('Date')
+						,'amount_real'=>$langs->trans('RealCost')
+						,'amount_estimated'=>$langs->trans('EstimatedCost')
+				)
+		));
+	}
 
 	$PDOdb->close();
 	llxFooter('');

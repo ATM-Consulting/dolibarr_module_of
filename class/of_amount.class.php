@@ -35,6 +35,8 @@ class AssetOFAmounts extends SeedObject {
 		
 		$db = & $this->db;
 		
+		$db->query("DELETE FROM ".MAIN_DB_PREFIX.$this->table_element." WHERE date LIKE '".date('Y-m-d')."%'");
+		
 		$res = $db->query("SELECT SUM(total_estimated_cost) as amount_estimated
 					,SUM(total_cost) as amount_real
 					,SUM(total_estimated_cost - total_cost) as amount_diff
