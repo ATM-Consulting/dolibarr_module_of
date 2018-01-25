@@ -59,7 +59,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module of";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.5.0';
+		$this->version = '1.6.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -448,6 +448,8 @@ class modof extends DolibarrModules
 	 */
 	function init($options='')
 	{
+		global $user;
+		
 		$sql = array();
 
 		define('INC_FROM_DOLIBARR',true);
@@ -483,6 +485,51 @@ class modof extends DolibarrModules
 			}
 		}
 
+		$TCron = array(array(
+				'label' => 'Stockage encours OFs',
+				'jobtype' => 'method',
+				'frequency' => 86400,
+				'unitfrequency' => 86400,
+				'status' => 1,
+				'module_name' => 'of',
+				'classesname' => 'of/class/of_amount.class.php',
+				'objectname' => 'AssetOFAmounts',
+				'methodename' => 'stockCurrentAmount',
+				'params' => '',
+				'datestart' => time()
+		));
+		
+		dol_include_once('/cron/class/cronjob.class.php');
+		
+		foreach($TCron as $cronvalue) {
+			
+			$req = "
+				SELECT rowid
+				FROM " . MAIN_DB_PREFIX . "cronjob
+				WHERE classesname = '" . $cronvalue['classesname'] . "'
+				AND module_name = '" . $cronvalue['module_name'] . "'
+				AND objectname = '" . $cronvalue['objectname'] . "'
+				AND methodename = '" . $cronvalue['methodename'] . "'
+			";
+			
+			$res = $this->db->query($req);
+			$job = $this->db->fetch_object($res);
+			
+			if (empty($job->rowid)) {
+				$cronTask = new Cronjob($this->db);
+				foreach ($cronvalue as $key => $value) {
+					$cronTask->{$key} = $value;
+				}
+				
+				$res = $cronTask->create($user);
+				if($res<=0) {
+					var_dump($res,$cronTask);
+					exit;
+				}
+			}
+			
+		}
+		
 		return $this->_init($sql, $options);
 	}
 
