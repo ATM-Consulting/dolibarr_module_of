@@ -587,18 +587,15 @@ function _liste(&$PDOdb)
 		$aa=new AssetOFAmounts($db);
 		
 		$sql = "SELECT date, amount_estimated,amount_real FROM ".MAIN_DB_PREFIX.$aa->table_element;
-		$orderBy['date']='DESC';
-		$l=new TListviewTBS('listOFAmountsHistory');
+		$l=new Listview($db,'listOFAmountsHistory');
 		
-		echo $l->render($PDOdb, $sql, array(
-				'limit'=>array(
-						'nbLine'=>$conf->liste_limit
-				)
-				,'liste'=>array(
-					'titre'=>$langs->trans('listOFAmountsHistory')
+		echo $l->render($sql, array(
+				'list'=>array(
+					'title'=>$langs->trans('listOFAmountsHistory')
 						
 				)
-				,'orderBy'=>$orderBy
+				,'sortfield'=>'date'
+				,'sortorder'=>'DESC'
 				,'type'=>array(
 						'date'=>'date'
 						,'amount_estimated'=>'number'
