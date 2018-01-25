@@ -420,7 +420,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		if($v->type == "TO_MAKE") {
 			$TToMake[] = array(
 				'type' => $v->type
-				, 'qte' => $qty.' '.utf8_decode($unitLabel)
+				, 'qte' => $v->qty.' '.utf8_decode($unitLabel) //pour les TO_MAKE, c forcément qty (valeur écran) qui est ok
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode(dol_string_nohtmltag($prod->label))
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
