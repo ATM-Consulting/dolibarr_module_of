@@ -2,13 +2,19 @@
 require '../../config.php';
 set_time_limit ( 0 );
 
+if(GETPOST('forReal')=='') {
+
+        echo '<strong>Pour de vrai : ?forReal=1 </strong>';
+
+}
+
 $db->query ( "SET sql_mode=''");
 $res = $db->query ( "SELECT p.rowid,p.pmp,l.rowid as idLine, l.fk_assetof
     		FROM " . MAIN_DB_PREFIX . "product p 
     			INNER JOIN " . MAIN_DB_PREFIX . "assetOf_line l ON (l.fk_product=p.rowid)
 					INNER JOIN " . MAIN_DB_PREFIX . "assetOf of ON (l.fk_assetof=of.rowid)
     		WHERE l.type='TO_MAKE' AND of.status='CLOSE'
-    		GROUP BY p.rowid
+    	
     	ORDER BY l.fk_assetof ASC " );
 if ($res === false) {
 	var_dump ( $db );
@@ -62,7 +68,7 @@ while ( $obj = $db->fetch_object ( $res ) ) {
 
 if(GETPOST('forReal')=='') {
 	
-	echo 'Pour continuer : ?forReal=1 ';
+	echo 'Pour continuer : ?forReal=1 <br />';
 	
 	pre($TPMP, 1);
 	
