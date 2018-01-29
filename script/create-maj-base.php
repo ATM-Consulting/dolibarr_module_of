@@ -41,5 +41,7 @@
 	$o=new TAssetWorkstationTask;
 	$o->init_db_by_vars($ATMdb);
 	
+	dol_include_once('/of/class/of_amount.class.php');
 	
-	
+	$o=new AssetOFAmounts($db);
+	$o->init_db_by_vars();
