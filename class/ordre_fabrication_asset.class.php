@@ -194,14 +194,14 @@ class TAssetOF extends TObjetStd{
 										// a priori la tâche devrait exister, donc on test
 										$wsof->save($PDOdb);
 									}
-
-									if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
+									
+									if($ws->id == $wsof->fk_asset_workstation/* && $wsof->fk_project_task>0 */&& ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
 										if($ws->type == 'STT') {
 											$wsof->nb_hour_manufacture = $nb * 7; //TODO debug 
 										}
 										else if($wsof->nb_days_before_beginning < $nb) $wsof->nb_days_before_beginning = $nb;
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
-
+										
 									}
 								}
 							}
