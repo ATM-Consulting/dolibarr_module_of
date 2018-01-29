@@ -780,7 +780,7 @@ class TAssetOF extends TObjetStd{
 		$product = new Product($db);
 		$product->fetch($fk_product);
 
-		if($product->id<=0) {
+		if($product->id<=0 || $product->type>0) {
 			 return 0;
 		}
 
@@ -1969,11 +1969,12 @@ class TAssetOFLine extends TObjetStd{
 		if(!empty($conf->supplierorderfromorder->enabled) && $this->type=='NEEDED') {
 
 			$stock_needed = TAssetOF::getProductStock($this->fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK));
-			
+
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
 				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
+//		var_dump($nb, $this->qty_needed);exit;
 				return $nb;
 			}
 
