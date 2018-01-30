@@ -186,7 +186,7 @@ class TAssetOF extends TObjetStd{
 
 						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
 							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
-
+//var_dump($nb);
 							foreach($ofLine->TWorkstation as &$ws) {
 								foreach($of->TAssetWorkstationOF as &$wsof) {
 
@@ -1973,7 +1973,7 @@ class TAssetOFLine extends TObjetStd{
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
-				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
+				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed,true);
 //		var_dump($nb, $this->qty_needed);exit;
 				return $nb;
 			}
