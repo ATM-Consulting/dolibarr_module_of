@@ -186,7 +186,7 @@ class TAssetOF extends TObjetStd{
 
 						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
 							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
-
+//var_dump($nb);
 							foreach($ofLine->TWorkstation as &$ws) {
 								foreach($of->TAssetWorkstationOF as &$wsof) {
 
@@ -194,11 +194,14 @@ class TAssetOF extends TObjetStd{
 										// a priori la tâche devrait exister, donc on test
 										$wsof->save($PDOdb);
 									}
-
-									if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
-										if($wsof->nb_days_before_beginning < $nb) $wsof->nb_days_before_beginning = $nb;
+									
+									if($ws->id == $wsof->fk_asset_workstation/* && $wsof->fk_project_task>0 */&& ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
+										if($ws->type == 'STT') {
+											$wsof->nb_hour_manufacture = $nb * 7; //TODO debug 
+										}
+										else if($wsof->nb_days_before_beginning < $nb) $wsof->nb_days_before_beginning = $nb;
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
-
+										
 									}
 								}
 							}
@@ -585,11 +588,12 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
+		
 		foreach($Tab as $fk_product => $TProd)
 		{
 		    foreach ($TProd as $prod)
-			{
-				$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private , $prod->workstations);
+		    {
+		    	$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private , $prod->workstations);
 
 				if (!empty($conf->global->CREATE_CHILDREN_OF))
 				{
@@ -650,7 +654,10 @@ class TAssetOF extends TObjetStd{
 			// var_dump($TRes);
 			$this->getProductComposition_arrayMerge($PDOdb,$Tab, $TRes, $quantite_to_make);
 		}
-
+		/*if($id_product==2) {
+			
+			var_dump($Tab);exit;
+		}*/
 		return $Tab;
 	}
 
@@ -777,7 +784,7 @@ class TAssetOF extends TObjetStd{
 		$product = new Product($db);
 		$product->fetch($fk_product);
 
-		if($product->id<=0) {
+		if($product->id<=0 || $product->type>0) {
 			 return 0;
 		}
 
@@ -1966,11 +1973,12 @@ class TAssetOFLine extends TObjetStd{
 		if(!empty($conf->supplierorderfromorder->enabled) && $this->type=='NEEDED') {
 
 			$stock_needed = TAssetOF::getProductStock($this->fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK));
-			
+
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
-				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed);
+				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed,true);
+//		var_dump($nb, $this->qty_needed);exit;
 				return $nb;
 			}
 
@@ -2383,16 +2391,20 @@ class TAssetOFLine extends TObjetStd{
          * le fait de delete l'OF on va donc delete chacun de ses enfants TAssetOFLine
          * seulement un objet TAssetOFLine de type TO_MAKE a aussi des enfants TAssetOFLine
          */
-		if ($this->type == 'TO_MAKE') $this->withChild = false;
+		unset($this->TAssetOFLine);  //le delete de l'enfant est déjà fait par la liaison parent/enfant OF
 
 		parent::delete($PDOdb);
 	}
 
-	function set_workstations(&$PDOdb, &$TWorkstations)
+	function set_workstations(&$PDOdb, $TWorkstations)
 	{
 
 		if (empty($TWorkstations)) return false;
 
+		if(empty($this->id)) {
+			$this->id = $this->save($PDOdb);
+		}
+		
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 		$PDOdb->Execute($sql);
 
@@ -2410,7 +2422,7 @@ class TAssetOFLine extends TObjetStd{
 			$save = true;
 
 			$sql.= '(';
-			$sql.= (int) $this->rowid.',';
+			$sql.= (int) $this->id.',';
 			$sql.= $PDOdb->quote('tassetofline').',';
 			$sql.= (int) $id_workstation.',';
 			$sql.= $PDOdb->quote('tassetworkstation');
@@ -2422,6 +2434,7 @@ class TAssetOFLine extends TObjetStd{
 			$sql = rtrim($sql, ',');
 
 			$PDOdb->Execute($sql);
+			
 		}
 	}
 
@@ -2511,7 +2524,7 @@ class TAssetOFLine extends TObjetStd{
 	function save(&$PDOdb)
 	{
 		global $user,$langs,$conf,$db;
-
+		
 		$this->entity = $conf->entity;
 
         if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile
