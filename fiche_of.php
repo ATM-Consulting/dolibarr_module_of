@@ -214,8 +214,10 @@ function _action() {
 
 			//$PDOdb->db->debug=true;
 			$assetOf->delete($PDOdb);
-
-
+			
+			
+			setEventMessage($langs->trans('OFAssetDeleted', $assetOf->ref));
+			
 			header('Location: '.dol_buildpath('/of/liste_of.php?delete_ok=1',1));
 			exit;
 

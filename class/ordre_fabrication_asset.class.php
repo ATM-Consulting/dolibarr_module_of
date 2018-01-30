@@ -79,6 +79,8 @@ class TAssetOF extends TObjetStd{
 
 		$res = parent::load($db,$id,true);
 
+		$this->ref = $this->numero; //for dolibarr compatibility
+		
 		$this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
