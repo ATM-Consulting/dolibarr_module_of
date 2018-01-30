@@ -2391,7 +2391,7 @@ class TAssetOFLine extends TObjetStd{
          * le fait de delete l'OF on va donc delete chacun de ses enfants TAssetOFLine
          * seulement un objet TAssetOFLine de type TO_MAKE a aussi des enfants TAssetOFLine
          */
-		if ($this->type == 'TO_MAKE') $this->withChild = false;
+		unset($this->TAssetOFLine);  //le delete de l'enfant est déjà fait par la liaison parent/enfant OF
 
 		parent::delete($PDOdb);
 	}
