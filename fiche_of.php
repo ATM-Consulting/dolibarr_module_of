@@ -108,7 +108,7 @@ function _action() {
 					if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 					{
 						$assetOf->TAssetOFLine[$k]->set_workstations($PDOdb, $row['fk_workstation']);
-						unset($row['fk_workstation']);
+						//unset($row['fk_workstation']);
 					}
 
 					$assetOf->TAssetOFLine[$k]->set_values($row);
