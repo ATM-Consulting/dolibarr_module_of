@@ -1979,7 +1979,9 @@ class TAssetOFLine extends TObjetStd{
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
-				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed,true);
+				
+				$qty = $this->qty_needed>0 ? $this->qty_needed : 1;
+				$nb = TSOFO::getMinAvailability($this->fk_product, $qty,true);
 //		var_dump($nb, $this->qty_needed);exit;
 				return $nb;
 			}
