@@ -2676,6 +2676,8 @@ class TAssetWorkstationOF extends TObjetStd{
 		$ws = new TAssetWorkstation;
 		$ws->load($PDOdb, $this->fk_asset_workstation);
 
+		if($ws->id<=0 || $OF->fk_project<=0) return false;
+		
 		$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
 		$modTask = new $class_mod;
 
