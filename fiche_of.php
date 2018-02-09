@@ -181,6 +181,22 @@ function _action() {
 
 			break;
 
+		case 'reload_pmp':
+			$assetOf=new TAssetOF;
+			$id = GETPOST('id');
+			if(empty($id)) exit('Where is Waldo ?');
+			
+			$assetOf->load($PDOdb, $id);
+			$assetOf->set_fourniture_cost(true);
+			$assetOf->save($PDOdb);
+			
+			setEventMessage($langs->trans("pmpReloaded"));
+			
+			header("location:".$_SERVER['PHP_SELF']."?id=".$id);
+			exit;
+			
+			break;
+			
 		case 'lancer':
 			$assetOf=new TAssetOF;
             $id = GETPOST('id');

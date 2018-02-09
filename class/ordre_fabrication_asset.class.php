@@ -253,7 +253,7 @@ class TAssetOF extends TObjetStd{
 
 	}
 
-	function set_fourniture_cost() {
+	function set_fourniture_cost($force_pmp=false) {
 
 		$this->compo_cost = 0;
 		$this->compo_estimated_cost = 0;
@@ -263,9 +263,9 @@ class TAssetOF extends TObjetStd{
 			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
 
 			if($line->type == 'NEEDED') {
-
-				if(empty($line->pmp)) $line->load_product();
-
+				
+				if(empty($line->pmp) || $force_pmp) $line->load_product($force_pmp);
+				
 				$line->compo_cost = $line->pmp;
 				$line->compo_estimated_cost= $line->pmp; //TODO affiner
 				$line->compo_planned_cost= $line->pmp; //TODO affiner
@@ -1979,7 +1979,9 @@ class TAssetOFLine extends TObjetStd{
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
-				$nb = TSOFO::getMinAvailability($this->fk_product, $this->qty_needed,true);
+				
+				$qty = $this->qty_needed>0 ? $this->qty_needed : 1;
+				$nb = TSOFO::getMinAvailability($this->fk_product, $qty,true);
 //		var_dump($nb, $this->qty_needed);exit;
 				return $nb;
 			}
@@ -2326,23 +2328,23 @@ class TAssetOFLine extends TObjetStd{
 		return $res;
 	}
 
-	function load_product() {
+	function load_product($force_pmp = false) {
 		global $db,$conf;
 
 		if($this->fk_product>0) {
 			dol_include_once('/product/class/product.class.php');
 
 			$this->product = new Product($db);
-           		$this->product->fetch($this->fk_product);
+           	$this->product->fetch($this->fk_product);
 
-			if(empty($this->pmp)) {
+           	if($force_pmp || empty($this->pmp)) {
 				if(!empty($conf->nomenclature->enabled)) {
 					dol_include_once('/nomenclature/class/nomenclature.class.php');
 					$nd = new TNomenclatureDet();
 					$nd->fk_product = $this->fk_product;
 					$PDOdb=new TPDOdb();
 					$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
-
+					
 				}
 				else {
 					$this->product = new Product($db);

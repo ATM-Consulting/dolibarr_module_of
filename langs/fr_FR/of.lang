@@ -304,3 +304,6 @@ OF_PRINT_IN_PDF=Imprimer en PDF (nécessite la présence de libreoffice sur le s
 SearchIntoOf=Ordres de fabrication
 
 listOFAmountsHistory=Historique des montants d'encours de production
+ReloadPriceFourn=Etes-vous sûr de vouloir actualiser les prix des fournitures
+ReloadPrice=Actualiser prix
+pmpReloaded=Prix des fournitures actualisé
