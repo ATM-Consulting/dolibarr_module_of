@@ -488,7 +488,7 @@ class modof extends DolibarrModules
 		$TCron = array(array(
 				'label' => 'Stockage encours OFs',
 				'jobtype' => 'method',
-				'frequency' => 86400,
+				'frequency' => 1,
 				'unitfrequency' => 86400,
 				'status' => 1,
 				'module_name' => 'of',

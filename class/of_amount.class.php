@@ -42,7 +42,7 @@ class AssetOFAmounts extends SeedObject {
 					,SUM(total_estimated_cost - total_cost) as amount_diff
 
 			FROM ".MAIN_DB_PREFIX."assetOf
-			WHERE status='OPEN'");
+			WHERE status IN('OPEN','ONORDER')");
 		
 		$obj = $db->fetch_object($res);
 		
