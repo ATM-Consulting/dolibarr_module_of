@@ -199,9 +199,11 @@ class TAssetOF extends TObjetStd{
 									
 									if($ws->id == $wsof->fk_asset_workstation/* && $wsof->fk_project_task>0 */&& ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
 										if($ws->type == 'STT') {
-											$wsof->nb_hour_manufacture = $nb * 7; //TODO debug 
+											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug 
 										}
-										else if($wsof->nb_days_before_beginning < $nb) $wsof->nb_days_before_beginning = $nb;
+										else if($wsof->nb_days_before_beginning < $nb) {
+											$wsof->nb_days_before_beginning = $nb;
+										}
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
 										
 									}
@@ -2746,6 +2748,8 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
+
+		if($projectTask->planned_workload<=0)  $projectTask->planned_workload = $this->nb_hour*3600;
 
 		if(empty($conf->gantt->enabled)) {
 			$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
