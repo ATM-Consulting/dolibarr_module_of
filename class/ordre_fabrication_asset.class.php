@@ -2546,6 +2546,8 @@ class TAssetOFLine extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 
+		unset($this->TAssetOFLine); // on ne doit pas intéragir avec la ligne enfant de celle-ci (problème d'intrications récurssives)
+		
 		return parent::save($PDOdb);
 	}
 
