@@ -423,6 +423,10 @@ class TAssetOF extends TObjetStd{
 
 			if( $this->date_lancement < $time ) $this->date_lancement = $time;
 
+			$time_child = $this->getMaxDelaiLanchementForChild($PDOdb);
+			
+			if( $this->date_lancement < $time_child ) $this->date_lancement = $time_child;
+			
 			$PDOdb->dbupdate($this->get_table(), array('date_lancement'=>date('Y-m-d', $this->date_lancement),'rowid'=>$this->getId()),array('rowid'));
 
 		}
@@ -431,6 +435,17 @@ class TAssetOF extends TObjetStd{
 
 	}
 
+	function getMaxDelaiLanchementForChild(&$PDOdb) {
+	
+	    $PDOdb->Execute("SELECT max(date_lancement) as date_lancement FROM ".$this->get_table()." WHERE fk_assetOf_parent=".$this->getId());
+	    if($obj = $PDOdb->Get_line()) {
+	        return strtotime($obj->date_lancement);
+	        
+	    }
+	    
+	    return -1;
+	}
+	
 	function setDelaiLancementForParent(&$PDOdb) {
 //var_dump($this->fk_assetOf_parent);exit;
 //		return false;
@@ -2546,7 +2561,7 @@ class TAssetOFLine extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 
-		unset($this->TAssetOFLine); // on ne doit pas intéragir avec la ligne enfant de celle-ci (problème d'intrications récurssives)
+		$this->TAssetOFLine=array(); // on ne doit pas intéragir avec la ligne enfant de celle-ci (problème d'intrications récurssives)
 		
 		return parent::save($PDOdb);
 	}
