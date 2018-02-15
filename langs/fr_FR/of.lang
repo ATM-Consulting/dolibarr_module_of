@@ -307,3 +307,4 @@ listOFAmountsHistory=Historique des montants d'encours de production
 ReloadPriceFourn=Etes-vous sûr de vouloir actualiser les prix des fournitures
 ReloadPrice=Actualiser prix
 pmpReloaded=Prix des fournitures actualisé
+NeededDateCantBeSatisfied=La date du besoin ne peut-être respecté (lancement trop tardif)

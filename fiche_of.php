@@ -1074,7 +1074,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					//,'statut_commande'=> $commande->getLibStatut(0)
 					,'commande_fournisseur'=>$HtmlCmdFourn
 					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
-					,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12)
+					,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
 					,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
 					,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
 
