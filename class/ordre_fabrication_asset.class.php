@@ -30,7 +30,7 @@ class TAssetOF extends TObjetStd{
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
-		$this->add_champs('date_besoin,date_lancement','type=date;');
+		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
 		$this->add_champs('note','type=text;');
 		$this->_init_vars();
 		$this->start();
@@ -43,7 +43,7 @@ class TAssetOF extends TObjetStd{
 		$this->setChild('TAssetOF','fk_assetOf_parent');
 
 		$this->date_besoin = time();
-		$this->date_lancement = 0;
+		$this->date_lancement = $this->date_start = $this->date_end = 0;
 
 		//Tableau d'erreurs
 		$this->errors = array();
@@ -1033,7 +1033,7 @@ class TAssetOF extends TObjetStd{
 	{
 	    global $langs, $conf, $db, $user;
 
-		dol_include_once('/projet/class/task.class.php');
+	    dol_include_once('/projet/class/task.class.php');
 		dol_include_once('/product/class/product.class.php');
 
 		$TIDOFToValidate = array($this->rowid);
@@ -1044,7 +1044,8 @@ class TAssetOF extends TObjetStd{
 		{
 			$of = new TAssetOF;
 			$of->load($PDOdb, $id_of);
-
+			$of->date_end = time();
+			
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
 
@@ -1136,7 +1137,7 @@ class TAssetOF extends TObjetStd{
 
 			$of = new TAssetOF;
 			$of->load($PDOdb, $id_of);
-
+			$of->date_start = time();
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'VALID') continue;
 
