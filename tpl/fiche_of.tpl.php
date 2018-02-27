@@ -124,7 +124,7 @@
 									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
 									[onshow;block=end]
-
+										[TTomake.extrafields;strconv=no]
 									</td>
 									<td>[TTomake.qty;strconv=no]</td>
 									<td>[TTomake.qty_used;strconv=no]</td>

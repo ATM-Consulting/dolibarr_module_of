@@ -248,6 +248,40 @@ $var=!$var;
     print ajax_constantonoff('OF_SHOW_QTY_THEORIQUE_MOINS_OF');
     print '</td></tr>';
 	
+    $var=!$var;
+    print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_SHOW_LINE_ORDER_EXTRAFIELD');
+    print '</td></tr>';
+    
+    if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD)) {
+        
+        
+        $var=!$var;
+        print '<tr '.$bc[$var].'>';
+        print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM").'</td>';
+        print '<td align="center" width="20">&nbsp;</td>';
+        print '<td align="right" width="300" style="white-space:nowrap;">';
+        print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+        print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+        print '<input type="hidden" name="action" value="set_OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM">';
+        print $formCore->texte('', 'OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM', (empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM) ? '' : $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM), 80,255,' placeholder="" ');
+        print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+        print '</form>';
+        print '</td></tr>';
+        
+    }
+    
+    $var=!$var;
+    print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK');
+    print '</td></tr>';
+    
    $var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
