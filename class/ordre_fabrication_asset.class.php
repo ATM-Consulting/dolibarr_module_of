@@ -423,7 +423,7 @@ class TAssetOF extends TObjetStd{
 
 			if( $this->date_lancement < $time ) $this->date_lancement = $time;
 
-			$time_child = $this->getMaxDelaiLanchementForChild($PDOdb);
+			$time_child = $this->getMaxDelaiLancementForChild($PDOdb);
 			
 			if( $this->date_lancement < $time_child ) $this->date_lancement = $time_child;
 			
@@ -435,7 +435,7 @@ class TAssetOF extends TObjetStd{
 
 	}
 
-	function getMaxDelaiLanchementForChild(&$PDOdb) {
+	function getMaxDelaiLancementForChild(&$PDOdb) {
 	
 	    $PDOdb->Execute("SELECT max(date_lancement) as date_lancement FROM ".$this->get_table()." WHERE fk_assetOf_parent=".$this->getId());
 	    if($obj = $PDOdb->Get_line()) {
