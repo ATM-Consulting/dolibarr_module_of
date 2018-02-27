@@ -657,6 +657,37 @@ function get_tab_file_path($TRes) {
 
 }
 
+function _get_line_order_extrafields($fk_commandedet) {
+    global $db, $langs,$conf;
+    
+    if($fk_commandedet<=0) return '';
+    
+    dol_include_once('/commande/class/commande.class.php');
+    
+    $line = new OrderLine($db);
+    $line->fetch_optionals($fk_commandedet);
+    
+    $extrafieldsline = new ExtraFields($db);
+    $extrafieldsline->fetch_name_optionals_label($line->table_element);
+    
+    if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM)) {
+        $TIn = explode(',', $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM);
+        
+        foreach($extrafieldsline->attribute_label as $field=>$data) {
+            
+            if(!in_array($field, $TIn)) {
+                unset($extrafieldsline->attribute_label[$field]);
+                
+            }
+            
+        }
+        
+    }
+    
+    return '<table class="noborder">'.$line->showOptionals($extrafieldsline,'view',array('style'=>'oddeven','colspan'=>1)).'</table>';
+    
+}
+
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs,$hookmanager,$user;
 //TODO rules guys ! To Facto ! AA
@@ -715,7 +746,8 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'workstations'=> $conf->workstation->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
-		                	,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
+		            ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
+			        
 			);
 
 			$action = $form->type_aff;
@@ -843,6 +875,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
+			    ,'extrafields'=>(empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD) ? '' : _get_line_order_extrafields($TAssetOFLine->fk_commandedet))
 			);
 
 

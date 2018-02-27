@@ -2733,13 +2733,31 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		$projectTask->planned_workload = $this->nb_hour*3600;
 
-        	$projectTask->array_options['options_grid_use']=1;
-        	$projectTask->array_options['options_fk_workstation']=$ws->getId();
+		$line_product_to_make = $OF->getLineProductToMake();
+		
+		if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK)) {
+		    
+		    if(!empty($line_product_to_make) && $line_product_to_make->fk_commandedet>0) {
+		    
+    		    dol_include_once('/commande/class/commande.class.php');
+    		    
+    		    $line = new OrderLine($db);
+    		    $line->fetch_optionals($line_product_to_make->fk_commandedet);
+    		    
+    		    $projectTask->array_options = $line->array_options;
+    		    
+		    }
+		    
+		}
+		
+		
+       	$projectTask->array_options['options_grid_use']=1;
+       	$projectTask->array_options['options_fk_workstation']=$ws->getId();
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
 		$projectTask->date_c=dol_now();
-
+		
 		$p = new Product($db);
-		$line_product_to_make = $OF->getLineProductToMake();
+		
 		if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
 			$projectTask->array_options['options_fk_product']=$p->id;
 		}
