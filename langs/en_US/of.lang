@@ -287,3 +287,4 @@ EstimatedMakeTime=Estimated production time
 RealMakeTime=Real time manufacturing
 EstimatedProducCost=Estimate of manufacturing cost
 RealProducCost=Actual manufacturing cost
+OF_SHOW_WS_IN_LIST=Show worstations into of list

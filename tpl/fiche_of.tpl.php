@@ -50,6 +50,14 @@
 					<td>[view.editField;strconv=no][view.langs.transnoentities(DateLaunch)]</td>
 					<td class="editableField">[assetOf.date_lancement;strconv=no]</td>
 				</tr>
+				<tr rel="date_start">
+					<td>[view.langs.transnoentities(DateStart)]</td>
+					<td class="editableField">[assetOf.date_start;strconv=no]</td>
+				</tr>
+				<tr rel="date_end">
+					<td>[view.langs.transnoentities(DateEnd)]</td>
+					<td class="editableField">[assetOf.date_end;strconv=no]</td>
+				</tr>
 				[onshow;block=begin;when [rights.show_ws_time]==1]
 					<tr><td>[view.langs.transnoentities(EstimatedMakeTime)]</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
 				[onshow;block=end]

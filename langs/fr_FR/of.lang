@@ -309,6 +309,10 @@ ReloadPrice=Actualiser prix
 pmpReloaded=Prix des fournitures actualisé
 NeededDateCantBeSatisfied=La date du besoin ne peut-être respecté (lancement trop tardif)
 
+OF_SHOW_WS_IN_LIST=Afficher les postes de charge dans la liste des OFs
+Workstations=Postes de charge
+
+
 OF_SHOW_LINE_ORDER_EXTRAFIELD=Afficher les extrafields de la ligne de commande
 OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les extrafields à ces clefs
 OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les extrafields de la commande dans les tâches liées si existant

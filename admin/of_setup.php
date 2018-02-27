@@ -480,6 +480,17 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_SHOW_WS_IN_LIST").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_SHOW_WS_IN_LIST');
+print '</td></tr>';
+
+
 print '</table>';
 
 
