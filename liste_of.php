@@ -725,7 +725,7 @@ function get_format_libelle_commande($fk)
     if($fk>0)
     {
         $o = new Commande($db);
-        if($o->fetch($fk)>0) return $o->getNomUrl(1). ' '.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
+        if($o->fetch($fk)>0) return '<span style="white-space:nowrap;">'.$o->getNomUrl(1). '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency).'</span>';
 		else return $fk;
     }
 
