@@ -276,7 +276,7 @@ ForToday=Dans la journée
 ForTomorrow=Pour demain
 Print=Imprimer
 ForWeek=Dans la semaine
-ForMonth=Dans le mois
+ForMonth=Dans le moisOF_MASK
 
 ValidForProduction=Valide pour production
 ProductToProduce=Produit à produire
@@ -318,3 +318,5 @@ OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les extrafields à ces clefs
 OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les extrafields de la commande dans les tâches liées si existant
 
 EndDate=Date de fin	
+OF_MASK=Masque de numérotation des OFs
+
