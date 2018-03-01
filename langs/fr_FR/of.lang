@@ -317,3 +317,4 @@ OF_SHOW_LINE_ORDER_EXTRAFIELD=Afficher les extrafields de la ligne de commande
 OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les extrafields à ces clefs
 OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les extrafields de la commande dans les tâches liées si existant
 
+EndDate=Date de fin	

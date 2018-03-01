@@ -311,6 +311,9 @@ function _liste(&$PDOdb)
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
 
 		)
+		,'operator'=>array(
+			'fk_asset_workstation'=>'='
+		)
         ,'search'=>$TSearch
 	));
 
