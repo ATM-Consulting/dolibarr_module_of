@@ -151,7 +151,7 @@ function _liste(&$PDOdb)
 
 	}
 	else {
-		$sql.=" ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+		$sql.=" ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre
         ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation")."
         , ofe.date_lancement
@@ -199,7 +199,7 @@ function _liste(&$PDOdb)
 	}
 
 	$TMath=array();
-	$THide = array('rowid','fk_user','fk_product','fk_soc');
+	$THide = array('rowid','fk_commandedet','fk_user','fk_product','fk_soc');
 	if($fk_commande>0)  $THide[] = 'fk_commande';
 
 	if ($conf->global->OF_NB_TICKET_PER_PAGE == -1) $THide[] = 'printTicket';
@@ -305,7 +305,7 @@ function _liste(&$PDOdb)
 		    ,'product' => 'get_format_libelle_produit("@fk_product@")'
 		    ,'fk_asset_workstation' => 'get_format_label_workstation("@fk_asset_workstation@")'
 		    ,'client' => 'get_format_libelle_societe(@fk_soc@)'
-			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
+			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@,@fk_commandedet@,"@fk_product@")'
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
 			,'numero'=>'get_format_link_of("@val@",@rowid@)'
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
@@ -721,14 +721,43 @@ function get_format_label_supplier_order($fk){
 
 }
 
-function get_format_libelle_commande($fk)
+function get_format_libelle_commande($fk, $fk_commandedet=0, $fk_products='')
 {
     global $db,$langs,$conf;
-
+    
     if($fk>0)
     {
         $o = new Commande($db);
-        if($o->fetch($fk)>0) return '<span style="white-space:nowrap;">'.$o->getNomUrl(1). '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency).'</span>';
+        if($o->fetch($fk)>0) {
+            $res = '<span style="white-space:nowrap;">'.$o->getNomUrl(1);
+            if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+                
+                if(empty($fk_commandedet)) {
+                    $TFKProduct = explode(',', $fk_products);
+                }
+                foreach($o->lines as &$line) {
+                    
+                    if($line->id == $fk_commandedet
+                        || (
+                            empty($fk_commandedet) 
+                            && in_array($line->fk_product , $TFKProduct)
+                            ) 
+                      ) {
+                        $res.= '<br />'.price($line->total_ht,0,$langs,1,-1,-1,$conf->currency);
+                        break;
+                    }
+                }
+            
+            }
+            else {
+                $res.= '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
+            }
+            
+            $res.='</span>';
+            
+            return $res;
+        }
+                
 		else return $fk;
     }
 

@@ -1090,8 +1090,23 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 	$TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
 
-	$TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
+    $TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
 
+    $order_amount = $o->total_ht;
+    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+        
+        $line_to_make = $assetOf->getLineProductToMake();
+        
+        foreach($commande->lines as &$line) {
+            
+            if($line->id == $line_to_make->fk_commandedet) {
+                $order_amount = $line->total_ht;
+                break;
+            }
+        }
+        
+    }
+   
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -1102,8 +1117,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			'assetOf'=>array(
 					'id'=> $assetOf->getId()
 					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
-						,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-			    ,'fk_commande'=>($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency))
+					,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
+			    ,'fk_commande'=>($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency))
 					//,'statut_commande'=> $commande->getLibStatut(0)
 					,'commande_fournisseur'=>$HtmlCmdFourn
 					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
