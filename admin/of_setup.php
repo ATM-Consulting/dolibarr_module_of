@@ -642,7 +642,7 @@ function showParameters(&$form) {
 	</form>
 	<p align="center" style="background: #fff;">
 
-	   <a href="http://www.atm-consulting.fr/" target="_blank"><img src="../img/ATM_logo.jpg" /></a>
+	   <a href="http://www.atm-consulting.fr/" target="_blank"><img src="../img/ATM_logo_petit.jpg" /></a>
 	</p>
 
 	<br /><br />
