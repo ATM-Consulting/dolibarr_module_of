@@ -530,7 +530,7 @@ function _liste(&$PDOdb)
               FROM ".MAIN_DB_PREFIX."assetOf as ofe
               LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'NEEDED')
               LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
-              LEFT JOIN ".MAIN_DB_PREFIX."societe s ON 's.rowid = ofe.fk_soc)
+              LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)
               WHERE ofe.entity=".$conf->entity." AND ofel.fk_product=".$fk_product." AND ofe.status!='CLOSE'";
 
             $sql.=" GROUP BY ofe.rowid ";
