@@ -42,6 +42,14 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 	if(!empty($TProduct))
 	{
+
+	    $commande = new Commande($db);
+	    if($commande->fetch($fk_commande)<=0) {
+
+	        accessforbidden($langs->trans('CannotLoadThisOrderAreYouInTheGoodEntity'));
+
+	    }
+
 		if($oneOF)
 		{
 			$assetOf = new TAssetOF;
@@ -127,6 +135,12 @@ function _liste(&$PDOdb)
 
 		$commande = new Commande($db);
 		$result=$commande->fetch($fk_commande);
+
+		if($result<=0) {
+
+		    accessforbidden($langs->trans('CannotLoadThisOrderAreYouInTheGoodEntity'),0);
+
+		}
 
 		$head=commande_prepare_head($commande, $user);
 		$titre=$langs->trans("CustomerOrder".$product->type);
