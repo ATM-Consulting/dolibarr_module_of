@@ -144,7 +144,8 @@ function _liste(&$PDOdb)
 
 	if($mode =='supplier_order') {
 		$sql.=" cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
-		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
+		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+        , ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
@@ -157,7 +158,15 @@ function _liste(&$PDOdb)
         , ofe.date_lancement
         , ofe.date_besoin
         , ofe.date_end
-        , ofe.fk_commande,ofe.fk_project
+        , ofe.fk_commande";
+
+		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+            $sql.=" ,cd.total_ht as 'order_line_price' ";
+
+		}
+
+        $sql.= ",ofe.fk_project
 		, ofe.status, ofe.fk_user
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
@@ -180,6 +189,12 @@ function _liste(&$PDOdb)
             ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '': " LEFT JOIN ".MAIN_DB_PREFIX."asset_workstation_of wof ON (wof.fk_assetOf=ofe.rowid) " )."
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
+
+		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+		    $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
+
+		}
 
 	}
 
@@ -237,6 +252,8 @@ function _liste(&$PDOdb)
 
 	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
 
+	if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) $TMath['order_line_price'] = 'sum';
+
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 
 	echo $form->hidden('action', '');
@@ -265,6 +282,7 @@ function _liste(&$PDOdb)
 			,'nb_product_to_make'=>'number'
 		  	,'date_livraison'=>'date'
 		    ,'date_end'=>'date'
+		    ,'order_line_price'=>'money'
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
@@ -295,6 +313,7 @@ function _liste(&$PDOdb)
 			,'date_livraison'=>$langs->trans('DeliveryDate')
 		    ,'date_end'=>$langs->trans('EndDate')
 		    ,'fk_asset_workstation'=>$langs->trans('Workstations')
+		    ,'order_line_price'=>$langs->trans('OrderLinePrice')
 		)
 		,'orderBy'=>array(
 			'rowid'=>'DESC'
@@ -305,7 +324,7 @@ function _liste(&$PDOdb)
 		    ,'product' => 'get_format_libelle_produit("@fk_product@")'
 		    ,'fk_asset_workstation' => 'get_format_label_workstation("@fk_asset_workstation@")'
 		    ,'client' => 'get_format_libelle_societe(@fk_soc@)'
-			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@,@fk_commandedet@,"@fk_product@")'
+			,'fk_commande'=>'get_format_libelle_commande("@fk_commande@","@fk_commandedet@","@fk_product@")'
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
 			,'numero'=>'get_format_link_of("@val@",@rowid@)'
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
@@ -724,40 +743,22 @@ function get_format_label_supplier_order($fk){
 function get_format_libelle_commande($fk, $fk_commandedet=0, $fk_products='')
 {
     global $db,$langs,$conf;
-    
+
+    $fk = (int)$fk;
+    $fk_commandedet = (int)$fk_commandedet;
+
     if($fk>0)
     {
         $o = new Commande($db);
         if($o->fetch($fk)>0) {
+
             $res = '<span style="white-space:nowrap;">'.$o->getNomUrl(1);
-            if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
-                
-                if(empty($fk_commandedet)) {
-                    $TFKProduct = explode(',', $fk_products);
-                }
-                foreach($o->lines as &$line) {
-                    
-                    if($line->id == $fk_commandedet
-                        || (
-                            empty($fk_commandedet) 
-                            && in_array($line->fk_product , $TFKProduct)
-                            ) 
-                      ) {
-                        $res.= '<br />'.price($line->total_ht,0,$langs,1,-1,-1,$conf->currency);
-                        break;
-                    }
-                }
-            
-            }
-            else {
-                $res.= '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
-            }
-            
+            $res.= '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
             $res.='</span>';
-            
+
             return $res;
         }
-                
+
 		else return $fk;
     }
 

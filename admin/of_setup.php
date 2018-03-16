@@ -270,6 +270,14 @@ $var=!$var;
 
     $var=!$var;
     print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OF_SHOW_ORDER_LINE_PRICE").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_SHOW_ORDER_LINE_PRICE');
+    print '</td></tr>';
+
+    $var=!$var;
+    print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD").'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
