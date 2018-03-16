@@ -556,7 +556,6 @@ function _liste(&$PDOdb)
                 ,'link'=>array(
                     'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 1).'">'.img_picto('','object_user.png','',0).' @val@</a>'
                     ,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@', 1).'">'.img_picto('','object_list.png','',0).' @val@</a>'
-                    ,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 1).'">'.img_picto('','object_company.png','',0).' @val@</a>'
                 )
                 ,'translate'=>array()
                 ,'hide'=>$THide
