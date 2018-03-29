@@ -322,4 +322,5 @@ OF_MASK=Masque de numérotation des OFs
 OF_SHOW_ORDER_LINE_PRICE=Afficher une colonne contenant le prix de la ligne de commande utilisée pour créer l'OF
 OrderLinePrice=Prix de la ligne
 CannotLoadThisOrderAreYouInTheGoodEntity=Impossible de charger la commande. Etes-vous sur la bonne entité de travail ?
+ErrorOFFromAnotherEntity=OF créé dans une autre entité
 

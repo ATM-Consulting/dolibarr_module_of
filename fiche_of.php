@@ -15,7 +15,7 @@ dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
-dol_include_once('/quality/class/quality.class.php'); 
+dol_include_once('/quality/class/quality.class.php');
 
 dol_include_once('/asset/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
@@ -185,18 +185,18 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$id = GETPOST('id');
 			if(empty($id)) exit('Where is Waldo ?');
-			
+
 			$assetOf->load($PDOdb, $id);
 			$assetOf->set_fourniture_cost(true);
 			$assetOf->save($PDOdb);
-			
+
 			setEventMessage($langs->trans("pmpReloaded"));
-			
+
 			header("location:".$_SERVER['PHP_SELF']."?id=".$id);
 			exit;
-			
+
 			break;
-			
+
 		case 'lancer':
 			$assetOf=new TAssetOF;
             $id = GETPOST('id');
@@ -230,10 +230,10 @@ function _action() {
 
 			//$PDOdb->db->debug=true;
 			$assetOf->delete($PDOdb);
-			
-			
+
+
 			setEventMessage($langs->trans('OFAssetDeleted', $assetOf->ref));
-			
+
 			header('Location: '.dol_buildpath('/of/liste_of.php?delete_ok=1',1));
 			exit;
 
@@ -659,33 +659,33 @@ function get_tab_file_path($TRes) {
 
 function _get_line_order_extrafields($fk_commandedet) {
     global $db, $langs,$conf;
-    
+
     if($fk_commandedet<=0) return '';
-    
+
     dol_include_once('/commande/class/commande.class.php');
-    
+
     $line = new OrderLine($db);
     $line->fetch_optionals($fk_commandedet);
-    
+
     $extrafieldsline = new ExtraFields($db);
     $extrafieldsline->fetch_name_optionals_label($line->table_element);
-    
+
     if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM)) {
         $TIn = explode(',', $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM);
-        
+
         foreach($extrafieldsline->attribute_label as $field=>$data) {
-            
+
             if(!in_array($field, $TIn)) {
                 unset($extrafieldsline->attribute_label[$field]);
-                
+
             }
-            
+
         }
-        
+
     }
-    
+
     return '<table class="noborder">'.$line->showOptionals($extrafieldsline,'view',array('style'=>'oddeven','colspan'=>1)).'</table>';
-    
+
 }
 
 function _fiche_ligne(&$form, &$of, $type){
@@ -747,7 +747,7 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 		            ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
-			        
+
 			);
 
 			$action = $form->type_aff;
@@ -940,6 +940,12 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	* Put here all code to build page
 	****************************************************/
 
+	if($assetOf->entity != $conf->entity) {
+	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
+
+
+	}
+
 	$parameters = array('id'=>$assetOf->getId());
 	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
@@ -1094,19 +1100,19 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
     $order_amount = $o->total_ht;
     if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
-        
+
         $line_to_make = $assetOf->getLineProductToMake();
-        
+
         foreach($commande->lines as &$line) {
-            
+
             if($line->id == $line_to_make->fk_commandedet) {
                 $order_amount = $line->total_ht;
                 break;
             }
         }
-        
+
     }
-   
+
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded

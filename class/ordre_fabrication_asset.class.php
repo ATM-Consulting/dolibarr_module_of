@@ -25,6 +25,8 @@ class TAssetOF extends TObjetStd{
 		);
 
 	function __construct() {
+	    global $conf;
+
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
@@ -49,6 +51,8 @@ class TAssetOF extends TObjetStd{
 		$this->errors = array();
 
 		$this->current_cost_for_to_make = 0; // montant utilisé pour les entrées de stock
+
+		$this->entity = $conf->entity;
 	}
 
 	function set_current_cost_for_to_make($compo_planned_cost= false) {
@@ -472,8 +476,6 @@ class TAssetOF extends TObjetStd{
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
 		$this->total_estimated_cost = $this->compo_estimated_cost + $this->mo_estimated_cost;
 
-		$this->entity = $conf->entity;
-
 		if(!empty($conf->global->USE_LOT_IN_OF))
 		{
 			$this->setLotWithParent($PDOdb);
@@ -835,7 +837,6 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine = &$this->TAssetOFLine[$k];
 
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
-		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
 		$TAssetOFLine->fk_asset = 0; //TODO remove ?
 		$TAssetOFLine->type = $type;
@@ -1779,6 +1780,8 @@ class TAssetOFLine extends TObjetStd{
  * */
 
 	function __construct() {
+	    global $conf;
+
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
 
     	$this->TChamps = array();
@@ -1800,6 +1803,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
 
 		$this->product = null;
+		$this->entity = $conf->entity;
 	}
 
 	//$qty_to_re_stock est normalement tjr positif
@@ -2281,7 +2285,7 @@ class TAssetOFLine extends TObjetStd{
                 $TAsset->fk_soc = $AssetOf->fk_soc;
                 $TAsset->fk_societe_localisation = $conf->global->ASSET_DEFAULT_LOCATION;
                 $TAsset->fk_product = $fk_product;
-                $TAsset->entity = $conf->entity;
+
                 if(!empty($conf->global->ASSET_DEFAULT_DLUO)) $TAsset->dluo = strtotime(date('Y-m-d').' +'.$conf->global->ASSET_DEFAULT_DLUO.' days');
                 else $TAsset->dluo = strtotime(date('Y-m-d'));
 
@@ -2547,9 +2551,7 @@ class TAssetOFLine extends TObjetStd{
 	{
 		global $user,$langs,$conf,$db;
 
-		$this->entity = $conf->entity;
-
-        if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile
+		if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile
             $this->initConditionnement($PDOdb);
         }
 
@@ -3149,10 +3151,11 @@ if (class_exists('TWorkstation')) {
 	class TAssetWorkstation extends TWorkstation {
 	//TODO remove it and use workstation object
 		function __construct() {
+            global $conf;
 
 	    	parent::__construct();
 		    $this->start();
-
+		    $this->entity = $conf->entity;
 		}
 
 		function load(&$PDOdb, $id, $loadChild = true)
@@ -3165,7 +3168,6 @@ if (class_exists('TWorkstation')) {
 			global $conf;
 
 			$this->name = $this->libelle;
-			$this->entity = $conf->entity;
 
 			parent::save($PDOdb);
 		}
