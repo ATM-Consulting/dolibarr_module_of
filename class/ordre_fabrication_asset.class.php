@@ -2303,7 +2303,9 @@ class TAssetOFLine extends TObjetStd{
 
                 $qty_to_make_rest-=$qty_to_make_asset;
 
-                $TAsset->contenancereel_value = $qty_to_make_asset;
+//                $TAsset->contenancereel_value = $qty_to_make_asset;
+				// Je force la contenance à 0, car l'appel à la méthode load_asset_type() un peu plus haut init la valeur, de plus cet attribut sera update par stockAsset()
+				$TAsset->contenancereel_value = 0;
                 $TAsset->lot_number = $lot_number;
 
                 if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE) && empty($fk_entrepot)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
