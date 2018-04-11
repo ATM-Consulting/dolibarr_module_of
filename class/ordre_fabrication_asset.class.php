@@ -1898,6 +1898,7 @@ class TAssetOFLine extends TObjetStd{
 
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
 
+        // TODO reste un souci de stockage d'un TO_MAKE sur OF Terminé (si j'en fabrique 50 puis qu'on modifie la quantité par 60 avec une contenance max de 50 par équipement, le surplus fini actuellement dans le 1er équipement et laisse finalement le 2nd vide)
         $mouvement = 'destockage';
 		if ($this->type=='NEEDED' && $qty_to_destock < 0) $mouvement = 'restockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
 
@@ -1942,7 +1943,6 @@ class TAssetOFLine extends TObjetStd{
 
             }
             else{
-
                 foreach($TAsset as $asset)
                 {
 					if ($mouvement == 'destockage')
@@ -2273,12 +2273,19 @@ class TAssetOFLine extends TObjetStd{
 			 * Quand on "Termine" l'OF il faudra prendre la liste des équipements liés pour les remplir puis en créer si nécessaire
 			 */
 
+			// évite de créer des assets en double, et permet de créer éventuellement un surplus d'équipement si nécessaire sur un update de la quantité produite d'un TO_MAKE
+			$TAssetLinked = $this->getAssetLinked($PDOdb);
+			$qty_stockage_dispo = 0;
+			foreach ($TAssetLinked as &$assetLinked)
+			{
+				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
+			}
+			
             $contenance_max = $assetType->contenance_value;
-            $nb_asset_to_create = ceil($qty_to_make / $contenance_max);
+            $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
 			//Qté restante a fabriquer
             $qty_to_make_rest = $qty_to_make;
-
             for($i=0; $i<$nb_asset_to_create; $i++)
             {
                 $TAsset = new TAsset;
@@ -2419,7 +2426,7 @@ class TAssetOFLine extends TObjetStd{
          * le fait de delete l'OF on va donc delete chacun de ses enfants TAssetOFLine
          * seulement un objet TAssetOFLine de type TO_MAKE a aussi des enfants TAssetOFLine
          */
-		unset($this->TAssetOFLine);  //le delete de l'enfant est déjà fait par la liaison parent/enfant OF
+ 		$this->TAssetOFLine = array();  //le delete de l'enfant est déjà fait par la liaison parent/enfant OF
 
 		parent::delete($PDOdb);
 	}
@@ -2624,7 +2631,6 @@ class TAssetOFLine extends TObjetStd{
 	function stockQtyToMakeAsset(&$PDOdb, &$of, $fromCloseOf=0)
 	{
 		global $conf,$langs;
-
 		$qty_make = $this->qty_used - $this->qty_stock;
 
 		$res = $this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number, $this->fk_entrepot);
