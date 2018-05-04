@@ -87,7 +87,7 @@
 				$res .= $form->checkbox1('', $name, $obj->rowid, (in_array($obj->rowid, $TTasks)), ($status == 'DRAFT' ? 'style="vertical-align:text-bottom;"' : 'disabled="disabled" style="vertical-align:text-bottom;"'));
 			}
 
-			if($status == 'DRAFT' || in_array($obj->rowid, $TTasks)) {
+			if($status == 'DRAFT' || in_array($obj->rowid, $TTasks)) {
 				$res.=$obj->libelle;
 			}
 
