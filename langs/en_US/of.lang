@@ -1,23 +1,24 @@
 # Dolibarr language file - en_US
+CHARSET=UTF-8
 
-
-Module104161Name=OF
-Module104161Desc=Production Order Management (CAM)
-CreateAssetLot=Create a batch of equipment
-CreateAsset=Creating equipment
-AssetSetup=Configuration of the Equipment module
-LotDisabled=The option to use batches in OF is disabled
+Module104161Name=Production orders
+Module104161Desc=Production Order management (CAM)
+CreateAssetLot=Create a lot of assets
+CreateAsset=Creating asset
+AssetSetup=Configuration of the Asset module
+LotDisabled=The option to use lots in Production orders is disabled
 ficheOF=Card
+OFActions=Actions
 ParametersWorkstation=Workstation Settings
 ParametersWorkflow=Workflow Settings
 
 # EQUIPEMENT
 GPAO=CAM
 Asset=Asset
-ListAsset=List of asset
-ListAssetLent=List of asset loaned
+ListAsset=List of assets
+ListAssetLent=List of assets loaned
 AssetDeleted=Asset removed
-AssetType=Type of Asset
+AssetType=Type of Assets
 AssetListType=List of asset types
 AssetTypeMsgNothing=There is no type of asset to display
 AssetListFields=Asset Fields
@@ -31,9 +32,9 @@ ImpossibleToCreateAsset=Unable to create asset
 AssetDefaultDLUO=Delay in days of optimal use date
 
 # ORDRE DE FABRICATION
-OFAsset=Manufacturing order
-OFAssetCreated=Manufacturing order(s) created
-CreateOFAsset=Create a Manufacturing Order
+OFAsset=Production order
+OFAssetCreated=Production order(s) created
+CreateOFAsset=Create a Production order
 ListOFAsset=List of production orders
 OFAssetDeleted=Production order deleted
 createOFFile=Generate paper document
@@ -47,25 +48,25 @@ AssetProductionOrderNEEDOFFER=Price Waiting
 AssetProductionOrderONORDER=Waiting for supply
 AssetProductionOrderOPEN=In progress
 AssetProductionOrderCLOSE=Completed
-AssetNewProductionOrder=New Manufacturing Order
+AssetNewProductionOrder=New Production order
 OFAttachedClosedAutomatically=Production order% s automatically closed
 AssetAddNeededQtyZero=Add components with an amount to 0
-AssetNegativeDestock=Allow destocking of equipment in OF even if quantity is insufficient
-AssetChildOfStatusFollowParentStatus=When changing the status of the OF parent, populate the latter on the status of children's OF if not superior
-AssetConcatPDF=Concatenate the PDF documents of manufacture OFs children with that of parent OF
+AssetNegativeDestock=Allow destocking of assets in Production orders even if quantity is insufficient
+AssetChildOfStatusFollowParentStatus=When changing the status of the parent Production order, populate the latter on the status of children's Production orders if not superior
+AssetConcatPDF=Concatenate the PDF documents of manufacture Production orders children with that of parent Production order
 NotConcatQtyForNeeded=Dissociate quantities of products, necessary for manufacture, for the same reference
-AssetUseDestockagePartiel=Use destocking / partial storage. <br />- The products to be manufactured will be added in stock when the "Quantity used" is updated on an OF in the state "Production in progress".
-ofLabelQtyTheoriqueMoinsOf=Theoretical stock - OF quantity
-ofResultQty=% S (Qty to be produced:% s / Qty used:% s)
-OfShowQtytheorique=Show theoretical stock - OF stock on the stock tab of a product
+AssetUseDestockagePartiel=Use destocking / partial storage. <br />- The products to be manufactured will be added in stock when the "Quantity used" is updated on a Production order in the state "Production in progress".
+ofLabelQtyTheoriqueMoinsOf=Theoretical stock - Production order quantity
+ofResultQty=%s (Qty to be produced: %s / Qty used: %s)
+OfShowQtytheorique=Show theoretical stock - Production order stock on the stock tab of a product
 ofPrintTicket=Label printing
-ofListProductNeeded=<Strong> OF list needing the product </ strong>
+ofListProductNeeded=<strong>List of Production orders needing this product</strong>
 set_ABRICOT_WKHTMLTOPDF_CMD=Order for the PDF generation of labels (WkHTMLtoPDF must be installed on the server http://wkhtmltopdf.org/)
 OfNbTicketrPerPage=Default print label value per page (-1 to disable functionality)
-ofError_fk_entrepot_missing=Error: One or more warehouse lines not affected on:% s
-OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Check that a warehouse is entered on each line of OF on the action "Validate", if the configuration of the change of status people the OFs children then the check will also do on the children
+ofError_fk_entrepot_missing=Error: One or more warehouse lines not affected on: %s
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Check that a warehouse is entered on each Production order line on the action "Validate", if the configuration of the change of status people the children Production orders then the check will also do on the children
 OFUnit=Unit
-OFUnit=units
+OFUnits=Units
 OFSupplierLineName=Supplier "%s"
 OFSupplierLineMinQty=%d min piece(s)
 OFSupplierLineComp=Internal manufacturing
@@ -75,57 +76,57 @@ OFValidate=Validate
 NomenclatureToSelect=Nomenclature to select
 Link=Link
 DeleteLink=Delete link
-ValidateManufacturingOrder=Validate this manufacturing order?
-StartManufacturingOrder=Start this manufacturing order?
-FinishManufacturingOrder=Finish this manufacturing order?
+ValidateManufacturingOrder=Validate this Production order?
+StartManufacturingOrder=Start this Production order?
+FinishManufacturingOrder=Finish this Production order?
 ProductionInProgress=Production in progress
 Finish=Finish
 Warehouse=Warehouse
 NoWorkstation=No workstation defined
 AddWorkstation=Add workstation
 QuantityUsed=Quantity used
-DeleteOF=Delete this manufacturing order
+DeleteOF=Delete this Production order
 AddingProduct=Adding product
 AddingWorkstation=Adding a workstation
-OFChild=OF child
-withouttitle=(without title)
+OFChild=Child Production order
+withouttitle=(no title)
 ModificationSaved=Modifications saved
 ErrorOccurred=An error has been occurred
 BtCancel=Cancel
 BtAdd=Add
-OFMustBeDraftAndEditMode=Your OF must be in draft status and be in edit mode to update the values of products needed
+OFMustBeDraftAndEditMode=Your Production order must be in draft status and be in edit mode to update the values of products needed
 QtyUpdated=Quantities update successful
-OneOFCreated=One OF has been created
-SeveralOFCreated=Several OF has been created
-OFIsNotDraftStatus=This OF is no more as draft status
+OneOFCreated=One Production order has been created
+SeveralOFCreated=Several Production orders have been created
+OFIsNotDraftStatus=This Production order is no more in draft status
 OFSerialNumber=[%s] Number : %s, current capacity : %s
 OFWaiting=Waiting
 OFInProgress=In progress
 OFFinish=Finished
-ofAllQtyIsNotEnough=[%s] - Not enough asset quantities, please check your products needed
+ofAllQtyIsNotEnough=[%s] - Not enough asset quantity, please check your products needed
 ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : asset quantity is not enough to make product
-titleOfToolTip=<u>Show manufacturing instruction</u><br /><b>Ref.:</b> %s
+titleOfToolTip=<u>Show Production order</u><br /><b>Ref.:</b> %s
 
 #LOT
-ListAssetLot=List of Equipment Lots
+ListAssetLot=List of asset lots
 AssetLotDeleted=Lot deleted
-AssetInLot=Equipment of the lot
-OFAssetLotEmpty=No lot entered for the product:% s (% s)
-OFAssetCmdFournNotFinish=Unable to complete this OF as long as the vendor order is not received partially or totally
+AssetInLot=Assets of the lot
+OFAssetLotEmpty=No lot entered for the product: %s (%s)
+OFAssetCmdFournNotFinish=Unable to complete this Production order as long as the supplier order is not received partially or totally
 
 
 # POSTE DE TRAVAIL
-AssetWorkstation=Poste de travail
-AssetNewWorkstation=Nouveau poste de travail
-AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
-set_OF_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste depuis une nomenclature produit
-AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
+AssetWorkstation=Workstation
+AssetNewWorkstation=New workstation
+AssetAuthorizeAddWorkstationTime0OnOF=Allow automatically adding to the Production order any workstation in the product nomenclature even if its necessary time is 0
+set_OF_COEF_WS=Time multiplier coefficient for adding a workstation from a product nomenclature
+AssetCreateProjectTaskOnValidation=Create project tasks at validation instead of production start
 
 # TYPES D'EQUIPEMENT
-AssetType=Types d'équipement
-AssetNewType=Nouveau type d'équipement
-AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
-AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
+AssetType=Asset types
+AssetNewType=New asset type
+AssetDescCumulate=This notion acts on asset stock withdrawal
+AssetDescPerishable=If the asset type is perishable, you must set a limit date on this asset
 
 #Contrôle
 AssetControl=Control
@@ -147,31 +148,31 @@ AssetCreateControlMultiple=Create a value
 
 #Configuration
 DefaultWarehouseId=Inventory Default Inventory Warehouse
-DefaultWarehouseIdToMake=Default Inventory Warehouse for Manufacturing Order and Equipment (products to be manufactured)
-DefaultWarehouseIdNeeded=Default inventory warehouse for Manufacturing Order and Equipment (required products)
-UseDefinedWarehouse=Allows you to define default warehouses for storage / destocking of equipment
-ParametersWarehouse=Warehouses (if no options are used, the storage / destocking behavior will take the warehouse defined on each equipment)
-CreateAssetChildrenOF=Allow the creation of child FOs for non-stock products needed for manufacturing
-CreateAssetChildrenOFWithComposant=Restrict creation of child OF to products to be manufactured having components and no stock
+DefaultWarehouseIdToMake=Default Inventory Warehouse for Production order and Asset (products to be manufactured)
+DefaultWarehouseIdNeeded=Default inventory warehouse for Production order and Asset (needed products)
+UseDefinedWarehouse=Allows you to define default warehouses for storage / destocking of asset
+ParametersWarehouse=Warehouses (if no options are used, the storage / destocking behavior will take the warehouse defined on each asset)
+CreateAssetChildrenOF=Allow the creation of child Production orders for non-stock products needed for manufacturing
+CreateAssetChildrenOFWithComposant=Restrict creation of child Production orders to products to be manufactured having components and no stock
 UsetAssetProductionAttributs= Use production fields
-CreteAssetOFOnOrderValidation= Automatically create the Manufacturing order when validating an order
-DeleteAssetOFOnOrderCancel= Automatically remove Manufacturing Orders when canceling an order
-UseBatchNumberInOf= Use batch management in OF
-AllBatchNumberAreMandatory= Lot obligatory on all elements of OF
-AssetDefinedUserByWorkstation=Allowing the association of one or more users to be assigned to a workstation on an OF
-AssetUseWorkstationByNeededInOF=Allow the ventilation of products of composition by workstation on an OF
-AssetUseControl=Allows to define controls to be applied during the OF process
+CreteAssetOFOnOrderValidation= Automatically create the Production order when validating an order
+DeleteAssetOFOnOrderCancel= Automatically remove Production orders when canceling an order
+UseBatchNumberInOf= Use lot management in Production orders
+AllBatchNumberAreMandatory= Lot mandatory on all elements of Production orders
+AssetDefinedUserByWorkstation=Allowing the association of one or more users to be assigned to a workstation on a Production order
+AssetUseWorkstationByNeededInOF=Allow the ventilation of products of composition by workstation on a Production order
+AssetUseControl=Allows to define controls to be applied during the Production order process
 AssetDefinedTaskByWorkstation=Defines an operating protocol for each workstation
-UseProjectTask=Each workstation associated with an OF will create a task for the associated project
-AssetAutoCreateProjectOnOF=Create and automatically associate a project with the OF if none is associated (the project will have the name of the command from which the OF comes from)
-AssetDefaultLocatlisation=Default location of equipment created via OF
+UseProjectTask=Each workstation associated with a Production order will create a task for the associated project
+AssetAutoCreateProjectOnOF=Create and automatically associate a project with the Production order if none is associated (the project will have the name of the command from which the Production order comes from)
+AssetDefaultLocatlisation=Default location of assets created via Production orders
 
 CreateAssetFromProductDescListProduct=The list contains only products with a status "On sale"
 CreateAssetFromProductErrorBadMask=If the default is "ErrorBadMask", your product is not associated with a device type. <br /> Go back to the product sheet and change its value.
-CreateAssetFromProductNumLot=This field corresponds to the batch number created in the "Equipment" menu > "List of Lots"> "Create a batch of equipment". To select a batch, type the beginning of the number and one or more proposals will appear.
+CreateAssetFromProductNumLot=This field corresponds to the lot number created in the "Asset" menu > "List of Lots"> "Create a lot of assets". To select a lot, type the beginning of the number and one or more proposals will appear.
 
-AssetOFConfirmChangeStateTitle=537/5000 Disable the creation of child OF
-AssetOFConfirmChangeState=If you disable this feature, the parameters related to the creation / deletion of OFs will also be disabled
+AssetOFConfirmChangeStateTitle=Disable the creation of child Production orders
+AssetOFConfirmChangeState=If you disable this feature, the parameters related to the creation / deletion of Production orders will also be disabled
 AssetMsgSaveTask=Recorded Job
 AssetErrSaveTask=Error Saving
 AssetMsgDeleteTask=Deleted task
@@ -181,13 +182,13 @@ AssetErrSaveControlValue=Error Saving
 AssetMsgDeleteControlValue=Deleted value
 AssetErrDeleteControlValue=Error while deleting
 AssetListWorkstation=List of workstations
-UseManualWarehouse=Allows to define manually the warehouses to be used for the storage / destocking of the equipment on each OF
+UseManualWarehouse=Allows to define manually the warehouses to be used for the storage / destocking of the asset on each Production order
 UseProjectTaskHierarchique=Create tasks hierarchically
 
 NewWorkStation=New workstation
-moduleWorkstationNeeded=Required Workstation Module
+moduleWorkstationNeeded=Module Workstation required
 
-OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER=Enable to terminate OFs linked to unacknowledged supplier orders.
+OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER=Enable to terminate Production orders linked to unacknowledged supplier orders.
 products=Product (s)
 
 
@@ -201,7 +202,7 @@ DEFINE_MARGIN_TOP_CELL=  Set the top margin of each cell (in px)
 DEFINE_HEIGHT_DIV=  Set the height of each label (in mm)
 
 OF_CONCAT_WS_ON_ADD=Concatenating load times
-MinimalViewForChilOF=Minimal view for children OFs
+MinimalViewForChilOF=Minimal view for children Production orders
 
 DateLaunch=Release date
 DateBesoin=Date of need
@@ -256,12 +257,11 @@ error_of_no_ids=Error on one of the id
 
 unit_s_=Unit(s)
 
-
 ProductsToCreate=Product to create
 QtyToProduce=Quantity to produce
 ProduceQty=Quantity produced
 AddProduct=Add product
-ParentOF=Parent manufacturing order
+ParentOF=Parent production order
 Workstation=Workstation
 AssociatedTask=Associate operations
 TimeBeforeStart=Delay before start
@@ -279,12 +279,48 @@ ForWeek=During the week
 ForMonth=In the month
 
 ValidForProduction=Valid for production
-ProductToProduce=Product to produce
-NumberOf=Of n°
-SetStateTo=switch state to
+ProductToProduce=Product to make
+NumberOf=Of #
+SetStateTo=Switch state to 
 FinalProducCost=Cost of finished product
 EstimatedMakeTime=Estimated production time
-RealMakeTime=Real time manufacturing
-EstimatedProducCost=Estimate of manufacturing cost
-RealProducCost=Actual manufacturing cost
+RealMakeTime=Real production time
+EstimatedProducCost=Estimated production cost
+RealProducCost=Real production cost
+
+AssetProductionSupplierOrder=Supplier orders
+OF_FOLLOW_SUPPLIER_ORDER_STATUS=The Production order manually linked to a supplier order follows its status
+
+UpdateNeededQty=Update needed products
+SomeQtyCantBeUpdated=Some quantities could not be updated
+QtyAlreadyToMake=Quantity already in production
+
+UseByOF=Used in Production order %s
+CreateByOF=Created in Production order %s
+DeletedByOF=Deleted in Production order %s
+
+OF_USE_APPRO_DELAY_FOR_TASK_DELAY=Use the supply time delay of the product link to the workstation to delay the task
+OF_PRINT_IN_PDF=Print in PDF (needs libreoffice on the server)
+SearchIntoOf=Production orders
+
+listOFAmountsHistory=Production outstanding amounts history
+ReloadPriceFourn=Are you sure you want to reload needed products prices ?
+ReloadPrice=Reload prices
+pmpReloaded=Needed products prices reloaded
+NeededDateCantBeSatisfied=Date of need can't be adhered to (launch too late)
+
 OF_SHOW_WS_IN_LIST=Show worstations into of list
+Workstations=Workstations
+
+
+OF_SHOW_LINE_ORDER_EXTRAFIELD=Show order line extrafields
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limit extrafields to these keys
+OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copy extrafields from order to linked tasks if any
+
+EndDate=End date
+OF_MASK=Production orders numbering mask
+OF_SHOW_ORDER_LINE_PRICE=Display a column with the order line price used to create the Production order
+OrderLinePrice=Line price
+CannotLoadThisOrderAreYouInTheGoodEntity=Can't load the order. Are you on the correct entity ?
+ErrorOFFromAnotherEntity=Production order created in another entity
+

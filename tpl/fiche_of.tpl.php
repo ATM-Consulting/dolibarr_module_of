@@ -70,7 +70,7 @@
 
 				[onshow;block=end]
 				<tr rel="status">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Statut)]</td>
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Status)]</td>
 					<td class="editableField">[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
 					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
 						<span class="viewmode notinparentview">
@@ -109,7 +109,7 @@
 							<!-- TO_MAKE -->
 							<table width="100%" class="border tomake">
 								<tr style="background-color:#dedede;">
-									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(OFActions)]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[view.langs.transnoentities(Lot)]</td>
 									[onshow;block=end]
@@ -120,7 +120,7 @@
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[view.langs.transnoentities(Warehouse)]</td>
 									[onshow;block=end]
-									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(OFActions)]</td>
 
 								</tr>
 								<tr id="[TTomake.id]">

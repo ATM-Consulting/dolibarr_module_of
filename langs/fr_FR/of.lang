@@ -3,13 +3,14 @@ CHARSET=UTF-8
 
 Module104161Name = OF
 Module104161Desc = Gestion des ordres de fabrication (GPAO)
-CreateAssetLot=Créer un lot d'équipement
+CreateAssetLot=Créer un lot d'équipements
 CreateAsset=Créer un équipement
 AssetSetup=Configuration du module Equipement
 LotDisabled=L'option pour utiliser des lots dans OF est désactiver
 ficheOF=Fiche
+OFActions=Actions
 ParametersWorkstation=Paramêtres Poste de travail
-ParametersWorkflow=Paramêtres Workflow
+ParametersWorkflow=Paramètres Workflow
 
 # EQUIPEMENT
 GPAO=GPAO
@@ -32,7 +33,7 @@ AssetDefaultDLUO=Decalage en jours de la date limite d'utilisation optimale
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
-OFAssetCreated=Ordre de fabrication créé(s) avec succès
+OFAssetCreated=Ordre(s) de fabrication créé(s) avec succès
 CreateOFAsset=Créer un Ordre de Fabrication
 ListOFAsset=Liste des ordres de fabrication
 OFAssetDeleted=Ordre de fabrication %s supprimé
@@ -90,19 +91,19 @@ AddingWorkstation=Ajout d'un poste de travail
 OFChild=OF Enfants
 withouttitle=(sans titre)
 ModificationSaved=Modifications enregistrées
-ErrorOccurred=Une erreur c'est produite
+ErrorOccurred=Une erreur s'est produite
 BtCancel=Annuler
 BtAdd=Ajouter
 OFMustBeDraftAndEditMode=Votre OF doit être au statut brouillon et devez être en modification pour mettre à jour les valeurs des produits nécessaires.
 QtyUpdated=Mise à jour des quantités enregistrées
 OneOFCreated=Un OF a été créé
 SeveralOFCreated=Des OF ont été créés
-OFIsNotDraftStatus=Cette OF n'est plus au statut brouillon
+OFIsNotDraftStatus=Cet OF n'est plus au statut brouillon
 OFSerialNumber=[%s] Numéro : %s, contenance actuelle : %s
 OFWaiting=En attente
 OFInProgress=En cours
 OFFinish=Terminée
-ofAllQtyIsNotEnough=[%s] - Quantité d'équipement non suffisante, veuillez vérifier vos produits nécessaires à la fabrication
+ofAllQtyIsNotEnough=[%s] - Quantité d'équipements insuffisante, veuillez vérifier vos produits nécessaires à la fabrication
 ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement insuffisante pour la conception du ou des produits à créer
 titleOfToolTip=<u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
 
@@ -150,7 +151,7 @@ DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipemen
 DefaultWarehouseIdToMake=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits à fabriquer)
 DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
 UseDefinedWarehouse=Permet de définir des entrepôts par défaut pour le stockage/destockage des équipements
-ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt définit sur chaque équipement)
+ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt défini sur chaque équipement)
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
 CreateAssetChildrenOFOnVirtualStock=Déclencher la création d'OF enfant sur stock théorique négatif (si non, le stock réel est pris en compte)
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
@@ -229,10 +230,10 @@ PrintTicket=impression<br />étiquette
 Project=Projet
 Priority=Priorité
 Cost=Coût
-NbProductNeeded=Nb produits nécessaire
-ProductUndefined=Produit non défini.
+NbProductNeeded=Nb produits nécessaires
 
 noOfFound=Il n'y a aucun ordre de facrication à afficher
+ProductUndefined=Produit non défini.
 
 Draft=Brouillon
 WaitingSupplierPrice=En attente de prix fournisseur
@@ -304,10 +305,10 @@ OF_PRINT_IN_PDF=Imprimer en PDF (nécessite la présence de libreoffice sur le s
 SearchIntoOf=Ordres de fabrication
 
 listOFAmountsHistory=Historique des montants d'encours de production
-ReloadPriceFourn=Etes-vous sûr de vouloir actualiser les prix des fournitures
+ReloadPriceFourn=Êtes-vous sûr de vouloir actualiser les prix des fournitures ?
 ReloadPrice=Actualiser prix
 pmpReloaded=Prix des fournitures actualisé
-NeededDateCantBeSatisfied=La date du besoin ne peut-être respecté (lancement trop tardif)
+NeededDateCantBeSatisfied=La date du besoin ne peut être respectée (lancement trop tardif)
 
 OF_SHOW_WS_IN_LIST=Afficher les postes de charge dans la liste des OFs
 Workstations=Postes de charge
