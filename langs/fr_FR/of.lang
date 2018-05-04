@@ -1,8 +1,8 @@
 # Dolibarr language file - fr_FR
 CHARSET=UTF-8
 
-Module104161Name = OF
-Module104161Desc = Gestion des ordres de fabrication (GPAO)
+Module104161Name=OF
+Module104161Desc=Gestion des ordres de fabrication (GPAO)
 CreateAssetLot=Créer un lot d'équipements
 CreateAsset=Créer un équipement
 AssetSetup=Configuration du module Equipement
@@ -30,6 +30,9 @@ AssetLoaned=Prêté
 AssetDescDLUO=Date Limite d'Utilisation Optimale
 ImpossibleToCreateAsset=Impossible de créer l'équipement
 AssetDefaultDLUO=Decalage en jours de la date limite d'utilisation optimale
+Asset_show_DLUO=Afficher la Date Limite d'Utilisation Optimale
+NoAsset=Il n'y a aucun Équipement
+Asset_DefaultCompose_fourni=Valeur par defaut de "Composé fourni" (Prix d'achat fournisseur)
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
@@ -37,7 +40,7 @@ OFAssetCreated=Ordre(s) de fabrication créé(s) avec succès
 CreateOFAsset=Créer un Ordre de Fabrication
 ListOFAsset=Liste des ordres de fabrication
 OFAssetDeleted=Ordre de fabrication %s supprimé
-createOFFile = Générer document papier
+createOFFile=Générer document papier
 WorkStation=Poste de travail
 workstation=poste de travail
 ListOrderProducts=Liste des produits de la commande
@@ -49,11 +52,11 @@ AssetProductionOrderONORDER=Attente fourniture
 AssetProductionOrderOPEN=En cours
 AssetProductionOrderCLOSE=Terminé
 AssetNewProductionOrder=Nouvel ordre de Fabrication
-OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
-AssetAddNeededQtyZero = Ajouter les composants avec une quantité à 0
-AssetNegativeDestock = Permettre le déstockage des équipements dans l'OF même si la quantité est insufisante
-AssetChildOfStatusFollowParentStatus = Lors d'un changement de status de l'OF parent, peupler ce dernier sur le statut des OF's enfants si non supérieur
-AssetConcatPDF = Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
+OFAttachedClosedAutomatically=Ordre de fabrication %s clôturé automatiquement
+AssetAddNeededQtyZero=Ajouter les composants avec une quantité à 0
+AssetNegativeDestock=Permettre le déstockage des équipements dans l'OF même si la quantité est insufisante
+AssetChildOfStatusFollowParentStatus=Lors d'un changement de status de l'OF parent, peupler ce dernier sur le statut des OF's enfants si non supérieur
+AssetConcatPDF=Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
 NotConcatQtyForNeeded=Dissocier les quantités des produits, nécessaires à la fabrication, pour une même référence
 AssetUseDestockagePartiel=Utiliser le destockage/stockage partiel. <br />&nbsp;&nbsp;- Les produits nécessaires à la fabrication ce déstocke lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". <br />&nbsp;&nbsp;- Les produits à fabriqué s'ajouterons en stock lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". 
 ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
@@ -155,11 +158,11 @@ ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportemen
 CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
 CreateAssetChildrenOFOnVirtualStock=Déclencher la création d'OF enfant sur stock théorique négatif (si non, le stock réel est pris en compte)
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
-UsetAssetProductionAttributs = Utiliser les champs de productions
-CreteAssetOFOnOrderValidation = Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
-DeleteAssetOFOnOrderCancel = Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
-UseBatchNumberInOf = Utiliser la gestion des lots dans OF
-AllBatchNumberAreMandatory = Lot obligatoire sur tous les éléments de l'OF
+UsetAssetProductionAttributs=Utiliser les champs de production
+CreteAssetOFOnOrderValidation=Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
+DeleteAssetOFOnOrderCancel=Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
+UseBatchNumberInOf=Utiliser la gestion des lots dans OF
+AllBatchNumberAreMandatory=Lot obligatoire sur tous les éléments de l'OF
 AssetDefinedUserByWorkstation=Permettre l'association d'un ou plusieurs utilisateurs d'être assigné à un poste de travail sur un OF
 AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail sur un OF
 AssetUseControl=Permet de définir des contrôles à appliquer lors du processus de l'OF
@@ -170,7 +173,7 @@ AssetDefaultLocatlisation=Localisation par défaut des équipements créé via O
 
 CreateAssetFromProductDescListProduct=La liste contient uniquement les produits avec un état "En vente"
 CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.
-CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement" => "Liste des Lots" => "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
+CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement"=> "Liste des Lots"=> "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
 
 AssetOFConfirmChangeStateTitle=Désactiver la création d'OF enfants
 AssetOFConfirmChangeState=Si vous désactivez cette fonctionnalitée, les paramètres liés à la création/suppression des OF seront eux aussi désactivés
@@ -194,13 +197,13 @@ products=produit(s)
 
 
 # Etiquettes
-CHOOSE_CUSTOM_LABEL = Choisir un type d'étiquettes personalisable
-DEFINE_MARGIN_TOP = Définir la marge du haut de page (en px)
-DEFINE_MARGIN_LEFT = Définir la marge de gauche de la colonne de gauche (en px)
-DEFINE_WIDTH_DIV = Définir la largeur de chaque étiquette (en pourcents) 
-DEFINE_MARGIN_RIGHT = Définir la marge de droite de la colonne de droite (en px)
-DEFINE_MARGIN_TOP_CELL = Définir la marge du haut de chaque cellule (en px)
-DEFINE_HEIGHT_DIV = Définir la hauteur de chaque étiquette (en mm)
+CHOOSE_CUSTOM_LABEL=Choisir un type d'étiquettes personalisable
+DEFINE_MARGIN_TOP=Définir la marge du haut de page (en px)
+DEFINE_MARGIN_LEFT=Définir la marge de gauche de la colonne de gauche (en px)
+DEFINE_WIDTH_DIV=Définir la largeur de chaque étiquette (en pourcents) 
+DEFINE_MARGIN_RIGHT=Définir la marge de droite de la colonne de droite (en px)
+DEFINE_MARGIN_TOP_CELL=Définir la marge du haut de chaque cellule (en px)
+DEFINE_HEIGHT_DIV=Définir la hauteur de chaque étiquette (en mm)
 
 OF_CONCAT_WS_ON_ADD=Concatener les temps des postes de charges
 MinimalViewForChilOF=Vue minimale pour les OFs enfants

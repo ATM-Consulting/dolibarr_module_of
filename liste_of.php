@@ -572,7 +572,7 @@ function _liste(&$PDOdb)
                     ,'picto_precedent'=>img_picto('','back.png', '', 0)
                     ,'picto_suivant'=>img_picto('','next.png', '', 0)
                     ,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-                    ,'messa geNothing'=>$langs->trans('noOfFound')
+                    ,'messageNothing'=>$langs->trans('noOfFound')
                     ,'picto_search'=>img_picto('','search.png', '', 0)
                 )
                 ,'title'=>array(
