@@ -1021,11 +1021,15 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
 		}
 	}
-
-	ob_start();
-	$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,0,0,'minwidth300');
-	$select_product = ob_get_clean();
-
+	
+	$select_product = '';
+	if (empty($_REQUEST['fk_product']))
+	{
+		ob_start();
+		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,0,0,'minwidth300');
+		$select_product = ob_get_clean();	
+	}
+	
 	$Tid = array();
 	//$Tid[] = $assetOf->rowid;
 	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
