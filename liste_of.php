@@ -588,8 +588,8 @@ function _liste(&$PDOdb)
                     ,'total_cost'=>$langs->trans('Cost')
                 )
                 ,'eval'=>array(
-                    'ordre'=>'TAssetOF::ordre(@val@)'
-                    ,'status'=>'TAssetOF::status(@val@)'
+                    'ordre'=>'TAssetOF::ordre("@val@")'
+                    ,'status'=>'TAssetOF::status("@val@")'
                     ,'product' => 'get_format_libelle_produit(@fk_product@)'
                     ,'client' => 'get_format_libelle_societe(@fk_soc@)'
                 )
