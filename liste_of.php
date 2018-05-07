@@ -333,8 +333,8 @@ function _liste(&$PDOdb)
 			'rowid'=>'DESC'
 		)
 		,'eval'=>array(
-			'ordre'=>'TAssetOF::ordre(@val@)'
-			,'status'=>'TAssetOF::status(@val@, true)'
+			'ordre'=>'TAssetOF::ordre("@val@")'
+			,'status'=>'TAssetOF::status("@val@", true)'
 		    ,'product' => 'get_format_libelle_produit("@fk_product@")'
 		    ,'fk_asset_workstation' => 'get_format_label_workstation("@fk_asset_workstation@")'
 		    ,'client' => 'get_format_libelle_societe(@fk_soc@)'
