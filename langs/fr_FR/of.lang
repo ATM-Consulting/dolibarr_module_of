@@ -9,7 +9,7 @@ AssetSetup=Configuration du module Equipement
 LotDisabled=L'option pour utiliser des lots dans OF est désactiver
 ficheOF=Fiche
 OFActions=Actions
-ParametersWorkstation=Paramêtres Poste de travail
+ParametersWorkstation=Paramètres Poste de travail
 ParametersWorkflow=Paramètres Workflow
 
 # EQUIPEMENT
@@ -327,4 +327,5 @@ OF_SHOW_ORDER_LINE_PRICE=Afficher une colonne contenant le prix de la ligne de c
 OrderLinePrice=Prix de la ligne
 CannotLoadThisOrderAreYouInTheGoodEntity=Impossible de charger la commande. Etes-vous sur la bonne entité de travail ?
 ErrorOFFromAnotherEntity=OF créé dans une autre entité
+OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER=Clore les tâches liée à un produit en commande fournisseur à la réception de cette dernière
 

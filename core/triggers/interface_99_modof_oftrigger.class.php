@@ -260,10 +260,35 @@ class Interfaceoftrigger
 									foreach($ofLine->TWorkstation as &$ws) {
 										foreach($of->TAssetWorkstationOF as &$wsof) {
 											
-											if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0 && $wsof->nb_days_before_beginning>0) {
-												$wsof->nb_days_before_beginning = 0;
-												$wsof->save($PDOdb);
+										    if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0) {
+										        if ($wsof->nb_days_before_beginning>0) {
+    										    
+    												$wsof->nb_days_before_beginning = 0;
+    												$wsof->save($PDOdb);
+    										    }
+    										    
+    										    if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
+    										        
+    										        dol_include_once('/projet/class/task.class.php');
+    										        
+    										        foreach($object->lines as &$line) {
+    										            
+    										            if($line->fk_product == $ofLine->fk_product) {
+    										                
+    										                $projectTask = new Task($db);
+    										                $projectTask->fetch($wsof->fk_project_task);
+    										                $projectTask->progress = 100;
+    										                $projectTask->update($user);
+    										                
+    										            }
+    										            
+    										        }
+    										        
+    										    }
+    										    
 											}
+											
+											
 										}
 									}
 								}
@@ -294,7 +319,7 @@ class Interfaceoftrigger
 									
 								}
 								else{
-									$of->closeOF($PDOdb);
+									$of->closeOF($PDOdb);//TODO étrange de fermer l'OF systématiquement, rajouter sur option je pense
 									setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
 								}
 							
