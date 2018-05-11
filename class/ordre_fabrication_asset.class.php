@@ -1885,25 +1885,16 @@ class TAssetOFLine extends TObjetStd{
 
 	function stockAsset(&$PDOdb, $qty_to_stock, $add_only_qty_to_contenancereel=false) {
 
-		return $this->destockAsset($PDOdb, -$qty_to_stock, $add_only_qty_to_contenancereel);
+		global $conf, $langs, $user;
 
-	}
-
-	/**
-	 * @param 	$qty_to_destock		if < 0 = restockage, if > 0 = destockage
-	 */
-    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
-    {
-        global $conf, $langs;
-
-        if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
+        if($qty_to_stock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
 
         // TODO reste un souci de stockage d'un TO_MAKE sur OF Terminé (si j'en fabrique 50 puis qu'on modifie la quantité par 60 avec une contenance max de 50 par équipement, le surplus fini actuellement dans le 1er équipement et laisse finalement le 2nd vide)
-        $mouvement = 'destockage';
-		if ($this->type=='NEEDED' && $qty_to_destock < 0) $mouvement = 'restockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
+        $mouvement = 'restockage';
+		if ($qty_to_stock < 0) $mouvement = 'destockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
 
-        $sens = ($qty_to_destock>0) ? -1 : 1;
-        $qty_to_destock_rest =  abs($qty_to_destock);
+        $sens = ($qty_to_stock>0) ? 1 : -1;
+		$qty_to_stock_rest =  abs($qty_to_stock);
 
 		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
 		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
@@ -1915,7 +1906,7 @@ class TAssetOFLine extends TObjetStd{
 
         if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled))
         {
-        	$this->stockProduct($sens * $qty_to_destock_rest);
+        	$this->stockProduct($sens * $qty_to_stock_rest);
         }
 		else
 		{
@@ -1934,42 +1925,62 @@ class TAssetOFLine extends TObjetStd{
 						setEventMessages( 'ERR.'.__METHOD__.' > setAsset ' .$this->lot_number, $assetOf->errors ,'errors');
 					}
 					else {
-						$this->update_qty_stock($sens * $qty_to_destock_rest);
+						$this->update_qty_stock($sens * $qty_to_stock_rest);
 					}
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
-					$this->stockProduct( $sens * $qty_to_destock_rest);
+					$this->stockProduct( $sens * $qty_to_stock_rest);
 				}
 
             }
             else{
+				
+				$nb_asset = count($TAsset); $i=0;
                 foreach($TAsset as $asset)
                 {
-					if ($mouvement == 'destockage')
-					{
-						$qty_asset_to_destock = !empty($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : $asset->contenancereel_value;
+					$qty_asset_to_stock=0;
+					if($mouvement == 'destockage')  {
+						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
+							$qty_asset_to_stock=$asset->contenancereel_value;
+							
+							if($i+1 == $nb_asset) {
+								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
+							}
+						}
+						else if($i+1 == $nb_asset && !empty($conf->global->ASSET_NEGATIVE_DESTOCK)) {
+							$qty_asset_to_stock = $qty_to_stock_rest;
+						}
+						else {
+							$qty_asset_to_stock = $qty_to_stock_rest;
+						}
 					}
-					else // stockage (uniquement pour le cas des NEEDED)
-					{
-						// dans le cas où l'on "Termine" l'OF avec une sous conso (il faut donc restocker la diff) ($sens => 1; $qty_to_destock => négatif)
-						$qty_asset_to_destock = !empty($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : ($asset->contenance_value - $asset->contenancereel_value);
-					}
-					//TODO $qty_asset_to_destock à 0 pas nécessaire de faire la suite
-					if($qty_to_destock_rest - $qty_asset_to_destock <= 0)
-					{
-						$qty_asset_to_destock = $qty_to_destock_rest;
-					}
-
+					else {
+						
+						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
+							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
+							if($i+1 == $nb_asset) {
+								setEventMessage($langs->trans('InssuficienteAssetContenanceToAddFromOF', $asset->serial_number),'errors');
+							}
+						}
+						else {
+							$qty_asset_to_stock = $qty_to_stock_rest;
+						}
+						
+					}	
+					
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
-					$this->update_qty_stock($sens * $qty_asset_to_destock);
+					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
 					$asset->save($PDOdb,$user
-							,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
-							,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
+							,$labelMvt.' n°'.$this->of_numero.' - '.$langs->trans('Asset').' : '.$asset->serial_number
+							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
-					$qty_to_destock_rest-= $qty_asset_to_destock;
+					$qty_to_stock_rest-= $qty_asset_to_stock;
+					
+					$i++;
 
-					if($qty_to_destock_rest<=0)break;
+					if($qty_to_stock_rest<=0)break;
+					
 
                 }
 
@@ -1978,6 +1989,17 @@ class TAssetOFLine extends TObjetStd{
 		}
 
         return $this->save($PDOdb);
+
+	}
+
+	/**
+	 * @param 	$qty_to_destock		if < 0 = restockage, if > 0 = destockage
+	 */
+    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
+    {
+		
+		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
+		
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH

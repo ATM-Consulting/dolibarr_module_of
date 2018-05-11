@@ -327,3 +327,5 @@ OrderLinePrice=Line price
 CannotLoadThisOrderAreYouInTheGoodEntity=Can't load the order. Are you on the correct entity ?
 ErrorOFFromAnotherEntity=Production order created in another entity
 
+InssuficienteAssetContenanceToUsedInOF=Insufficient capacity in the equipment %s
+InssuficienteAssetContenanceToAddFromOF=Capacity of equipment %s exceeded
