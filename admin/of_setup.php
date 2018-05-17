@@ -569,13 +569,20 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_FOLLOW_SUPPLIER_ORDER_STATUS');
 print '</td></tr>';
 
-
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER').'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_CLOSE_OF_ON_CLOSE_ALL_TASK').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_CLOSE_OF_ON_CLOSE_ALL_TASK');
 print '</td></tr>';
 
 print "</table>";

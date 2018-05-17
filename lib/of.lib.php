@@ -4,7 +4,7 @@
 		global $user, $conf, $langs;
 
 		$head=array();
-		
+
 		switch ($type) {
 
 			case 'assetOF':
@@ -16,9 +16,9 @@
 
 		$h = count($head);
 		complete_head_from_modules($conf, $langs, $asset, $head, $h, 'of');
-		
+
 		return $head;
-		
+
 	}
 	function ofAdminPrepareHead()
 	{
@@ -34,7 +34,7 @@
 	    $head[$h][1] = $langs->trans("About");
 	    $head[$h][2] = 'about';
 	    $h++;
-	    
+
 	    return $head;
 	}
 
@@ -114,7 +114,8 @@
 		$projectTask = new Task($db);
 		$projectTask->fetch($fk_project_task);
 
-		$link = '<a href="'.DOL_URL_ROOT.'/projet/tasks/task.php?id='.$fk_project_task.'">'.img_picto('', 'object_projecttask.png').$projectTask->ref.'</a>';
+		$link = $projectTask->getNomUrl(1,'withproject');
+		//		$link = '<a href="'.DOL_URL_ROOT.'/projet/tasks/task.php?id='.$fk_project_task.'">'.img_picto('', 'object_projecttask.png').$projectTask->ref.'</a>';
 
 		if ($projectTask->progress == 0) $imgStatus = img_picto($langs->trans('OFWaiting'), 'statut0.png');
 		elseif ($projectTask->progress < 100) $imgStatus = img_picto($langs->trans('OFInProgress'), 'statut3.png');
@@ -337,9 +338,9 @@
 function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 {
 	global $conf;
-	
-	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
-	
+
+	dol_include_once("/of/class/ordre_fabrication_asset.class.php");
+
 	$TRes = array();
 
 	if (!$conf->nomenclature->enabled) return $TRes;
@@ -359,8 +360,8 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 
 function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 {
-	dol_include_once("/of/class/ordre_fabrication_asset.class.php");   
-	
+	dol_include_once("/of/class/ordre_fabrication_asset.class.php");
+
 	return TAssetOf::qtyFromOF($product->id);
 
 }
