@@ -205,10 +205,11 @@ class Interfaceoftrigger
 		            $res = $db->query("SELECT count(*) as nb
                             FROM ".MAIN_DB_PREFIX."projet_task t
                                 LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (tex.fk_object=t.rowid)
-                            WHERE tex.fk_of=".$object->array_options['options_fk_of']." AND t.progress<0");
+                            WHERE tex.fk_of=".(int)$object->array_options['options_fk_of']." AND t.progress<100");
 		            if( $res=== false ) {
 
-		                var_dump($db);exit;
+		                $this->error=$db->lasterr;
+		                return -1;
 
 		            }
 
