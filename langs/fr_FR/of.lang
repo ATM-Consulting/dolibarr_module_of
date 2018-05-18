@@ -331,3 +331,4 @@ OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER=Clore les tâches liée
 
 InssuficienteAssetContenanceToUsedInOF=Contenu insuffisant dans l'équipement %s
 InssuficienteAssetContenanceToAddFromOF=Contenance de l'équipement %s dépassée
+OF_CLOSE_OF_ON_CLOSE_ALL_TASK=Clore l'OF à la cloture de la dernière tâche de ce dernier
