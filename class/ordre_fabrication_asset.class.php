@@ -492,7 +492,15 @@ class TAssetOF extends TObjetStd{
 
 		$this->destockOrStockPartialQty($PDOdb, $this);
 
-		if($this->fk_project == 0 && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
+		if($this->fk_project == 0) {
+			if($conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
+			elseif(!empty($this->fk_commande)) {
+				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+				$commande = new Commande($db);
+				$commande->fetch($this->fk_commande);
+				if(!empty($commande->fk_project)) $this->fk_project = $commande->fk_project;
+			}
+		}
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
