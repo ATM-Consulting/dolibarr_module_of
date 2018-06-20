@@ -759,7 +759,7 @@ class TAssetOF extends TObjetStd{
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
-		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
+		$reste = TAssetOF::getProductStock($fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK))-$qty_needed;
 
 		if($reste>=0) {
 			return null;
