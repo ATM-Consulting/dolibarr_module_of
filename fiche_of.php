@@ -1,5 +1,7 @@
 <?php
 
+set_time_limit(120);
+
 require('config.php');
 
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
