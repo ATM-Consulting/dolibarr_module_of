@@ -161,6 +161,7 @@ function _liste(&$PDOdb)
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
         , ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user
+		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
 
@@ -182,6 +183,7 @@ function _liste(&$PDOdb)
 
         $sql.= ",ofe.fk_project
 		, ofe.status, ofe.fk_user
+		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
 
@@ -241,6 +243,7 @@ function _liste(&$PDOdb)
 
 		$TMath['total_estimated_cost']='sum';
 		$TMath['total_cost']='sum';
+		$TMath['temps_estime_fabrication']='sum';
 	}
 
 	$PDOdb=new TPDOdb;
@@ -291,6 +294,7 @@ function _liste(&$PDOdb)
 		,'type'=>array(
 			'date_lancement'=>'date'
 			,'date_besoin'=>'date'
+			,'temps_estime_fabrication'=>'money'
 			,'total_cost'=>'money'
 			,'total_estimated_cost'=>'money'
 			,'nb_product_to_make'=>'number'
@@ -319,6 +323,7 @@ function _liste(&$PDOdb)
 			,'product'=>$langs->trans('Product')
 			,'client'=>$langs->trans('Customer')
 			,'nb_product_to_make'=>$langs->trans('NumberProductToMake')
+			,'temps_estime_fabrication'=>$langs->trans('EstimatedMakeTimeInHours')
 			,'total_cost'=>$langs->trans('RealCost')
 			,'total_estimated_cost'=>$langs->trans('EstimatedCost')
 			,'printTicket' =>$langs->trans('PrintTicket')

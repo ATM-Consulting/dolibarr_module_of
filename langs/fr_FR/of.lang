@@ -288,6 +288,7 @@ NumberOf=Of n°
 SetStateTo=passer à l'état 
 FinalProducCost=Coût du produit fini
 EstimatedMakeTime=Temps estimé de fabrication
+EstimatedMakeTimeInHours=Temps estimé de fabrication (en heures)
 RealMakeTime=Temps réel de fabrication
 EstimatedProducCost=Coût estimé de fabrication
 RealProducCost=Coût réel de fabrication
