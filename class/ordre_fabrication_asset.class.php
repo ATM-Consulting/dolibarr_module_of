@@ -828,8 +828,9 @@ class TAssetOF extends TObjetStd{
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
 			else $stock =$product->stock_reel;
 		}
-
-		return $stock;
+		
+		// MAIN_MAX_DECIMALS_STOCK
+		return price2num($stock, 'MS');
 	}
 
 	/* Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
