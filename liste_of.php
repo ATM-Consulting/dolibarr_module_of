@@ -42,6 +42,14 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 	if(!empty($TProduct))
 	{
+
+	    $commande = new Commande($db);
+	    if($commande->fetch($fk_commande)<=0) {
+
+	        accessforbidden($langs->trans('CannotLoadThisOrderAreYouInTheGoodEntity'));
+
+	    }
+
 		if($oneOF)
 		{
 			$assetOf = new TAssetOF;
@@ -128,6 +136,12 @@ function _liste(&$PDOdb)
 		$commande = new Commande($db);
 		$result=$commande->fetch($fk_commande);
 
+		if($result<=0) {
+
+		    accessforbidden($langs->trans('CannotLoadThisOrderAreYouInTheGoodEntity'),0);
+
+		}
+
 		$head=commande_prepare_head($commande, $user);
 		$titre=$langs->trans("CustomerOrder".$product->type);
 		dol_fiche_head($head, 'tabOF3', $titre, 0, "order");
@@ -144,21 +158,32 @@ function _liste(&$PDOdb)
 
 	if($mode =='supplier_order') {
 		$sql.=" cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
-		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin, ofe.fk_commande,ofe.fk_project
+		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+        , ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user
+		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
 
 	}
 	else {
-		$sql.=" ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+		$sql.=" ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre
         ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation")."
         , ofe.date_lancement
         , ofe.date_besoin
         , ofe.date_end
-        , ofe.fk_commande,ofe.fk_project
+        , ofe.fk_commande";
+
+		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+            $sql.=" ,cd.total_ht as 'order_line_price' ";
+
+		}
+
+        $sql.= ",ofe.fk_project
 		, ofe.status, ofe.fk_user
+		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
 
@@ -181,6 +206,12 @@ function _liste(&$PDOdb)
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
 
+		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+		    $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
+
+		}
+
 	}
 
 	$sql.="  WHERE ofe.entity=".$conf->entity;
@@ -199,7 +230,7 @@ function _liste(&$PDOdb)
 	}
 
 	$TMath=array();
-	$THide = array('rowid','fk_user','fk_product','fk_soc');
+	$THide = array('rowid','fk_commandedet','fk_user','fk_product','fk_soc');
 	if($fk_commande>0)  $THide[] = 'fk_commande';
 
 	if ($conf->global->OF_NB_TICKET_PER_PAGE == -1) $THide[] = 'printTicket';
@@ -212,6 +243,7 @@ function _liste(&$PDOdb)
 
 		$TMath['total_estimated_cost']='sum';
 		$TMath['total_cost']='sum';
+		$TMath['temps_estime_fabrication']='sum';
 	}
 
 	$PDOdb=new TPDOdb;
@@ -237,6 +269,8 @@ function _liste(&$PDOdb)
 
 	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
 
+	if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) $TMath['order_line_price'] = 'sum';
+
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
 
 	echo $form->hidden('action', '');
@@ -260,11 +294,13 @@ function _liste(&$PDOdb)
 		,'type'=>array(
 			'date_lancement'=>'date'
 			,'date_besoin'=>'date'
+			,'temps_estime_fabrication'=>'money'
 			,'total_cost'=>'money'
 			,'total_estimated_cost'=>'money'
 			,'nb_product_to_make'=>'number'
 		  	,'date_livraison'=>'date'
 		    ,'date_end'=>'date'
+		    ,'order_line_price'=>'money'
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
@@ -282,34 +318,39 @@ function _liste(&$PDOdb)
 			,'ordre'=>$langs->trans('Rank')
 			,'date_lancement'=>$langs->trans('DateStart')
 			,'date_besoin'=>$langs->trans('DateNeeded')
-			,'status'=>$langs->trans('Statut')
+			,'status'=>$langs->trans('Status')
 			,'login'=>$langs->trans('UserAssign')
 			,'product'=>$langs->trans('Product')
 			,'client'=>$langs->trans('Customer')
 			,'nb_product_to_make'=>$langs->trans('NumberProductToMake')
+			,'temps_estime_fabrication'=>$langs->trans('EstimatedMakeTimeInHours')
 			,'total_cost'=>$langs->trans('RealCost')
 			,'total_estimated_cost'=>$langs->trans('EstimatedCost')
 			,'printTicket' =>$langs->trans('PrintTicket')
 			,'fk_project'=>$langs->trans('Project')
 			,'supplierOrderId'=>$langs->trans('AssetProductionSupplierOrder')
 			,'date_livraison'=>$langs->trans('DeliveryDate')
-		    ,'date_end'=>$langs->trans('EndDate')
+		    ,'date_end'=>$langs->trans('DateEnd')
 		    ,'fk_asset_workstation'=>$langs->trans('Workstations')
+		    ,'order_line_price'=>$langs->trans('OrderLinePrice')
 		)
 		,'orderBy'=>array(
 			'rowid'=>'DESC'
 		)
 		,'eval'=>array(
-			'ordre'=>'TAssetOF::ordre(@val@)'
-			,'status'=>'TAssetOF::status(@val@, true)'
+			'ordre'=>'TAssetOF::ordre("@val@")'
+			,'status'=>'TAssetOF::status("@val@", true)'
 		    ,'product' => 'get_format_libelle_produit("@fk_product@")'
 		    ,'fk_asset_workstation' => 'get_format_label_workstation("@fk_asset_workstation@")'
 		    ,'client' => 'get_format_libelle_societe(@fk_soc@)'
-			,'fk_commande'=>'get_format_libelle_commande(@fk_commande@)'
+			,'fk_commande'=>'get_format_libelle_commande("@fk_commande@","@fk_commandedet@","@fk_product@")'
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
 			,'numero'=>'get_format_link_of("@val@",@rowid@)'
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
 
+		)
+		,'operator'=>array(
+			'fk_asset_workstation'=>'='
 		)
         ,'search'=>$TSearch
 	));
@@ -494,7 +535,7 @@ function _liste(&$PDOdb)
               FROM ".MAIN_DB_PREFIX."assetOf as ofe
               LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'NEEDED')
               LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
-              LEFT JOIN ".MAIN_DB_PREFIX."societe s ON 's.rowid = ofe.fk_soc)
+              LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)
               WHERE ofe.entity=".$conf->entity." AND ofel.fk_product=".$fk_product." AND ofe.status!='CLOSE'";
 
             $sql.=" GROUP BY ofe.rowid ";
@@ -520,7 +561,6 @@ function _liste(&$PDOdb)
                 ,'link'=>array(
                     'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 1).'">'.img_picto('','object_user.png','',0).' @val@</a>'
                     ,'numero'=>'<a href="'.dol_buildpath('/of/fiche_of.php?id=@rowid@', 1).'">'.img_picto('','object_list.png','',0).' @val@</a>'
-                    ,'client'=>'<a href="'.dol_buildpath('/societe/soc.php?id=@fk_soc@', 1).'">'.img_picto('','object_company.png','',0).' @val@</a>'
                 )
                 ,'translate'=>array()
                 ,'hide'=>$THide
@@ -537,7 +577,7 @@ function _liste(&$PDOdb)
                     ,'picto_precedent'=>img_picto('','back.png', '', 0)
                     ,'picto_suivant'=>img_picto('','next.png', '', 0)
                     ,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-                    ,'messa geNothing'=>$langs->trans('noOfFound')
+                    ,'messageNothing'=>$langs->trans('noOfFound')
                     ,'picto_search'=>img_picto('','search.png', '', 0)
                 )
                 ,'title'=>array(
@@ -553,8 +593,8 @@ function _liste(&$PDOdb)
                     ,'total_cost'=>$langs->trans('Cost')
                 )
                 ,'eval'=>array(
-                    'ordre'=>'TAssetOF::ordre(@val@)'
-                    ,'status'=>'TAssetOF::status(@val@)'
+                    'ordre'=>'TAssetOF::ordre("@val@")'
+                    ,'status'=>'TAssetOF::status("@val@")'
                     ,'product' => 'get_format_libelle_produit(@fk_product@)'
                     ,'client' => 'get_format_libelle_societe(@fk_soc@)'
                 )
@@ -718,14 +758,25 @@ function get_format_label_supplier_order($fk){
 
 }
 
-function get_format_libelle_commande($fk)
+function get_format_libelle_commande($fk, $fk_commandedet=0, $fk_products='')
 {
     global $db,$langs,$conf;
+
+    $fk = (int)$fk;
+    $fk_commandedet = (int)$fk_commandedet;
 
     if($fk>0)
     {
         $o = new Commande($db);
-        if($o->fetch($fk)>0) return $o->getNomUrl(1). ' '.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
+        if($o->fetch($fk)>0) {
+
+            $res = '<span style="white-space:nowrap;">'.$o->getNomUrl(1);
+            $res.= '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
+            $res.='</span>';
+
+            return $res;
+        }
+
 		else return $fk;
     }
 

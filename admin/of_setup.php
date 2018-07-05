@@ -57,7 +57,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 		dol_print_error($db);
 	}
 }
-	
+
 if (preg_match('/del_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
@@ -72,18 +72,18 @@ if (preg_match('/del_(.*)/',$action,$reg))
 	}
 }
 	if($action=='save') {
-		
+
 		$error=0;
-		
+
 		if(isset($_REQUEST['TOF']))
 		{
 			foreach($_REQUEST['TOF'] as $name=>$param) {
-				
+
 				dolibarr_set_const($db, $name, $param, 'chaine', 0, '', $conf->entity);
-				
+
 			}
 		}
-		
+
 		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name']))
 		{
 			$src=$_FILES['template']['tmp_name'];
@@ -107,7 +107,7 @@ if (preg_match('/del_(.*)/',$action,$reg))
 				}
 			}
 		}
-		
+
 		if (!$error) setEventMessage($langs->trans("SetupSaved"));
 	}
 /*
@@ -142,11 +142,31 @@ print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_MASK").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300" style="white-space:nowrap;">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_MASK">';
+
+print $formCore->texte('', 'OF_MASK', (empty($conf->global->OF_MASK) ? '' : $conf->global->OF_MASK), 20,255,' placeholder="OF{00000}" ');
+
+
+dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+$assetOf=new TAssetOF();
+echo ' - prochain numéro : '.$assetOf->getNumero($PDOdb,false).' ';
+
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_CHILDREN_OF', array('alert' => array('method'=>'fnHideOPCAAdrr' ,'del' => array('content'=>$langs->trans('AssetOFConfirmChangeState'), 'title'=>$langs->trans('AssetOFConfirmChangeStateTitle'))), 'del' => array('CREATE_CHILDREN_OF_COMPOSANT', 'CREATE_OF_ON_ORDER_VALIDATE', 'DELETE_OF_ON_ORDER_CANCEL')));
-print '</td></tr>';	
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -162,7 +182,7 @@ print '<td>'.$langs->trans("MinimalViewForChilOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('OF_MINIMAL_VIEW_CHILD_OF');
-print '</td></tr>';	
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -170,18 +190,18 @@ print '<td>'.$langs->trans("CreateAssetChildrenOFWithComposant").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT', array('set' => array('CREATE_CHILDREN_OF' => 1)));
-print '</td></tr>';	
+print '</td></tr>';
 
 if(!empty($conf->asset->enabled)) {
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('USE_LOT_IN_OF');
-	print '</td></tr>';	
-	
+	print '</td></tr>';
+
 }
 
 $var=!$var;
@@ -190,7 +210,7 @@ print '<td>'.$langs->trans("AssetAddNeededQtyZero").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
-print '</td></tr>';	
+print '</td></tr>';
 
 $var=!$var;
 	print '<tr '.$bc[$var].'>';
@@ -199,7 +219,7 @@ $var=!$var;
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
 	print '</td></tr>';
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
@@ -215,7 +235,7 @@ $var=!$var;
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');
     print '</td></tr>';
-    
+
     $var=!$var;
     print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OF_PRINT_IN_PDF").'</td>';
@@ -223,7 +243,7 @@ $var=!$var;
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_PRINT_IN_PDF');
     print '</td></tr>';
-	    
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
@@ -231,7 +251,7 @@ $var=!$var;
 	print '<td align="center" width="300">';
 	print ajax_constantonoff('ASSET_CONCAT_PDF');
 	print '</td></tr>';
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->transnoentitiesnoconv("AssetUseDestockagePartiel").'</td>';
@@ -239,7 +259,7 @@ $var=!$var;
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_USE_DESTOCKAGE_PARTIEL');
     print '</td></tr>';
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfShowQtytheorique").'</td>';
@@ -247,7 +267,15 @@ $var=!$var;
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_SHOW_QTY_THEORIQUE_MOINS_OF');
     print '</td></tr>';
-	
+
+    $var=!$var;
+    print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans("OF_SHOW_ORDER_LINE_PRICE").'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_SHOW_ORDER_LINE_PRICE');
+    print '</td></tr>';
+
     $var=!$var;
     print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD").'</td>';
@@ -255,10 +283,10 @@ $var=!$var;
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_SHOW_LINE_ORDER_EXTRAFIELD');
     print '</td></tr>';
-    
+
     if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD)) {
-        
-        
+
+
         $var=!$var;
         print '<tr '.$bc[$var].'>';
         print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM").'</td>';
@@ -271,9 +299,9 @@ $var=!$var;
         print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
         print '</form>';
         print '</td></tr>';
-        
+
     }
-    
+
     $var=!$var;
     print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK").'</td>';
@@ -281,7 +309,7 @@ $var=!$var;
     print '<td align="center" width="300">';
     print ajax_constantonoff('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK');
     print '</td></tr>';
-    
+
    $var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
@@ -294,7 +322,7 @@ $var=!$var;
     print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
     print '</form>';
     print '</td></tr>';
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("set_ABRICOT_WKHTMLTOPDF_CMD").'</td>';
@@ -307,7 +335,7 @@ $var=!$var;
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 	print '</form>';
 	print '</td></tr>';
-	
+
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("CHOOSE_CUSTOM_LABEL").'</td>';
@@ -321,8 +349,8 @@ $var=!$var;
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 	print '</form>';
 	print '</td></tr>';
-	
-	
+
+
 	if($conf->global->DEFAULT_ETIQUETTES == 2){
 
 			print '<tr '.$bc[$var].'>';
@@ -336,7 +364,7 @@ $var=!$var;
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';
-			
+
 			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_MARGIN_TOP_CELL").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
@@ -348,7 +376,7 @@ $var=!$var;
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';
-			
+
 			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_MARGIN_LEFT").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
@@ -360,7 +388,7 @@ $var=!$var;
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';
-			
+
 			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_MARGIN_RIGHT").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
@@ -372,7 +400,7 @@ $var=!$var;
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';
-			
+
 			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_WIDTH_DIV").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
@@ -384,7 +412,7 @@ $var=!$var;
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';
-			
+
 			print '<tr '.$bc[$var].'>';
 			print '<td>'.$langs->trans("DEFINE_HEIGHT_DIV").'</td>';
 			print '<td align="center" width="20">&nbsp;</td>';
@@ -396,10 +424,10 @@ $var=!$var;
 			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 			print '</form>';
 			print '</td></tr>';
-		
+
 	}
-	
-	
+
+
 
 	print '</table>';
 
@@ -415,7 +443,7 @@ print '<td>'.$langs->trans("UseProjectTask").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
-print '</td></tr>'; 
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -431,7 +459,7 @@ print '<td>'.$langs->trans("OF_CONCAT_WS_ON_ADD").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('OF_CONCAT_WS_ON_ADD');
-print '</td></tr>'; 
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -455,7 +483,7 @@ print '<td>'.$langs->trans("AssetUseWorkstationByNeededInOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_DEFINED_WORKSTATION_BY_NEEDED');
-print '</td></tr>';	
+print '</td></tr>';
 
 
 $var=!$var;
@@ -507,7 +535,7 @@ print '<td>'.$langs->trans("CreteAssetOFOnOrderValidation").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE', array('set' => array('CREATE_CHILDREN_OF' => 1)));
-print '</td></tr>';	
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -515,7 +543,7 @@ print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('DELETE_OF_ON_ORDER_CANCEL', array('set' => array('CREATE_CHILDREN_OF' => 1)));
-print '</td></tr>';	
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -523,7 +551,7 @@ print '<td>'.$langs->trans("AssetAutoCreateProjectOnOF").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_AUTO_CREATE_PROJECT_ON_OF');
-print '</td></tr>';	
+print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -541,10 +569,26 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_FOLLOW_SUPPLIER_ORDER_STATUS');
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_CLOSE_OF_ON_CLOSE_ALL_TASK').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_CLOSE_OF_ON_CLOSE_ALL_TASK');
+print '</td></tr>';
+
 print "</table>";
 
 
-	
+
 	$form=new TFormCore;
 
 	showParameters($form);
@@ -552,53 +596,53 @@ print "</table>";
 function showParameters(&$form) {
 	global $db,$conf,$langs;
 	dol_include_once('/product/class/html.formproduct.class.php');
-	
+
 	$formProduct = new FormProduct($db);
-	
+
 	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-<?php echo $typeDoc ?>" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
 		<table width="100%" class="noborder">
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
 			</tr>
-			
+
 			<tr class="pair">
 				<td><?php echo $langs->trans('UseManualWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_MANUAL_WAREHOUSE'); ?></td>
-			</tr> 
-			
+			</tr>
+
 			<tr id="USE_DEFAULT_WAREHOUSE" class="impair">
 				<td><?php echo $langs->trans('UseDefinedWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_DEFAULT_WAREHOUSE', array('showhide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'), 'hide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'))); ?></td>
-			</tr> 
-			
+			</tr>
+
 			<tr class="pair" id="WAREHOUSE_TO_MAKE" class="pair" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
-			
+
 			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
-			</tr> 
+			</tr>
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>
 			</tr>
 			<tr class="pair" >
 				<td><?php echo $langs->trans('Template') ?></td><td>
 					<input type="file" name="template" />
-					<?php 
+					<?php
 						if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
 						else $template = "templateOF.odt";
-						
+
 						$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
-						
+
 						if (!file_exists($locationTemplate)) $url = dol_buildpath('/of/exempleTemplate/'.$template, 1);
 						else $url = dol_buildpath('document.php', 1).'?modulepart=of&file=/template/'.$template;
-						
+
 					 echo ' - <a href="'.$url.'">'.$langs->trans('Download').'</a> '.$template;
 				 ?></td>
-			</tr> 
-			
-			
+			</tr>
+
+
 		</table>
-		
+
 		<script type="text/javascript">
 			$(function() {
 				$('#set_ASSET_MANUAL_WAREHOUSE').click(function() {
@@ -606,7 +650,7 @@ function showParameters(&$form) {
 						$('#del_ASSET_USE_DEFAULT_WAREHOUSE').click();
 					}
 				});
-				
+
 				$('#set_ASSET_USE_DEFAULT_WAREHOUSE').click(function() {
 					if ($('#del_ASSET_MANUAL_WAREHOUSE').css('display') != 'none') {
 						$('#del_ASSET_MANUAL_WAREHOUSE').click();
@@ -614,17 +658,17 @@ function showParameters(&$form) {
 				});
 			});
 		</script>
-		
-		<p align="right">	
-			<input class="button" type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" /> 
+
+		<p align="right">
+			<input class="button" type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" />
 		</p>
-	
+
 	</form>
 	<p align="center" style="background: #fff;">
-	   
-	   <a href="http://www.atm-consulting.fr/" target="_blank"><img src="../img/ATM_logo.jpg" /></a>
+
+	   <a href="http://www.atm-consulting.fr/" target="_blank"><img src="../img/ATM_logo_petit.jpg" /></a>
 	</p>
-	
+
 	<br /><br />
 	<?php
 }

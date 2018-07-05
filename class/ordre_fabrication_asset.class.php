@@ -25,6 +25,8 @@ class TAssetOF extends TObjetStd{
 		);
 
 	function __construct() {
+	    global $conf;
+
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
@@ -49,6 +51,8 @@ class TAssetOF extends TObjetStd{
 		$this->errors = array();
 
 		$this->current_cost_for_to_make = 0; // montant utilisé pour les entrées de stock
+
+		$this->entity = $conf->entity;
 	}
 
 	function set_current_cost_for_to_make($compo_planned_cost= false) {
@@ -80,7 +84,7 @@ class TAssetOF extends TObjetStd{
 		$res = parent::load($db,$id,true);
 
 		$this->ref = $this->numero; //for dolibarr compatibility
-		
+
 		$this->set_current_cost_for_to_make();
 
 	        foreach($this->TAssetOFLine as &$line) {
@@ -196,16 +200,16 @@ class TAssetOF extends TObjetStd{
 										// a priori la tâche devrait exister, donc on test
 										$wsof->save($PDOdb);
 									}
-									
+
 									if($ws->id == $wsof->fk_asset_workstation/* && $wsof->fk_project_task>0 */&& ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
 										if($ws->type == 'STT') {
-											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug 
+											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug
 										}
 										else if($wsof->nb_days_before_beginning < $nb) {
 											$wsof->nb_days_before_beginning = $nb;
 										}
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
-										
+
 									}
 								}
 							}
@@ -265,9 +269,9 @@ class TAssetOF extends TObjetStd{
 			//TODO il manque ici les coefficients de frais généraux. A récupérer depuis la nomenclature lors de la création de l'OF
 
 			if($line->type == 'NEEDED') {
-				
+
 				if(empty($line->pmp) || $force_pmp) $line->load_product($force_pmp);
-				
+
 				$line->compo_cost = $line->pmp;
 				$line->compo_estimated_cost= $line->pmp; //TODO affiner
 				$line->compo_planned_cost= $line->pmp; //TODO affiner
@@ -424,9 +428,9 @@ class TAssetOF extends TObjetStd{
 			if( $this->date_lancement < $time ) $this->date_lancement = $time;
 
 			$time_child = $this->getMaxDelaiLancementForChild($PDOdb);
-			
+
 			if( $this->date_lancement < $time_child ) $this->date_lancement = $time_child;
-			
+
 			$PDOdb->dbupdate($this->get_table(), array('date_lancement'=>date('Y-m-d', $this->date_lancement),'rowid'=>$this->getId()),array('rowid'));
 
 		}
@@ -436,16 +440,16 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function getMaxDelaiLancementForChild(&$PDOdb) {
-	
+
 	    $PDOdb->Execute("SELECT max(date_lancement) as date_lancement FROM ".$this->get_table()." WHERE fk_assetOf_parent=".$this->getId());
 	    if($obj = $PDOdb->Get_line()) {
 	        return strtotime($obj->date_lancement);
-	        
+
 	    }
-	    
+
 	    return -1;
 	}
-	
+
 	function setDelaiLancementForParent(&$PDOdb) {
 //var_dump($this->fk_assetOf_parent);exit;
 //		return false;
@@ -472,8 +476,6 @@ class TAssetOF extends TObjetStd{
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
 		$this->total_estimated_cost = $this->compo_estimated_cost + $this->mo_estimated_cost;
 
-		$this->entity = $conf->entity;
-
 		if(!empty($conf->global->USE_LOT_IN_OF))
 		{
 			$this->setLotWithParent($PDOdb);
@@ -490,7 +492,15 @@ class TAssetOF extends TObjetStd{
 
 		$this->destockOrStockPartialQty($PDOdb, $this);
 
-		if($this->fk_project == 0 && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
+		if($this->fk_project == 0) {
+			if($conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
+			elseif(!empty($this->fk_commande)) {
+				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+				$commande = new Commande($db);
+				$commande->fetch($this->fk_commande);
+				if(!empty($commande->fk_project)) $this->fk_project = $commande->fk_project;
+			}
+		}
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
@@ -511,12 +521,12 @@ class TAssetOF extends TObjetStd{
 	}
 
     function getNumero(&$PDOdb, $save=false) {
-        global $db;
+        global $db, $conf;
 
         if(empty($this->numero)) {
             dol_include_once('core/lib/functions2.lib.php');
 
-            $mask = 'OF{00000}';
+            $mask = empty($conf->global->OF_MASK) ? 'OF{00000}' : $conf->global->OF_MASK;
             $numero = get_next_value($db,$mask,'assetOf','numero');
 
             if($save) {
@@ -607,7 +617,7 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
-		
+
 		foreach($Tab as $fk_product => $TProd)
 		{
 		    foreach ($TProd as $prod)
@@ -674,7 +684,7 @@ class TAssetOF extends TObjetStd{
 			$this->getProductComposition_arrayMerge($PDOdb,$Tab, $TRes, $quantite_to_make);
 		}
 		/*if($id_product==2) {
-			
+
 			var_dump($Tab);exit;
 		}*/
 		return $Tab;
@@ -749,7 +759,7 @@ class TAssetOF extends TObjetStd{
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
-		$reste = TAssetOF::getProductStock($fk_product)-$qty_needed;
+		$reste = TAssetOF::getProductStock($fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK))-$qty_needed;
 
 		if($reste>=0) {
 			return null;
@@ -835,7 +845,6 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine = &$this->TAssetOFLine[$k];
 
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
-		$TAssetOFLine->entity = $user->entity;
 		$TAssetOFLine->fk_product = $fk_product;
 		$TAssetOFLine->fk_asset = 0; //TODO remove ?
 		$TAssetOFLine->type = $type;
@@ -1045,7 +1054,7 @@ class TAssetOF extends TObjetStd{
 			$of = new TAssetOF;
 			$of->load($PDOdb, $id_of);
 			$of->date_end = time();
-			
+
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
 
@@ -1767,9 +1776,9 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function getControlPDF(&$PDOdb) {
-		
+
 		return QualityControl::getControlPDF($this->id, $this->element);
-		
+
 	}
 }
 
@@ -1779,6 +1788,8 @@ class TAssetOFLine extends TObjetStd{
  * */
 
 	function __construct() {
+	    global $conf;
+
 		$this->set_table(MAIN_DB_PREFIX.'assetOf_line');
 
     	$this->TChamps = array();
@@ -1800,6 +1811,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->setChild('TAssetOFLine','fk_assetOf_line_parent');
 
 		$this->product = null;
+		$this->entity = $conf->entity;
 	}
 
 	//$qty_to_re_stock est normalement tjr positif
@@ -1881,24 +1893,16 @@ class TAssetOFLine extends TObjetStd{
 
 	function stockAsset(&$PDOdb, $qty_to_stock, $add_only_qty_to_contenancereel=false) {
 
-		return $this->destockAsset($PDOdb, -$qty_to_stock, $add_only_qty_to_contenancereel);
+		global $conf, $langs, $user;
 
-	}
+        if($qty_to_stock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
 
-	/**
-	 * @param 	$qty_to_destock		if < 0 = restockage, if > 0 = destockage
-	 */
-    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
-    {
-        global $conf, $langs;
+        // TODO reste un souci de stockage d'un TO_MAKE sur OF Terminé (si j'en fabrique 50 puis qu'on modifie la quantité par 60 avec une contenance max de 50 par équipement, le surplus fini actuellement dans le 1er équipement et laisse finalement le 2nd vide)
+        $mouvement = 'restockage';
+		if ($qty_to_stock < 0) $mouvement = 'destockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
 
-        if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout
-
-        $mouvement = 'destockage';
-		if ($this->type=='NEEDED' && $qty_to_destock < 0) $mouvement = 'restockage'; // Fix un problème de restockage en cas de sous conso d'un NEEDED
-
-        $sens = ($qty_to_destock>0) ? -1 : 1;
-        $qty_to_destock_rest =  abs($qty_to_destock);
+        $sens = ($qty_to_stock>0) ? 1 : -1;
+		$qty_to_stock_rest =  abs($qty_to_stock);
 
 		if($this->type == 'TO_MAKE') $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
 		else $fk_entrepot = !empty($conf->global->ASSET_MANUAL_WAREHOUSE) ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
@@ -1910,7 +1914,7 @@ class TAssetOFLine extends TObjetStd{
 
         if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled))
         {
-        	$this->stockProduct($sens * $qty_to_destock_rest);
+        	$this->stockProduct($sens * $qty_to_stock_rest);
         }
 		else
 		{
@@ -1929,43 +1933,62 @@ class TAssetOFLine extends TObjetStd{
 						setEventMessages( 'ERR.'.__METHOD__.' > setAsset ' .$this->lot_number, $assetOf->errors ,'errors');
 					}
 					else {
-						$this->update_qty_stock($sens * $qty_to_destock_rest);
+						$this->update_qty_stock($sens * $qty_to_stock_rest);
 					}
 				}
 				else{ //Sinon effectivement on destocke juste le produit sans les équipements
-					$this->stockProduct( $sens * $qty_to_destock_rest);
+					$this->stockProduct( $sens * $qty_to_stock_rest);
 				}
 
             }
             else{
-
+				
+				$nb_asset = count($TAsset); $i=0;
                 foreach($TAsset as $asset)
                 {
-					if ($mouvement == 'destockage')
-					{
-						$qty_asset_to_destock = !empty($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : $asset->contenancereel_value;
+					$qty_asset_to_stock=0;
+					if($mouvement == 'destockage')  {
+						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
+							$qty_asset_to_stock=$asset->contenancereel_value;
+							
+							if($i+1 == $nb_asset) {
+								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
+							}
+						}
+						else if($i+1 == $nb_asset && !empty($conf->global->ASSET_NEGATIVE_DESTOCK)) {
+							$qty_asset_to_stock = $qty_to_stock_rest;
+						}
+						else {
+							$qty_asset_to_stock = $qty_to_stock_rest;
+						}
 					}
-					else // stockage (uniquement pour le cas des NEEDED)
-					{
-						// dans le cas où l'on "Termine" l'OF avec une sous conso (il faut donc restocker la diff) ($sens => 1; $qty_to_destock => négatif)
-						$qty_asset_to_destock = !empty($conf->global->ASSET_NEGATIVE_DESTOCK) ? $qty_to_destock_rest : ($asset->contenance_value - $asset->contenancereel_value);
-					}
-					//TODO $qty_asset_to_destock à 0 pas nécessaire de faire la suite
-					if($qty_to_destock_rest - $qty_asset_to_destock <= 0)
-					{
-						$qty_asset_to_destock = $qty_to_destock_rest;
-					}
-
+					else {
+						
+						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
+							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
+							if($i+1 == $nb_asset) {
+								setEventMessage($langs->trans('InssuficienteAssetContenanceToAddFromOF', $asset->serial_number),'errors');
+							}
+						}
+						else {
+							$qty_asset_to_stock = $qty_to_stock_rest;
+						}
+						
+					}	
+					
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
-					$this->update_qty_stock($sens * $qty_asset_to_destock);
+					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
 					$asset->save($PDOdb,$user
-							,$labelMvt.' n°'.$this->of_numero.' - Equipement : '.$asset->serial_number
-							,$sens * $qty_asset_to_destock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
+							,$labelMvt.' n°'.$this->of_numero.' - '.$langs->trans('Asset').' : '.$asset->serial_number
+							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
-					$qty_to_destock_rest-= $qty_asset_to_destock;
+					$qty_to_stock_rest-= $qty_asset_to_stock;
+					
+					$i++;
 
-					if($qty_to_destock_rest<=0)break;
+					if($qty_to_stock_rest<=0)break;
+					
 
                 }
 
@@ -1974,6 +1997,17 @@ class TAssetOFLine extends TObjetStd{
 		}
 
         return $this->save($PDOdb);
+
+	}
+
+	/**
+	 * @param 	$qty_to_destock		if < 0 = restockage, if > 0 = destockage
+	 */
+    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
+    {
+		
+		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
+		
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
@@ -1997,7 +2031,7 @@ class TAssetOFLine extends TObjetStd{
 			if($stock_needed > 0) return 0;
 
 			if(dol_include_once('/supplierorderfromorder/class/sofo.class.php')){
-				
+
 				$qty = $this->qty_needed>0 ? $this->qty_needed : 1;
 				$nb = TSOFO::getMinAvailability($this->fk_product, $qty,true);
 //		var_dump($nb, $this->qty_needed);exit;
@@ -2269,19 +2303,26 @@ class TAssetOFLine extends TObjetStd{
 			 * Quand on "Termine" l'OF il faudra prendre la liste des équipements liés pour les remplir puis en créer si nécessaire
 			 */
 
+			// évite de créer des assets en double, et permet de créer éventuellement un surplus d'équipement si nécessaire sur un update de la quantité produite d'un TO_MAKE
+			$TAssetLinked = $this->getAssetLinked($PDOdb);
+			$qty_stockage_dispo = 0;
+			foreach ($TAssetLinked as &$assetLinked)
+			{
+				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
+			}
+			
             $contenance_max = $assetType->contenance_value;
-            $nb_asset_to_create = ceil($qty_to_make / $contenance_max);
+            $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
 			//Qté restante a fabriquer
             $qty_to_make_rest = $qty_to_make;
-
             for($i=0; $i<$nb_asset_to_create; $i++)
             {
                 $TAsset = new TAsset;
                 $TAsset->fk_soc = $AssetOf->fk_soc;
                 $TAsset->fk_societe_localisation = $conf->global->ASSET_DEFAULT_LOCATION;
                 $TAsset->fk_product = $fk_product;
-                $TAsset->entity = $conf->entity;
+
                 if(!empty($conf->global->ASSET_DEFAULT_DLUO)) $TAsset->dluo = strtotime(date('Y-m-d').' +'.$conf->global->ASSET_DEFAULT_DLUO.' days');
                 else $TAsset->dluo = strtotime(date('Y-m-d'));
 
@@ -2299,7 +2340,9 @@ class TAssetOFLine extends TObjetStd{
 
                 $qty_to_make_rest-=$qty_to_make_asset;
 
-                $TAsset->contenancereel_value = $qty_to_make_asset;
+//                $TAsset->contenancereel_value = $qty_to_make_asset;
+				// Je force la contenance à 0, car l'appel à la méthode load_asset_type() un peu plus haut init la valeur, de plus cet attribut sera update par stockAsset()
+				$TAsset->contenancereel_value = 0;
                 $TAsset->lot_number = $lot_number;
 
                 if (!empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE) && empty($fk_entrepot)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
@@ -2362,7 +2405,7 @@ class TAssetOFLine extends TObjetStd{
 					$nd->fk_product = $this->fk_product;
 					$PDOdb=new TPDOdb();
 					$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
-					
+
 				}
 				else {
 					$this->product = new Product($db);
@@ -2413,7 +2456,7 @@ class TAssetOFLine extends TObjetStd{
          * le fait de delete l'OF on va donc delete chacun de ses enfants TAssetOFLine
          * seulement un objet TAssetOFLine de type TO_MAKE a aussi des enfants TAssetOFLine
          */
-		unset($this->TAssetOFLine);  //le delete de l'enfant est déjà fait par la liaison parent/enfant OF
+ 		$this->TAssetOFLine = array();  //le delete de l'enfant est déjà fait par la liaison parent/enfant OF
 
 		parent::delete($PDOdb);
 	}
@@ -2426,7 +2469,7 @@ class TAssetOFLine extends TObjetStd{
 		if(empty($this->id)) {
 			$this->id = $this->save($PDOdb);
 		}
-		
+
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 		$PDOdb->Execute($sql);
 
@@ -2456,7 +2499,7 @@ class TAssetOFLine extends TObjetStd{
 			$sql = rtrim($sql, ',');
 
 			$PDOdb->Execute($sql);
-			
+
 		}
 	}
 
@@ -2546,10 +2589,8 @@ class TAssetOFLine extends TObjetStd{
 	function save(&$PDOdb)
 	{
 		global $user,$langs,$conf,$db;
-		
-		$this->entity = $conf->entity;
 
-        if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile
+		if($this->conditionnement==0 && $this->fk_product>0) { //TOCHECK A priori inutile
             $this->initConditionnement($PDOdb);
         }
 
@@ -2563,7 +2604,7 @@ class TAssetOFLine extends TObjetStd{
 		}
 
 		$this->TAssetOFLine=array(); // on ne doit pas intéragir avec la ligne enfant de celle-ci (problème d'intrications récurssives)
-		
+
 		return parent::save($PDOdb);
 	}
 
@@ -2620,7 +2661,6 @@ class TAssetOFLine extends TObjetStd{
 	function stockQtyToMakeAsset(&$PDOdb, &$of, $fromCloseOf=0)
 	{
 		global $conf,$langs;
-
 		$qty_make = $this->qty_used - $this->qty_stock;
 
 		$res = $this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number, $this->fk_entrepot);
@@ -2699,7 +2739,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$ws->load($PDOdb, $this->fk_asset_workstation);
 
 		if($ws->id<=0 || $OF->fk_project<=0) return false;
-		
+
 		$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
 		$modTask = new $class_mod;
 
@@ -2734,30 +2774,30 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->planned_workload = $this->nb_hour*3600;
 
 		$line_product_to_make = $OF->getLineProductToMake();
-		
+
 		if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK)) {
-		    
+
 		    if(!empty($line_product_to_make) && $line_product_to_make->fk_commandedet>0) {
-		    
+
     		    dol_include_once('/commande/class/commande.class.php');
-    		    
+
     		    $line = new OrderLine($db);
     		    $line->fetch_optionals($line_product_to_make->fk_commandedet);
-    		    
+
     		    $projectTask->array_options = $line->array_options;
-    		    
+
 		    }
-		    
+
 		}
-		
-		
+
+
        	$projectTask->array_options['options_grid_use']=1;
        	$projectTask->array_options['options_fk_workstation']=$ws->getId();
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
 		$projectTask->date_c=dol_now();
-		
+
 		$p = new Product($db);
-		
+
 		if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
 			$projectTask->array_options['options_fk_product']=$p->id;
 		}
@@ -3149,10 +3189,11 @@ if (class_exists('TWorkstation')) {
 	class TAssetWorkstation extends TWorkstation {
 	//TODO remove it and use workstation object
 		function __construct() {
+            global $conf;
 
 	    	parent::__construct();
 		    $this->start();
-
+		    $this->entity = $conf->entity;
 		}
 
 		function load(&$PDOdb, $id, $loadChild = true)
@@ -3165,7 +3206,6 @@ if (class_exists('TWorkstation')) {
 			global $conf;
 
 			$this->name = $this->libelle;
-			$this->entity = $conf->entity;
 
 			parent::save($PDOdb);
 		}

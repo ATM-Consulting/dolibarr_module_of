@@ -70,7 +70,7 @@
 
 				[onshow;block=end]
 				<tr rel="status">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Statut)]</td>
+					<td>[view.editField;strconv=no][view.langs.transnoentities(Status)]</td>
 					<td class="editableField">[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
 					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
 						<span class="viewmode notinparentview">
@@ -109,7 +109,7 @@
 							<!-- TO_MAKE -->
 							<table width="100%" class="border tomake">
 								<tr style="background-color:#dedede;">
-									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(OFActions)]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[view.langs.transnoentities(Lot)]</td>
 									[onshow;block=end]
@@ -120,39 +120,39 @@
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[view.langs.transnoentities(Warehouse)]</td>
 									[onshow;block=end]
-									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(Action)]</td>
+									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(OFActions)]</td>
 
 								</tr>
 								<tr id="[TTomake.id]">
-									<td align='center' class="draftedit">[TTomake.addneeded;strconv=no]</td>
+									<td align="center" valign="top" class="draftedit">[TTomake.addneeded;strconv=no]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td>[TTomake.lot_number;strconv=no]</td>
+										<td valign="top">[TTomake.lot_number;strconv=no]</td>
 									[onshow;block=end]
-									<td>[TTomake.libelle;block=tr;strconv=no]
+									<td valign="top">[TTomake.libelle;block=tr;strconv=no]
 									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
 									[onshow;block=end]
 										[TTomake.extrafields;strconv=no]
 									</td>
-									<td>[TTomake.qty;strconv=no]</td>
-									<td>[TTomake.qty_used;strconv=no]</td>
-									<td width="30%">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
+									<td valign="top">[TTomake.qty;strconv=no]</td>
+									<td valign="top">[TTomake.qty_used;strconv=no]</td>
+									<td width="30%" valign="top">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
 									[onshow;block=end]
-									<td align='center' class="draftedit">[TTomake.delete;strconv=no]</td>
+									<td align="center" valign="top" class="draftedit">[TTomake.delete;strconv=no]</td>
 
 								</tr>
 							</table>
 						</td>
 					</tr>
+							[onshow;block=begin;when [view.mode]!='view']
 					<tr>
 						<td colspan="4" style="height:40px; border-left: none; text-align: right;">
-							[onshow;block=begin;when [view.mode]!='view']
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">[view.langs.transnoentities(AddProduct)]</a>
-							[onshow;block=end]
 						</td>
-					</tr>
+					</tr>	
+						[onshow;block=end]
 				</table>
 			</div>
 
