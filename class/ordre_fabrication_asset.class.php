@@ -2615,16 +2615,18 @@ class TAssetOFLine extends TObjetStd{
 
 		if (!$this->fk_entrepot) return 'Aucun entrepôt séléctionné';
 
-		$sql = 'SELECT e.label, "" AS reel FROM '.MAIN_DB_PREFIX.'entrepot e WHERE rowid = '.(int) $this->fk_entrepot;
+		(float)DOL_VERSION > 6 ? $field_label_entrepot='ref' : $field_label_entrepot='label';
+
+		$sql = 'SELECT e.'.$field_label_entrepot.', "" AS reel FROM '.MAIN_DB_PREFIX.'entrepot e WHERE rowid = '.(int) $this->fk_entrepot;
 		if ($withStock)
 		{
-			$sql = 'SELECT e.label, ps.reel FROM '.MAIN_DB_PREFIX.'entrepot e
+			$sql = 'SELECT e.'.$field_label_entrepot.', ps.reel FROM '.MAIN_DB_PREFIX.'entrepot e
 					LEFT JOIN '.MAIN_DB_PREFIX.'product_stock ps ON (ps.fk_entrepot = e.rowid AND ps.fk_product = '.(int) $this->fk_product.')
 					WHERE e.rowid = '.(int) $this->fk_entrepot.'';
 		}
 		else
 		{
-			$sql = 'SELECT e.label FROM '.MAIN_DB_PREFIX.'entrepot e WHERE rowid = '.(int) $this->fk_entrepot;
+			$sql = 'SELECT e.'.$field_label_entrepot.' FROM '.MAIN_DB_PREFIX.'entrepot e WHERE rowid = '.(int) $this->fk_entrepot;
 		}
 
 		$PDOdb->Execute($sql);
