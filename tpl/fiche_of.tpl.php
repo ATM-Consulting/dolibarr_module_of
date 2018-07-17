@@ -252,7 +252,7 @@
 									<td>[view.langs.transnoentities(Products)]</td>
 
 									<td>[view.langs.transnoentities(QtyNeeded)]</td>
-									<td>[view.langs.transnoentities(PlannedQty)]</td>
+									<td>[view.langs.transnoentities(PlannedQty)] [view.link_update_qty_used;strconv=no]</td>
 									<td class="nodraft">[view.langs.transnoentities(QuantityUsed)]</td>
 									<!-- <td class="draft">Delta</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
@@ -272,8 +272,8 @@
 									<td>[TNeeded.libelle;block=tr;strconv=no]<br />[TNeeded.note_private;strconv=no;]</td>
 
 									<td>[TNeeded.qty_needed]</td>
-									<td>[TNeeded.qty;strconv=no]</td>
-									<td class="nodraft">[TNeeded.qty_used;strconv=no]</td>
+									<td class="qty_planned" data-qty='[TNeeded.qty_planned]'>[TNeeded.qty;strconv=no]</td>
+									<td class="nodraft qty_used">[TNeeded.qty_used;strconv=no]</td>
 									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
 										<td width="20%">[TNeeded.workstations;strconv=no]</td>
@@ -866,4 +866,13 @@
 
 		}
 
+		/**
+		 * Permet de mettre à jour les inputs "Quantité utilisée" sur l'édition de l'OF avec la colonne "Qté planifiée"
+		 */
+		function updateQtyUsed(img_picto)
+		{
+			$(img_picto).closest('table').find('.qty_planned').each(function(i, item) {
+				$(item).next('.qty_used').children('input').val($(item).data('qty'));
+			});
+		}
 </script>
