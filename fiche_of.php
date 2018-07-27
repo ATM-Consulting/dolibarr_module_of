@@ -30,6 +30,15 @@ $langs->load("of@of");
 
 $hookmanager->initHooks(array('ofcard'));
 
+$PDOdb=new TPDOdb;
+$assetOf=new TAssetOF;
+$id = GETPOST('id', 'int');
+if (!empty($id))
+{
+	$assetOf->load($PDOdb, $id);
+	if ($assetOf->entity != $conf->entity) accessforbidden();
+}
+
 // Get parameters
 _action();
 
