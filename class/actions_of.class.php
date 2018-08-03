@@ -80,109 +80,107 @@ class Actionsof
 
 	}
 
-    function doActions($parameters, &$object, &$action, $hookmanager)
-    {
-    	global $langs, $db, $conf, $user;
+	function doActions($parameters, &$object, &$action, $hookmanager)
+	{
+		global $langs, $db, $conf, $user;
 
 		// Constante PRODUIT_SOUSPRODUITS passée à 0 pour ne pas déstocker les sous produits lors de la validation de l'expédition
-		/*if(in_array('expeditioncard',explode(':',$parameters['context'])) && $action === "confirm_valid") {
-
-			$conf->global->PRODUIT_SOUSPRODUITS = 0;
-
-		}*/
+		/*
+		 * if(in_array('expeditioncard',explode(':',$parameters['context'])) && $action === "confirm_valid") {
+		 * $conf->global->PRODUIT_SOUSPRODUITS = 0;
+		 * }
+		 */
 		// --> Maintenant Géré grâce à la constante INDEPENDANT_SUBPRODUCT_STOCK que j'ai rajoutée sur notre Dolibarr
+		if ($parameters['currentcontext'] === 'ordersuppliercard') {
 
+			if (GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes') {
 
-        if($parameters['currentcontext'] === 'ordersuppliercard') {
+				$time_livraison = $object->date_livraison;
 
-            if(GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes') {
+				$sql = "SELECT fk_source as 'fk_of'
+						FROM " . MAIN_DB_PREFIX . "element_element
+						WHERE sourcetype='ordre_fabrication' AND fk_target=" . $object->id . " AND targettype='order_supplier' ";
 
-                $time_livraison = $object->date_livraison;
+				$res = $db->query($sql);
 
-                $res = $db->query("SELECT fk_source as 'fk_of'
-                            FROM ".MAIN_DB_PREFIX."element_element
-                            WHERE sourcetype='ordre_fabrication' AND fk_target=".$object->id." AND targettype='order_supplier' ");
+				if($res)
+				{
+					define('INC_FROM_DOLIBARR', true);
 
-                define('INC_FROM_DOLIBARR',true);
+					dol_include_once("/of/config.php");
+					dol_include_once("/of/class/ordre_fabrication_asset.class.php");
 
-                dol_include_once("/of/config.php");
-                dol_include_once("/of/class/ordre_fabrication_asset.class.php");
+					if ($obj = $db->fetch_object($res)) {
+						// of lié à la commande
+						$PDOdb = new TPDOdb();
 
-                if($obj = $db->fetch_object($res)) {
-                    // of lié à la commande
-                    $PDOdb=new TPDOdb;
+						$OF = new TAssetOF();
+						$OF->load($PDOdb, $obj->fk_of);
 
-                    $OF = new TAssetOF;
-                    $OF->load($PDOdb, $obj->fk_of);
+						$OF->date_lancement = $time_livraison;
+						$OF->save($PDOdb);
+					} else {
+						// pas d'of liés directement
+						$TProduct = $TProd = array ();
+						foreach ($object->lines as &$l) {
+							if ($l->product_type == 0) {
+								if (empty($l->fk_product)) continue;
 
-                    $OF->date_lancement =  $time_livraison;
-                    $OF->save($PDOdb);
+								$TProduct[] = $l->fk_product;
 
-                }
-                else {
-                   // pas d'of liés directement
-                   $TProduct = $TProd =  array();
-                   foreach($object->lines as &$l) {
-                        if($l->product_type == 0){
-                        	if (empty($l->fk_product)) continue;
+								if (! isset($TProd[$l->fk_product])) $TProd[$l->fk_product] = 0;
+								$TProd[$l->fk_product] += $l->qty;
+							}
+						}
 
-                        	$TProduct[] = $l->fk_product;
+						if (! empty($TProduct))
+						{
+							$sql = "SELECT DISTINCT of.date_besoin, of.rowid as 'fk_of'
+									FROM " . MAIN_DB_PREFIX . "assetOf_line ofl
+									LEFT JOIN " . MAIN_DB_PREFIX . "assetOf of ON (of.rowid = ofl.fk_assetOf)
+									WHERE ofl.fk_product IN (" . implode(',', $TProduct) . ")
+									AND of.status='ONORDER'
+									ORDER BY of.date_besoin ASC";
 
-                            if(!isset($TProd[$l->fk_product])) $TProd[$l->fk_product] = 0;
-                            $TProd[$l->fk_product]+=$l->qty;
-                        }
-                   }
+							$res = $db->query($sql);
 
-                   if(!empty($TProduct)) {
+							if ($res)
+							{
+								$PDOdb = new TPDOdb();
 
-	                   $res = $db->query("SELECT DISTINCT of.date_besoin, of.rowid as 'fk_of'
-	                            FROM ".MAIN_DB_PREFIX."assetOf_line ofl
-	                            LEFT JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid = ofl.fk_assetOf)
-	                            WHERE ofl.fk_product IN (".implode(',',$TProduct).")
-	                            AND of.status='ONORDER'
-	                            ORDER BY of.date_besoin ASC");
-	                   $PDOdb=new TPDOdb;
+								while ($obj = $db->fetch_object($res))
+								{
+									$OF = new TAssetOF();
+									$OF->load($PDOdb, $obj->fk_of);
+									$to_save = false;
+									foreach ($OF->TAssetOFLine as &$line) {
 
-	                   if ($res) {
-		                   while($obj = $db->fetch_object($res)) {
+										if (isset($TProd[$line->fk_product]) && $TProd[$line->fk_product] > 0) {
+											$TProd[$line->fk_product] -= ($line->qty_needed > 0 ? $line->qty_needed : $line->qty);
 
-		                       $OF = new TAssetOF;
-		                       $OF->load($PDOdb, $obj->fk_of);
-		                       $to_save = false;
-		                       foreach($OF->TAssetOFLine as &$line) {
+											if ($OF->date_lancement < $time_livraison) {
+												$OF->date_lancement = $time_livraison;
+												$to_save = true;
+											}
+										}
+									}
 
-		                           if(isset($TProd[$line->fk_product]) && $TProd[$line->fk_product]>0) {
-		                               $TProd[$line->fk_product]-= ($line->qty_needed>0 ?  $line->qty_needed : $line->qty );
+									if ($to_save) {
+										// print 'OF '.$OF->getId().'$time_livraison'.$time_livraison;
+										$OF->save($PDOdb);
+									}
+								}
+							} else {
+								setEventMessage($db->lasterror, 'errors');
+							} // if ($res) { } else { }
+						} // if (! empty($TProduct))
+					} // if ($obj = $db->fetch_object($res)) { } else { }
+				} // if ($res)
+			} // if (GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes')
+		} // if ($parameters['currentcontext'] === 'ordersuppliercard')
 
-		                               if($OF->date_lancement<$time_livraison){
-		                                   $OF->date_lancement =  $time_livraison;
-		                                   $to_save = true;
-		                               }
-		                           }
-		                       }
-
-		                       if($to_save) {
-		                          // print 'OF '.$OF->getId().'$time_livraison'.$time_livraison;
-		                           $OF->save($PDOdb);
-		                       }
-
-		                   }
-	                   } else {
-							setEventMessage($db->lasterror,'errors');
-	                   }
-
-                   }
-
-                }
-
-            }
-
-
-        }
-
-
-        return 0;
-    }
+		return 0;
+	}
 
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {

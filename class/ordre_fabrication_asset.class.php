@@ -2632,7 +2632,7 @@ class TAssetOFLine extends TObjetStd{
 		$PDOdb->Execute($sql);
 		while ($PDOdb->Get_line())
 		{
-			$res = $PDOdb->Get_field('label');
+			$res = $PDOdb->Get_field($field_label_entrepot);
 			if ($withStock) $res .= ' (Stock: '.$PDOdb->Get_field('reel').')';
 		}
 
