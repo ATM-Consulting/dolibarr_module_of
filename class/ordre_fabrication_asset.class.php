@@ -2768,8 +2768,8 @@ class TAssetWorkstationOF extends TObjetStd{
             $projectTask->fk_task_parent = 0;
         }
 
-		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
-		if(empty($projectTask->date_start)) $projectTask->date_start=$OF->date_besoin;
+
+		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',!empty($OF->date_lancement) ? $OF->date_lancement : $OF->date_besoin);
 
 		$projectTask->date_end = $OF->date_besoin;
 		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
