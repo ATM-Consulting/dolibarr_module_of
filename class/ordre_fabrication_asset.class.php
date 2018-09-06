@@ -737,6 +737,7 @@ class TAssetOF extends TObjetStd{
 						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
 						WHERE aol.fk_product = '.$fk_product.'
 						AND aol.type = "NEEDED"
+						AND aol.qty_used <= aol.qty_needed
 						AND ao.status IN ('. ($include_draft ? '"DRAFT",':'').'"VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_needed';
 
 		$resql = $db->query($sql);
