@@ -195,14 +195,14 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
     
 }
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table=ATM_ASSET_NAME.'lot')
+function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED')
 {
 	global $conf;
 
 	$value = trim($value);
 	
 	$sql = 'SELECT DISTINCT(al.'.$fieldcode.') ';
-	$sql .= 'FROM '.MAIN_DB_PREFIX.$table.' as al ';
+	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.'lot as al ';
 	
 	if($fk_product)
 	{
