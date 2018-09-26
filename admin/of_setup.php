@@ -192,7 +192,7 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 print '</td></tr>';
 
-if(!empty($conf->asset->enabled)) {
+if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';

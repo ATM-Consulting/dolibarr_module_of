@@ -20,7 +20,7 @@ function _create($fk_document, $type_document,$entity) {
 	/*
 	 * S'il y a déjà des équipements liés à la facture, on ne les créés pas 
 	 */
-	$db->Execute("SELECT count(*) as 'nb' FROM llx_asset_link WHERE fk_document=".$fk_document." AND type_document='".$type_document."'");
+	$db->Execute("SELECT count(*) as 'nb' FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.'_link WHERE fk_document=".$fk_document." AND type_document='".$type_document."'");
 	$db->Get_line();
 	if((int)$db->Get_field('nb')>0) return false;
 	

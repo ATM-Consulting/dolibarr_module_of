@@ -83,11 +83,11 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				$assetOf->fk_soc = $fk_soc;
 				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
 				$assetOf->save($PDOdb);
-				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
 					$TAsset = GETPOST('TAsset');
 					if(!empty($TAsset[$fk_commandedet])) {
-						dol_include_once('/asset/class/asset.class.php');
+						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
 						$asset=new TAsset();
 						if($asset->load($PDOdb, $TAsset[$fk_commandedet])) {
@@ -437,14 +437,14 @@ function _liste(&$PDOdb)
 				print '<td>';
 				print $prod->nomProd;
 
-				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 					$line = new OrderLine($db);
 					$line->fetch($prod->fk_commandedet);
 					$line->fetch_optionals($prod->fk_commandedet);
 
 					echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
 					if($line->array_options['options_fk_asset']>0) {
-						dol_include_once('/asset/class/asset.class.php');
+						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
 						$asset=new TAsset();
 						$asset->load($PDOdb, $line->array_options['options_fk_asset']);
@@ -540,7 +540,7 @@ function _liste(&$PDOdb)
 
             $TMath=array();
             $THide = array('rowid','fk_user','fk_product','fk_soc');
-            if(empty($user->rights->asset->of->price)) $THide[] = 'total_cost';
+            if(empty($user->rights->{ ATM_ASSET_NAME }->of->price)) $THide[] = 'total_cost';
             else $TMath['total_cost']='sum';
 
             $TMath['nb_product_needed']='sum';
@@ -602,7 +602,7 @@ function _liste(&$PDOdb)
 		if ($conf->nomenclature->enabled && !empty($fk_product))
 		{
 			dol_include_once('/core/class/html.form.class.php');
-			dol_include_once('/asset/lib/asset.lib.php');
+			dol_include_once('/' . ATM_ASSET_NAME . '/lib/asset.lib.php');
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 			$doliForm = new Form($db);

@@ -23,6 +23,8 @@
 	}
 
 	if(!dol_include_once('/abricot/inc.core.php')) exit('abricot');
+
+	if(! defined('ATM_ASSET_NAME')) define('ATM_ASSET_NAME', (float) DOL_VERSION >= 8.0 || dol_is_dir(dol_buildpath('/assetatm')) ? 'assetatm' : 'asset');
 	
 	// Pour afficher la sélection d'un équipement par produit lors de l'ajout des lignes d'une commande
 	//dolibarr_set_const($db, 'USE_ASSET_IN_ORDER', 1);

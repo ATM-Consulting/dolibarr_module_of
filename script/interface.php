@@ -4,7 +4,7 @@ define('INC_FROM_CRON_SCRIPT', true);
 set_time_limit(0);
 require('../config.php');
 dol_include_once('/of/lib/of.lib.php');
-dol_include_once('/asset/class/asset.class.php');
+dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
 $PDOdb=new TPDOdb;
@@ -170,7 +170,7 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
 	
     //$sql = 'SELECT DISTINCT(a.serial_number) ';
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
-    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE 1 ';
+    $sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 	
 	if($conf->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
 	
@@ -195,7 +195,7 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
     
 }
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table='assetlot')
+function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table=ATM_ASSET_NAME.'lot')
 {
 	$value = trim($value);
 	
@@ -204,7 +204,7 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NE
 	
 	if($fk_product)
 	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
 		//var_dump($sql);
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
