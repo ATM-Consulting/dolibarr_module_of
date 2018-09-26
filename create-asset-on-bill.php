@@ -31,8 +31,8 @@ function _create($fk_document, $type_document,$entity) {
 	 */
 	
 	$db->Execute("SELECT l.qty as 'qty', p.rowid as 'fk_product',l.price as 'price', f.fk_soc as 'fk_soc'
-	FROM ((llx_facturedet l LEFT JOIN llx_facture f ON (l.fk_facture=f.rowid))
-				LEFT JOIN llx_product p ON (l.fk_product=p.rowid))
+	FROM (('.MAIN_DB_PREFIX.'facturedet l LEFT JOIN '.MAIN_DB_PREFIX.'facture f ON (l.fk_facture=f.rowid))
+				LEFT JOIN '.MAIN_DB_PREFIX.'product p ON (l.fk_product=p.rowid))
 	
 	WHERE f.rowid=".$fk_document." AND p.fk_product_type=0 AND p.finished=1
 	");

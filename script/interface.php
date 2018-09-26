@@ -172,7 +172,7 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
     $sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 	
-	if($conf->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
+	if($conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
 	
     if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
     if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
@@ -197,6 +197,8 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
 //Autocomplete sur les différents champs d'une ressource
 function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table=ATM_ASSET_NAME.'lot')
 {
+	global $conf;
+
 	$value = trim($value);
 	
 	$sql = 'SELECT DISTINCT(al.'.$fieldcode.') ';
@@ -204,7 +206,7 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NE
 	
 	if($fk_product)
 	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->global->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
 		//var_dump($sql);
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
