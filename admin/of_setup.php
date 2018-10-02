@@ -579,7 +579,7 @@ print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT').'</td>';
+print '<td>'.$form->textwithtooltip($langs->trans('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT'), $langs->trans('NEED_CONF_OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER'),2,1,img_help(1,'')).'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT');
