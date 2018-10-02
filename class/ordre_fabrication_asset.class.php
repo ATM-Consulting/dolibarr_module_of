@@ -737,6 +737,7 @@ class TAssetOF extends TObjetStd{
 						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
 						WHERE aol.fk_product = '.$fk_product.'
 						AND aol.type = "NEEDED"
+						AND aol.qty_used <= aol.qty_needed
 						AND ao.status IN ('. ($include_draft ? '"DRAFT",':'').'"VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_needed';
 
 		$resql = $db->query($sql);
@@ -1913,7 +1914,7 @@ class TAssetOFLine extends TObjetStd{
 		$labelMvt = $langs->trans('UseByOF', $this->of_numero);
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = $langs->trans('CreateByOF', $this->of_numero) : $labelMvt = $langs->trans('DeletedByOF', $this->of_numero);
 
-        if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled))
+		if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->{ ATM_ASSET_NAME }->enabled))
         {
         	$this->stockProduct($sens * $qty_to_stock_rest);
         }
@@ -2052,10 +2053,10 @@ class TAssetOFLine extends TObjetStd{
 
         if(!$conf->global->USE_LOT_IN_OF || empty($this->lot_number)) return true;
 
-		dol_include_once('/asset/class/asset.class.php');
+        dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
 		$completeSql = '';
-		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset';
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX . ATM_ASSET_NAME;
 
 		$is_cumulate = TAsset_type::getIsCumulate($PDOdb, $this->fk_product);
 		$is_perishable = TAsset_type::getIsPerishable($PDOdb, $this->fk_product);
@@ -2157,7 +2158,7 @@ class TAssetOFLine extends TObjetStd{
 	{
 		global $conf;
 
-		if(empty($conf->asset->enabled)) return false;
+		if(empty($conf->{ ATM_ASSET_NAME }->enabled)) return false;
 
 
 		$break = false;
@@ -2207,7 +2208,7 @@ class TAssetOFLine extends TObjetStd{
 
     function getAssetLinkedLinks(&$PDOdb, $r='<br />', $sep='<br />') {
         global $conf;
-		if(empty($conf->asset->enabled)) return '';
+        if(empty($conf->{ ATM_ASSET_NAME }->enabled)) return '';
 
         $TAsset = $this->getAssetLinked($PDOdb);
 
@@ -2221,7 +2222,7 @@ class TAssetOFLine extends TObjetStd{
     function getAssetLinked(&$PDOdb, $only_ids=false) {
         global $conf;
 
-		if(!empty($conf->asset->enabled)) {
+        if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 	        $Tab = $TId = array();
 
 	        $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
@@ -2244,7 +2245,7 @@ class TAssetOFLine extends TObjetStd{
     function addAssetLink(&$asset)
     {
     	global $conf;
-    	if(!empty($conf->asset->enabled)) {
+    	if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
         	TAsset::set_element_element($this->getId(), 'TAssetOFLine', $asset->getId(), 'TAsset');
         }
     }
@@ -2253,8 +2254,8 @@ class TAssetOFLine extends TObjetStd{
 	{
 		global $conf;
 
-		if(!empty($conf->asset->enabled)) {
-			dol_include_once('/asset/class/asset.class.php');
+		if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
+			dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 	        	$assetType = new TAsset_type;
 	        	$assetType->load_by_fk_product($PDOdb, $this->fk_product);
 		        $this->conditionnement = $assetType->getDefaultContenance($this->fk_product);
@@ -2281,9 +2282,9 @@ class TAssetOFLine extends TObjetStd{
 	   	global $user,$conf;
 
 	   	//INFO : si on utilise pas les lots on a pas besoin de créer des équipements => on gère uniquement des mvt de stock
-        if(empty($conf->asset->enabled) || empty($conf->global->USE_LOT_IN_OF)) return true;
+	   	if(empty($conf->{ ATM_ASSET_NAME }->enabled) || empty($conf->global->USE_LOT_IN_OF)) return true;
 
-		if(!dol_include_once('/asset/class/asset.class.php')) return true;
+	   	if(!dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php')) return true;
 
         $assetType = new TAsset_type;
         if($assetType->load_by_fk_product($PDOdb, $fk_product))

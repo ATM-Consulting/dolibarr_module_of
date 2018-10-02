@@ -232,7 +232,7 @@ class Actionsof
 
 		if (!empty($conf->global->OF_SHOW_QTY_THEORIQUE_MOINS_OF))
 		{
-			$langs->load('asset@asset');
+			$langs->load(ATM_ASSET_NAME . '@' . ATM_ASSET_NAME);
 			define('INC_FROM_DOLIBARR', true);
 			dol_include_once('/of/config.php');
 			dol_include_once('/product/class/product.class.php');

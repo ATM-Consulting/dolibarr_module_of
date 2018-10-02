@@ -19,7 +19,7 @@ dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 dol_include_once('/quality/class/quality.class.php');
 
-dol_include_once('/asset/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
+dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
 if(!$user->rights->of->of->lire) accessforbidden();
 
@@ -435,7 +435,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 		$qty = !empty($v->qty_needed) ? $v->qty_needed : $v->qty;
 
-		if(!empty($conf->asset->enabled)) {
+		if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 			$TAssetType = new TAsset_type;
 			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
 			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? $langs->transnoentities('unit_s_') : measuring_units_string($prod->weight_units,'weight');
@@ -717,7 +717,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 		$conditionnement = $TAssetOFLine->conditionnement;
 
-		if(!empty($conf->asset->enabled)) {
+		if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 			$TAssetType = new TAsset_type;
 			$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
 			$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
@@ -913,7 +913,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 {
     global $conf,$langs;
 
-    if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled) ) return '';
+    if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->{ ATM_ASSET_NAME }->enabled) ) return '';
 
     $TAsset = $assetOFLine->getAssetLinked($PDOdb);
 
@@ -1187,7 +1187,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
 				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-				,'use_lot_in_of'=>(int)(!empty($conf->asset->enabled) && !empty($conf->global->USE_LOT_IN_OF))
+				,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
 				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
