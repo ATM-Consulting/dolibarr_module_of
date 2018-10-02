@@ -23,7 +23,8 @@
 	}
 
 	if(!dol_include_once('/abricot/inc.core.php')) exit('abricot');
-
+    
+	dol_include_once('/core/lib/files.lib.php');
 	if(! defined('ATM_ASSET_NAME')) define('ATM_ASSET_NAME', (float) DOL_VERSION >= 8.0 || dol_is_dir(dol_buildpath('/assetatm')) ? 'assetatm' : 'asset');
 	
 	// Pour afficher la sélection d'un équipement par produit lors de l'ajout des lignes d'une commande
