@@ -297,20 +297,21 @@ class Interfaceoftrigger
 										foreach($of->TAssetWorkstationOF as &$wsof) {
 
 										    if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0) {
+										        
 										        if ($wsof->nb_days_before_beginning>0) {
 
     												$wsof->nb_days_before_beginning = 0;
     												$wsof->save($PDOdb);
     										    }
-
+    										    
     										    if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
 
     										        dol_include_once('/projet/class/task.class.php');
-
+    										        
     										        foreach($object->lines as &$line) {
 
-    										            if($line->fk_product == $ofLine->fk_product) {
-
+    										            if($line->fk_product == $ofLine->fk_product && ($wsof->type == 'STT' || empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT)) ) {
+    										                
     										                $projectTask = new Task($db);
     										                $projectTask->fetch($wsof->fk_project_task);
     										                $projectTask->progress = 100;
