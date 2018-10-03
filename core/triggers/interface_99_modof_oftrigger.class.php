@@ -385,6 +385,8 @@ class Interfaceoftrigger
     {
         global $db, $conf;
         
+        dol_include_once('/projet/class/task.class.php');
+        
         if(!empty($conf->of->enabled)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
@@ -414,8 +416,6 @@ class Interfaceoftrigger
                                         
                                         if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
                                             
-                                            dol_include_once('/projet/class/task.class.php');
-                                            
                                             foreach($object->lines as &$line) {
                                                 
                                                 if($line->fk_product == $ofLine->fk_product) {
@@ -443,7 +443,7 @@ class Interfaceoftrigger
                                             }
                                             
                                         }
-                                        
+                                        break;
                                     }
                                     
                                 }
