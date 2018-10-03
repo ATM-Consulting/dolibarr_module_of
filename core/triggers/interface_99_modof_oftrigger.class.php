@@ -419,12 +419,13 @@ class Interfaceoftrigger
                                             foreach($object->lines as &$line) {
                                                 
                                                 if($line->fk_product == $ofLine->fk_product) {
+                                                    // calcul du délai de liv + délai de démarrage
                                                     
                                                     $addDays = 0;
                                                     $resprice = $db->query("SELECT delivery_time_days FROM ".MAIN_DB_PREFIX."product_fournisseur_price WHERE fk_product = ".$ofLine->fk_product." AND fk_soc = ".$object->socid." AND unitprice = ". $line->subprice);
                                                     $res = $db->fetch_object($resprice);
-                                                    // calcul du délai de liv + délai de démarrage
-                                                    if (!empty($res->delivery_time_days)) $addDays += (int)$res->delivery_time_days;
+                                                    
+                                                    if (!empty($res->delivery_time_days) && empty($object->date_livraison)) $addDays += (int)$res->delivery_time_days;
                                                     if (!empty($wsof->nb_days_before_beginning)) $addDays += $wsof->nb_days_before_beginning;
                                                     
                                                     // à partir de quand ?
