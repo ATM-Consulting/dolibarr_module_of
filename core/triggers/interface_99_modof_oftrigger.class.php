@@ -369,7 +369,80 @@ class Interfaceoftrigger
 			}
 
 		}
-
+		elseif ($action == 'ORDER_SUPPLIER_SUBMIT')
+		{
+		    global $db, $conf;
+		    
+		    if(!empty($conf->of->enabled)) {
+		        define('INC_FROM_DOLIBARR',true);
+		        dol_include_once('/of/config.php');
+		        dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+		        
+		        $PDOdb=new TPDOdb();
+		        
+		        $resql = $db->query("SELECT fk_source
+									FROM ".MAIN_DB_PREFIX."element_element
+									WHERE fk_target = ".$object->id."
+									AND sourcetype = 'ordre_fabrication'
+									AND targettype = 'order_supplier'");
+		        
+		        while($res = $db->fetch_object($resql)) {
+		            
+		            $id_of = (int)$res->fk_source;
+		            if($id_of > 0) {
+		                $of = new TAssetOF;
+		                $of->load($PDOdb, $id_of);
+		                
+		                if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
+		                    foreach($of->TAssetOFLine as &$ofLine) {
+		                        foreach($ofLine->TWorkstation as &$ws) {
+		                            foreach($of->TAssetWorkstationOF as &$wsof) {
+		                                
+		                                if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0) {
+		                                    
+		                                    if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
+		                                        
+		                                        dol_include_once('/projet/class/task.class.php');
+		                                        
+		                                        foreach($object->lines as &$line) {
+		                                            
+		                                            if($line->fk_product == $ofLine->fk_product) {
+		                                                
+		                                                $addDays = 0;
+		                                                $resprice = $db->query("SELECT delivery_time_days FROM ".MAIN_DB_PREFIX."product_fournisseur_price WHERE fk_product = ".$ofLine->fk_product." AND fk_soc = ".$object->socid." AND unitprice = ". $line->subprice);
+		                                                $res = $db->fetch_object($resprice);
+		                                                // calcul du délai de liv + délai de démarrage
+		                                                if (!empty($res->delivery_time_days)) $addDays += $res->delivery_time_days;
+		                                                if (!empty($wsof->nb_days_before_beginning)) $addDays += $wsof->nb_days_before_beginning;
+		                                                
+		                                                // à partir de quand ?
+		                                                $date = dol_now();
+		                                                if (!empty($object->date_livraison)) $date = $object->date_livraison;
+		                                                
+		                                                $projectTask = new Task($db);
+		                                                $projectTask->fetch($wsof->fk_project_task);
+		                                                $projectTask->date_start = strtotime("+". $addDays ." day", $date);
+		                                                
+		                                                $projectTask->update($user);
+		                                                
+		                                            }
+		                                            
+		                                        }
+		                                        
+		                                    }
+		                                    
+		                                }
+		                                
+		                            }
+		                        }
+		                    }
+		                    
+		                }
+		                
+		            }
+		        }
+		    }
+		}
 
         return 0;
     }
