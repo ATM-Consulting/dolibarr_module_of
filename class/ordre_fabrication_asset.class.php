@@ -3025,8 +3025,11 @@ class TAssetWorkstationOF extends TObjetStd{
 			if (!$user->id) $user->id = GETPOST('user_id');
 
 			$projectTask = new Task($db);
-			$projectTask->fetch($this->fk_project_task);
-			$projectTask->delete($user);
+			if($projectTask->fetch($this->fk_project_task) > 0) {
+				// Suppression des occurences qui définissent cette tâches en tant que parente
+				$db->query('UPDATE '.MAIN_DB_PREFIX.'projet_task SET fk_task_parent = 0 WHERE fk_task_parent = '.$projectTask->id);
+				$projectTask->delete($user);
+			}
 		}
 
 		parent::delete($PDOdb);
