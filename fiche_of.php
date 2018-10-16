@@ -376,7 +376,15 @@ function _action() {
 
 }
 
-
+function mergeArrayOptions(&$prod, &$Tab, $prefix='object_attr_')
+{
+	foreach ($prod as $key => $value)
+	{
+		if (is_object($value)) continue;
+		else if (is_array($value)) mergeArrayOptions($value, $Tab, 'object_attr_'.$key.'_');
+		else $Tab[$prefix.$key] = $value;
+	}
+}
 
 function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
@@ -460,11 +468,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
-			foreach ($prod as $attr => $value)
-			{
-				if (is_object($value) || is_array($value)) continue;
-				else $TToMake[$k]['object_attr_'.$attr] = $value;
-			}
+			mergeArrayOptions($prod, $TToMake[$k]);
 		}
 		else if($v->type == "NEEDED") {
 			$TNeeded[$k] = array(
@@ -484,11 +488,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
-			foreach ($prod as $attr => $value)
-			{
-				if (is_object($value) || is_array($value)) continue;
-				else $TNeeded[$k]['object_attr_'.$attr] = $value;
-			}
+			mergeArrayOptions($prod, $TNeeded[$k]);
 
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 			{
