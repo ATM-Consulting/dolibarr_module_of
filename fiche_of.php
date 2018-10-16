@@ -447,7 +447,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 		$TAsset = $v->getAssetLinked($PDOdb);
 		if($v->type == "TO_MAKE") {
-			$TToMake[] = array(
+			$TToMake[$k] = array(
 				'type' => $v->type
 				, 'qte' => $v->qty.' '.utf8_decode($unitLabel) //pour les TO_MAKE, c forcément qty (valeur écran) qui est ok
 				, 'nomProd' => $prod->ref
@@ -460,9 +460,14 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
+			foreach ($prod as $attr => $value)
+			{
+				if (is_object($value) || is_array($value)) continue;
+				else $TToMake[$k]['object_attr_'.$attr] = $value;
+			}
 		}
 		else if($v->type == "NEEDED") {
-			$TNeeded[] = array(
+			$TNeeded[$k] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
@@ -479,9 +484,15 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
+			foreach ($prod as $attr => $value)
+			{
+				if (is_object($value) || is_array($value)) continue;
+				else $TNeeded[$k]['object_attr_'.$attr] = $value;
+			}
+
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 			{
-				$TAssetWorkstation[] = array(
+				$TAssetWorkstation[$k] = array(
 					'nomProd'=>utf8_decode($prod->label)
 					,'workstations'=>utf8_decode($v->getWorkstationsPDF($db))
 				);
@@ -560,6 +571,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		)
 		,array(
 			'date'=>date("d/m/Y")
+			,'time'=>dol_now()
 			,'numeroOF'=>$assetOf->numero
 //			,'statutOF'=>utf8_decode(TAssetOF::$TStatus[$assetOf->status])
 			,'statutOF'=>$langs->transnoentitiesnoconv(TAssetOF::$TStatus[$assetOf->status])
