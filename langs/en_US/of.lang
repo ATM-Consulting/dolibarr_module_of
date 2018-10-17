@@ -109,6 +109,7 @@ OFFinish=Finished
 ofAllQtyIsNotEnough=[%s] - Not enough asset quantity, please check your products needed
 ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : asset quantity is not enough to make product
 titleOfToolTip=<u>Show Production order</u><br /><b>Ref.:</b> %s
+OF_COEF_MINI_TU_1=Coefficient of Mini-TU 1  (example for 9% : set 0.91)
 
 #LOT
 ListAssetLot=List of asset lots

@@ -109,6 +109,7 @@ OFFinish=Terminée
 ofAllQtyIsNotEnough=[%s] - Quantité d'équipements insuffisante, veuillez vérifier vos produits nécessaires à la fabrication
 ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement insuffisante pour la conception du ou des produits à créer
 titleOfToolTip=<u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
+OF_COEF_MINI_TU_1=Coefficient du Mini-TU 1 (exemple pour 9% : reseigner 0.91)
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

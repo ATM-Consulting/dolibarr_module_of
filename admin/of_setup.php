@@ -427,7 +427,17 @@ $var=!$var;
 
 	}
 
-
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("OF_COEF_MINI_TU_1").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="right" width="300">';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="action" value="set_OF_COEF_MINI_TU_1">';
+	print $formCore->texte('', 'OF_COEF_MINI_TU_1', $conf->global->OF_COEF_MINI_TU_1, 10, 10);
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</form>';
+	print '</td></tr>';
 
 	print '</table>';
 
