@@ -774,6 +774,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 			);
 
+			mergeArrayOptions($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'NEEDED');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
@@ -903,7 +904,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			);
 
 
-
+			mergeArrayOptions($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'TO_MAKE');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
@@ -1216,6 +1217,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'rights'=>array(
 				'show_ws_time'=>$user->rights->of->of->show_ws_time
 			)
+			,'conf'=>$conf
 		)
 	);
 
@@ -1224,6 +1226,17 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
 
+function calc_mini_tu1($FieldName,&$CurrVal,&$CurrPrm,&$TBS)
+{
+	global $conf;
+	
+	$CurrVal = $CurrVal * $conf->global->OF_COEF_MINI_TU_1;
+}
+
+function measuring_units_weight_string($FieldName,&$CurrVal,&$CurrPrm,&$TBS)
+{
+	$CurrVal = measuring_units_string($CurrVal, 'weight');
+}
 
 function concatPDFOF(&$pdf,$files) {
 
