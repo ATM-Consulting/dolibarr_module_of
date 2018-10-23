@@ -129,7 +129,7 @@
 										<td valign="top">[TTomake.lot_number;strconv=no]</td>
 									[onshow;block=end]
 									<td valign="top">[TTomake.libelle;block=tr;strconv=no]
-									[onshow;block=begin;when [conf.global.OF_COEF_MINI_TU_1]!='']
+									[onshow;block=begin;when [conf.global.OF_COEF_MINI_TU_1;noerr]!='']
 									[onshow;block=begin;when [TTomake.object_attr_weight]!='']
 										( Poids : [TTomake.object_attr_weight] [TTomake.object_attr_weight_units;onformat=measuring_units_weight_string], Mini-TU1 : [TTomake.object_attr_weight;onformat=calc_mini_tu1] [TTomake.object_attr_weight_units;onformat=measuring_units_weight_string] )
 									[onshow;block=end]
