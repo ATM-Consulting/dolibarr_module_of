@@ -376,12 +376,12 @@ function _action() {
 
 }
 
-function mergeArrayOptions(&$prod, &$Tab, $prefix='object_attr_')
+function mergeObjectAttr(&$prod, &$Tab, $prefix='object_attr_')
 {
 	foreach ($prod as $key => $value)
 	{
 		if (is_object($value)) continue;
-		else if (is_array($value)) mergeArrayOptions($value, $Tab, 'object_attr_'.$key.'_');
+		else if (is_array($value)) mergeObjectAttr($value, $Tab, 'object_attr_'.$key.'_');
 		else $Tab[$prefix.$key] = $value;
 	}
 }
@@ -468,7 +468,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
-			mergeArrayOptions($prod, $TToMake[$k]);
+			mergeObjectAttr($prod, $TToMake[$k]);
 		}
 		else if($v->type == "NEEDED") {
 			$TNeeded[$k] = array(
@@ -488,7 +488,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
-			mergeArrayOptions($prod, $TNeeded[$k]);
+			mergeObjectAttr($prod, $TNeeded[$k]);
 
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 			{
@@ -774,7 +774,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 			);
 
-			mergeArrayOptions($product, $TLine);
+			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'NEEDED');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
@@ -904,7 +904,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			);
 
 
-			mergeArrayOptions($product, $TLine);
+			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'TO_MAKE');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
