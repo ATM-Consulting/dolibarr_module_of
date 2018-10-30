@@ -2406,8 +2406,13 @@ class TAssetOFLine extends TObjetStd{
 					$nd = new TNomenclatureDet();
 					$nd->fk_product = $this->fk_product;
 					$PDOdb=new TPDOdb();
-					$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
-
+					if(!empty($conf->global->NOMENCLATURE_COST_TYPE) && $conf->global->NOMENCLATURE_COST_TYPE == 'pmp'){
+			        		//sélectionne le pmp si renseigné
+			        		$this->pmp = $nd->getPMPPrice();
+			        		if(empty($this->pmp)) $this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
+			    		}else {
+						$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
+					}
 				}
 				else {
 					$this->product = new Product($db);
