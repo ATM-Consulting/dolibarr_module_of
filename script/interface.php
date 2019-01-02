@@ -4,7 +4,7 @@ define('INC_FROM_CRON_SCRIPT', true);
 set_time_limit(0);
 require('../config.php');
 dol_include_once('/of/lib/of.lib.php');
-dol_include_once('/asset/class/asset.class.php');
+dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
 $PDOdb=new TPDOdb;
@@ -119,7 +119,7 @@ function _validerNomenclature(&$PDOdb, $id_assetOF, $fk_product, $fk_of_line, $f
 	$line->nomenclature_valide = 1;
 	
 	$of->addProductComposition($PDOdb, $fk_product, $line->qty, $fk_of_line, $fk_nomenclature);
-	$of->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
+	$of->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$line->qty);
 	
 	if ($of->fk_assetOf_parent) {
 		_validerOFLigneParent($PDOdb, $of, $fk_nomenclature, $line);
@@ -170,9 +170,9 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
 	
     //$sql = 'SELECT DISTINCT(a.serial_number) ';
     $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
-    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE 1 ';
+    $sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 	
-	if($conf->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
+	if($conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
 	
     if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
     if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
@@ -195,16 +195,18 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
     
 }
 //Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table='assetlot')
+function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED')
 {
+	global $conf;
+
 	$value = trim($value);
 	
 	$sql = 'SELECT DISTINCT(al.'.$fieldcode.') ';
-	$sql .= 'FROM '.MAIN_DB_PREFIX.$table.' as al ';
+	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.'lot as al ';
 	
 	if($fk_product)
 	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->global->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
 		//var_dump($sql);
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}

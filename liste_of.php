@@ -83,11 +83,11 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				$assetOf->fk_soc = $fk_soc;
 				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
 				$assetOf->save($PDOdb);
-				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
 					$TAsset = GETPOST('TAsset');
 					if(!empty($TAsset[$fk_commandedet])) {
-						dol_include_once('/asset/class/asset.class.php');
+						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
 						$asset=new TAsset();
 						if($asset->load($PDOdb, $TAsset[$fk_commandedet])) {
@@ -161,6 +161,7 @@ function _liste(&$PDOdb)
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
         , ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user
+		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
 
@@ -182,6 +183,7 @@ function _liste(&$PDOdb)
 
         $sql.= ",ofe.fk_project
 		, ofe.status, ofe.fk_user
+		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
 
@@ -241,6 +243,7 @@ function _liste(&$PDOdb)
 
 		$TMath['total_estimated_cost']='sum';
 		$TMath['total_cost']='sum';
+		$TMath['temps_estime_fabrication']='sum';
 	}
 
 	$PDOdb=new TPDOdb;
@@ -291,6 +294,7 @@ function _liste(&$PDOdb)
 		,'type'=>array(
 			'date_lancement'=>'date'
 			,'date_besoin'=>'date'
+			,'temps_estime_fabrication'=>'money'
 			,'total_cost'=>'money'
 			,'total_estimated_cost'=>'money'
 			,'nb_product_to_make'=>'number'
@@ -319,6 +323,7 @@ function _liste(&$PDOdb)
 			,'product'=>$langs->trans('Product')
 			,'client'=>$langs->trans('Customer')
 			,'nb_product_to_make'=>$langs->trans('NumberProductToMake')
+			,'temps_estime_fabrication'=>$langs->trans('EstimatedMakeTimeInHours')
 			,'total_cost'=>$langs->trans('RealCost')
 			,'total_estimated_cost'=>$langs->trans('EstimatedCost')
 			,'printTicket' =>$langs->trans('PrintTicket')
@@ -437,14 +442,14 @@ function _liste(&$PDOdb)
 				print '<td>';
 				print $prod->nomProd;
 
-				if(!empty($conf->asset->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 					$line = new OrderLine($db);
 					$line->fetch($prod->fk_commandedet);
 					$line->fetch_optionals($prod->fk_commandedet);
 
 					echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
 					if($line->array_options['options_fk_asset']>0) {
-						dol_include_once('/asset/class/asset.class.php');
+						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
 						$asset=new TAsset();
 						$asset->load($PDOdb, $line->array_options['options_fk_asset']);
@@ -540,7 +545,7 @@ function _liste(&$PDOdb)
 
             $TMath=array();
             $THide = array('rowid','fk_user','fk_product','fk_soc');
-            if(empty($user->rights->asset->of->price)) $THide[] = 'total_cost';
+            if(empty($user->rights->{ ATM_ASSET_NAME }->of->price)) $THide[] = 'total_cost';
             else $TMath['total_cost']='sum';
 
             $TMath['nb_product_needed']='sum';
@@ -602,7 +607,7 @@ function _liste(&$PDOdb)
 		if ($conf->nomenclature->enabled && !empty($fk_product))
 		{
 			dol_include_once('/core/class/html.form.class.php');
-			dol_include_once('/asset/lib/asset.lib.php');
+			dol_include_once('/' . ATM_ASSET_NAME . '/lib/asset.lib.php');
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 			$doliForm = new Form($db);

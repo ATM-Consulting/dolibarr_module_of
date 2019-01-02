@@ -19,7 +19,7 @@ dol_include_once('/nomenclature/class/nomenclature.class.php');
 
 dol_include_once('/quality/class/quality.class.php');
 
-dol_include_once('/asset/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
+dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
 if(!$user->rights->of->of->lire) accessforbidden();
 
@@ -29,6 +29,15 @@ $langs->load("orders");
 $langs->load("of@of");
 
 $hookmanager->initHooks(array('ofcard'));
+
+$PDOdb=new TPDOdb;
+$assetOf=new TAssetOF;
+$id = GETPOST('id', 'int');
+if (!empty($id))
+{
+	$assetOf->load($PDOdb, $id);
+	if ($assetOf->entity != $conf->entity) accessforbidden();
+}
 
 // Get parameters
 _action();
@@ -367,7 +376,15 @@ function _action() {
 
 }
 
-
+function mergeObjectAttr(&$prod, &$Tab, $prefix='object_attr_')
+{
+	foreach ($prod as $key => $value)
+	{
+		if (is_object($value)) continue;
+		else if (is_array($value)) mergeObjectAttr($value, $Tab, 'object_attr_'.$key.'_');
+		else $Tab[$prefix.$key] = $value;
+	}
+}
 
 function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
@@ -426,7 +443,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 		$qty = !empty($v->qty_needed) ? $v->qty_needed : $v->qty;
 
-		if(!empty($conf->asset->enabled)) {
+		if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 			$TAssetType = new TAsset_type;
 			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
 			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? $langs->transnoentities('unit_s_') : measuring_units_string($prod->weight_units,'weight');
@@ -438,7 +455,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 		$TAsset = $v->getAssetLinked($PDOdb);
 		if($v->type == "TO_MAKE") {
-			$TToMake[] = array(
+			$TToMake[$k] = array(
 				'type' => $v->type
 				, 'qte' => $v->qty.' '.utf8_decode($unitLabel) //pour les TO_MAKE, c forcément qty (valeur écran) qui est ok
 				, 'nomProd' => $prod->ref
@@ -451,9 +468,10 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
+			mergeObjectAttr($prod, $TToMake[$k]);
 		}
 		else if($v->type == "NEEDED") {
-			$TNeeded[] = array(
+			$TNeeded[$k] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
@@ -470,9 +488,11 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 				, 'TAssetStr' => _getSerialNumbers($TAsset)
 			);
 
+			mergeObjectAttr($prod, $TNeeded[$k]);
+
 			if (!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED))
 			{
-				$TAssetWorkstation[] = array(
+				$TAssetWorkstation[$k] = array(
 					'nomProd'=>utf8_decode($prod->label)
 					,'workstations'=>utf8_decode($v->getWorkstationsPDF($db))
 				);
@@ -496,7 +516,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 			,'note_private' => utf8_decode($v->note_private)
-		    ,'barcode' => getBarCode($code)
+		    	,'barcode' => getBarCode($code)
 		);
 
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
@@ -530,7 +550,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		else $template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
-	
+
 	$refcmd = '';
 	if(!empty($assetOf->fk_commande)) {
 		$cmd = new Commande($db);
@@ -562,6 +582,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		)
 		,array(
 			'date'=>date("d/m/Y")
+			,'time'=>dol_now()
 			,'numeroOF'=>$assetOf->numero
 //			,'statutOF'=>utf8_decode(TAssetOF::$TStatus[$assetOf->status])
 			,'statutOF'=>$langs->transnoentitiesnoconv(TAssetOF::$TStatus[$assetOf->status])
@@ -570,7 +591,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'date_besoin'=>date("d/m/Y", $assetOf->date_besoin)
 			,'refcmd'=>$refcmd
 			,'societe'=>$societe->name
-		    ,'logo'=> $logo
+		    	,'logo'=> $logo
 			,'barcode'=>$barcode_pic
 			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
@@ -759,7 +780,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 		$conditionnement = $TAssetOFLine->conditionnement;
 
-		if(!empty($conf->asset->enabled)) {
+		if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 			$TAssetType = new TAsset_type;
 			$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
 			$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
@@ -804,6 +825,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 			);
 
+			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'NEEDED');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
@@ -933,7 +955,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			);
 
 
-
+			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'TO_MAKE');
 			$res = $hookmanager->executeHooks('lineObjectOptions', $parameter, $TAssetOFLine, $action);
@@ -955,7 +977,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 {
     global $conf,$langs;
 
-    if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->asset->enabled) ) return '';
+    if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->{ ATM_ASSET_NAME }->enabled) ) return '';
 
     $TAsset = $assetOFLine->getAssetLinked($PDOdb);
 
@@ -1229,7 +1251,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
 				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
 				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-				,'use_lot_in_of'=>(int)(!empty($conf->asset->enabled) && !empty($conf->global->USE_LOT_IN_OF))
+				,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
 				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
 				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
 				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
@@ -1246,6 +1268,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'rights'=>array(
 				'show_ws_time'=>$user->rights->of->of->show_ws_time
 			)
+			,'conf'=>$conf
 		)
 	);
 
@@ -1254,6 +1277,17 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
 
+function calc_mini_tu1($FieldName,&$CurrVal,&$CurrPrm,&$TBS)
+{
+	global $conf;
+	
+	$CurrVal = $CurrVal * $conf->global->OF_COEF_MINI_TU_1;
+}
+
+function measuring_units_weight_string($FieldName,&$CurrVal,&$CurrPrm,&$TBS)
+{
+	$CurrVal = measuring_units_string($CurrVal, 'weight');
+}
 
 function concatPDFOF(&$pdf,$files) {
 

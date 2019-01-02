@@ -109,6 +109,7 @@ OFFinish=Terminée
 ofAllQtyIsNotEnough=[%s] - Quantité d'équipements insuffisante, veuillez vérifier vos produits nécessaires à la fabrication
 ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement insuffisante pour la conception du ou des produits à créer
 titleOfToolTip=<u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
+OF_COEF_MINI_TU_1=Coefficient du Mini-TU 1 (exemple pour 9%% : reseigner 0.91)
 
 #LOT
 ListAssetLot=Liste des lots d'équipement
@@ -288,6 +289,7 @@ NumberOf=Of n°
 SetStateTo=passer à l'état 
 FinalProducCost=Coût du produit fini
 EstimatedMakeTime=Temps estimé de fabrication
+EstimatedMakeTimeInHours=Temps estimé de fabrication (en heures)
 RealMakeTime=Temps réel de fabrication
 EstimatedProducCost=Coût estimé de fabrication
 RealProducCost=Coût réel de fabrication
@@ -328,7 +330,8 @@ OrderLinePrice=Prix de la ligne
 CannotLoadThisOrderAreYouInTheGoodEntity=Impossible de charger la commande. Etes-vous sur la bonne entité de travail ?
 ErrorOFFromAnotherEntity=OF créé dans une autre entité
 OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER=Clore les tâches liée à un produit en commande fournisseur à la réception de cette dernière
-
+OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT=Clore les tâches liée seulement si le poste de travail associé à la tâche est de type "Sous-traitance"
+NEED_CONF_OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER=Nécessite l'activation de la configuration "Clore les tâches liée à un produit en commande fournisseur à la réception de cette dernière"
 InssuficienteAssetContenanceToUsedInOF=Contenu insuffisant dans l'équipement %s
 InssuficienteAssetContenanceToAddFromOF=Contenance de l'équipement %s dépassée
 OF_CLOSE_OF_ON_CLOSE_ALL_TASK=Clore l'OF à la cloture de la dernière tâche de ce dernier

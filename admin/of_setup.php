@@ -192,7 +192,7 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT', array('set' => array('CREATE_CHILDREN_OF' => 1)));
 print '</td></tr>';
 
-if(!empty($conf->asset->enabled)) {
+if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
 
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
@@ -427,7 +427,17 @@ $var=!$var;
 
 	}
 
-
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("OF_COEF_MINI_TU_1").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="right" width="300">';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="action" value="set_OF_COEF_MINI_TU_1">';
+	print $formCore->texte('', 'OF_COEF_MINI_TU_1', $conf->global->OF_COEF_MINI_TU_1, 10, 10);
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</form>';
+	print '</td></tr>';
 
 	print '</table>';
 
@@ -575,6 +585,14 @@ print '<td>'.$langs->trans('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_O
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$form->textwithtooltip($langs->trans('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT'), $langs->trans('NEED_CONF_OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER'),2,1,img_help(1,'')).'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT');
 print '</td></tr>';
 
 $var=!$var;
