@@ -504,6 +504,10 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 //exit;
 	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
+
+	    // numéroOF_nom ou id du poste
+	    $code = $assetOf->numero . "_" . $v->id ;
+	    
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
 			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
@@ -512,6 +516,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 			,'note_private' => utf8_decode($v->note_private)
+		    	,'barcode' => getBarCode($code)
 		);
 
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
@@ -559,6 +564,12 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 	$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
 	if (!file_exists($locationTemplate)) $locationTemplate = dol_buildpath('/of/exempleTemplate/'.$template);
 
+	$logo = '';
+	if(defined('MAIN_INFO_SOCIETE_LOGO')){
+	    $logo = DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO;
+	}
+	 
+	
 	$file_path = $TBS->render($locationTemplate
 		,array(
 			'lignesToMake'=>$TToMake
@@ -580,7 +591,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'date_besoin'=>date("d/m/Y", $assetOf->date_besoin)
 			,'refcmd'=>$refcmd
 			,'societe'=>$societe->name
-			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".$conf->global->MAIN_INFO_SOCIETE_LOGO
+		    	,'logo'=> $logo
 			,'barcode'=>$barcode_pic
 			,'use_lot'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_user'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
@@ -666,6 +677,46 @@ function getBarCodePicture(&$assetOf) {
 
 	return $tmpfname;
 
+}
+
+
+function getBarCode($code='') {
+    global $conf,$db;
+    $modulepart = 'barcode';
+    $generator='tcpdfbarcode';
+    
+    $encoding='C128';
+    
+    $readable="Y";
+        
+    $dirbarcode=array_merge(array("/core/modules/barcode/doc/"),$conf->modules_parts['barcode']);
+        
+    $result='';
+        
+    foreach($dirbarcode as $reldir)
+    {
+        $dir=dol_buildpath($reldir,0);
+        $newdir=dol_osencode($dir);
+        
+        // Check if directory exists (we do not use dol_is_dir to avoid loading files.lib.php)
+        if (! is_dir($newdir)) continue;
+        
+        $result=@include_once $newdir.$generator.'.modules.php';
+        if ($result) break;
+    }
+        
+    // Load barcode class
+    $classname = "mod".ucfirst($generator);
+    $module = new $classname($db);
+    if ($module->encodingIsSupported($encoding))
+    {
+        if($module->writeBarCode($code,$encoding,$readable)>0)
+        {
+            return $conf->barcode->dir_temp.'/barcode_'.$code.'_'.$encoding.'.png';
+        }
+    }
+    
+    return '';
 }
 
 function get_tab_file_path($TRes) {
