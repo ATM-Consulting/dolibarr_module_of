@@ -2813,7 +2813,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		$res = $projectTask->create($user);
         if($res<0) {
-            var_dump($projectTask);
+            var_dump($projectTask->error, $projectTask);
 
             exit('ErrorCreateTaskWS') ;
         }

@@ -232,6 +232,17 @@ class Interfaceoftrigger
 
 		    }
 		}
+		elseif($action === 'TASK_DELETE')
+		{
+		    global $db;
+		    
+		    if(!empty($conf->workstation->enabled) && !empty($conf->of->enabled))
+		    {
+ 		        $sql = "UPDATE ".MAIN_DB_PREFIX."asset_workstation_of SET fk_project_task = 0 WHERE fk_project_task = " . $object->id;
+ 		        $res = $db->query($sql);
+ 		        if (!$res) setEventMessage('Erreur de mise à jour du poste de travail lié', 'errors');
+		    }
+		}
 		elseif($action==='TASK_TIMESPENT_CREATE') {
 			if(!empty($conf->workstation->enabled)) {
 				define('INC_FROM_DOLIBARR',true);
