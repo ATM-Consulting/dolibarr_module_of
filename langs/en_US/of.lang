@@ -331,4 +331,6 @@ ErrorOFFromAnotherEntity=Production order created in another entity
 InssuficienteAssetContenanceToUsedInOF=Insufficient capacity in the equipment %s
 InssuficienteAssetContenanceToAddFromOF=Capacity of equipment %s exceeded
 
-OfTransfertQtyPlannedIntoUsed=Transfert the planned into used
+OfTransfertQtyPlannedIntoUsed=Transfer the planned into used
+
+OF_HANDLE_ORDER_LINE_DESC=Copy order line desription into the PO and display it on labels

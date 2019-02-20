@@ -337,3 +337,5 @@ InssuficienteAssetContenanceToAddFromOF=Contenance de l'équipement %s dépassé
 OF_CLOSE_OF_ON_CLOSE_ALL_TASK=Clore l'OF à la cloture de la dernière tâche de ce dernier
 
 OfTransfertQtyPlannedIntoUsed=Transférer le planifiée vers l'utilisée
+
+OF_HANDLE_ORDER_LINE_DESC=Copier la description des lignes de la commande dans l'OF et l'afficher sur les étiquettes
