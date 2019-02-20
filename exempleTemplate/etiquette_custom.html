@@ -16,6 +16,9 @@
 				<p style="font-size:12px;line-height: 1"><b>[langs.transnoentitiesnoconv(Ref)] : [TInfoEtiquette.refProd;block=div;strconv=no]</b></p>
 				<p style="font-size:12px;line-height: 1"><b>[langs.transnoentitiesnoconv(Desc)] : [TInfoEtiquette.label;block=div;strconv=no]</b></p>
 				<p style="font-size:12px;line-height: 1"><b>[langs.transnoentitiesnoconv(Quantity)] : [TInfoEtiquette.qty_to_make;block=div;strconv=no]</b></p>
+				[onshow; block=begin; when [display_note]=='1']
+				<p style="font-size:12px;line-height: 1"><b>[TInfoEtiquette.note_private; strconv=no]</b></p>
+				[onshow; block=end]
 			</div>
 		</div>
 		<style type="text/css">

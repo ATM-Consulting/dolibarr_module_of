@@ -74,14 +74,25 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 					if(!empty($com->date_livraison)) $assetOf->date_besoin = $com->date_livraison;
 				}
 
-/*				pre($TQuantites,true);
-				pre($TProduct,true);exit;*/
-
 				$qty = $TQuantites[$fk_commandedet];
 
-//print "$fk_product x $qty<br />";
+				$note_private = '';
+
+				if(! empty($conf->global->OF_HANDLE_ORDER_LINE_DESC))
+				{
+					$line = new OrderLine($db);
+					$line->fetch($fk_commandedet);
+
+					$desc = trim($line->desc);
+
+					if(! empty($desc))
+					{
+						$note_private = $desc;
+					}
+				}
+
 				$assetOf->fk_soc = $fk_soc;
-				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet);
+				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
 				$assetOf->save($PDOdb);
 				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
@@ -834,6 +845,7 @@ function _printTicket(&$PDOdb)
 			, 'margin_right_pair' =>intval($conf->global->DEFINE_MARGIN_RIGHT)
 			, 'margin_top_cell' =>intval($conf->global->DEFINE_MARGIN_TOP_CELL)
 			, 'langs' => $langs
+			, 'display_note' => empty($conf->global->OF_HANDLE_ORDER_LINE_DESC) ? 0 : 1
 			)
 		,array()
 		,array(
@@ -891,6 +903,7 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 							,'qty_to_make' => $assetOfLine->qty
 							,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, $conf->global->DEFAULT_ETIQUETTES == 2?"\n":"</br>")
 							,'pos' => ceil($pos/8)
+							,'note_private' => $assetOfLine->note_private
 						);
 
 						//var_dump($TInfoEtiquette);exit;
