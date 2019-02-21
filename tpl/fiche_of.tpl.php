@@ -596,6 +596,8 @@
 				var type = $(this).attr('rel');
 				var idassetOf = $(this).attr('id_assetOf');
 
+                $('#fk_product').val(null).trigger('change');//reinit le select
+
 				$( "#dialog" ).dialog({
 					show: {
 						effect: "blind",
