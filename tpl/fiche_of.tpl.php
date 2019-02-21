@@ -595,7 +595,9 @@
 			$(".btnaddproduct" ).unbind().click(function() {
 				var type = $(this).attr('rel');
 				var idassetOf = $(this).attr('id_assetOf');
-
+                [onshow;block=begin;when [conf.global.OF_ONE_SHOOT_ADD_PRODUCT]=='1']
+                    $('#fk_product').val(null).trigger('change');//reinit le select
+                [onshow;block=end]
 				$( "#dialog" ).dialog({
 					show: {
 						effect: "blind",

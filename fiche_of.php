@@ -1106,31 +1106,34 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$select_product = ob_get_clean();
 
 		?>
-            <script type="text/javascript">
-                    if ($('*:focus').length == 0) {
-                        $(document).one('keypress',function(e) {
-                            $('#fk_product').select2('open');
-                        });
-                    }
-            </script>
+
         <?php
         if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
         ?>
             <script type="text/javascript">
+
+
+                $(document).on('keypress',function(e) {
+                       if ($('input:focus').length == 0) {
+                            $('#fk_product').select2('open');
+                        }
+                });
+
                 $(document).ready(function(){
+
+                    let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
                     $('#fk_product').on("select2:select", function(e) {
-                        let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
                         let select = $("select[name='fk_nomenclature'] option");
                         if(select.length){//check if element exist
                             if(select.length <= 1 ){ //s'il n'y a qu'une seule nomenclature ou moins on ajoute la ligne à la volée
                                 $("button:contains('"+contentBtAdd+"')").click();
                             }
                         }else {
-
                              $("button:contains('"+contentBtAdd+"')").click();
                         }
                     });
                 });
+
             </script>
         <?php
         }
