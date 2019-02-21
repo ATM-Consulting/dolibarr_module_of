@@ -1102,7 +1102,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if (empty($_REQUEST['fk_product']))
 	{
 		ob_start();
-		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,$conf->global->OF_ONE_SHOOT_ADD_PRODUCT?1:0,0,'minwidth300');
+		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,1,0,'minwidth300');
 		$select_product = ob_get_clean();
 
 		?>
