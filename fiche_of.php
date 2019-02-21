@@ -1106,19 +1106,18 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$select_product = ob_get_clean();
 
 		?>
-
-        <?php
-        if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
-        ?>
-            <script type="text/javascript">
-
-
+		<script type="text/javascript">
                 $(document).on('keypress',function(e) {
                        if ($('input:focus').length == 0) {
                             $('#fk_product').select2('open');
                         }
                 });
+        </script>
+        <?php
+        if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
+        ?>
 
+<script type="text/javascript">
                 $(document).ready(function(){
 
                     let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
