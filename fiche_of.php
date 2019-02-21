@@ -1102,8 +1102,38 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if (empty($_REQUEST['fk_product']))
 	{
 		ob_start();
-		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,0,0,'minwidth300');
-		$select_product = ob_get_clean();	
+		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,$conf->global->OF_ONE_SHOOT_ADD_PRODUCT?1:0,0,'minwidth300');
+		$select_product = ob_get_clean();
+
+		?>
+            <script type="text/javascript">
+                    if ($('*:focus').length == 0) {
+                        $(document).one('keypress',function(e) {
+                            $('#fk_product').select2('open');
+                        });
+                    }
+            </script>
+        <?php
+        if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
+        ?>
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    $('#fk_product').on("select2:select", function(e) {
+                        let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
+                        let select = $("select[name='fk_nomenclature'] option");
+                        if(select.length){//check if element exist
+                            if(select.length <= 1 ){ //s'il n'y a qu'une seule nomenclature ou moins on ajoute la ligne à la volée
+                                $("button:contains('"+contentBtAdd+"')").click();
+                            }
+                        }else {
+
+                             $("button:contains('"+contentBtAdd+"')").click();
+                        }
+                    });
+                });
+            </script>
+        <?php
+        }
 	}
 	
 	$Tid = array();
