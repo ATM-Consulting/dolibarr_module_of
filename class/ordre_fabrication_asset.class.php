@@ -3230,7 +3230,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	    $resql = $db->query($sql);
 	    $rows = $db->num_rows($resql);
 
-	    if(!empty($rows)) return false;
+	    if($rows > 1) return false;
 
 	    return true;
     }
