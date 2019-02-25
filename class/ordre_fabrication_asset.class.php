@@ -2803,6 +2803,11 @@ class TAssetWorkstationOF extends TObjetStd{
        	$projectTask->array_options['options_grid_use']=1;
        	$projectTask->array_options['options_fk_workstation']=$ws->getId();
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
+		if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
+            $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
+        }
+
+
 		$projectTask->date_c=dol_now();
 
 		$p = new Product($db);
@@ -2834,7 +2839,10 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
 
-        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) $projectTask->planned_workload += $this->nb_hour * 3600; // On cumul le temps dans la tache
+        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
+            $projectTask->planned_workload += $this->nb_hour * 3600;
+            $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
+        } // On cumul le temps dans la tache
         else if($projectTask->planned_workload <= 0) $projectTask->planned_workload = $this->nb_hour * 3600;
 
         if(empty($conf->gantt->enabled)) {
@@ -3053,6 +3061,10 @@ class TAssetWorkstationOF extends TObjetStd{
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND (targettype = "user" OR targettype = "task")';
 		$PDOdb->Execute($sql);
 
+		if( !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($this->fk_assetOf)) {
+            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . 'element_element WHERE fk_source = ' . (int)$this->fk_assetOf . ' AND sourcetype = "tassetof" AND (targettype = "task")';
+            $PDOdb->Execute($sql);
+        }
 		if ($this->fk_project_task > 0)
 		{
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
