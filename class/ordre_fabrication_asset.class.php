@@ -29,7 +29,7 @@ class TAssetOF extends TObjetStd{
 
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
-		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
+		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project,rank',array('type'=>'integer','index'=>true));
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
@@ -503,6 +503,16 @@ class TAssetOF extends TObjetStd{
 		}
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
+
+        if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
+
+            if(!empty($this->date_lancement)) {
+                if(!empty($this->rank)) $this->ajustAllRank(); //@TODO checker si d'autres rank de même niveau
+                else $this->getNextRank();
+            } else {
+                setEventMessage($langs->trans('MissingLaunchingDateForRank'), 'warnings');
+            }
+        }
 
 		parent::save($PDOdb);
 

@@ -175,7 +175,7 @@ function _liste(&$PDOdb)
 		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
-
+        if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql.=', ofe.rank';
 	}
 	else {
 		$sql.=" ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
@@ -196,7 +196,9 @@ function _liste(&$PDOdb)
 		, ofe.status, ofe.fk_user
 		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
-		, '' AS printTicket ";
+		, '' AS printTicket  ";
+
+		if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql.=', ofe.rank';
 
 	}
 
@@ -342,6 +344,7 @@ function _liste(&$PDOdb)
 			,'supplierOrderId'=>$langs->trans('AssetProductionSupplierOrder')
 			,'date_livraison'=>$langs->trans('DeliveryDate')
 		    ,'date_end'=>$langs->trans('DateEnd')
+            ,'rank' => $langs->trans('Rank')
 		    ,'fk_asset_workstation'=>$langs->trans('Workstations')
 		    ,'order_line_price'=>$langs->trans('OrderLinePrice')
 		)
