@@ -210,9 +210,9 @@ class Interfaceoftrigger
                     && $object->progress==100) {
 
                     if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)) {
-                        foreach($object->linkedObjectsIds['tassetof'] as $fk_of) $this->closeOfIfTaskDone($fk_of);
+                        foreach($object->linkedObjectsIds['tassetof'] as $fk_of) $this->closeOfIfTaskDone($fk_of, $object);
                     } else {
-                        $this->closeOfIfTaskDone($object->array_options['options_fk_of']);
+                        $this->closeOfIfTaskDone($object->array_options['options_fk_of'], $object);
                     }
                 }
 
@@ -458,7 +458,7 @@ class Interfaceoftrigger
         }
     }
 
-    private function closeOfIfTaskDone ($fk_of) {
+    private function closeOfIfTaskDone ($fk_of, $task) {
         global $conf, $db;
 
         $sql = "SELECT count(*) as nb
@@ -470,7 +470,7 @@ class Interfaceoftrigger
         }
         else {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
-                            WHERE ee.fk_source = " .$fk_of  . " AND t.progress<100";
+                            WHERE ee.fk_source = " .$fk_of  . " AND t.progress<100 AND t.rowid !=".$task->id;
         }
 
         $res = $db->query($sql);
