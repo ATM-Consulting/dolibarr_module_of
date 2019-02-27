@@ -242,6 +242,9 @@ function _liste(&$PDOdb)
 		$sql.=" GROUP BY ofe.rowid ";
 	}
 
+    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))$orderBy=array("date_lancement" => "DESC", "rank"=>"ASC");
+    else $orderBy=array('rowid'=>'DESC');
+
 	$TMath=array();
 	$THide = array('rowid','fk_commandedet','fk_user','fk_product','fk_soc');
 	if($fk_commande>0)  $THide[] = 'fk_commande';
@@ -348,9 +351,7 @@ function _liste(&$PDOdb)
 		    ,'fk_asset_workstation'=>$langs->trans('Workstations')
 		    ,'order_line_price'=>$langs->trans('OrderLinePrice')
 		)
-		,'orderBy'=>array(
-			'rowid'=>'DESC'
-		)
+
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre("@val@")'
 			,'status'=>'TAssetOF::status("@val@", true)'

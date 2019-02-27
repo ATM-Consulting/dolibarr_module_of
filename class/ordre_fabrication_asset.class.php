@@ -507,7 +507,7 @@ class TAssetOF extends TObjetStd{
         if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
 
             if(!empty($this->date_lancement)) {
-                if(!empty($this->rank)) $this->ajustAllRank(); //@TODO checker si d'autres rank de même niveau
+                if(!empty($this->rank)) $this->ajustAllRank();
                 else $this->getNextRank();
             } else {
                 setEventMessage($langs->trans('MissingLaunchingDateForRank'), 'warnings');
@@ -520,6 +520,8 @@ class TAssetOF extends TObjetStd{
 
         $this->getNumero($PDOdb, true);
 
+        $this->fillMissingRank(); //On bouche les trous et décalle si nécessaire
+
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
 		$interface = new Interfaces($db);
@@ -529,6 +531,118 @@ class TAssetOF extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 	}
+
+    function ajustAllRank() {
+
+        //Si on a le même rang, On récupère tous les rangs au dessus et on ajoute 1
+        if($this->hasSameRank()) {
+            //$direction = $this->rankDirection();
+            $this->setAllOFSuperiorRank();
+        }
+        else{//Si on passe là ça veut dire qu'un rang trop grand a été saisi vu que les trous sont bouchés après chaque save (voir fillMissingRank)
+            $this->getNextRank();
+        }
+
+    }
+
+   /* function rankDirection(){
+        global $db;
+
+        if(!empty($this->id)) {
+            $sql = "SELECT rank FROM $this->table WHERE rowid = $this->id";
+            $resql = $db->query($sql);
+            if(!empty($resql)) {
+                $db->fetch_object();
+            }
+        }
+
+	    return 1;
+    }*/
+
+    function fillMissingRank() {
+        global $db;
+
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        $sql = "SELECT
+             CONCAT(z.expected, IF(z.got-1>z.expected, CONCAT(' thru ',z.got-1), '')) AS missing
+            FROM (
+                 SELECT
+                  @rownum:=@rownum+1 AS expected,
+                  IF(@rownum=rank, 0, @rownum:=rank) AS got
+                 FROM
+                  (SELECT @rownum:=1) AS a
+                  JOIN $this->table
+                  WHERE date_lancement='$launchingDate'";
+        $sql .= " ORDER BY rank
+             ) AS z
+            WHERE z.got!=0;"; // On récupère tous les manquants (soit un nb s'il est seul sinon de tel val à tel val)
+        //si ça peut aider à comprendre la requête : https://stackoverflow.com/questions/4340793/how-to-find-gaps-in-sequential-numbering-in-mysql/29736658#29736658
+        $resql = $db->query($sql);
+        if(!empty($resql) && $db->num_rows($resql)>0) {
+            $obj = $db->fetch_object($resql);
+
+            if(strpos($obj->missing, ' thru ') === false){
+                $sqlUpdate="UPDATE $this->table SET rank=rank-1 WHERE rank>$obj->missing AND date_lancement='$launchingDate'";
+                $db->query($sqlUpdate);
+            }else {
+                $limits = explode(' thru ', $obj->missing);
+                $sqlUpdate="UPDATE $this->table SET rank=rank-".($limits[1]-$limits[0]+1)." WHERE rank>$limits[0] AND date_lancement='$launchingDate'";
+                $db->query($sqlUpdate);
+            }
+            $this->fillMissingRank();
+        }
+    }
+
+    function setAllOFSuperiorRank(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        $sql = "SELECT rowid, rank FROM $this->table WHERE date_lancement='$launchingDate' AND rank>=$this->rank";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+        $resql = $db->query($sql);
+
+        if(!empty($resql)){
+            while($obj = $db->fetch_object($resql)){
+                $sqlUpdate = "UPDATE $this->table SET rank=".($obj->rank+1)." WHERE rowid=$obj->rowid";
+
+                $db->query($sqlUpdate);
+            }
+        }
+
+
+    }
+
+    function hasSameRank(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        //On vérifie qu'il n'y a pas d'autres rangs de même niveau
+        $sql = "SELECT rowid FROM $this->table WHERE date_lancement='$launchingDate' AND rank=$this->rank";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+
+        if(!empty($resql) && $db->num_rows($resql) > 0)return true;
+        return false;
+    }
+
+	function getNextRank(){
+	    global $db;
+
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+        $sql = "SELECT MAX(rank) as max_rank FROM $this->table WHERE date_lancement='$launchingDate'";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+        $this->rank = 1;
+
+        if(!empty($resql)){
+            $obj = $db->fetch_object($resql);
+            $this->rank = $obj->max_rank +1;
+        }
+
+    }
 
     function getNumero(&$PDOdb, $save=false) {
         global $db, $conf;

@@ -1272,7 +1272,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
 			        ,'date_end'=>$assetOf->get_date('date_end')
 			    ,'date_start'=>$assetOf->get_date('date_start')
-					,'rank'=>$form->texte('', 'rank', $assetOf->rank,1,1)
+					,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
 			)
 			,'view'=>array(
 				'mode'=>$mode
