@@ -507,7 +507,7 @@ class TAssetOF extends TObjetStd{
         if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
 
             if(!empty($this->date_lancement)) {
-                if(!empty($this->rank)) $this->ajustAllRank();
+                if(!empty($this->rank)) $this->ajustRank();
                 else $this->getNextRank();
             } else {
                 setEventMessage($langs->trans('MissingLaunchingDateForRank'), 'warnings');
@@ -520,7 +520,6 @@ class TAssetOF extends TObjetStd{
 
         $this->getNumero($PDOdb, true);
 
-        $this->fillMissingRank(); //On bouche les trous et décalle si nécessaire
 
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
@@ -532,17 +531,42 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 
-    function ajustAllRank() {
+    function ajustRank() {
 
-        //Si on a le même rang, On récupère tous les rangs au dessus et on ajoute 1
-        if($this->hasSameRank()) {
-            //$direction = $this->rankDirection();
-            $this->setAllOFSuperiorRank();
-        }
-        else{//Si on passe là ça veut dire qu'un rang trop grand a été saisi vu que les trous sont bouchés après chaque save (voir fillMissingRank)
-            $this->getNextRank();
+	    $old_rank = $this->getOldRank();
+
+        if($old_rank > $this->rank || empty($old_rank))$this->setRank($old_rank,$this->rank,1);
+        else $this->setRank($this->rank,$old_rank,-1);
+
+        if($this->isRankTooHigh()) $this->getNextRank(); // On le replace là où il faut
+
+    }
+
+    function isRankTooHigh(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+        $sql = "SELECT rowid FROM $this->table WHERE date_lancement='$launchingDate' AND rank=".($this->rank-1);
+
+        if(!empty($this->id)) $sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+        if(!empty($resql) && $db->num_rows($resql)>0 || $this->rank==1) return false;// Le premier est le seul à ne pas pouvoir avoir de précédent
+
+        return true;
+    }
+
+    function getOldRank(){
+	    global $db;
+
+        $sql = "SELECT  rank FROM $this->table WHERE rowid=$this->rowid";
+        $resql = $db->query($sql);
+
+        if(!empty($resql)){
+            $obj = $db->fetch_object($resql);
+            return $obj->rank;
         }
 
+        return 0;
     }
 
    /* function rankDirection(){
@@ -559,7 +583,7 @@ class TAssetOF extends TObjetStd{
 	    return 1;
     }*/
 
-    function fillMissingRank() {
+    /*function fillMissingRank() {
         global $db;
 
         $launchingDate = date('Y-m-d', $this->date_lancement);
@@ -571,7 +595,7 @@ class TAssetOF extends TObjetStd{
                   @rownum:=@rownum+1 AS expected,
                   IF(@rownum=rank, 0, @rownum:=rank) AS got
                  FROM
-                  (SELECT @rownum:=1) AS a
+                  (SELECT @rownum:=0) AS a
                   JOIN $this->table
                   WHERE date_lancement='$launchingDate'";
         $sql .= " ORDER BY rank
@@ -592,28 +616,31 @@ class TAssetOF extends TObjetStd{
             }
             $this->fillMissingRank();
         }
-    }
+    }*/
 
-    function setAllOFSuperiorRank(){
+    function setRank($high_rank, $low_rank, $value) {
         global $db;
         $launchingDate = date('Y-m-d', $this->date_lancement);
 
-        $sql = "SELECT rowid, rank FROM $this->table WHERE date_lancement='$launchingDate' AND rank>=$this->rank";
-        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+        if(!empty($high_rank)) $sqlEmptyOldRank = "AND rank <= $high_rank";
+        else $sqlEmptyOldRank = '';
+
+        $sql = "SELECT rowid, rank FROM $this->table WHERE date_lancement='$launchingDate' AND rank>=$low_rank $sqlEmptyOldRank";
+
+        if(!empty($this->id)) $sql .= " AND rowid!=$this->id";
+
         $resql = $db->query($sql);
 
-        if(!empty($resql)){
-            while($obj = $db->fetch_object($resql)){
-                $sqlUpdate = "UPDATE $this->table SET rank=".($obj->rank+1)." WHERE rowid=$obj->rowid";
+        if(!empty($resql)) {
+            while($obj = $db->fetch_object($resql)) {
+                $sqlUpdate = "UPDATE $this->table SET rank=" . ($obj->rank + $value) . " WHERE rowid=$obj->rowid";
 
                 $db->query($sqlUpdate);
             }
         }
-
-
     }
 
-    function hasSameRank(){
+    /*function hasSameRank(){
         global $db;
         $launchingDate = date('Y-m-d', $this->date_lancement);
 
@@ -625,7 +652,7 @@ class TAssetOF extends TObjetStd{
 
         if(!empty($resql) && $db->num_rows($resql) > 0)return true;
         return false;
-    }
+    }*/
 
 	function getNextRank(){
 	    global $db;
