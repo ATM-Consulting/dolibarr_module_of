@@ -242,7 +242,7 @@ function _liste(&$PDOdb)
 		$sql.=" GROUP BY ofe.rowid ";
 	}
 
-    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))$orderBy=array("date_lancement" => "DESC", "rank"=>"ASC");
+    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))$orderBy=array("date_lancement" => "ASC", "rank"=>"ASC",'rowid'=>'DESC');
     else $orderBy=array('rowid'=>'DESC');
 
 	$TMath=array();
