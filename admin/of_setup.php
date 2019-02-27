@@ -318,6 +318,14 @@ $var=!$var;
     print ajax_constantonoff('OF_HANDLE_ORDER_LINE_DESC');
     print '</td></tr>';
 
+    $var=!$var;
+    print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans('OF_MANAGE_NON_COMPLIANT').'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_MANAGE_NON_COMPLIANT');
+    print '</td></tr>';
+
    $var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
