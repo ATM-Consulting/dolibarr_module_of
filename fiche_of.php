@@ -156,6 +156,7 @@ function _action() {
 			//Permet de mettre à jour le lot de l'OF parent
 			if (!empty($assetOf->fk_assetOf_parent)) $assetOf->update_parent = true;
 			$assetOf->save($PDOdb);
+            $assetOf->load($PDOdb,$assetOf->rowid); // Pour remettre à jour les  données (je suis tombé plusieurs fois sur ce cas après un save)
 
 			_fiche($PDOdb,$assetOf, $mode);
 

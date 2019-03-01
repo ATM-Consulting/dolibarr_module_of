@@ -342,3 +342,4 @@ OF_HANDLE_ORDER_LINE_DESC=Copier la description des lignes de la commande dans l
 OF_MANAGE_NON_COMPLIANT=Gestion des non-conformes
 Compliant = Quantité conforme
 NonCompliant = Quantité non conforme
+OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des non-conformes
