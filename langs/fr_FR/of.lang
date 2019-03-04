@@ -342,3 +342,6 @@ OF_HANDLE_ORDER_LINE_DESC=Copier la description des lignes de la commande dans l
 OF_MANAGE_NON_COMPLIANT=Gestion des non-conformes
 Compliant = Quantité conforme
 NonCompliant = Quantité non conforme
+
+OF_RANK_PRIOR_BY_LAUNCHING_DATE=Priorisation des OFs en fonction de la date de lancement
+MissingLaunchingDateForRank=Date de lancement manquante pour gérer les rangs

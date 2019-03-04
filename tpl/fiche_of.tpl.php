@@ -95,7 +95,12 @@
 					<td>[view.editField;strconv=no][view.langs.transnoentities(Comments)]</td>
 					<td class="editableField">[assetOf.note;strconv=no]</td>
 				</tr>
-
+                [onshow;block=begin;when [conf.global.OF_RANK_PRIOR_BY_LAUNCHING_DATE;noerr]==1]
+                    <tr rel="rank">
+                        <td>[view.editField;strconv=no][view.langs.transnoentities(Rank)]</td>
+                        <td class="editableField">[assetOf.rank;strconv=no]</td>
+                    </tr>
+                [onshow;block=end]
 			</table>
 
 			<div class="of-details" style="margin-top: 25px;">
