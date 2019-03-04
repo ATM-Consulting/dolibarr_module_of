@@ -1272,6 +1272,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
 			        ,'date_end'=>$assetOf->get_date('date_end')
 			    ,'date_start'=>$assetOf->get_date('date_start')
+					,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -1296,6 +1297,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'langs'=>$langs
 				,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
 				,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)"') : ''
+
 			)
 			,'rights'=>array(
 				'show_ws_time'=>$user->rights->of->of->show_ws_time
