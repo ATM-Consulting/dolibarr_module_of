@@ -59,7 +59,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module of";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.10.0';
+		$this->version = '1.11.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -90,7 +90,7 @@ class modof extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'triggers' => 1,
-			'hooks'=>array('ordersuppliercard', 'productstock','searchform')
+			'hooks'=>array('ordersuppliercard', 'productstock','searchform', 'tasklist')
 		);
 
 		// Data directories to create when module is enabled.
@@ -529,7 +529,9 @@ class modof extends DolibarrModules
 			}
 			
 		}
-		
+
+		$this->transformExtraFkOfIntoElementElement();
+
 		return $this->_init($sql, $options);
 	}
 
@@ -547,5 +549,32 @@ class modof extends DolibarrModules
 
 		return $this->_remove($sql, $options);
 	}
+
+
+    function transformExtraFkOfIntoElementElement() {
+        global $db;
+        dol_include_once('/projet/class/task.class.php');
+        //Check si on a pas déjà fait appel à cette fonction
+        $sqlCheck = "SELECT * FROM " . MAIN_DB_PREFIX . "element_element WHERE sourcetype='tassetof'";
+        $resqlCheck = $db->query($sqlCheck);
+
+        if(!empty($resqlCheck) && $db->num_rows($resqlCheck) == 0) {
+
+            //On ajoute les objets liés
+            $sql = "SELECT t.rowid, tex.fk_of FROM " . MAIN_DB_PREFIX . "projet_task t 
+            LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid) 
+            LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
+            WHERE tex.fk_of IS NOT NULL ";
+
+            $resql = $db->query($sql);
+            if(!empty($resql) && $db->num_rows($resql) > 0) {
+                while($obj = $db->fetch_object($resql)) {
+                    $t = new Task($db);
+                    $t->fetch($obj->rowid);
+                    if(!empty($obj->fk_of)) $t->add_object_linked('tassetof', $obj->fk_of);
+                }
+            }
+        }
+    }
 
 }

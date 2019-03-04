@@ -66,6 +66,11 @@ function traite_get(&$PDOdb, $case) {
 		case 'validernomenclature':
 			__out(_validerNomenclature($PDOdb, GETPOST('id_assetOF'), GETPOST('fk_product'), GETPOST('fk_of_line'), GETPOST('fk_nomenclature'), GETPOST('qty')));
 			break;
+
+        case 'getlinkedof':
+
+            __out(_getLinkedOf($PDOdb,GETPOST('fk_task')), 'json');
+            break;
 	}
 }
 
@@ -412,4 +417,29 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
 			
 		}
 	}
+}
+
+function _getLinkedOf($PDOdb, $fk_task){
+    global $db, $conf;
+
+    dol_include_once('/projet/class/task.class.php');
+
+    $task = new Task($db);
+    $task->fetch($fk_task);
+
+    if (!isset($conf->tassetof))$conf->tassetof = new \stdClass(); // for warning
+    $conf->tassetof->enabled = 1; // pour fetchobjectlinked
+    $task->fetchObjectLinked(0,'tassetof',$task->id,$task->element,'OR',1,'sourcetype',0);
+
+    $TOfs = array();
+    if(!empty($task->linkedObjectsIds['tassetof'])) {
+        foreach($task->linkedObjectsIds['tassetof'] as $fk_of) {
+            $of = new TAssetOF();
+            $of->load($PDOdb, $fk_of);
+            array_push($TOfs, $of);
+        }
+    }
+
+    return $TOfs;
+  
 }

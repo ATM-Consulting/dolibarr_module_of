@@ -324,6 +324,14 @@ $var=!$var;
 
     $var=!$var;
     print '<tr '.$bc[$var].'>';
+    print '<td>'.$langs->trans('OF_RANK_PRIOR_BY_LAUNCHING_DATE').'</td>';
+    print '<td align="center" width="20">&nbsp;</td>';
+    print '<td align="center" width="300">';
+    print ajax_constantonoff('OF_RANK_PRIOR_BY_LAUNCHING_DATE');
+    print '</td></tr>';
+
+	$var=!$var;
+    print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans('OF_MANAGE_NON_COMPLIANT').'</td>';
     print '<td align="center" width="20">&nbsp;</td>';
     print '<td align="center" width="300">';
@@ -488,6 +496,14 @@ print '<td>'.$langs->trans("UseProjectTask").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("CumulateProjectTask",$langs->transnoentitiesnoconv("UseProjectTask")).'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('ASSET_CUMULATE_PROJECT_TASK');
 print '</td></tr>';
 
 $var=!$var;
