@@ -481,6 +481,14 @@ print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("CumulateProjectTask",$langs->transnoentitiesnoconv("UseProjectTask")).'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('ASSET_CUMULATE_PROJECT_TASK');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("UseProjectTaskHierarchique").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
