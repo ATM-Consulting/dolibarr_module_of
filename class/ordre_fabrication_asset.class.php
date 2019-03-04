@@ -2782,6 +2782,7 @@ class TAssetOFLine extends TObjetStd{
                         require_once DOL_DOCUMENT_ROOT . '/core/modules/project/task/' . $conf->global->PROJECT_TASK_ADDON . '.php';
 
                         $lastInsert = count($Of->TAssetWorkstationOF);
+                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_assetOf = $this->fk_assetOf;
                         $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
                     }
                 }
@@ -2994,7 +2995,7 @@ class TAssetWorkstationOF extends TObjetStd{
        	$projectTask->array_options['options_fk_workstation']=$ws->getId();
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
 
-		$projectTask->add_object_linked('tassetof',$this->fk_assetOf);
+
 
 
 
@@ -3007,12 +3008,14 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 
 		$res = $projectTask->create($user);
+
         if($res<0) {
             var_dump($projectTask->error, $projectTask);
 
             exit('ErrorCreateTaskWS') ;
         }
         else{
+            $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
             $this->fk_project_task = $projectTask->id;
         }
 
