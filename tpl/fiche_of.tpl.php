@@ -95,7 +95,12 @@
 					<td>[view.editField;strconv=no][view.langs.transnoentities(Comments)]</td>
 					<td class="editableField">[assetOf.note;strconv=no]</td>
 				</tr>
-
+                [onshow;block=begin;when [conf.global.OF_RANK_PRIOR_BY_LAUNCHING_DATE;noerr]==1]
+                    <tr rel="rank">
+                        <td>[view.editField;strconv=no][view.langs.transnoentities(Rank)]</td>
+                        <td class="editableField">[assetOf.rank;strconv=no]</td>
+                    </tr>
+                [onshow;block=end]
 			</table>
 
 			<div class="of-details" style="margin-top: 25px;">
@@ -117,6 +122,10 @@
 									<td>[view.langs.transnoentities(QtyToProduce)]</td>
 									<td>[view.langs.transnoentities(ProduceQty)]</td>
 									<td>[view.langs.transnoentities(Supplier)]</td>
+                                    [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]==1]
+                                        <td>[view.langs.transnoentities(Compliant)]</td>
+                                        <td >[view.langs.transnoentities(NonCompliant)]</td>
+                                    [onshow;block=end]
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[view.langs.transnoentities(Warehouse)]</td>
 									[onshow;block=end]
@@ -143,6 +152,10 @@
 									<td valign="top">[TTomake.qty;strconv=no]</td>
 									<td valign="top">[TTomake.qty_used;strconv=no]</td>
 									<td width="30%" valign="top">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
+                                    [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]==1]
+                                        <td valign="top">[TTomake.qty_compliant;strconv=no]</td>
+                                        <td valign="top">[TTomake.qty_non_compliant;strconv=no]</td>
+                                    [onshow;block=end]
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
 									[onshow;block=end]

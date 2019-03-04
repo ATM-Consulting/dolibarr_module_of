@@ -29,7 +29,7 @@ class TAssetOF extends TObjetStd{
 
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
-		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
+		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project,rank',array('type'=>'integer','index'=>true));
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
@@ -504,11 +504,22 @@ class TAssetOF extends TObjetStd{
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
+        if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
+
+            if(!empty($this->date_lancement)) {
+                if(!empty($this->rank)) $this->ajustRank();
+                else $this->getNextRank();
+            } else {
+                setEventMessage($langs->trans('MissingLaunchingDateForRank'), 'warnings');
+            }
+        }
+
 		parent::save($PDOdb);
 
 		$this->setDelaiLancement($PDOdb);
 
         $this->getNumero($PDOdb, true);
+
 
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
@@ -519,6 +530,146 @@ class TAssetOF extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 	}
+
+    function ajustRank() {
+
+	    $old_rank = $this->getOldRank();
+
+        if($old_rank > $this->rank || empty($old_rank))$this->setRank($old_rank,$this->rank,1);
+        else $this->setRank($this->rank,$old_rank,-1);
+
+        if($this->isRankTooHigh()) $this->getNextRank(); // On le replace là où il faut
+
+    }
+
+    function isRankTooHigh(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+        $sql = "SELECT rowid FROM $this->table WHERE date_lancement='$launchingDate' AND rank=".($this->rank-1);
+
+        if(!empty($this->id)) $sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+        if(!empty($resql) && $db->num_rows($resql)>0 || $this->rank==1) return false;// Le premier est le seul à ne pas pouvoir avoir de précédent
+
+        return true;
+    }
+
+    function getOldRank(){
+	    global $db;
+
+        $sql = "SELECT  rank FROM $this->table WHERE rowid=$this->rowid";
+        $resql = $db->query($sql);
+
+        if(!empty($resql)){
+            $obj = $db->fetch_object($resql);
+            return $obj->rank;
+        }
+
+        return 0;
+    }
+
+   /* function rankDirection(){
+        global $db;
+
+        if(!empty($this->id)) {
+            $sql = "SELECT rank FROM $this->table WHERE rowid = $this->id";
+            $resql = $db->query($sql);
+            if(!empty($resql)) {
+                $db->fetch_object();
+            }
+        }
+
+	    return 1;
+    }*/
+
+    /*function fillMissingRank() {
+        global $db;
+
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        $sql = "SELECT
+             CONCAT(z.expected, IF(z.got-1>z.expected, CONCAT(' thru ',z.got-1), '')) AS missing
+            FROM (
+                 SELECT
+                  @rownum:=@rownum+1 AS expected,
+                  IF(@rownum=rank, 0, @rownum:=rank) AS got
+                 FROM
+                  (SELECT @rownum:=0) AS a
+                  JOIN $this->table
+                  WHERE date_lancement='$launchingDate'";
+        $sql .= " ORDER BY rank
+             ) AS z
+            WHERE z.got!=0;"; // On récupère tous les manquants (soit un nb s'il est seul sinon de tel val à tel val)
+        //si ça peut aider à comprendre la requête : https://stackoverflow.com/questions/4340793/how-to-find-gaps-in-sequential-numbering-in-mysql/29736658#29736658
+        $resql = $db->query($sql);
+        if(!empty($resql) && $db->num_rows($resql)>0) {
+            $obj = $db->fetch_object($resql);
+
+            if(strpos($obj->missing, ' thru ') === false){
+                $sqlUpdate="UPDATE $this->table SET rank=rank-1 WHERE rank>$obj->missing AND date_lancement='$launchingDate'";
+                $db->query($sqlUpdate);
+            }else {
+                $limits = explode(' thru ', $obj->missing);
+                $sqlUpdate="UPDATE $this->table SET rank=rank-".($limits[1]-$limits[0]+1)." WHERE rank>$limits[0] AND date_lancement='$launchingDate'";
+                $db->query($sqlUpdate);
+            }
+            $this->fillMissingRank();
+        }
+    }*/
+
+    function setRank($high_rank, $low_rank, $value) {
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        if(!empty($high_rank)) $sqlEmptyOldRank = "AND rank <= $high_rank";
+        else $sqlEmptyOldRank = '';
+
+        $sql = "SELECT rowid, rank FROM $this->table WHERE date_lancement='$launchingDate' AND rank>=$low_rank $sqlEmptyOldRank";
+
+        if(!empty($this->id)) $sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+
+        if(!empty($resql)) {
+            while($obj = $db->fetch_object($resql)) {
+                $sqlUpdate = "UPDATE $this->table SET rank=" . ($obj->rank + $value) . " WHERE rowid=$obj->rowid";
+
+                $db->query($sqlUpdate);
+            }
+        }
+    }
+
+    /*function hasSameRank(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        //On vérifie qu'il n'y a pas d'autres rangs de même niveau
+        $sql = "SELECT rowid FROM $this->table WHERE date_lancement='$launchingDate' AND rank=$this->rank";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+
+        if(!empty($resql) && $db->num_rows($resql) > 0)return true;
+        return false;
+    }*/
+
+	function getNextRank(){
+	    global $db;
+
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+        $sql = "SELECT MAX(rank) as max_rank FROM $this->table WHERE date_lancement='$launchingDate'";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+        $this->rank = 1;
+
+        if(!empty($resql)){
+            $obj = $db->fetch_object($resql);
+            $this->rank = $obj->max_rank +1;
+        }
+
+    }
 
     function getNumero(&$PDOdb, $save=false) {
         global $db, $conf;
@@ -1796,9 +1947,9 @@ class TAssetOFLine extends TObjetStd{
 
     	$this->TChamps = array();
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide,fk_commandedet',array('type'=>'integer','index'=>true));
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp',array('type'=>'float'));
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp,qty_compliant,qty_non_compliant',array('type'=>'float'));
 		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
-	        $this->add_champs('note_private',array('type'=>'text'));
+	    $this->add_champs('note_private',array('type'=>'text'));
 
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent',array('type'=>'integer','index'=>true));

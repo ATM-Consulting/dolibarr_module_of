@@ -948,6 +948,8 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
+				,'qty_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_compliant]', $TAssetOFLine->qty_compliant, 5,5,'','') : $TAssetOFLine->qty_compliant)
+				,'qty_non_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_non_compliant]', $TAssetOFLine->qty_non_compliant,  5,5,'','') : $TAssetOFLine->qty_non_compliant)
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
@@ -1272,6 +1274,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
 			        ,'date_end'=>$assetOf->get_date('date_end')
 			    ,'date_start'=>$assetOf->get_date('date_start')
+					,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -1296,6 +1299,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'langs'=>$langs
 				,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
 				,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)"') : ''
+
 			)
 			,'rights'=>array(
 				'show_ws_time'=>$user->rights->of->of->show_ws_time
