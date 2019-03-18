@@ -47,7 +47,10 @@ $action = GETPOST('action', 'alpha');
 if (preg_match('/set_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
-	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
+	$val = GETPOST($code);
+	if(is_array($val))$val= implode(',', $val);
+
+	if (dolibarr_set_const($db, $code, $val, 'chaine', 0, '', $conf->entity) > 0)
 	{
 		header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
@@ -130,6 +133,7 @@ dol_fiche_head(
     0,
     "of@of"
 );
+$PDOdb = new TPDOdb;
 $formCore=new TFormcore;
 // Setup page goes here
 $form=new Form($db);
@@ -334,6 +338,21 @@ $var=!$var;
     print ajax_constantonoff('OF_MANAGE_NON_COMPLIANT');
     print '</td></tr>';
 
+    if(!empty($conf->workstation->enabled)) {
+
+        $var = !$var;
+        print '<tr ' . $bc[$var] . '>';
+        print '<td>' . $langs->trans('OF_WORKSTATION_NON_COMPLIANT') . '</td>';
+        print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+        print '<td align="center" width="20">&nbsp;</td>';
+        print '<td align="center" width="300">';
+        print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+        print '<input type="hidden" name="action" value="set_OF_WORKSTATION_NON_COMPLIANT">';
+        print $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT),0, 0, '', 0, 300);
+        print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+        print '</form>';
+        print '</td></tr>';
+    }
    $var=!$var;
 	print '<tr '.$bc[$var].'>';
     print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
