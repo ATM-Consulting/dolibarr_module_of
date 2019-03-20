@@ -160,7 +160,7 @@ class Interfaceoftrigger
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $_REQUEST['id'];
 							$assetOF->fk_soc = $object->socid;
-							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty);
+							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
 
 						}
