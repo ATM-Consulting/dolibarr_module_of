@@ -102,7 +102,7 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 
-	function loadByProductCategory(&$db, $categ, $fk_soc) {
+	function loadByProductCategory(&$db, $categ, $fk_soc, $status) {
 
 		//On récupère l'of ayant des produits ayant pour catégorie la même catégorie et étant brouillon
         $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of 
@@ -110,7 +110,7 @@ class TAssetOF extends TObjetStd{
                 LEFT JOIN ".MAIN_DB_PREFIX."categorie_product cat ON (ofline.fk_product = cat.fk_product)
                 WHERE cat.fk_categorie = $categ->id
                 AND of.fk_soc = $fk_soc
-                AND of.status = 'DRAFT'";
+                AND of.status = '$status'";
 
         $db->Execute($sql);
         $TOfIds = $db->Get_All();
