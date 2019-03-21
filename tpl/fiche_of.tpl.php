@@ -30,10 +30,10 @@
 				[onshow;block=end]
 				<tr><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr rel="fk_commande">
-                    [onshow;block=begin;when [conf.global.OF_RANK_PRIOR_BY_LAUNCHING_DATE;noerr]==0]
+                    [onshow;block=begin;when [conf.global.OF_MANAGE_ORDER_LINK_BY_LINE;noerr]!=1]
 					    <td>[view.editField;strconv=no][view.langs.transnoentities(Order)]</td>
                     [onshow;block=end]
-                    [onshow;block=begin;when [conf.global.OF_RANK_PRIOR_BY_LAUNCHING_DATE;noerr]==1]
+                    [onshow;block=begin;when [conf.global.OF_MANAGE_ORDER_LINK_BY_LINE;noerr]==1]
                     <td>[view.langs.transnoentities(Order)]</td>
                     [onshow;block=end]
 					<td class="editableField">[assetOf.fk_commande;strconv=no;magnet=tr]</td>
