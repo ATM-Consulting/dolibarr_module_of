@@ -347,3 +347,4 @@ OF_RANK_PRIOR_BY_LAUNCHING_DATE=Priorisation des OFs en fonction de la date de l
 MissingLaunchingDateForRank=Date de lancement manquante pour gérer les rangs
 CumulateProjectTask=Cumuler le temps des tâches si c'est le même poste de travail (dépend de la configuration "%s")
 OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des non-conformes
+ShippablePrevReport=Rapport de délivrabilité
