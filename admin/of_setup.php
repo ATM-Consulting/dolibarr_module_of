@@ -28,6 +28,8 @@ require '../config.php';
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/of.lib.php';
+dol_include_once('abricot/includes/lib/admin.lib.php');
+
 
 // Translations
 $langs->load('admin');
@@ -482,7 +484,10 @@ $var=!$var;
 	print '</form>';
 	print '</td></tr>';
 
-	print '</table>';
+    setup_print_on_off('OF_MANAGE_ORDER_LINK_BY_LINE', $langs->trans('OF_MANAGE_ORDER_LINK_BY_LINE') , $langs->trans('OF_MANAGE_ORDER_LINK_BY_LINEDETAIL'));
+
+
+print '</table>';
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';

@@ -1213,7 +1213,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
     $TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
 
-    $order_amount = $o->total_ht;
+    $order_amount = $commande->total_ht; //$o n'existait pas
     if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
 
         $line_to_make = $assetOf->getLineProductToMake();
@@ -1227,6 +1227,29 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
         }
 
     }
+    $TCommandes=array();
+    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+        $displayOrders = '';
+        $TLine_to_make = $assetOf->getLinesProductToMake();
+
+
+        foreach($TLine_to_make as $line){
+            if(!empty($line->fk_commandedet)){
+                $commande = new Commande($db);
+                $orderLine = new OrderLine($db);
+                $orderLine->fetch($line->fk_commandedet);
+                $commande->fetch($orderLine->fk_commande);
+                $TCommandes[$orderLine->fk_commande] = $commande;
+
+            }
+            elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+
+        }
+    }
+    if(!empty($TCommandes)){
+        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
+    }
+    else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
 
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
@@ -1239,7 +1262,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					'id'=> $assetOf->getId()
 					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
 					,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-			    ,'fk_commande'=>($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency))
+			        ,'fk_commande'=>!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders))
 					//,'statut_commande'=> $commande->getLibStatut(0)
 					,'commande_fournisseur'=>$HtmlCmdFourn
 					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)

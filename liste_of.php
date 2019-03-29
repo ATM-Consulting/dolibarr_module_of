@@ -183,8 +183,11 @@ function _liste(&$PDOdb)
         ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation")."
         , ofe.date_lancement
         , ofe.date_besoin
-        , ofe.date_end
-        , ofe.fk_commande";
+        , ofe.date_end";
+
+        if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+            $sql .= ", GROUP_CONCAT(DISTINCT cd.fk_commande SEPARATOR ',') as fk_commande";
+        } else $sql.=", ofe.fk_commande";
 
 		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
 
@@ -219,7 +222,7 @@ function _liste(&$PDOdb)
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
 
-		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE) || !empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
 
 		    $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
 
@@ -231,17 +234,29 @@ function _liste(&$PDOdb)
 
 	if($fk_soc>0) $sql.=" AND ofe.fk_soc=".$fk_soc;
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
-	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
+	if($fk_commande>0){
+        if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+            $TLineIds = array();
+            if(!empty($commande->lines)){
+
+                foreach($commande->lines as $line)$TLineIds[]=$line->id;
+
+                $sql.=" AND ofel.fk_commandedet IN (".implode(',',$TLineIds).") AND ofe.fk_assetOf_parent = 0 ";
+
+            }else $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
+
+        }
+        else $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
+    }
 
 
-	if($mode =='supplier_order') {
+    if($mode =='supplier_order') {
 		$sql.=" AND cf.fk_statut IN (2,3,4) ";
 		$sql.=" GROUP BY cf.rowid, ofe.rowid ";
 	}
 	else{
 		$sql.=" GROUP BY ofe.rowid ";
 	}
-
     if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))$orderBy=array("date_lancement" => "ASC", "rank"=>"ASC",'rowid'=>'DESC');
     else $orderBy=array('rowid'=>'DESC');
 
@@ -478,10 +493,11 @@ function _liste(&$PDOdb)
 				print '<td>';
 				print $p_static->stock_reel;
 				print '</td>';
-
-				$resOf = $db->query("SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
-						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf)
-					WHERE of.fk_commande=".$fk_commande." AND ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet);
+                $sqlOf = "SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
+						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf) WHERE ";
+                if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
+                $sqlOf .=" ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet;
+				$resOf = $db->query($sqlOf);
 
 				$objof = $db->fetch_object($resOf);
 				$qtyInOF = $objof->qty;
@@ -776,23 +792,30 @@ function get_format_label_supplier_order($fk){
 function get_format_libelle_commande($fk, $fk_commandedet=0, $fk_products='')
 {
     global $db,$langs,$conf;
+    $TCommandeIds = array();
+    if(strpos($fk,',')!==false) {
+        $TCommandeIds = explode(',', $fk);
+    }else $TCommandeIds[] = (int)$fk;
 
-    $fk = (int)$fk;
     $fk_commandedet = (int)$fk_commandedet;
+    if(!empty($TCommandeIds)) {
+        $res = '';
+        foreach($TCommandeIds as $fk) {
+            $fk = (int) $fk;
 
-    if($fk>0)
-    {
-        $o = new Commande($db);
-        if($o->fetch($fk)>0) {
+            if($fk > 0) {
+                $o = new Commande($db);
+                if($o->fetch($fk) > 0) {
 
-            $res = '<span style="white-space:nowrap;">'.$o->getNomUrl(1);
-            $res.= '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
-            $res.='</span>';
+                    $res .= '<div style="white-space:nowrap;">' . $o->getNomUrl(1);
+                    $res .= '<br />' . price($o->total_ht, 0, $langs, 1, -1, -1, $conf->currency);
+                    $res .= '</div>';
 
-            return $res;
+
+                } else return $fk;
+            }
         }
-
-		else return $fk;
+        return $res;
     }
 
     return '';
