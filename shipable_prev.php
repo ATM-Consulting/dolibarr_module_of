@@ -12,6 +12,7 @@ dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 dol_include_once('/fourn/class/fournisseur.class.php');
 dol_include_once('/core/class/html.form.class.php');
+dol_include_once('/of/lib/of.lib.php');
 
 $limit = GETPOST('limit','int')?GETPOST('limit','int'):$conf->liste_limit;
 $sortfield = GETPOST("sortfield",'alpha');
@@ -49,42 +50,39 @@ $sql .= " WHERE c.fk_statut NOT IN (".Commande::STATUS_CANCELED.",".Commande::ST
 $sql .= " GROUP BY cd.rowid, aol.fk_assetOf, cde.svpm_date_livraison";
 
 
-if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST))
-{
-    $result = $db->query($sql." ORDER BY cde.svpm_date_livraison");
-    $nbtotalofrecords = $db->num_rows($result);
-    if(!empty($result) && $db->num_rows($result)>0){
-        while($obj = $db->fetch_object($result)){
-            $orderLine = new OrderLine($db);
-            $nomenclature = new TNomenclature;
 
-            $orderLine->fetch($obj->rowid);
-            $orderLine->fk_assetOf = $obj->fk_assetOf;//On récup l'asset
-            $nomenclature->loadByObjectId($PDOdb,$obj->rowid, 'commande', false,  0, $orderLine->qty, 0);
-            if(empty($nomenclature->rowid))$nomenclature->loadByObjectId($PDOdb,$orderLine->fk_product,'product',false,  0, $orderLine->qty, 0);
-            if(!empty($nomenclature->rowid)) {
-                $details_nomenclature = $nomenclature->getDetails($orderLine->qty);
+$result = $db->query($sql." ORDER BY cde.svpm_date_livraison");
+$nbtotalofrecords = $db->num_rows($result);
+if(!empty($result) && $db->num_rows($result)>0){
+    while($obj = $db->fetch_object($result)){
+        $orderLine = new OrderLine($db);
+        $nomenclature = new TNomenclature;
 
-                $orderLine->nomenclature = $nomenclature; //On récup la nomenclature
-                $orderLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
-                if(!empty($nomenclature->TNomenclatureDet)){
-                    //On init aussi le tableau avec les produits liés à la nomenclature (récursivement =) )
+        $orderLine->fetch($obj->rowid);
+        $orderLine->fetch_optionals();
+        $orderLine->fk_assetOf = $obj->fk_assetOf;//On récup l'asset
+        $nomenclature->loadByObjectId($PDOdb,$obj->rowid, 'commande', false,  0, $orderLine->qty, 0);
+        if(empty($nomenclature->rowid))$nomenclature->loadByObjectId($PDOdb,$orderLine->fk_product,'product',false,  0, $orderLine->qty, 0);
+        if(!empty($nomenclature->rowid)) {
+            $details_nomenclature = $nomenclature->getDetails($orderLine->qty);
 
-                    _getProductIdFromNomen($TProductStock);
+            $orderLine->nomenclature = $nomenclature; //On récup la nomenclature
+            $orderLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
 
-                }
-            }
-            if(!empty($orderLine->fk_product))$TProductId[$orderLine->fk_product] = $orderLine->fk_product; // on init le produit avec tous les produits
-            $orderLine->qty_exped = $obj->qty_exped;
-            $TLines[$orderLine->id] = $orderLine;
+            //On init aussi le tableau avec les produits liés à la nomenclature (récursivement =) )
+            if(!empty($details_nomenclature)) _getProductIdFromNomen($TProductId, $details_nomenclature);
         }
-    }
-    if (($page * $limit) > $nbtotalofrecords)	// if total resultset is smaller then paging size (filtering), goto and load page 0
-    {
-        $page = 0;
-        $offset = 0;
+        if(!empty($orderLine->fk_product))$TProductId[$orderLine->fk_product] = $orderLine->fk_product; // on init le produit avec tous les produits
+        $orderLine->qty_exped = $obj->qty_exped;
+        $TLines[$orderLine->id] = $orderLine;
     }
 }
+if (($page * $limit) > $nbtotalofrecords)	// if total resultset is smaller then paging size (filtering), goto and load page 0
+{
+    $page = 0;
+    $offset = 0;
+}
+
 
 $sql.= $db->order($sortfield,$sortorder);
 $sql.= $db->plimit($limit + 1,$offset);
@@ -125,11 +123,10 @@ if(!empty($resql) && $db->num_rows($resql)>0) {
         $TProductStock[$obj->fk_product]['supplier_order'][$obj->svpm_date_livraison] += $obj->qty;
     }
 }
-
 //Recursively check if stock is enough
 $TDetailStock = array();
-foreach ($TLines as $key => $line) $TDetailStock = _getDetailStock($line, $TProductStock);
-
+foreach ($TLines as $key => $line) $TDetailStock[$line->id] = _getDetailStock($line, $TProductStock);
+exit;
 
 /*
  * VIEW

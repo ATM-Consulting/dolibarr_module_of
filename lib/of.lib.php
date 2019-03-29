@@ -365,3 +365,29 @@ function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 	return TAssetOf::qtyFromOF($product->id);
 
 }
+
+function _getProductIdFromNomen(&$TProductId, $details_nomenclature)
+{
+    foreach($details_nomenclature as $detail){
+        if(!empty($detail['childs'])) _getProductIdFromNomen($TProductId, $detail['childs']);
+        $TProductId[$detail['fk_product']]=$detail['fk_product'];
+    }
+}
+
+function _getDetailStock(&$line, &$TProductStock)
+{
+    $TDetails = array();
+    $qtyToDestock = $line->qty;
+    if($qtyToDestock <= $TProductStock[$line->fk_product]['stock']) {
+        $TDetails['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
+        $TProductStock[$line->fk_product]['stock'] -= $line->qty;
+    }
+    else if(!empty($TProductStock[$line->fk_product]['supplier_order'])) {
+        foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock) {
+            if($qtyToDestock <= 0) break;
+            var_dump($line->array_options);
+        }
+    }
+
+
+}
