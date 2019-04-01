@@ -378,16 +378,112 @@ function _getDetailStock(&$line, &$TProductStock)
 {
     $TDetails = array();
     $qtyToDestock = $line->qty;
-    if($qtyToDestock <= $TProductStock[$line->fk_product]['stock']) {
-        $TDetails['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
-        $TProductStock[$line->fk_product]['stock'] -= $line->qty;
+
+/*
+ * 1st step on verif si stock physique is enough
+ */
+    if(!empty($TProductStock[$line->fk_product]['stock'])){
+        $TDetails[$line->id]['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
+
+        if($qtyToDestock < $TProductStock[$line->fk_product]['stock']){
+            $TProductStock[$line->fk_product]['stock']-= $qtyToDestock;
+            $qtyToDestock=0;
+        }
+        else{
+            $qtyToDestock -= $TProductStock[$line->fk_product]['stock'];
+            $TProductStock[$line->fk_product]['stock']= 0;
+        }
+
     }
-    else if(!empty($TProductStock[$line->fk_product]['supplier_order'])) {
-        foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock) {
-            if($qtyToDestock <= 0) break;
-            var_dump($line->array_options);
+
+
+/*
+ * 2nd step on verif si on peut compenser le manque avec les prochaines cmd fourn
+ */
+    if($qtyToDestock > 0 && !empty($TProductStock[$line->fk_product]['supplier_order'])){
+        foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock_by_order) {
+            if($qtyToDestock <= 0) break; // La quantité totale est trouvée
+
+            if(!empty($date) && !empty($line->array_options['options_svpm_date_livraison'])){
+                $tms_fourn = strtotime($date);
+                if($tms_fourn < $line->array_options['options_svpm_date_livraison']) {
+                    foreach($stock_by_order as $fk_order => $stock) {
+                        $TDetails[$line->id]['supplier_order'][$fk_order] += $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+
+                        if($qtyToDestock < $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order]){
+                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] -= $qtyToDestock;
+                            $qtyToDestock=0;
+                        }
+                        else{
+                            $qtyToDestock -= $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] = 0;
+                        }
+                    }
+                }
+            }
         }
     }
+/*
+ * 3rd step : Si on a toujours pas de quoi fournir le client, on vérifie si on a de quoi créer les produits et que le délai est ok
+ */
+    if($qtyToDestock > 0 && !empty($line->details_nomenclature)){
+        _getDetailFromNomenclature($line->details_nomenclature, $TProductStock, $TDetails[$line->id], $line->array_options['options_svpm_date_livraison'], $qtyToDestock);
+    }
+    if($qtyToDestock<=0)$TDetails[$line->id]['status'] = 1;
+}
+function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TDetails, $date_de_livraison, &$qtyToDestock){
+	//TODO TERMINER CETTE METHODE
+    $qtyToDestock = $details_nomenclature['qty'] * $qtyToDestock;
+
+    /*
+     * 1st step on verif si stock physique is enough
+     */
+    if(!empty($TProductStock[$line->fk_product]['stock'])){
+        $TDetails[$line->id]['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
+
+        if($qtyToDestock < $TProductStock[$line->fk_product]['stock']){
+            $TProductStock[$line->fk_product]['stock']-= $qtyToDestock;
+            $qtyToDestock=0;
+        }
+        else{
+            $qtyToDestock -= $TProductStock[$line->fk_product]['stock'];
+            $TProductStock[$line->fk_product]['stock']= 0;
+        }
+
+    }
 
 
+    /*
+     * 2nd step on verif si on peut compenser le manque avec les prochaines cmd fourn
+     */
+    if($qtyToDestock > 0 && !empty($TProductStock[$line->fk_product]['supplier_order'])){
+        foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock_by_order) {
+            if($qtyToDestock <= 0) break; // La quantité totale est trouvée
+
+            if(!empty($date) && !empty($line->array_options['options_svpm_date_livraison'])){
+                $tms_fourn = strtotime($date);
+                if($tms_fourn < $line->array_options['options_svpm_date_livraison']) {
+                    foreach($stock_by_order as $fk_order => $stock) {
+                        $TDetails[$line->id]['supplier_order'][$fk_order] += $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+
+                        if($qtyToDestock < $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order]){
+                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] -= $qtyToDestock;
+                            $qtyToDestock=0;
+                        }
+                        else{
+                            $qtyToDestock -= $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /*
+     * 3rd step : Si on a toujours pas de quoi fournir le client, on vérifie si on a de quoi créer les produits et que le délai est ok
+     */
+    if($qtyToDestock > 0 && !empty($line->details_nomenclature)){
+        _getDetailFromNomenclature($line->details_nomenclature, $TProductStock, $TDetails[$line->id], $line->array_options['options_svpm_date_livraison'], $qtyToDestock);
+    }
+    if($qtyToDestock<=0)$TDetails[$line->id]['status'] = 1;
 }

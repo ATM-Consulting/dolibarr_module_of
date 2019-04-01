@@ -50,7 +50,6 @@ $sql .= " WHERE c.fk_statut NOT IN (".Commande::STATUS_CANCELED.",".Commande::ST
 $sql .= " GROUP BY cd.rowid, aol.fk_assetOf, cde.svpm_date_livraison";
 
 
-
 $result = $db->query($sql." ORDER BY cde.svpm_date_livraison");
 $nbtotalofrecords = $db->num_rows($result);
 if(!empty($result) && $db->num_rows($result)>0){
@@ -64,7 +63,7 @@ if(!empty($result) && $db->num_rows($result)>0){
         $nomenclature->loadByObjectId($PDOdb,$obj->rowid, 'commande', false,  0, $orderLine->qty, 0);
         if(empty($nomenclature->rowid))$nomenclature->loadByObjectId($PDOdb,$orderLine->fk_product,'product',false,  0, $orderLine->qty, 0);
         if(!empty($nomenclature->rowid)) {
-            $details_nomenclature = $nomenclature->getDetails($orderLine->qty);
+            $details_nomenclature = $nomenclature->getDetails(1);
 
             $orderLine->nomenclature = $nomenclature; //On récup la nomenclature
             $orderLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
@@ -109,7 +108,7 @@ if(!empty($resql) && $db->num_rows($resql)>0) {
     }
 }
 
-$sql = " SELECT cfd.qty, cfde.svpm_date_livraison, cfd.fk_product FROM ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd";
+$sql = " SELECT cfd.qty, cfde.svpm_date_livraison, cfd.fk_product, cf.rowid FROM ".MAIN_DB_PREFIX."commande_fournisseurdet as cfd";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseurdet_extrafields as cfde ON (cfde.fk_object = cfd.rowid)";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur as cf ON (cf.rowid = cfd.fk_commande)";
 $sql .= " WHERE cfd.fk_product IN (".implode(',',$TProductId).") ";
@@ -119,14 +118,14 @@ $sql .= " ORDER BY cfde.svpm_date_livraison";
 $resql = $db->query($sql);
 if(!empty($resql) && $db->num_rows($resql)>0) {
     while($obj = $db->fetch_object($resql)) {
-        $TProductStock[$obj->fk_product]['supplier_order']['total_from_supplier'] += $obj->qty;
-        $TProductStock[$obj->fk_product]['supplier_order'][$obj->svpm_date_livraison] += $obj->qty;
+//        $TProductStock[$obj->fk_product]['supplier_order']['total_from_supplier'] += $obj->qty;
+        $TProductStock[$obj->fk_product]['supplier_order'][$obj->svpm_date_livraison][$obj->rowid] += $obj->qty;
     }
 }
 //Recursively check if stock is enough
 $TDetailStock = array();
 foreach ($TLines as $key => $line) $TDetailStock[$line->id] = _getDetailStock($line, $TProductStock);
-exit;
+//exit;
 
 /*
  * VIEW
