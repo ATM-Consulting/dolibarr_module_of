@@ -504,3 +504,37 @@ function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TD
     return -1;
 
 }
+
+function _getPictoDetail($TDetailStock, $lineid, &$stock_tooltip, $level = 1) {
+    global $langs, $db;
+    $nbsp = '';
+    for($i=1; $i<$level; $i++) $nbsp .= '&nbsp;&nbsp;&nbsp;&nbsp;';
+
+    if(!empty($TDetailStock[$lineid])){
+    foreach($TDetailStock[$lineid] as $type => $detail) {
+
+        if($type == 'stock_reel') $stock_tooltip .= $nbsp . $langs->trans('PhysicalStock') . ' : '  . $detail . '</br>';
+
+        if($type == 'supplier_order') {
+
+            $stock_tooltip .= $nbsp . $langs->trans('SupplierOrder') . ' : </br>';
+            foreach($detail as $fk_supplier_order => $stock) {
+                $fourncmd = new CommandeFournisseur($db);
+                $fourncmd->fetch($fk_supplier_order);
+                $stock_tooltip .= $nbsp . $fourncmd->getNomUrl(1) . ' ==> ' . $stock . '</br>';
+            }
+
+        }
+
+        if($type == 'childs') {
+            $stock_tooltip .= $nbsp . $langs->trans('Nomenclature') . ' : </br>';
+            foreach($detail as $fk_product => $TDetails) {
+                $prod = new Product($db);
+                $prod->fetch($fk_product);
+                $stock_tooltip .= $nbsp . $nbsp . $prod->getNomUrl(1) . ' : ';
+                _getPictoDetail($detail, $fk_product, $stock_tooltip, $level + 1);
+            }
+        }
+    }
+    }
+}

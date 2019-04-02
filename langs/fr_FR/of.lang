@@ -350,3 +350,4 @@ OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des no
 ShippablePrevReport=Rapport de délivrabilité
 WarningNoDate=Saisir une date de livraison liée à la ligne
 pictoNoDate=Le calcul est erroné s'il n'y a pas de date
+PhysicalStock = Stock physique
