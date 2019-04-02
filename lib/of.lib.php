@@ -374,9 +374,9 @@ function _getProductIdFromNomen(&$TProductId, $details_nomenclature)
     }
 }
 
-function _getDetailStock(&$line, &$TProductStock)
+function _getDetailStock(&$line, &$TProductStock, &$TDetails)
 {
-    $TDetails = array();
+    if(empty($line->array_options['options_svpm_date_livraison']))return -3;
     $qtyToDestock = $line->qty;
 
 /*
@@ -427,27 +427,33 @@ function _getDetailStock(&$line, &$TProductStock)
  * 3rd step : Si on a toujours pas de quoi fournir le client, on vérifie si on a de quoi créer les produits et que le délai est ok
  */
     if($qtyToDestock > 0 && !empty($line->details_nomenclature)){
-        _getDetailFromNomenclature($line->details_nomenclature, $TProductStock, $TDetails[$line->id], $line->array_options['options_svpm_date_livraison'], $qtyToDestock);
-    }
-    if($qtyToDestock<=0)$TDetails[$line->id]['status'] = 1;
-}
-function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TDetails, $date_de_livraison, &$qtyToDestock){
-	//TODO TERMINER CETTE METHODE
-    $qtyToDestock = $details_nomenclature['qty'] * $qtyToDestock;
+        $isNomenOK = 0;
+        foreach($line->details_nomenclature as $detail){
 
+            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails[$line->id], $line->array_options['options_svpm_date_livraison'], $qtyToDestock);
+            if($isNomenOK < 0) break;
+        }
+    }
+    if($qtyToDestock<=0 || $isNomenOK > 0)$TDetails[$line->id]['status'] = 1;
+}
+
+
+function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TDetails, $date_de_livraison, $qtyToDestock){
+
+    $qtyToDestock = $details_nomenclature['qty'] * $qtyToDestock;
     /*
      * 1st step on verif si stock physique is enough
      */
-    if(!empty($TProductStock[$line->fk_product]['stock'])){
-        $TDetails[$line->id]['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
+    if(!empty($TProductStock[$details_nomenclature['fk_product']]['stock'])){
+        $TDetails['childs'][$details_nomenclature['fk_product']]['stock_reel'] = $qtyToDestock .'/'.$TProductStock[$details_nomenclature['fk_product']]['stock'];
 
-        if($qtyToDestock < $TProductStock[$line->fk_product]['stock']){
-            $TProductStock[$line->fk_product]['stock']-= $qtyToDestock;
+        if($qtyToDestock < $TProductStock[$details_nomenclature['fk_product']]['stock']){
+            $TProductStock[$details_nomenclature['fk_product']]['stock']-= $qtyToDestock;
             $qtyToDestock=0;
         }
         else{
-            $qtyToDestock -= $TProductStock[$line->fk_product]['stock'];
-            $TProductStock[$line->fk_product]['stock']= 0;
+            $qtyToDestock -= $TProductStock[$details_nomenclature['fk_product']]['stock'];
+            $TProductStock[$details_nomenclature['fk_product']]['stock']= 0;
         }
 
     }
@@ -456,25 +462,27 @@ function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TD
     /*
      * 2nd step on verif si on peut compenser le manque avec les prochaines cmd fourn
      */
-    if($qtyToDestock > 0 && !empty($TProductStock[$line->fk_product]['supplier_order'])){
-        foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock_by_order) {
+    if($qtyToDestock > 0 && !empty($TProductStock[$details_nomenclature['fk_product']]['supplier_order'])){
+        foreach($TProductStock[$details_nomenclature['fk_product']]['supplier_order'] as $date => $stock_by_order) {
             if($qtyToDestock <= 0) break; // La quantité totale est trouvée
 
-            if(!empty($date) && !empty($line->array_options['options_svpm_date_livraison'])){
+            if(!empty($date) && !empty($date_de_livraison)){
+                $qtyToDisplay = $qtyToDestock;
                 $tms_fourn = strtotime($date);
-                if($tms_fourn < $line->array_options['options_svpm_date_livraison']) {
+                if($tms_fourn < $date_de_livraison) {
                     foreach($stock_by_order as $fk_order => $stock) {
-                        $TDetails[$line->id]['supplier_order'][$fk_order] += $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+                        $TDetails['childs'][$details_nomenclature['fk_product']]['supplier_order'][$fk_order] += $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order];
 
-                        if($qtyToDestock < $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order]){
-                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] -= $qtyToDestock;
+                        if($qtyToDestock < $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order]){
+                            $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order] -= $qtyToDestock;
                             $qtyToDestock=0;
                         }
                         else{
-                            $qtyToDestock -= $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
-                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] = 0;
+                            $qtyToDestock -= $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order];
+                            $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order] = 0;
                         }
                     }
+                    $TDetails['childs'][$details_nomenclature['fk_product']]['supplier_order'][$fk_order] = $qtyToDisplay .'/'.$TDetails['childs'][$details_nomenclature['fk_product']]['supplier_order'][$fk_order];
                 }
             }
         }
@@ -482,8 +490,17 @@ function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TD
     /*
      * 3rd step : Si on a toujours pas de quoi fournir le client, on vérifie si on a de quoi créer les produits et que le délai est ok
      */
-    if($qtyToDestock > 0 && !empty($line->details_nomenclature)){
-        _getDetailFromNomenclature($line->details_nomenclature, $TProductStock, $TDetails[$line->id], $line->array_options['options_svpm_date_livraison'], $qtyToDestock);
+    if($qtyToDestock > 0 && !empty($details_nomenclature['childs'])){
+        $isNomenOK = 0;
+        foreach($details_nomenclature['childs'] as $detail){
+            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails['childs'][$details_nomenclature['fk_product']], $date_de_livraison, $qtyToDestock);
+            if($isNomenOK < 0) break;
+        }
     }
-    if($qtyToDestock<=0)$TDetails[$line->id]['status'] = 1;
+    if($qtyToDestock<=0 || $isNomenOK > 0){
+        $TDetails['childs'][$details_nomenclature['fk_product']]['status'] = 1;
+        return 1;
+    }
+    return -1;
+
 }

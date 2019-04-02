@@ -50,7 +50,7 @@ $sql .= " WHERE c.fk_statut NOT IN (".Commande::STATUS_CANCELED.",".Commande::ST
 $sql .= " GROUP BY cd.rowid, aol.fk_assetOf, cde.svpm_date_livraison";
 
 
-$result = $db->query($sql." ORDER BY cde.svpm_date_livraison");
+$result = $db->query($sql." ORDER BY cde.svpm_date_livraison, cd.rowid");
 $nbtotalofrecords = $db->num_rows($result);
 if(!empty($result) && $db->num_rows($result)>0){
     while($obj = $db->fetch_object($result)){
@@ -124,8 +124,12 @@ if(!empty($resql) && $db->num_rows($resql)>0) {
 }
 //Recursively check if stock is enough
 $TDetailStock = array();
-foreach ($TLines as $key => $line) $TDetailStock[$line->id] = _getDetailStock($line, $TProductStock);
-//exit;
+
+foreach ($TLines as $key => $line)  {
+    _getDetailStock($line, $TProductStock, $TDetailStock);
+}
+print '<pre>';
+print_r($TDetailStock);exit;
 
 /*
  * VIEW
