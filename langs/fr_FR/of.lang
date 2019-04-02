@@ -348,3 +348,5 @@ MissingLaunchingDateForRank=Date de lancement manquante pour gérer les rangs
 CumulateProjectTask=Cumuler le temps des tâches si c'est le même poste de travail (dépend de la configuration "%s")
 OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des non-conformes
 ShippablePrevReport=Rapport de délivrabilité
+WarningNoDate=Saisir une date de livraison liée à la ligne
+pictoNoDate=Le calcul est erroné s'il n'y a pas de date

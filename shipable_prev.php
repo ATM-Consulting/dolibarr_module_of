@@ -45,8 +45,9 @@ $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields as cde ON (cde.fk_
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as aol ON (aol.fk_commandedet = cd.rowid)";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_source = c.rowid AND ee.sourcetype='commande' AND ee.targettype='shipping')";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as e ON (e.rowid = ee.fk_target)";
+$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
-$sql .= " WHERE c.fk_statut NOT IN (".Commande::STATUS_CANCELED.",".Commande::STATUS_CLOSED.")";
+$sql .= " WHERE c.fk_statut NOT IN (".Commande::STATUS_CANCELED.",".Commande::STATUS_CLOSED.") AND p.";
 $sql .= " GROUP BY cd.rowid, aol.fk_assetOf, cde.svpm_date_livraison";
 
 
@@ -128,8 +129,6 @@ $TDetailStock = array();
 foreach ($TLines as $key => $line)  {
     _getDetailStock($line, $TProductStock, $TDetailStock);
 }
-print '<pre>';
-print_r($TDetailStock);exit;
 
 /*
  * VIEW
@@ -204,8 +203,37 @@ print_liste_field_titre($langs->trans('Status'),$_SERVER["PHP_SELF"],'c.fk_statu
 print_liste_field_titre($langs->trans('Quantity'),$_SERVER["PHP_SELF"],'cd.qty','',$param,'align="right"',$sortfield,$sortorder);
 print_liste_field_titre('');
 print '</tr>'."\n";
+/*
+ * Lines
+ */
+foreach($TLinesToDisplay as $lineid){
+    if(!empty($TLines[$lineid])){
+        $commande = new Commande($db);
+        $commande->fetch($TLines[$lineid]->fk_commande);
+
+        $TLines[$lineid]->fetch_product();
+        if(!empty($TDetailStock[$lineid]['statut'])) $color='#4fe047';
+        else if(empty($TLines[$lineid]->array_options['options_svpm_date_livraison']))$color='darkorange';
+        else $color='#e0312f';
+    }
 
 
+    print '<tr class="oddeven" style="background: '.$color.';">';
+
+    print '<td>';
+    print $commande->getNomUrl(1);
+    print '</td>';
+    print '<td>';
+    print $TLines[$lineid]->product->getNomUrl(1);
+    print '</td>';
+    print '<td>';
+    if(!empty($TLines[$lineid]->array_options['options_svpm_date_livraison'])) print date('d/m/Y', $TLines[$lineid]->array_options['options_svpm_date_livraison']);
+    else print  $langs->trans('WarningNoDate').' '.img_picto($langs->trans('pictoNoDate'),'warning');
+    print '</td>';
+
+
+    print '</tr>';
+}
 
 
 llxFooter();
