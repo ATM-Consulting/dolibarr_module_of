@@ -351,3 +351,8 @@ ShippablePrevReport=Rapport de délivrabilité
 WarningNoDate=Saisir une date de livraison liée à la ligne
 pictoNoDate=Le calcul est erroné s'il n'y a pas de date
 PhysicalStock = Stock physique
+
+ParametersReport = Paramètres Rapports
+OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD=Rapport de délivrabilité : Date de livraison sur laquelle se baser pour les commandes fournisseurs (extrafield de type ligne)
+OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD=Rapport de délivrabilité : Date de livraison sur laquelle se baser pour les commandes clientes (extrafield de type ligne)
+FillReportConf= Veuillez choisir les extrafields qui correspondent à la date de livraison dans la configuration du module OF

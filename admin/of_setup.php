@@ -656,6 +656,42 @@ print '</td></tr>';
 
 print "</table>";
 
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("ParametersReport").'</td>'."\n";
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD">';
+$liste = _getExtrafields('commande_fournisseurdet_extrafields');
+print $form->selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD">';
+$liste = _getExtrafields('commandedet_extrafields');
+print $form->selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+print "</table>";
+
 
 
 	$form=new TFormCore;
@@ -740,6 +776,19 @@ function showParameters(&$form) {
 
 	<br /><br />
 	<?php
+}
+
+function _getExtrafields($table){
+    global $db;
+    $sql = 'SHOW COLUMNS FROM '.MAIN_DB_PREFIX.$table;
+    $resql = $db->query($sql);
+    $extras = array('');
+    if(!empty($resql) && $db->num_rows($resql)){
+        while($obj = $db->fetch_object($resql)){
+            if($obj->Type == 'date') $extras[$obj->Field] = $obj->Field;
+        }
+    }
+    return $extras;
 }
 
 llxFooter();

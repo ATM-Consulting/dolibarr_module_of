@@ -376,7 +376,8 @@ function _getProductIdFromNomen(&$TProductId, $details_nomenclature)
 
 function _getDetailStock(&$line, &$TProductStock, &$TDetails)
 {
-    if(empty($line->array_options['options_svpm_date_livraison']))return -3;
+    global $conf;
+    if(empty($line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]))return -3;
     $qtyToDestock = $line->qty;
 
 /*
@@ -404,9 +405,9 @@ function _getDetailStock(&$line, &$TProductStock, &$TDetails)
         foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock_by_order) {
             if($qtyToDestock <= 0) break; // La quantité totale est trouvée
 
-            if(!empty($date) && !empty($line->array_options['options_svpm_date_livraison'])){
+            if(!empty($date) && !empty($line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])){
                 $tms_fourn = strtotime($date);
-                if($tms_fourn < $line->array_options['options_svpm_date_livraison']) {
+                if($tms_fourn < $line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]) {
                     foreach($stock_by_order as $fk_order => $stock) {
                         $TDetails[$line->id]['supplier_order'][$fk_order] += $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
 
@@ -430,7 +431,7 @@ function _getDetailStock(&$line, &$TProductStock, &$TDetails)
         $isNomenOK = 0;
         foreach($line->details_nomenclature as $detail){
 
-            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails[$line->id], $line->array_options['options_svpm_date_livraison'], $qtyToDestock);
+            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails[$line->id], $line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD], $qtyToDestock);
             if($isNomenOK < 0) break;
         }
     }
@@ -508,33 +509,38 @@ function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TD
 function _getPictoDetail($TDetailStock, $lineid, &$stock_tooltip, $level = 1) {
     global $langs, $db;
     $nbsp = '';
-    for($i=1; $i<$level; $i++) $nbsp .= '&nbsp;&nbsp;&nbsp;&nbsp;';
+    for($i = 1; $i < $level; $i++) $nbsp .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+    $is_null = 1;
+    if(!empty($TDetailStock[$lineid])) {
+        foreach($TDetailStock[$lineid] as $type => $detail) {
 
-    if(!empty($TDetailStock[$lineid])){
-    foreach($TDetailStock[$lineid] as $type => $detail) {
-
-        if($type == 'stock_reel') $stock_tooltip .= $nbsp . $langs->trans('PhysicalStock') . ' : '  . $detail . '</br>';
-
-        if($type == 'supplier_order') {
-
-            $stock_tooltip .= $nbsp . $langs->trans('SupplierOrder') . ' : </br>';
-            foreach($detail as $fk_supplier_order => $stock) {
-                $fourncmd = new CommandeFournisseur($db);
-                $fourncmd->fetch($fk_supplier_order);
-                $stock_tooltip .= $nbsp . $fourncmd->getNomUrl(1) . ' ==> ' . $stock . '</br>';
+            if($type == 'stock_reel') {
+                $stock_tooltip .= $nbsp . $langs->trans('PhysicalStock') . ' : ' . $detail . '</br>';
+                $is_null = 0;
             }
 
-        }
+            if($type == 'supplier_order') {
 
-        if($type == 'childs') {
-            $stock_tooltip .= $nbsp . $langs->trans('Nomenclature') . ' : </br>';
-            foreach($detail as $fk_product => $TDetails) {
-                $prod = new Product($db);
-                $prod->fetch($fk_product);
-                $stock_tooltip .= $nbsp . $nbsp . $prod->getNomUrl(1) . ' : ';
-                _getPictoDetail($detail, $fk_product, $stock_tooltip, $level + 1);
+                $stock_tooltip .= $nbsp . $langs->trans('SupplierOrder') . ' : </br>';
+                foreach($detail as $fk_supplier_order => $stock) {
+                    $fourncmd = new CommandeFournisseur($db);
+                    $fourncmd->fetch($fk_supplier_order);
+                    $stock_tooltip .= '&nbsp;&nbsp;&nbsp;&nbsp;' .$nbsp . $fourncmd->getNomUrl(1) . ' ==> ' . $stock . '</br>';
+                }
+                $is_null = 0;
+            }
+
+            if($type == 'childs') {
+                $stock_tooltip .= $nbsp . $langs->trans('Nomenclature') . ' : </br>';
+                foreach($detail as $fk_product => $TDetails) {
+                    $prod = new Product($db);
+                    $prod->fetch($fk_product);
+                    $stock_tooltip .= '&nbsp;&nbsp;&nbsp;&nbsp;' . $nbsp . $prod->getNomUrl(1) . ' : </br>';
+                    _getPictoDetail($detail, $fk_product, $stock_tooltip, $level + 1);
+                }
+                $is_null = 0;
             }
         }
     }
-    }
+    if(!empty($is_null)) $stock_tooltip .= $nbsp.'Pas de stock';
 }
