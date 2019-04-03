@@ -6,7 +6,7 @@
  * Time: 14:48
  */
 require('config.php');
-//TODO tester l'état actuel + ajout colonne soc
+
 dol_include_once('/commande/class/commande.class.php');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
@@ -18,6 +18,7 @@ if(empty($conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD) || empty
     accessforbidden($langs->trans('FillReportConf'));
 }
 
+$search_company=GETPOST('search_company','alpha');
 $search_cmd=GETPOST('search_cmd','alpha');
 $search_prod=GETPOST('search_prod','alpha');
 $search_of=GETPOST('search_of','alpha');
@@ -56,6 +57,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_delivery_start=null;
     $search_delivery_end=null;
     $search_cmd='';
+    $search_company='';
     $search_prod='';
     $search_of='';
     $search_delivery_startday='';
@@ -88,6 +90,7 @@ $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "assetOf as ao ON (aol.fk_assetOf = ao.
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_source = c.rowid AND ee.sourcetype='commande' AND ee.targettype='shipping')";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition as e ON (e.rowid = ee.fk_target)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON (p.rowid = cd.fk_product)";
+$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
 $sqlWhere .= " WHERE c.fk_statut NOT IN (" . Commande::STATUS_CANCELED . "," . Commande::STATUS_CLOSED . ") AND p.fk_product_type=0 AND p.rowid IS NOT NULL";
 
@@ -123,6 +126,7 @@ if(!empty($result) && $db->num_rows($result) > 0) {
 
 //Une fois que le traitement est fait on peut filtrer
 if ($search_cmd) $sqlWhere .= natural_search('c.ref', $search_cmd);
+if ($search_company) $sqlWhere .= natural_search('s.nom', $search_company);
 if ($search_prod) $sqlWhere .= natural_search('p.ref', $search_prod);
 if ($search_of) $sqlWhere .= natural_search('ao.numero', $search_of);
 if ($search_qty != '') $sqlWhere.= natural_search("cd.qty", $search_qty, 1);
@@ -224,6 +228,7 @@ llxHeader();
 $param = '';
 if ($limit > 0 && $limit != $conf->liste_limit) $param.='&limit='.urlencode($limit);
 if ($search_cmd )             $param.='&search_cmd='.urlencode($search_cmd);
+if ($search_company)             $param.='&search_company='.urlencode($search_company);
 if ($search_prod )             $param.='&search_prod='.urlencode($search_prod);
 if ($search_of )             $param.='&search_of='.urlencode($search_of);
 if ($search_qty != '')             $param.='&search_qty='.urlencode($search_qty);
@@ -258,6 +263,9 @@ print '<tr class="liste_titre_filter">';
 
 print '<td class="liste_titre">';
 print '<input class="flat" size="6" type="text" name="search_cmd" value="' . $search_cmd . '">';
+print '</td>';
+print '<td class="liste_titre">';
+print '<input class="flat" size="6" type="text" name="search_company" value="' . $search_company . '">';
 print '</td>';
 print '<td class="liste_titre">';
 print '<input class="flat" size="6" type="text" name="search_prod" value="' . $search_prod . '">';
@@ -305,6 +313,7 @@ print "</tr>\n";
 // Fields title
 print '<tr class="liste_titre">';
 print_liste_field_titre($langs->trans('Order'), $_SERVER["PHP_SELF"], 'c.ref', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Product'), $_SERVER["PHP_SELF"], 'p.ref', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('DeliveryDate'), $_SERVER["PHP_SELF"], "cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD, "", $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('OFAsset'), $_SERVER["PHP_SELF"], 'ao.numero', '', $param, '', $sortfield, $sortorder);
@@ -319,6 +328,7 @@ foreach($TLinesToDisplay as $lineid) {
     if(!empty($TLines[$lineid])) {
         $commande = new Commande($db);
         $commande->fetch($TLines[$lineid]->fk_commande);
+        $commande->fetch_thirdparty();
         $TLines[$lineid]->fetch_product();
         if(!empty($TDetailStock[$lineid]['status'])) $color = '#8DDE8D';
         else if(empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])) $color = '#dedb8d';
@@ -342,6 +352,9 @@ foreach($TLinesToDisplay as $lineid) {
 
     print '<td>';
     print $commande->getNomUrl(1);
+    print '</td>';
+    print '<td>';
+    print $commande->thirdparty->getNomUrl(1);
     print '</td>';
     print '<td>';
     print $TLines[$lineid]->product->getNomUrl(1);
