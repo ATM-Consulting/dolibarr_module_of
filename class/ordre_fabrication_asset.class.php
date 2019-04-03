@@ -102,6 +102,36 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 
+	function loadByProductCategory(&$db, $categ, $fk_soc, $status) {
+
+		//On récupère l'of ayant des produits ayant pour catégorie la même catégorie et étant brouillon
+        $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of 
+                LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofline ON (of.rowid = ofline.fk_assetOf AND ofline.type='TO_MAKE')
+                LEFT JOIN ".MAIN_DB_PREFIX."categorie_product cat ON (ofline.fk_product = cat.fk_product)
+                WHERE cat.fk_categorie = $categ->id
+                AND of.fk_soc = $fk_soc
+                AND of.status = '$status'";
+
+        $db->Execute($sql);
+        $TOfIds = $db->Get_All();
+        $TOfs = array();
+        foreach($TOfIds as $fk_of){
+            $TOfs[$fk_of->rowid]++;
+        }
+
+        foreach($TOfs as $fk_of => $nb_line){
+            $this->load($db, $fk_of);
+            $countLineToMake = 0;
+            foreach($this->TAssetOFLine as $line){
+                if($line->type == 'TO_MAKE')$countLineToMake++;
+            }
+
+            if($nb_line == $countLineToMake)return $this->id;//Si tous les tomake sont dans la même catégorie, on a trouvé un of compatible
+        }
+
+        return -1;
+	}
+
 	function sortWorkStationByRank(&$a,&$b) {
 
 		if($a->rang < $b->rang) {
@@ -675,10 +705,10 @@ class TAssetOF extends TObjetStd{
         global $db, $conf;
 
         if(empty($this->numero)) {
-            dol_include_once('core/lib/functions2.lib.php');
+            dol_include_once('of/lib/of.lib.php');
 
             $mask = empty($conf->global->OF_MASK) ? 'OF{00000}' : $conf->global->OF_MASK;
-            $numero = get_next_value($db,$mask,'assetOf','numero');
+            $numero = get_next_value_PDOdb($PDOdb,$mask,'assetOf','numero');
 
             if($save) {
                 $this->numero = $numero;
@@ -1783,6 +1813,18 @@ class TAssetOF extends TObjetStd{
 		return 0;
 
 	}
+
+    function getLinesProductToMake() {
+        $TLine = array();
+        if(!empty($this->TAssetOFLine)) {
+            foreach ($this->TAssetOFLine as &$line) {
+                if($line->type === 'TO_MAKE') $TLine[]= $line;
+            }
+        }
+
+        return $TLine;
+
+    }
 
 	/*
 	 * Permet de supprimer le/les OF enfants
