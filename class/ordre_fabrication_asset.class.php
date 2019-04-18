@@ -2763,9 +2763,10 @@ class TAssetWorkstationOF extends TObjetStd{
         	$OF->getListeOFEnfants($PDOdb,$TIdOf);
         	krsort($TIdOf);
 
-        	$resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
+        	$resIdTask = $db->query("SELECT (t.rowid) as rowid
             FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)
-            WHERE t.fk_projet=".$OF->fk_project." AND tex.fk_of IN (".implode(',',$TIdOf).")");
+            WHERE t.fk_projet=".$OF->fk_project." AND tex.fk_of IN (".implode(',',$TIdOf).")
+            ORDER BY t.datee DESC");
         	$objTask = $db->fetch_object($resIdTask);
         	$projectTask->fk_task_parent = (int)$objTask->rowid;
 
