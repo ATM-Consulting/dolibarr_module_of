@@ -1037,7 +1037,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			-webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.52);
 			-moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.52);
 			box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.52);
-
+            
+            padding:5px; // Visualisation améliorée
 			margin-bottom:20px;
 		}
 
