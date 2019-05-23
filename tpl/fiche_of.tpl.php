@@ -166,72 +166,81 @@
 			[onshow;block=begin;when [view.workstation_module_activate]==1]
 				<div class="of-details" style="margin-top: 25px;">
 					<table width="100%" class="border workstation" style="border:2px solid #f5893f;">
-						<tr style="background-color:#f5893f; color:#fff;">
-							<th>[view.langs.transnoentities(Workstation)]</th>
-							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-								<th>[view.langs.transnoentities(Users)]</th>
-							[onshow;block=end]
-							[onshow;block=begin;when [view.use_project_task]=='1']
-								<th>[view.langs.transnoentities(Task)]</th>
-							[onshow;block=end]
-							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-								<th>[view.langs.transnoentities(AssociatedTask)]</th>
-							[onshow;block=end]
-							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<th>[view.langs.transnoentities(TimeBeforeStart)]</th>
-							[onshow;block=end]
-							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<th>[view.langs.transnoentities(NbPlannedHour)]</th>
-							[onshow;block=end]
-							<th>[view.langs.transnoentities(NbRealHour)]</th>
-							<th>[view.langs.transnoentities(Rank)]</th>
-							<th class="draftedit">[view.langs.transnoentities(Action)]</th>
-						</tr>
-						<tr id="WS[workstation.id]" style="background-color:#fff;">
-							<td>[workstation.libelle;strconv=no;block=tr]<br />[workstation.note_private;strconv=no;]</td>
-							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-								<td align="left">[workstation.fk_user;strconv=no]</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [view.use_project_task]=='1']
-								<td align='center'>[workstation.fk_project_task;strconv=no]</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-								<td align='left'>[workstation.fk_task;strconv=no]</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<td align='center'>[workstation.nb_days_before_beginning;strconv=no]</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<td align='center'>[workstation.nb_hour;strconv=no]</td>
-							[onshow;block=end]
-							<td align='center'>[workstation.nb_hour_real;strconv=no]</td>
-							<td align='center'>[workstation.rang;strconv=no]</td>
-							<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
-						</tr>
+    					<tr height="40px;">
+    						<td style="border-right: none; background-color:#f5893f; color:#fff;" colspan="4">&nbsp;&nbsp;<strong>[view.langs.transnoentities(WorkstationUsed)]</strong></td>
+    					</tr>
 						<tr>
-							<td colspan="5" align="center">[workstation;block=tr;nodata][view.langs.transnoentities(NoWorkstation)]</td>
-						</tr>
-						[onshow;block=begin;when [view.show_cost]=='1']
-						<tr style="background-color:#dedede;">
-							<td align="center">[view.langs.transnoentities(Cost)]</td>
-							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
-								<td align="left">&nbsp;</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [view.use_project_task]=='1']
-								<td>&nbsp;</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
-								<td align='center'>&nbsp;</td>
-							[onshow;block=end]
-							[onshow;block=begin;when [rights.show_ws_time]==1]
-								<td align='center'>&nbsp;</td>
-								<td align="right">[assetOf.mo_estimated_cost;strconv=no]</td>
-							[onshow;block=end]
-							<td align="right">[assetOf.mo_cost;strconv=no]</td>
-							<td class="draftedit">&nbsp;</td>
-							<td class="draftedit">&nbsp;</td>
-						</tr>
-						[onshow;block=end]
+							<td colspan="4" valign="top">
+    							<!-- USED -->
+    							<table width="100%" class="border used">
+    								<tr style="background-color:#dedede;">
+                						<td>[view.langs.transnoentities(Workstation)]</td>
+            							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+            								<td>[view.langs.transnoentities(Users)]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [view.use_project_task]=='1']
+            								<td>[view.langs.transnoentities(Task)]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
+            								<td>[view.langs.transnoentities(AssociatedTask)]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [rights.show_ws_time]==1]
+            								<td>[view.langs.transnoentities(TimeBeforeStart)]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [rights.show_ws_time]==1]
+            								<td>[view.langs.transnoentities(NbPlannedHour)]</td>
+            							[onshow;block=end]
+            							<td>[view.langs.transnoentities(NbRealHour)]</td>
+            							<td>[view.langs.transnoentities(Rank)]</td>
+            							<th class="draftedit">[view.langs.transnoentities(Action)]</th>
+            						</tr>
+            						<tr id="WS[workstation.id]" style="background-color:#fff;">
+            							<td>[workstation.libelle;strconv=no;block=tr]<br />[workstation.note_private;strconv=no;]</td>
+            							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+            								<td align="left">[workstation.fk_user;strconv=no]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [view.use_project_task]=='1']
+            								<td>[workstation.fk_project_task;strconv=no]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
+            								<td align='left'>[workstation.fk_task;strconv=no]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [rights.show_ws_time]==1]
+            								<td>[workstation.nb_days_before_beginning;strconv=no]</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [rights.show_ws_time]==1]
+            								<td>[workstation.nb_hour;strconv=no]</td>
+            							[onshow;block=end]
+            							<td>[workstation.nb_hour_real;strconv=no]</td>
+            							<td>[workstation.rang;strconv=no]</td>
+            							<td align='center' class="draftedit">[workstation.delete;strconv=no]</td>
+            						</tr>
+            						<tr>
+            							<td colspan="5" align="center">[workstation;block=tr;nodata][view.langs.transnoentities(NoWorkstation)]</td>
+            						</tr>
+            						[onshow;block=begin;when [view.show_cost]=='1']
+            						<tr style="background-color:#dedede;">
+            							<td>[view.langs.transnoentities(Cost)]</td>
+            							[onshow;block=begin;when [view.defined_user_by_workstation]=='1']
+            								<td align="left">&nbsp;</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [view.use_project_task]=='1']
+            								<td>&nbsp;</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [view.defined_task_by_workstation]=='1']
+            								<td>&nbsp;</td>
+            							[onshow;block=end]
+            							[onshow;block=begin;when [rights.show_ws_time]==1]
+            								<td>&nbsp;</td>
+            								<td>[assetOf.mo_estimated_cost;strconv=no]</td>
+            							[onshow;block=end]
+            							<td>[assetOf.mo_cost;strconv=no]</td>
+            							<td class="draftedit">&nbsp;</td>
+            							<td class="draftedit">&nbsp;</td>
+            						</tr>
+            						[onshow;block=end]
+    							</table>
+							</td>
 					</table>
 					<div style="text-align: right;padding-top:16px;" class="draftedit">
 						[onshow;block=begin;when [view.mode]!='view']
@@ -257,8 +266,16 @@
 									<!--<td>Equipement</td>-->
 									<td>[view.langs.transnoentities(Products)]</td>
 
+									<td>[view.langs.transnoentities(Cost)]</td>
 									<td>[view.langs.transnoentities(QtyNeeded)]</td>
-									<td>[view.langs.transnoentities(PlannedQty)] [view.link_update_qty_used;strconv=no]</td>
+									<td>
+										[view.langs.transnoentities(PlannedQty)]
+									</td>
+									[onshow;block=begin;when [view.mode]=='edit']
+									<td align="center" style="background-color:#efefef" width="30px">
+									[view.link_update_qty_used;strconv=no]
+									</td>
+									[onshow;block=end]
 									<td class="nodraft">[view.langs.transnoentities(QuantityUsed)]</td>
 									<!-- <td class="draft">Delta</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
@@ -277,8 +294,14 @@
 									<!--<td>Equipement</td>-->
 									<td>[TNeeded.libelle;block=tr;strconv=no]<br />[TNeeded.note_private;strconv=no;]</td>
 
+									<td>[TNeeded.cost]</td>
 									<td>[TNeeded.qty_needed]</td>
 									<td class="qty_planned" data-qty='[TNeeded.qty_planned]'>[TNeeded.qty;strconv=no]</td>
+									[onshow;block=begin;when [view.mode]=='edit']
+									<td>
+									&nbsp;
+									</td>
+									[onshow;block=end]
 									<td class="nodraft qty_used">[TNeeded.qty_used;strconv=no]</td>
 									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
@@ -298,10 +321,16 @@
 									[onshow;block=end]
 
 									<td>[view.langs.transnoentities(Cost)]</td>
+									<td>&nbsp;</td>
 
-									<td class="nodraft" align="right">[assetOf.compo_estimated_cost;strconv=no]</td>
-									<td class="nodraft" align="right">[assetOf.compo_planned_cost;strconv=no]</td>
-									<td class="nodraft" align="right">[assetOf.compo_cost;strconv=no]</td>
+									<td class="nodraft">[assetOf.compo_estimated_cost;strconv=no]</td>
+									<td class="nodraft">[assetOf.compo_planned_cost;strconv=no]</td>
+									[onshow;block=begin;when [view.mode]=='edit']
+									<td>
+									&nbsp;
+									</td>
+									[onshow;block=end]
+									<td class="nodraft">[assetOf.compo_cost;strconv=no]</td>
 
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
 										<td width="20%">&nbsp;</td>
@@ -878,7 +907,7 @@
 		function updateQtyUsed(img_picto)
 		{
 			$(img_picto).closest('table').find('.qty_planned').each(function(i, item) {
-				$(item).next('.qty_used').children('input').val($(item).data('qty'));
+				$(item).next('td').next('.qty_used').children('input').val($(item).data('qty'));
 			});
 		}
 </script>
