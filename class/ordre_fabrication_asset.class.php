@@ -534,6 +534,8 @@ class TAssetOF extends TObjetStd{
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
+        $this->setDelaiLancement($PDOdb);
+
         if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
 
             if(!empty($this->date_lancement)) {
@@ -545,8 +547,6 @@ class TAssetOF extends TObjetStd{
         }
 
 		parent::save($PDOdb);
-
-		$this->setDelaiLancement($PDOdb);
 
         $this->getNumero($PDOdb, true);
 
