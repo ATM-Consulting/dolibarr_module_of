@@ -26,6 +26,10 @@
 			_createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
 			_liste($PDOdb);
 			break;
+        case 'setRank':
+			_setAllRank($PDOdb, GETPOST('of_rank'), GETPOST('old_of_rank'));
+			_liste($PDOdb);
+			break;
 		case 'printTicket':
 			_printTicket($PDOdb);
 		default:
@@ -377,6 +381,7 @@ function _liste(&$PDOdb)
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
 			,'numero'=>'get_format_link_of("@val@",@rowid@)'
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
+			,'rank'=>'get_number_input("of_rank[@rowid@]",@rank@)'
 
 		)
 		,'operator'=>array(
@@ -388,6 +393,9 @@ function _liste(&$PDOdb)
 	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
 		echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
 	}
+    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
+        echo '<p align="right"><input id="bt_updateRank" class="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'setRank\');" type="submit" value="'.$langs->trans('UpdateRank').'"/></p>';
+    }
 
 	$form->end();
 
@@ -657,6 +665,8 @@ function _liste(&$PDOdb)
 			</script>';
 
 		}
+
+
 
 		echo '</div>';
 
@@ -944,4 +954,25 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	}//exit;
 
 	return $TInfoEtiquette;
+}
+
+function get_number_input($name, $value) {
+    return '<input type="number" name="'.$name.'" value="'.$value.'"/><input type="hidden" name="old_'.$name.'" value="'.$value.'"/>';
+}
+
+function _setAllRank($PDOdb, $TNewRank, $TOldRank) {
+    $TToUpdate= array();
+    //On récupère uniquement les ofs qui ont été modifiés
+    foreach($TNewRank as $key => $val){
+        if($val != $TOldRank[$key]) $TToUpdate[$key] = $val;
+    }
+    if(!empty($TToUpdate)) {
+        asort($TToUpdate); //On réordonne par value (pour que les valeurs les plus basses soient traités en première)
+        foreach($TToUpdate as $fk_of => $new_rank) {
+            $assetOf = new TAssetOF;
+            $assetOf->load($PDOdb, $fk_of);
+            $assetOf->rank = $new_rank;
+            $assetOf->save($PDOdb);
+        }
+    }
 }
