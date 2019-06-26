@@ -350,3 +350,4 @@ OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des no
 
 OF_MANAGE_ORDER_LINK_BY_LINE=Gérer la liaison entre la commande et l'OF ligne à ligne
 OF_MANAGE_ORDER_LINK_BY_LINEDETAIL=Améliore la précision si l'of est créé ligne à ligne (Ouvre la possibilité de gérer des OFs dont les lignes proviennent de différentes commandes)
+UpdateRank=Mettre à jour les rangs de priorisation
