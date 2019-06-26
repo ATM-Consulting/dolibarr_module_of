@@ -534,7 +534,7 @@ class TAssetOF extends TObjetStd{
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
-        $this->setDelaiLancement($PDOdb);
+        $this->setDelaiLancement($PDOdb); // Ligne qui était juste après le save voir PR #82
 
         if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
 
