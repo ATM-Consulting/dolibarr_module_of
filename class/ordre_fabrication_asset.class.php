@@ -1989,7 +1989,7 @@ class TAssetOFLine extends TObjetStd{
 
     	$this->TChamps = array();
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide,fk_commandedet',array('type'=>'integer','index'=>true));
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp,qty_compliant,qty_non_compliant',array('type'=>'float'));
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp,qty_non_compliant',array('type'=>'float'));
 		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
 	    $this->add_champs('note_private',array('type'=>'text'));
 
