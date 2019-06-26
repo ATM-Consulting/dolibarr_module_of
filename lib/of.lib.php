@@ -1000,3 +1000,18 @@ function _getPictoDetail($TDetailStock, $lineid, &$stock_tooltip, $level = 1) {
     }
     if(!empty($is_null)) $stock_tooltip .= $nbsp.'Pas de stock';
 }
+
+function _getIconStatus($TDetailStock, $TLines, $lineid) {
+	global $conf;
+	$style = ' border-radius: 50%;
+	    width: 20px;
+        height: 20px;
+        display: inline-block;';
+    if(!empty($TDetailStock[$lineid]['status'])) $style .= 'background:#8DDE8D;';
+    else if(empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])) $style .= 'background:#dedb8d;';
+    else $style .= 'background:#de8d8d;';
+
+    $icon = '<div class="shippable_status" style="'.$style.'"></div>';
+
+    return $icon;
+}

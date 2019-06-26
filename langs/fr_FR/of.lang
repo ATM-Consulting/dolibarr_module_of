@@ -358,3 +358,5 @@ OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD=Rapport de délivrabilité : Date
 FillReportConf= Veuillez choisir les extrafields qui correspondent à la date de livraison dans la configuration du module OF
 OF_MANAGE_ORDER_LINK_BY_LINE=Gérer la liaison entre la commande et l'OF ligne à ligne
 OF_MANAGE_ORDER_LINK_BY_LINEDETAIL=Améliore la précision si l'of est créé ligne à ligne (Ouvre la possibilité de gérer des OFs dont les lignes proviennent de différentes commandes)
+NotShippable = Non déliverable
+LineWithoutDate = Ligne sans date

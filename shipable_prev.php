@@ -20,6 +20,10 @@ if(empty($conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD) || empty
 
 $search_company=GETPOST('search_company','alpha');
 $search_cmd=GETPOST('search_cmd','alpha');
+$search_alert_line=GETPOST('search_alert_line');
+$search_no_date=GETPOST('search_no_date');
+$search_non_compliant=GETPOST('search_non_compliant');
+
 $search_prod=GETPOST('search_prod','alpha');
 $search_of=GETPOST('search_of','alpha');
 $search_delivery_start=GETPOST("search_delivery_start");
@@ -57,6 +61,9 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_delivery_start=null;
     $search_delivery_end=null;
     $search_cmd='';
+    $search_alert_line='';
+    $search_no_date='';
+    $search_non_compliant='';
     $search_company='';
     $search_prod='';
     $search_of='';
@@ -82,7 +89,7 @@ $langs->load('deliveries');
 /*
  * On récupère toutes les lignes de commandes non livrées, ni annulées, et s'il y en a un, l'of lié pour pouvoir faire le traitement (lignes non filtrées)
  */
-$sql = "SELECT DISTINCT cd.rowid, aol.fk_assetOf, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.", SUM(ed.qty) as qty_exped FROM " . MAIN_DB_PREFIX . "commandedet as cd";
+$sql = "SELECT DISTINCT cd.rowid, aol.fk_assetOf, aol.rowid as fk_assetOfLine, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.", SUM(ed.qty) as qty_exped FROM " . MAIN_DB_PREFIX . "commandedet as cd";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande as c ON (cd.fk_commande = c.rowid)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet_extrafields as cde ON (cde.fk_object = cd.rowid)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "assetOf_line as aol ON (aol.fk_commandedet = cd.rowid)";
@@ -92,9 +99,9 @@ $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition as e ON (e.rowid = ee.fk_ta
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON (p.rowid = cd.fk_product)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
-$sqlWhere .= " WHERE c.fk_statut NOT IN (" . Commande::STATUS_CANCELED . "," . Commande::STATUS_CLOSED . ") AND p.fk_product_type=0 AND p.rowid IS NOT NULL";
+$sqlWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND p.fk_product_type=0 AND p.rowid IS NOT NULL";
 
-$sqlGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD;
+$sqlGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD;
 /*
  * TRAITEMENT GLOBAL
  */
@@ -106,7 +113,8 @@ if(!empty($result) && $db->num_rows($result) > 0) {
 
         $orderLine->fetch($obj->rowid);
         $orderLine->fetch_optionals();
-        $orderLine->fk_assetOf = $obj->fk_assetOf;//On récup l'asset
+        $orderLine->fk_assetOf = $obj->fk_assetOf;//On récup l'OF
+        $orderLine->fk_assetOfLine = $obj->fk_assetOfLine;//On récup la ligne associé
         $nomenclature->loadByObjectId($PDOdb, $obj->rowid, 'commande', false, 0, $orderLine->qty, 0);
         if(empty($nomenclature->rowid)) $nomenclature->loadByObjectId($PDOdb, $orderLine->fk_product, 'product', false, 0, $orderLine->qty, 0);
         if(!empty($nomenclature->rowid)) {
@@ -130,6 +138,8 @@ if ($search_company) $sqlWhere .= natural_search('s.nom', $search_company);
 if ($search_prod) $sqlWhere .= natural_search('p.ref', $search_prod);
 if ($search_of) $sqlWhere .= natural_search('ao.numero', $search_of);
 if ($search_qty != '') $sqlWhere.= natural_search("cd.qty", $search_qty, 1);
+if (!empty($search_no_date)) $sqlWhere.= ' AND cde.'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.' IS NULL';
+if (!empty($search_non_compliant)) $sqlWhere.= ' AND aol.qty_non_compliant > 0';
 if ($viewstatut <> '')
 {
     if ($viewstatut < 4 && $viewstatut > -3)
@@ -228,6 +238,9 @@ llxHeader();
 $param = '';
 if ($limit > 0 && $limit != $conf->liste_limit) $param.='&limit='.urlencode($limit);
 if ($search_cmd )             $param.='&search_cmd='.urlencode($search_cmd);
+if ($search_alert_line )             $param.='&search_alert_line='.urlencode($search_alert_line);
+if ($search_no_date )             $param.='&search_no_date='.urlencode($search_no_date);
+if ($search_non_compliant )             $param.='&search_non_compliant='.urlencode($search_non_compliant);
 if ($search_company)             $param.='&search_company='.urlencode($search_company);
 if ($search_prod )             $param.='&search_prod='.urlencode($search_prod);
 if ($search_of )             $param.='&search_of='.urlencode($search_of);
@@ -263,6 +276,7 @@ print '<tr class="liste_titre_filter">';
 
 print '<td class="liste_titre">';
 print '<input class="flat" size="6" type="text" name="search_cmd" value="' . $search_cmd . '">';
+print $form->textwithpicto('&nbsp;&nbsp;<input type="checkbox" name="search_alert_line"'.(!empty($search_alert_line)?'checked':'').' value="1">', $langs->trans('NotShippable'),1, 'warning');
 print '</td>';
 print '<td class="liste_titre">';
 print '<input class="flat" size="6" type="text" name="search_company" value="' . $search_company . '">';
@@ -282,24 +296,28 @@ if(!empty($search_delivery_start)) {
 } else $search_delivery_start=null;
 print $form->selectDate($search_delivery_start, 'search_delivery_start');
 print $form->selectDate($search_delivery_end, 'search_delivery_end');
+print $form->textwithpicto('&nbsp;&nbsp;<input type="checkbox" name="search_no_date"'.(!empty($search_no_date)?'checked':'').' value="1">', $langs->trans('LineWithoutDate'),1, 'warning');
+print '</td>';
+print '<td class="liste_titre maxwidthonsmartphone" align="right">';
+
 print '</td>';
 print '<td class="liste_titre">';
 print '<input class="flat" size="6" type="text" name="search_of" value="' . $search_of . '">';
 print '</td>';
-print '<td class="liste_titre maxwidthonsmartphone" align="right">';
-$liststatus = array(
-    Commande::STATUS_DRAFT => $langs->trans("StatusOrderDraftShort"),
-    Commande::STATUS_VALIDATED => $langs->trans("StatusOrderValidated"),
-    Commande::STATUS_SHIPMENTONPROCESS => $langs->trans("StatusOrderSentShort"),
-    Commande::STATUS_CLOSED => $langs->trans("StatusOrderDelivered"),
-    -3 => $langs->trans("StatusOrderValidatedShort") . '+' . $langs->trans("StatusOrderSentShort") . '+' . $langs->trans("StatusOrderDelivered"),
-    Commande::STATUS_CANCELED => $langs->trans("StatusOrderCanceledShort")
-);
-print $form->selectarray('viewstatut', $liststatus, $viewstatut, -4, 0, 0, '', 0, 0, 0, '', 'maxwidth100');
-print '</td>';
+print '<td  class="liste_titre"></td>';
+print '<td  class="liste_titre"></td>';
+print '<td  class="liste_titre"></td>';
+
+
 
 print '<td class="liste_titre" align="right">';
 print '<input class="flat" type="text" size="5" name="search_qty" value="' . dol_escape_htmltag($search_qty) . '">';
+print '</td>';
+
+print '<td  class="liste_titre"></td>';
+print '<td  class="liste_titre" ></td>';
+print '<td class="liste_titre" align="middle">';
+print $form->textwithpicto('<input type="checkbox" name="search_non_compliant"'.(!empty($search_non_compliant)?'checked':'').' value="1">', $langs->trans('> 0'),1, 'warning');
 print '</td>';
 
 // Action column
@@ -316,31 +334,39 @@ print_liste_field_titre($langs->trans('Order'), $_SERVER["PHP_SELF"], 'c.ref', '
 print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Product'), $_SERVER["PHP_SELF"], 'p.ref', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('DeliveryDate'), $_SERVER["PHP_SELF"], "cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD, "", $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('Status'), $_SERVER["PHP_SELF"], '', '', $param, 'align="right"', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('OFAsset'), $_SERVER["PHP_SELF"], 'ao.numero', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('Status'), $_SERVER["PHP_SELF"], 'c.fk_statut', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('DateBesoin'), $_SERVER["PHP_SELF"], 'ao.date_besoin', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('DateLaunch'), $_SERVER["PHP_SELF"], 'ao.date_lancement', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('EstimatedMakeTime'), $_SERVER["PHP_SELF"], 'ao.temps_estime_fabrication', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Quantity'), $_SERVER["PHP_SELF"], 'cd.qty', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('QtyToMake'), $_SERVER["PHP_SELF"], 'aol.qty', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('ProduceQty'), $_SERVER["PHP_SELF"], 'aol.qty_used', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('NonCompliant'), $_SERVER["PHP_SELF"], 'aol.qty_non_compliant', '', $param, 'align="right"', $sortfield, $sortorder);
 print_liste_field_titre('');
 print '</tr>' . "\n";
 /*
  * Lines
  */
 foreach($TLinesToDisplay as $lineid) {
+    if(!empty($search_alert_line) && ( !empty($TDetailStock[$lineid]['status']) || empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]))) continue;
     if(!empty($TLines[$lineid])) {
         $commande = new Commande($db);
         $commande->fetch($TLines[$lineid]->fk_commande);
         $commande->fetch_thirdparty();
         $TLines[$lineid]->fetch_product();
-        if(!empty($TDetailStock[$lineid]['status'])) $color = '#8DDE8D';
-        else if(empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])) $color = '#dedb8d';
-        else $color = '#de8d8d';
+
+        $icon = _getIconStatus($TDetailStock, $TLines, $lineid);
+        $assetOF = new TAssetOF;
         if(!empty($TLines[$lineid]->fk_assetOf)) {
-            $assetOF = new TAssetOF;
             $assetOF->load($PDOdb, $TLines[$lineid]->fk_assetOf);
             $print_of = $assetOF->getNomUrl(1);
         }
-        else {
-            $print_of = '';
-        }
+        else $print_of = '';
+
+        $assetOFLine = new TAssetOFLine;
+        if(!empty($TLines[$lineid]->fk_assetOfLine)) $assetOFLine->load($PDOdb, $TLines[$lineid]->fk_assetOfLine);
+
 
         $stock_tooltip = '';
         if(!empty($TDetailStock[$lineid])) {
@@ -348,10 +374,10 @@ foreach($TLinesToDisplay as $lineid) {
         }
     }
 
-    print '<tr class="oddeven" style="background: ' . $color . ';">';
+    print '<tr class="oddeven" >';
 
-    print '<td>';
-    print $commande->getNomUrl(1);
+    print '<td nowrap>';
+    print $commande->getNomUrl(1).'&nbsp;'.$icon;
     print '</td>';
     print '<td>';
     print $commande->thirdparty->getNomUrl(1);
@@ -363,15 +389,33 @@ foreach($TLinesToDisplay as $lineid) {
     if(!empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])) print date('d/m/Y', $TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]);
     else print  $langs->trans('WarningNoDate') . ' ' . img_picto($langs->trans('pictoNoDate'), 'warning');
     print '</td>';
+    print '<td align="right">';
+    print $commande->getLibStatut(2);
+    print '</td>';
     print '<td>';
     print $print_of;
     print '</td>';
-    print '<td align="right">';
-    print $commande->getLibStatut(2);
+    print '<td>';
+    print !empty($assetOF->id)?date( 'd/m/Y',$assetOF->date_besoin):'';
+    print '</td>';
+    print '<td>';
+    print !empty($assetOF->date_lancement)?date( 'd/m/Y',$assetOF->date_lancement):'';
+    print '</td>';
+    print '<td>';
+    print $assetOF->temps_estime_fabrication.' '.$langs->trans('Hours');
     print '</td>';
     print '<td align="right">';
 
     print $form->textwithpicto($TLines[$lineid]->qty, $stock_tooltip);
+    print '</td>';
+    print '<td align="right">';
+    print $assetOFLine->qty;
+    print '</td>';
+    print '<td align="right">';
+    print $assetOFLine->qty_used;
+    print '</td>';
+    print '<td align="right">';
+    print $assetOFLine->qty_non_compliant;
     print '</td>';
     print '<td></td>';
     print '</tr>';
