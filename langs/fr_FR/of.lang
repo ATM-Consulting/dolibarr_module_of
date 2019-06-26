@@ -360,3 +360,4 @@ OF_MANAGE_ORDER_LINK_BY_LINE=Gérer la liaison entre la commande et l'OF ligne �
 OF_MANAGE_ORDER_LINK_BY_LINEDETAIL=Améliore la précision si l'of est créé ligne à ligne (Ouvre la possibilité de gérer des OFs dont les lignes proviennent de différentes commandes)
 NotShippable = Non déliverable
 LineWithoutDate = Ligne sans date
+UpdateRank=Mettre à jour les rangs de priorisation
