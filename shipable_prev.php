@@ -110,25 +110,31 @@ if(!empty($result) && $db->num_rows($result) > 0) {
     while($obj = $db->fetch_object($result)) {
         $orderLine = new OrderLine($db);
         $nomenclature = new TNomenclature;
-
-        $orderLine->fetch($obj->rowid);
-        $orderLine->fetch_optionals();
-        $orderLine->fk_assetOf = $obj->fk_assetOf;//On récup l'OF
-        $orderLine->fk_assetOfLine = $obj->fk_assetOfLine;//On récup la ligne associé
-        $nomenclature->loadByObjectId($PDOdb, $obj->rowid, 'commande', false, 0, $orderLine->qty, 0);
-        if(empty($nomenclature->rowid)) $nomenclature->loadByObjectId($PDOdb, $orderLine->fk_product, 'product', false, 0, $orderLine->qty, 0);
-        if(!empty($nomenclature->rowid)) {
-            $details_nomenclature = $nomenclature->getDetails(1);
-
-            $orderLine->nomenclature = $nomenclature; //On récup la nomenclature
-            $orderLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
-
-            //On init aussi le tableau avec les produits liés à la nomenclature (récursivement =) )
-            if(!empty($details_nomenclature)) _getProductIdFromNomen($TProductId, $details_nomenclature);
+        if(!empty($TLines[$obj->rowid])) {
+            $orderLine = $TLines[$obj->rowid];
+            $orderLine->fk_assetOf[] = $obj->fk_assetOf;
+            $orderLine->fk_assetOfLine[] = $obj->fk_assetOfLine;
         }
-        if(!empty($orderLine->fk_product)) $TProductId[$orderLine->fk_product] = $orderLine->fk_product; // on init le produit avec tous les produits
-        $orderLine->qty_exped = $obj->qty_exped;
-        $TLines[$orderLine->id] = $orderLine;
+        else {
+            $orderLine->fetch($obj->rowid);
+            $orderLine->fetch_optionals();
+            $orderLine->fk_assetOf = array($obj->fk_assetOf);//On récup l'OF
+            $orderLine->fk_assetOfLine = array($obj->fk_assetOfLine);//On récup la ligne associé
+            $nomenclature->loadByObjectId($PDOdb, $obj->rowid, 'commande', false, 0, $orderLine->qty, 0);
+            if(empty($nomenclature->rowid)) $nomenclature->loadByObjectId($PDOdb, $orderLine->fk_product, 'product', false, 0, $orderLine->qty, 0);
+            if(!empty($nomenclature->rowid)) {
+                $details_nomenclature = $nomenclature->getDetails(1);
+
+                $orderLine->nomenclature = $nomenclature; //On récup la nomenclature
+                $orderLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
+
+                //On init aussi le tableau avec les produits liés à la nomenclature (récursivement =) )
+                if(!empty($details_nomenclature)) _getProductIdFromNomen($TProductId, $details_nomenclature);
+            }
+            if(!empty($orderLine->fk_product)) $TProductId[$orderLine->fk_product] = $orderLine->fk_product; // on init le produit avec tous les produits
+            $orderLine->qty_exped = $obj->qty_exped;
+            $TLines[$orderLine->id] = $orderLine;
+        }
     }
 }
 
@@ -176,7 +182,7 @@ if(!empty($search_delivery_startday) && !empty($search_delivery_endday)){
 $sql .= $sqlWhere.$sqlGroup; // Obliger de faire le travail 2x (1 pour avoir toutes les données et faire le traitement, et l'autre pour le filtrage et l'affichage car le traitement se fait ligne à ligne (qté décrémenté ligne par ligne))
 
 $result = $db->query($sql . " ORDER BY cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.", cd.rowid");
-$nbtotalofrecords = $db->num_rows($result);
+$nbtotalofrecords = count($TLines);
 
 if(($page * $limit) > $nbtotalofrecords)    // if total resultset is smaller then paging size (filtering), goto and load page 0
 {
@@ -188,7 +194,7 @@ $sql .= $db->order($sortfield . ',cd.rowid', $sortorder);
 $sql .= $db->plimit($limit + 1, $offset);
 
 $resql = $db->query($sql);
-$num = $db->num_rows($resql);
+
 if(!empty($resql) && $db->num_rows($resql) > 0) {
     while($obj = $db->fetch_object($resql)) {
         $orderLine = new OrderLine($db);
@@ -197,6 +203,7 @@ if(!empty($resql) && $db->num_rows($resql) > 0) {
         $TLinesToDisplay[$obj->rowid] = $obj->rowid;
     }
 }
+$num = count($TLinesToDisplay);
 /*
  * A présent on récupère le stock physique de chaque produit ainsi que le stock contenu dans chaque commande fourn
  */
@@ -357,15 +364,27 @@ foreach($TLinesToDisplay as $lineid) {
         $TLines[$lineid]->fetch_product();
 
         $icon = _getIconStatus($TDetailStock, $TLines, $lineid);
-        $assetOF = new TAssetOF;
+
+        $TAssetOF = array();
+        $print_of='';
         if(!empty($TLines[$lineid]->fk_assetOf)) {
-            $assetOF->load($PDOdb, $TLines[$lineid]->fk_assetOf);
-            $print_of = $assetOF->getNomUrl(1);
+            foreach($TLines[$lineid]->fk_assetOf as $of_id) {
+                $assetOF = new TAssetOF;
+                $assetOF->load($PDOdb, $of_id);
+                $TAssetOF[$of_id] = $assetOF;
+                $print_of .= $assetOF->getNomUrl(1).'</br>';
+            }
         }
         else $print_of = '';
 
-        $assetOFLine = new TAssetOFLine;
-        if(!empty($TLines[$lineid]->fk_assetOfLine)) $assetOFLine->load($PDOdb, $TLines[$lineid]->fk_assetOfLine);
+        $TAssetOFLine = array();
+        if(!empty($TLines[$lineid]->fk_assetOfLine)) {
+            foreach($TLines[$lineid]->fk_assetOfLine as $fk_ofline) {
+                $assetOFLine = new TAssetOFLine;
+                $assetOFLine->load($PDOdb, $fk_ofline);
+                $TAssetOFLine[$fk_ofline] = $assetOFLine;
+            }
+        }
 
 
         $stock_tooltip = '';
@@ -396,26 +415,57 @@ foreach($TLinesToDisplay as $lineid) {
     print $print_of;
     print '</td>';
     print '<td>';
-    print !empty($assetOF->id)?date( 'd/m/Y',$assetOF->date_besoin):'';
+    if(!empty($TAssetOF)) {
+        foreach($TAssetOF as $assetOf) {
+            print !empty($assetOF->id) ? date('d/m/Y', $assetOF->date_besoin) : '';
+            print '</br>';
+        }
+    }
     print '</td>';
     print '<td>';
-    print !empty($assetOF->date_lancement)?date( 'd/m/Y',$assetOF->date_lancement):'';
+    if(!empty($TAssetOF)) {
+        foreach($TAssetOF as $assetOf) {
+            print !empty($assetOF->date_lancement)?date( 'd/m/Y',$assetOF->date_lancement):'';
+            print '</br>';
+        }
+    }
     print '</td>';
     print '<td>';
-    print $assetOF->temps_estime_fabrication.' '.$langs->trans('Hours');
+    if(!empty($TAssetOF)) {
+        foreach($TAssetOF as $assetOf) {
+            print $assetOF->temps_estime_fabrication.' '.$langs->trans('Hours');
+            print '</br>';
+        }
+    }
     print '</td>';
     print '<td align="right">';
 
     print $form->textwithpicto($TLines[$lineid]->qty, $stock_tooltip);
     print '</td>';
     print '<td align="right">';
-    print $assetOFLine->qty;
+    if(!empty($TAssetOFLine)) {
+        foreach($TAssetOFLine as $assetOFLine) {
+            print $assetOFLine->qty;
+            print '</br>';
+        }
+    }
     print '</td>';
     print '<td align="right">';
-    print $assetOFLine->qty_used;
+    if(!empty($TAssetOFLine)) {
+        foreach($TAssetOFLine as $assetOFLine) {
+            print $assetOFLine->qty_used;
+            print '</br>';
+        }
+    }
     print '</td>';
     print '<td align="right">';
+    if(!empty($TAssetOFLine)) {
+        foreach($TAssetOFLine as $assetOFLine) {
     print $assetOFLine->qty_non_compliant;
+    print '</br>';
+}
+}
+
     print '</td>';
     print '<td></td>';
     print '</tr>';
