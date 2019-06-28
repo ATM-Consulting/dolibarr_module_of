@@ -89,7 +89,8 @@ $langs->load('deliveries');
 /*
  * On récupère toutes les lignes de commandes non livrées, ni annulées, et s'il y en a un, l'of lié pour pouvoir faire le traitement (lignes non filtrées)
  */
-$sql = "SELECT DISTINCT cd.rowid, aol.fk_assetOf, aol.rowid as fk_assetOfLine, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.", SUM(ed.qty) as qty_exped FROM " . MAIN_DB_PREFIX . "commandedet as cd";
+$sql = "SELECT DISTINCT cd.rowid, aol.fk_assetOf, aol.rowid as fk_assetOfLine, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.", SUM(ed.qty) as qty_exped 
+        FROM " . MAIN_DB_PREFIX . "commandedet as cd";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande as c ON (cd.fk_commande = c.rowid)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet_extrafields as cde ON (cde.fk_object = cd.rowid)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "assetOf_line as aol ON (aol.fk_commandedet = cd.rowid)";
