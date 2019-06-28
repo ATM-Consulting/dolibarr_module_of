@@ -479,6 +479,9 @@ class modof extends DolibarrModules
         $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
 
+        $extrafields=new ExtraFields($this->db);
+        $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
+
 		// template
 		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
 		$dirodt=DOL_DATA_ROOT.'/of/template/';
