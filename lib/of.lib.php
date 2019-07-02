@@ -833,7 +833,7 @@ function _getProductIdFromNomen(&$TProductId, $details_nomenclature)
 function _getDetailStock(&$line, &$TProductStock, &$TDetails)
 {
     global $conf;
-    if(empty($line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]))return -3;
+    if(empty($line->of_date_de_livraison))return -3;
     $qtyToDestock = $line->qty;
 
 /*
@@ -861,9 +861,9 @@ function _getDetailStock(&$line, &$TProductStock, &$TDetails)
         foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock_by_order) {
             if($qtyToDestock <= 0) break; // La quantité totale est trouvée
 
-            if(!empty($date) && !empty($line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])){
+            if(!empty($date) && !empty($line->of_date_de_livraison)){
                 $tms_fourn = strtotime($date);
-                if($tms_fourn < $line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]) {
+                if($tms_fourn < $line->of_date_de_livraison) {
                     foreach($stock_by_order as $fk_order => $stock) {
                         $TDetails[$line->id]['supplier_order'][$fk_order] += $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
 
@@ -887,7 +887,7 @@ function _getDetailStock(&$line, &$TProductStock, &$TDetails)
         $isNomenOK = 0;
         foreach($line->details_nomenclature as $detail){
 
-            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails[$line->id], $line->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD], $qtyToDestock);
+            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails[$line->id], $line->of_date_de_livraison, $qtyToDestock);
             if($isNomenOK < 0) break;
         }
     }
@@ -1008,7 +1008,7 @@ function _getIconStatus($TDetailStock, $TLines, $lineid) {
         height: 20px;
         display: inline-block;';
     if(!empty($TDetailStock[$lineid]['status'])) $style .= 'background:#8DDE8D;';
-    else if(empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])) $style .= 'background:#dedb8d;';
+    else if(empty($TLines[$lineid]->of_date_de_livraison)) $style .= 'background:#dedb8d;';
     else $style .= 'background:#de8d8d;';
 
     $icon = '<div class="shippable_status" style="'.$style.'"></div>';

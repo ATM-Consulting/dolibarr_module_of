@@ -8,6 +8,7 @@
 require('config.php');
 
 dol_include_once('/commande/class/commande.class.php');
+dol_include_once('/comm/propal/class/propal.class.php');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 dol_include_once('/fourn/class/fournisseur.class.php');
@@ -89,7 +90,13 @@ $langs->load('deliveries');
 /*
  * On récupère toutes les lignes de commandes non livrées, ni annulées, et s'il y en a un, l'of lié pour pouvoir faire le traitement (lignes non filtrées)
  */
-$sqlOrder = "SELECT DISTINCT cd.rowid as rowid, c.ref as ref, aol.fk_assetOf, aol.rowid as fk_assetOfLine, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." as date_livraison, SUM(ed.qty) as qty_exped 
+$sqlOrder = "SELECT DISTINCT cd.rowid as rowid, 
+            c.ref as ref, 
+            aol.fk_assetOf, aol.rowid as fk_assetOfLine, 
+            cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." as date_livraison,
+             SUM(ed.qty) as qty_exped, 'commande' as element,
+             prod.ref as ref_prod,
+             s.nom as societe_nom              
         FROM " . MAIN_DB_PREFIX . "commandedet as cd";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande as c ON (cd.fk_commande = c.rowid)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet_extrafields as cde ON (cde.fk_object = cd.rowid)";
@@ -97,105 +104,149 @@ $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "assetOf_line as aol ON (aol.fk_co
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "assetOf as ao ON (aol.fk_assetOf = ao.rowid)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_source = c.rowid AND ee.sourcetype='commande' AND ee.targettype='shipping')";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition as e ON (e.rowid = ee.fk_target)";
-$sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON (p.rowid = cd.fk_product)";
+$sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = cd.fk_product)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
-$sqlOrderWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND p.fk_product_type=0 AND p.rowid IS NOT NULL";
+$sqlOrderWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND prod.fk_product_type=0 AND prod.rowid IS NOT NULL";
 $sqlOrderGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD;
 
-/* TODO
- * On fait la même chose pour les propals
+/*
+ * On fait la même chose pour les propals ayant l'extrafield à oui
  */
-$sqlPropal = "SELECT DISTINCT pd.rowid as rowid, p.ref as ref,'' as fk_assetOf, '' as fk_assetOfLine, pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." as date_livraison, '0' as qty_exped 
+$sqlPropal = "SELECT DISTINCT pd.rowid as rowid
+            , p.ref as ref
+            ,'' as fk_assetOf, '' as fk_assetOfLine
+            , pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." as date_livraison
+            , NULL as qty_exped 
+            , 'propal' as element
+            ,prod.ref as ref_prod
+            ,s.nom as societe_nom
         FROM " . MAIN_DB_PREFIX . "propaldet as pd";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal as p ON (pd.fk_propal = p.rowid)";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propaldet_extrafields as pde ON (pde.fk_object = pd.rowid)";
-$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_source = c.rowid AND ee.sourcetype='commande' AND ee.targettype='shipping')";
-$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON (p.rowid = cd.fk_product)";
-$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
-
+$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as pe ON (pe.fk_object = p.rowid)";
+$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_source = p.rowid AND ee.sourcetype='propal' AND ee.targettype='commande')";
+$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = pd.fk_product)";
+$sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = p.fk_soc)";
+$sqlPropalWhere .= " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal::STATUS_SIGNED.") 
+                    AND prod.fk_product_type=0 
+                    AND prod.rowid IS NOT NULL
+                    AND pe.of_check_prev = 1
+                    AND ee.fk_target IS NULL";
+$sqlPropalGroup .= " GROUP BY pd.rowid, pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD;
 $sqlOrderBy .= " ORDER BY date_livraison, rowid";
 
+$sql = $sqlOrder.$sqlOrderWhere.$sqlOrderGroup
+    .' UNION '
+    .$sqlPropal.$sqlPropalWhere.$sqlPropalGroup
+    .$sqlOrderBy;
 /*
  * TRAITEMENT GLOBAL
  */
-$result = $db->query($sqlOrder.$sqlOrderWhere.$sqlOrderGroup . $sqlOrderBy);
+
+$result = $db->query($sql);
 if(!empty($result) && $db->num_rows($result) > 0) {
     while($obj = $db->fetch_object($result)) {
-        $orderLine = new OrderLine($db);
+        if($obj->element == 'commande') $myLine = new OrderLine($db);
+        else if($obj->element == 'propal') $myLine = new PropaleLigne($db);
+
         $nomenclature = new TNomenclature;
         if(!empty($TLines[$obj->rowid])) {
-            $orderLine = $TLines[$obj->rowid];
-            $orderLine->fk_assetOf[] = $obj->fk_assetOf;
-            $orderLine->fk_assetOfLine[] = $obj->fk_assetOfLine;
+            $myLine = $TLines[$obj->rowid];
+            $myLine->fk_assetOf[] = $obj->fk_assetOf;
+            $myLine->fk_assetOfLine[] = $obj->fk_assetOfLine;
         }
         else {
-            $orderLine->fetch($obj->rowid);
-            $orderLine->fetch_optionals();
-            $orderLine->fk_assetOf = array($obj->fk_assetOf);//On récup l'OF
-            $orderLine->fk_assetOfLine = array($obj->fk_assetOfLine);//On récup la ligne associé
-            $nomenclature->loadByObjectId($PDOdb, $obj->rowid, 'commande', false, 0, $orderLine->qty, 0);
-            if(empty($nomenclature->rowid)) $nomenclature->loadByObjectId($PDOdb, $orderLine->fk_product, 'product', false, 0, $orderLine->qty, 0);
+            $myLine->fetch($obj->rowid);
+            $myLine->fetch_optionals();
+            if($obj->element == 'commande') $myLine->of_date_de_livraison = $myLine->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD];
+            else if($obj->element == 'propal')$myLine->of_date_de_livraison = $myLine->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD];
+            $myLine->fk_assetOf = array($obj->fk_assetOf);//On récup l'OF
+            $myLine->fk_assetOfLine = array($obj->fk_assetOfLine);//On récup la ligne associé
+            $nomenclature->loadByObjectId($PDOdb, $obj->rowid, $obj->element, false, 0, $myLine->qty, 0);
+            if(empty($nomenclature->rowid)) $nomenclature->loadByObjectId($PDOdb, $myLine->fk_product, 'product', false, 0, $myLine->qty, 0);
             if(!empty($nomenclature->rowid)) {
                 $details_nomenclature = $nomenclature->getDetails(1);
 
-                $orderLine->nomenclature = $nomenclature; //On récup la nomenclature
-                $orderLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
+                $myLine->nomenclature = $nomenclature; //On récup la nomenclature
+                $myLine->details_nomenclature = $details_nomenclature; //On récup la nomenclature
 
                 //On init aussi le tableau avec les produits liés à la nomenclature (récursivement =) )
                 if(!empty($details_nomenclature)) _getProductIdFromNomen($TProductId, $details_nomenclature);
             }
-            if(!empty($orderLine->fk_product)) $TProductId[$orderLine->fk_product] = $orderLine->fk_product; // on init le produit avec tous les produits
-            $orderLine->qty_exped = $obj->qty_exped;
-            $TLines[$orderLine->id] = $orderLine;
+            if(!empty($myLine->fk_product)) $TProductId[$myLine->fk_product] = $myLine->fk_product; // on init le produit avec tous les produits
+            $myLine->qty_exped = $obj->qty_exped;
+            $TLines[$myLine->id] = $myLine;
         }
     }
 }
 
 //Une fois que le traitement est fait on peut filtrer
-if ($search_cmd) $sqlOrderWhere .= natural_search('c.ref', $search_cmd);
-if ($search_company) $sqlWhere .= natural_search('s.nom', $search_company);
-if ($search_prod) $sqlWhere .= natural_search('p.ref', $search_prod);
-if ($search_of) $sqlOrderWhere .= natural_search('ao.numero', $search_of);
-if ($search_qty != '') $sqlOrderWhere.= natural_search("cd.qty", $search_qty, 1);
-if (!empty($search_no_date)) $sqlOrderWhere.= ' AND cde.'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.' IS NULL';
-if (!empty($search_non_compliant)) $sqlOrderWhere.= ' AND aol.qty_non_compliant > 0';
-if ($viewstatut <> '')
-{
-    if ($viewstatut < 4 && $viewstatut > -3)
-    {
-        if ($viewstatut == 1 && empty($conf->expedition->enabled)) $sqlOrderWhere.= ' AND c.fk_statut IN (1,2)';	// If module expedition disabled, we include order with status 'sending in process' into 'validated'
-        else $sqlOrderWhere.= ' AND c.fk_statut = '.$viewstatut; // brouillon, validee, en cours, annulee
-    }
-    if ($viewstatut == 4)
-    {
-        $sqlOrderWhere.= ' AND c.facture = 1'; // invoice created
-    }
-    if ($viewstatut == -2)	// To process
-    {
-        //$sqlWhere.= ' AND c.fk_statut IN (1,2,3) AND c.facture = 0';
-        $sqlOrderWhere.= " AND ((c.fk_statut IN (1,2)) OR (c.fk_statut = 3 AND c.facture = 0))";    // If status is 2 and facture=1, it must be selected
-    }
-    if ($viewstatut == -3)	// To bill
-    {
-        //$sqlWhere.= ' AND c.fk_statut in (1,2,3)';
-        //$sqlWhere.= ' AND c.facture = 0'; // invoice not created
-        $sqlOrderWhere .= ' AND ((c.fk_statut IN (1,2)) OR (c.fk_statut = 3 AND c.facture = 0))'; // validated, in process or closed but not billed
-    }
+if ($search_cmd){
+    $sqlOrderWhere .= natural_search('c.ref', $search_cmd);
+    $sqlPropalWhere .= natural_search('p.ref', $search_cmd);
 }
+if ($search_company) $sqlPropalWhere .= $sqlOrderWhere .= natural_search('s.nom', $search_company);
+
+if ($search_prod) $sqlPropalWhere .= $sqlOrderWhere .= natural_search('ref_prod', $search_prod);
+
+if ($search_of){
+    $sqlOrderWhere .= natural_search('ao.numero', $search_of);
+    $sqlPropalWhere .= 'AND 0=1' ;
+}
+if ($search_qty != '') {
+    $sqlOrderWhere.= natural_search("cd.qty", $search_qty, 1);
+    $sqlPropalWhere.= natural_search("pd.qty", $search_qty, 1);
+}
+if (!empty($search_no_date)) {
+    $sqlOrderWhere.= ' AND cde.'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.' IS NULL';
+    $sqlPropalWhere.= ' AND pde.'.$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD.' IS NULL';
+}
+if (!empty($search_non_compliant)) {
+    $sqlOrderWhere.= ' AND aol.qty_non_compliant > 0';
+    $sqlPropalWhere .= 'AND 0=1' ;
+}
+//if ($viewstatut <> '')
+//{
+//    if ($viewstatut < 4 && $viewstatut > -3)
+//    {
+//        if ($viewstatut == 1 && empty($conf->expedition->enabled)) $sqlOrderWhere.= ' AND c.fk_statut IN (1,2)';	// If module expedition disabled, we include order with status 'sending in process' into 'validated'
+//        else $sqlOrderWhere.= ' AND c.fk_statut = '.$viewstatut; // brouillon, validee, en cours, annulee
+//    }
+//    if ($viewstatut == 4)
+//    {
+//        $sqlOrderWhere.= ' AND c.facture = 1'; // invoice created
+//    }
+//    if ($viewstatut == -2)	// To process
+//    {
+//        //$sqlWhere.= ' AND c.fk_statut IN (1,2,3) AND c.facture = 0';
+//        $sqlOrderWhere.= " AND ((c.fk_statut IN (1,2)) OR (c.fk_statut = 3 AND c.facture = 0))";    // If status is 2 and facture=1, it must be selected
+//    }
+//    if ($viewstatut == -3)	// To bill
+//    {
+//        //$sqlWhere.= ' AND c.fk_statut in (1,2,3)';
+//        //$sqlWhere.= ' AND c.facture = 0'; // invoice not created
+//        $sqlOrderWhere .= ' AND ((c.fk_statut IN (1,2)) OR (c.fk_statut = 3 AND c.facture = 0))'; // validated, in process or closed but not billed
+//    }
+//}
 if(!empty($search_delivery_startday) && !empty($search_delivery_endday)){
     $sqlOrderWhere.= " AND  (cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."'
                    AND cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
+    $sqlPropalWhere.= " AND  (pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."'
+                   AND pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
 } else if(!empty($search_delivery_startday)  && empty($search_delivery_endday) ){
-
     $sqlOrderWhere.= " AND  (cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."')";
+    $sqlPropalWhere.= " AND  (pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."')";
 } else if(empty($search_delivery_startday)  && !empty($search_delivery_endday) ){
     $sqlOrderWhere.= "  AND (cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
+    $sqlPropalWhere.= "  AND (pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
 }
 
-$sqlOrder .= $sqlOrderWhere.$sqlWhere.$sqlOrderGroup; // Obliger de faire le travail 2x (1 pour avoir toutes les données et faire le traitement, et l'autre pour le filtrage et l'affichage car le traitement se fait ligne à ligne (qté décrémenté ligne par ligne))
+$sqlOrder .= $sqlOrderWhere.$sqlOrderGroup; // Obliger de faire le travail 2x (1 pour avoir toutes les données et faire le traitement, et l'autre pour le filtrage et l'affichage car le traitement se fait ligne à ligne (qté décrémenté ligne par ligne))
+$sqlPropal .= $sqlPropalWhere.$sqlPropalGroup; // Obliger de faire le travail 2x (1 pour avoir toutes les données et faire le traitement, et l'autre pour le filtrage et l'affichage car le traitement se fait ligne à ligne (qté décrémenté ligne par ligne))
+$sql = $sqlOrder .' UNION '. $sqlPropal;
+$result = $db->query($sql. $sqlOrderBy);
 
-$result = $db->query($sqlOrder . $sqlOrderBy);
 $nbtotalofrecords = count($TLines);
 
 if(($page * $limit) > $nbtotalofrecords)    // if total resultset is smaller then paging size (filtering), goto and load page 0
@@ -203,17 +254,11 @@ if(($page * $limit) > $nbtotalofrecords)    // if total resultset is smaller the
     $page = 0;
     $offset = 0;
 }
-
-$sqlOrder .= $db->order($sortfield . ',rowid', $sortorder);
-$sqlOrder .= $db->plimit($limit + 1, $offset);
-
-$resql = $db->query($sqlOrder);
-
+$sql .= $db->order($sortfield . ',rowid', $sortorder);
+$sql .= $db->plimit($limit + 1, $offset);
+$resql = $db->query($sql);
 if(!empty($resql) && $db->num_rows($resql) > 0) {
     while($obj = $db->fetch_object($resql)) {
-        $orderLine = new OrderLine($db);
-        $nomenclature = new TNomenclature;
-
         $TLinesToDisplay[$obj->rowid] = $obj->rowid;
     }
 }
@@ -351,9 +396,10 @@ print "</tr>\n";
 
 // Fields title
 print '<tr class="liste_titre">';
-print_liste_field_titre($langs->trans('Order'), $_SERVER["PHP_SELF"], 'ref', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('Product'), $_SERVER["PHP_SELF"], 'p.ref', '', $param, '', $sortfield, $sortorder);
+//TODO Faire fonctionner les print list field titre + tester les recherches
+print_liste_field_titre($langs->trans('Ref'), $_SERVER["PHP_SELF"], 'ref', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER["PHP_SELF"], 'societe_nom', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('Product'), $_SERVER["PHP_SELF"], 'ref_prod', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('DeliveryDate'), $_SERVER["PHP_SELF"], "date_livraison", "", $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Status'), $_SERVER["PHP_SELF"], '', '', $param, 'align="right"', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('OFAsset'), $_SERVER["PHP_SELF"], 'ao.numero', '', $param, '', $sortfield, $sortorder);
@@ -370,18 +416,25 @@ print '</tr>' . "\n";
  * Lines
  */
 foreach($TLinesToDisplay as $lineid) {
-    if(!empty($search_alert_line) && ( !empty($TDetailStock[$lineid]['status']) || empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]))) continue;
+    if(!empty($search_alert_line) && ( !empty($TDetailStock[$lineid]['status']) || empty($TLines[$lineid]->of_date_de_livraison))) continue;
     if(!empty($TLines[$lineid])) {
-        $commande = new Commande($db);
-        $commande->fetch($TLines[$lineid]->fk_commande);
-        $commande->fetch_thirdparty();
+        if($TLines[$lineid]->element == 'commandedet') {
+            $parent = new Commande($db);
+            $parent->fetch($TLines[$lineid]->fk_commande);
+        }
+        else if($TLines[$lineid]->element == 'propaldet'){
+            $parent = new Propal($db);
+            $parent->fetch($TLines[$lineid]->fk_propal);
+        }
+
+        $parent->fetch_thirdparty();
         $TLines[$lineid]->fetch_product();
 
         $icon = _getIconStatus($TDetailStock, $TLines, $lineid);
 
         $TAssetOF = array();
         $print_of='';
-        if(!empty($TLines[$lineid]->fk_assetOf)) {
+        if(!empty($TLines[$lineid]->fk_assetOf[0])) {
             foreach($TLines[$lineid]->fk_assetOf as $of_id) {
                 $assetOF = new TAssetOF;
                 $assetOF->load($PDOdb, $of_id);
@@ -410,20 +463,20 @@ foreach($TLinesToDisplay as $lineid) {
     print '<tr class="oddeven" >';
 
     print '<td nowrap>';
-    print $commande->getNomUrl(1).'&nbsp;'.$icon;
+    print $parent->getNomUrl(1).'&nbsp;'.$icon;
     print '</td>';
     print '<td>';
-    print $commande->thirdparty->getNomUrl(1);
+    print $parent->thirdparty->getNomUrl(1);
     print '</td>';
     print '<td>';
     print $TLines[$lineid]->product->getNomUrl(1);
     print '</td>';
     print '<td>';
-    if(!empty($TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD])) print date('d/m/Y', $TLines[$lineid]->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD]);
+    if(!empty($TLines[$lineid]->of_date_de_livraison)) print date('d/m/Y', $TLines[$lineid]->of_date_de_livraison);
     else print  $langs->trans('WarningNoDate') . ' ' . img_picto($langs->trans('pictoNoDate'), 'warning');
     print '</td>';
     print '<td align="right">';
-    print $commande->getLibStatut(2);
+    print $parent->getLibStatut(2);
     print '</td>';
     print '<td>';
     print $print_of;
