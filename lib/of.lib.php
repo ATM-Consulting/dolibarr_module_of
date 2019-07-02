@@ -839,7 +839,7 @@ function _getDetailStock(&$line, &$TProductStock, &$TDetails)
 /*
  * 1st step on verif si stock physique is enough
  */
-    if(!empty($TProductStock[$line->fk_product]['stock'])){
+    if(isset($TProductStock[$line->fk_product]['stock'])){
         $TDetails[$line->id]['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
 
         if($qtyToDestock < $TProductStock[$line->fk_product]['stock']){

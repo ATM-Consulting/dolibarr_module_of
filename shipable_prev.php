@@ -96,8 +96,17 @@ $sqlOrder = "SELECT DISTINCT cd.rowid as rowid,
             cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." as date_livraison,
              SUM(ed.qty) as qty_exped, 'commande' as element,
              prod.ref as ref_prod,
-             s.nom as societe_nom              
-        FROM " . MAIN_DB_PREFIX . "commandedet as cd";
+             s.nom as societe_nom,
+             c.fk_statut as statut_elem,
+             ao.date_besoin as of_date_besoin,
+             ao.date_lancement as of_date_lancement,
+             ao.temps_estime_fabrication as of_temps_estime_fabrication,
+             cd.qty as line_qty,
+             aol.qty as of_line_qty,
+             aol.qty_used as of_line_qty_used,
+             aol.qty_non_compliant as of_line_qty_non_compliant
+             
+             FROM " . MAIN_DB_PREFIX . "commandedet as cd";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande as c ON (cd.fk_commande = c.rowid)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet_extrafields as cde ON (cde.fk_object = cd.rowid)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "assetOf_line as aol ON (aol.fk_commandedet = cd.rowid)";
@@ -107,7 +116,7 @@ $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition as e ON (e.rowid = ee.
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = cd.fk_product)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
-$sqlOrderWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND prod.fk_product_type=0 AND prod.rowid IS NOT NULL";
+$sqlOrderWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND prod.fk_product_type=0 AND prod.rowid IS NOT NULL ";
 $sqlOrderGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD;
 
 /*
@@ -121,6 +130,14 @@ $sqlPropal = "SELECT DISTINCT pd.rowid as rowid
             , 'propal' as element
             ,prod.ref as ref_prod
             ,s.nom as societe_nom
+            ,p.fk_statut as statut_elem
+            ,'' as of_date_besoin
+            ,'' as of_date_lancement
+            ,'' as of_temps_estime_fabrication
+            ,pd.qty as line_qty
+            ,'' as of_line_qty
+            ,'' as of_line_qty_used
+            ,'' as of_line_qty_non_compliant
         FROM " . MAIN_DB_PREFIX . "propaldet as pd";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal as p ON (pd.fk_propal = p.rowid)";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propaldet_extrafields as pde ON (pde.fk_object = pd.rowid)";
@@ -132,7 +149,7 @@ $sqlPropalWhere .= " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal
                     AND prod.fk_product_type=0 
                     AND prod.rowid IS NOT NULL
                     AND pe.of_check_prev = 1
-                    AND ee.fk_target IS NULL";
+                    AND ee.fk_target IS NULL ";
 $sqlPropalGroup .= " GROUP BY pd.rowid, pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD;
 $sqlOrderBy .= " ORDER BY date_livraison, rowid";
 
@@ -140,6 +157,7 @@ $sql = $sqlOrder.$sqlOrderWhere.$sqlOrderGroup
     .' UNION '
     .$sqlPropal.$sqlPropalWhere.$sqlPropalGroup
     .$sqlOrderBy;
+
 /*
  * TRAITEMENT GLOBAL
  */
@@ -186,9 +204,15 @@ if ($search_cmd){
     $sqlOrderWhere .= natural_search('c.ref', $search_cmd);
     $sqlPropalWhere .= natural_search('p.ref', $search_cmd);
 }
-if ($search_company) $sqlPropalWhere .= $sqlOrderWhere .= natural_search('s.nom', $search_company);
+if ($search_company){
+     $sqlOrderWhere .= natural_search('s.nom', $search_company);
+     $sqlPropalWhere .= natural_search('s.nom', $search_company);
+}
 
-if ($search_prod) $sqlPropalWhere .= $sqlOrderWhere .= natural_search('ref_prod', $search_prod);
+if ($search_prod) {
+    $sqlOrderWhere .= natural_search('prod.ref', $search_prod);
+    $sqlPropalWhere .= natural_search('prod.ref', $search_prod);
+}
 
 if ($search_of){
     $sqlOrderWhere .= natural_search('ao.numero', $search_of);
@@ -204,7 +228,7 @@ if (!empty($search_no_date)) {
 }
 if (!empty($search_non_compliant)) {
     $sqlOrderWhere.= ' AND aol.qty_non_compliant > 0';
-    $sqlPropalWhere .= 'AND 0=1' ;
+    $sqlPropalWhere .= ' AND 0=1' ;
 }
 //if ($viewstatut <> '')
 //{
@@ -401,15 +425,15 @@ print_liste_field_titre($langs->trans('Ref'), $_SERVER["PHP_SELF"], 'ref', '', $
 print_liste_field_titre($langs->trans('ThirdParty'), $_SERVER["PHP_SELF"], 'societe_nom', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('Product'), $_SERVER["PHP_SELF"], 'ref_prod', '', $param, '', $sortfield, $sortorder);
 print_liste_field_titre($langs->trans('DeliveryDate'), $_SERVER["PHP_SELF"], "date_livraison", "", $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('Status'), $_SERVER["PHP_SELF"], '', '', $param, 'align="right"', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('OFAsset'), $_SERVER["PHP_SELF"], 'ao.numero', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('DateBesoin'), $_SERVER["PHP_SELF"], 'ao.date_besoin', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('DateLaunch'), $_SERVER["PHP_SELF"], 'ao.date_lancement', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('EstimatedMakeTime'), $_SERVER["PHP_SELF"], 'ao.temps_estime_fabrication', '', $param, '', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('Quantity'), $_SERVER["PHP_SELF"], 'cd.qty', '', $param, 'align="right"', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('QtyToMake'), $_SERVER["PHP_SELF"], 'aol.qty', '', $param, 'align="right"', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('ProduceQty'), $_SERVER["PHP_SELF"], 'aol.qty_used', '', $param, 'align="right"', $sortfield, $sortorder);
-print_liste_field_titre($langs->trans('NonCompliant'), $_SERVER["PHP_SELF"], 'aol.qty_non_compliant', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('Status'), $_SERVER["PHP_SELF"], 'statut_elem', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('OFAsset'), $_SERVER["PHP_SELF"], 'fk_assetOf', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('DateBesoin'), $_SERVER["PHP_SELF"], 'of_date_besoin', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('DateLaunch'), $_SERVER["PHP_SELF"], 'of_date_lancement', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('EstimatedMakeTime'), $_SERVER["PHP_SELF"], 'of_temps_estime_fabrication', '', $param, '', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('Quantity'), $_SERVER["PHP_SELF"], 'line_qty', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('QtyToMake'), $_SERVER["PHP_SELF"], 'of_line_qty', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('ProduceQty'), $_SERVER["PHP_SELF"], 'of_line_qty_used', '', $param, 'align="right"', $sortfield, $sortorder);
+print_liste_field_titre($langs->trans('NonCompliant'), $_SERVER["PHP_SELF"], 'of_line_qty_non_compliant', '', $param, 'align="right"', $sortfield, $sortorder);
 print_liste_field_titre('');
 print '</tr>' . "\n";
 /*
@@ -484,7 +508,7 @@ foreach($TLinesToDisplay as $lineid) {
     print '<td>';
     if(!empty($TAssetOF)) {
         foreach($TAssetOF as $assetOf) {
-            print !empty($assetOF->id) ? date('d/m/Y', $assetOF->date_besoin) : '';
+            print !empty($assetOf->id) ? date('d/m/Y', $assetOf->date_besoin) : '';
             print '</br>';
         }
     }
@@ -492,7 +516,10 @@ foreach($TLinesToDisplay as $lineid) {
     print '<td>';
     if(!empty($TAssetOF)) {
         foreach($TAssetOF as $assetOf) {
-            print !empty($assetOF->date_lancement)?date( 'd/m/Y',$assetOF->date_lancement):'';
+            if(!empty($assetOf->date_lancement)) print date( 'd/m/Y',$assetOf->date_lancement);
+             else print '';
+
+
             print '</br>';
         }
     }
@@ -500,7 +527,7 @@ foreach($TLinesToDisplay as $lineid) {
     print '<td>';
     if(!empty($TAssetOF)) {
         foreach($TAssetOF as $assetOf) {
-            print $assetOF->temps_estime_fabrication.' '.$langs->trans('Hours');
+            print $assetOf->temps_estime_fabrication.' '.$langs->trans('Hours');
             print '</br>';
         }
     }
