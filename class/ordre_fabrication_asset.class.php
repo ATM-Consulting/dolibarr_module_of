@@ -501,6 +501,8 @@ class TAssetOF extends TObjetStd{
 		global $user,$langs,$conf, $db;
 	//	var_dump( $this->status, debug_backtrace());
 
+        $onUpdate = 0;
+
 		$this->set_temps_fabrication();
 		$this->set_fourniture_cost();
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
@@ -534,7 +536,10 @@ class TAssetOF extends TObjetStd{
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
-        $this->setDelaiLancement($PDOdb); // Ligne qui était juste après le save voir PR #82
+        if(!empty($this->id)) {
+            $this->setDelaiLancement($PDOdb);
+            $onUpdate = 1; //pour éviter de faire 2x le traitement
+        }
 
         if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
 
@@ -547,6 +552,8 @@ class TAssetOF extends TObjetStd{
         }
 
 		parent::save($PDOdb);
+
+        if(!$onUpdate) $this->setDelaiLancement($PDOdb);
 
         $this->getNumero($PDOdb, true);
 
