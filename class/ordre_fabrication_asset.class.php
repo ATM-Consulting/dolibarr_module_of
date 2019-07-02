@@ -2518,13 +2518,15 @@ class TAssetOFLine extends TObjetStd{
                 $TAsset->fk_societe_localisation = $conf->global->ASSET_DEFAULT_LOCATION;
                 $TAsset->fk_product = $fk_product;
 
-                if(!empty($conf->global->ASSET_DEFAULT_DLUO)) $TAsset->dluo = strtotime(date('Y-m-d').' +'.$conf->global->ASSET_DEFAULT_DLUO.' days');
-                else $TAsset->dluo = strtotime(date('Y-m-d'));
+		$TAsset->fk_asset_type = $assetType->getId();
+                $TAsset->load_asset_type($PDOdb);
+
+		if (empty($TAsset->dluo)){
+                	if(!empty($conf->global->ASSET_DEFAULT_DLUO)) $TAsset->dluo = strtotime(date('Y-m-d').' +'.$conf->global->ASSET_DEFAULT_DLUO.' days');
+                	else $TAsset->dluo = strtotime(date('Y-m-d'));
+		}
 
 				//pre($assetType,true);exit;
-
-                $TAsset->fk_asset_type = $assetType->getId();
-                $TAsset->load_asset_type($PDOdb);
 
                 if($qty_to_make_rest>$TAsset->contenance_value) {
                     $qty_to_make_asset = $TAsset->contenance_value;

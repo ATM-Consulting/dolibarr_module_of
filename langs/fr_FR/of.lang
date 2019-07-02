@@ -273,6 +273,7 @@ TimeBeforeStart=Délai avant démarrage
 NbPlannedHour=Nb. heures plannifiées
 NbRealHour=Heures réelles
 Rank=Rang
+WorkstationUsed=Poste(s) de travail utilisé(s)
 ProductsNeeded=Produits nécessaires à la fabrication
 QtyNeeded=Qté nécessaire
 PlannedQty=Qté planifiée
