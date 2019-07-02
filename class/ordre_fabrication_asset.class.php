@@ -235,7 +235,7 @@ class TAssetOF extends TObjetStd{
 										if($ws->type == 'STT') {
 											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug
 										}
-										else if($wsof->nb_days_before_beginning < $nb) {
+										else if($wsof->nb_days_before_beginning < $nb && empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY_DISABLE_DELAY_BEFORE_START)) {
 											$wsof->nb_days_before_beginning = $nb;
 										}
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
