@@ -323,7 +323,7 @@ function _liste(&$PDOdb)
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
 
     if($mode =='supplier_order') $title = $langs->trans('AssetProductionSupplierOrder');
-    if($mode =='non_compliant') $title = $langs->trans('ListOFAssetNonCompliant');
+    else if($mode =='non_compliant') $title = $langs->trans('ListOFAssetNonCompliant');
     else $title = $langs->trans('ListOFAsset');
 
 	$r->liste($PDOdb, $sql, array(
