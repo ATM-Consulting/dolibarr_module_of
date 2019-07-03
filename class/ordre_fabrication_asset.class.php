@@ -6,6 +6,13 @@ class TAssetOF extends TObjetStd{
  * */
 	var $element = 'of';
 
+    /** @var TAssetOFLine[] */
+    public $TAssetOFLine = array();
+    /** @var TAssetWorkstationOF[] */
+    public $TAssetWorkstationOF = array();
+    /** @var TAssetOF[] */
+    public $TAssetOF = array();
+
  	static $TOrdre=array(
 			'ASAP'=>'ASAP'
 			,'TODAY'=>'ForToday'
@@ -162,6 +169,7 @@ class TAssetOF extends TObjetStd{
 		global $conf,$langs;
 
 		$error = 0;
+		/** @var TAssetOF[] $TOf */
 		$TOf = array();
 
 		$TIdOfEnfant = array();
@@ -231,12 +239,14 @@ class TAssetOF extends TObjetStd{
 										$wsof->save($PDOdb);
 									}
 
+									// TODO vérifier le test sur : $wsof->nb_days_before_beginning<=0
 									if($ws->id == $wsof->fk_asset_workstation/* && $wsof->fk_project_task>0 */&& ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
 										if($ws->type == 'STT') {
 											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug
 										}
-										else if($wsof->nb_days_before_beginning < $nb && empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY_DISABLE_DELAY_BEFORE_START)) {
-											$wsof->nb_days_before_beginning = $nb;
+										else if($wsof->nb_days_before_beginning < $nb) {
+										    if (empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY_DISABLE_DELAY_BEFORE_START))	$wsof->nb_days_before_beginning = $nb;
+										    else $wsof->nb_days_before_reapro = $nb;
 										}
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
 
@@ -1022,7 +1032,10 @@ class TAssetOF extends TObjetStd{
 		return price2num($stock, 'MS');
 	}
 
-	/* Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
+    /**
+     * Add TO_MAKE line
+     *
+     * Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
 	 *
 	 * @return id line
 	 */
@@ -1107,8 +1120,28 @@ class TAssetOF extends TObjetStd{
 		return $idAssetOFLine;
 	}
 
-	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0)
-	{
+    /**
+     * @param        $PDOdb
+     * @param        $fk_asset_workstation
+     * @param int    $nb_hour
+     * @param int    $nb_hour_prepare
+     * @param int    $nb_hour_manufacture
+     * @param int    $rang
+     * @param string $private_note
+     * @param int    $nb_days_before_beginning
+     * @param int    $nb_days_before_reapro
+     * @return bool|int|string
+     * @deprecated
+     * @see addWorkstation
+     */
+	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0, $nb_days_before_reapro = 0)
+    {
+        return $this->addTAssetWorkstationOF($PDOdb, $fk_asset_workstation, $nb_hour, $nb_hour_prepare,$nb_hour_manufacture,$rang,$private_note,$nb_days_before_beginning, $nb_days_before_reapro);
+    }
+
+
+    function addTAssetWorkstationOF(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0, $nb_days_before_reapro = 0)
+    {
 		global $conf;
 
 		if(empty($nb_hour))$nb_hour = $nb_hour_prepare + $nb_hour_manufacture;
@@ -1125,6 +1158,7 @@ class TAssetOF extends TObjetStd{
 		$this->TAssetWorkstationOF[$k]->nb_hour_manufacture += $nb_hour_manufacture* $coef;
 		$this->TAssetWorkstationOF[$k]->nb_hour += $nb_hour * $coef;
 		$this->TAssetWorkstationOF[$k]->nb_days_before_beginning = $nb_days_before_beginning;
+		$this->TAssetWorkstationOF[$k]->nb_days_before_reapro = $nb_days_before_reapro;
 
 		$this->TAssetWorkstationOF[$k]->rang = $rang;
 
@@ -1164,7 +1198,7 @@ class TAssetOF extends TObjetStd{
 
 							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || !empty($conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF)) {
 
-								$k = $this->addofworkstation($PDOdb
+								$k = $this->addTAssetWorkstationOF($PDOdb
 										,$nws->fk_workstation
 										,$nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
 										,$nws->nb_hour_prepare
@@ -1172,6 +1206,7 @@ class TAssetOF extends TObjetStd{
 										,$nws->rang
 										,$nws->note_private
 										,$nws->nb_days_before_beginning
+										,$nws->nb_days_before_reapro
 								);
 
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
@@ -2947,7 +2982,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task',array('type'=>'integer', 'index'=>true) );
-		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm,nb_days_before_beginning',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
+		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm,nb_days_before_beginning,nb_days_before_reapro',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
 		$this->add_champs('note_private',array('type'=>'text'));
 
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
@@ -3016,11 +3051,15 @@ class TAssetWorkstationOF extends TObjetStd{
             $projectTask->fk_task_parent = 0;
         }
 
-
-		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',!empty($OF->date_lancement) ? $OF->date_lancement : $OF->date_besoin);
-
-		$projectTask->date_end = $OF->date_besoin;
-		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
+        if (!empty($OF->date_lancement))
+        {
+            $date_start_search = $OF->date_lancement; // Ici la date de lancement doit déjà prendre en compte le temps de réapro
+        }
+        else
+        {
+            $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
+            $date_start_search = strtotime(' +'.$delta.' days', $OF->date_besoin); // TODO complètement incohérent de ce baser sur la date du besoin
+        }
 
 		$projectTask->planned_workload = $this->nb_hour*3600;
 
@@ -3058,6 +3097,76 @@ class TAssetWorkstationOF extends TObjetStd{
 			$projectTask->array_options['options_fk_product']=$p->id;
 		}
 
+        dol_include_once('gantt/class/gantt.class.php');
+
+        // TODO mériterait un peu d'otpimisation en passant en param le timestamp de la date de fin de la tâche parente directement plutôt que de le fetcher ici
+        if ($projectTask->fk_task_parent > 0)
+        {
+            $parentTask = new Task($projectTask->db);
+            if ($parentTask->fetch($projectTask->fk_task_parent) > 0)
+            {
+                $projectTask->date_start = strtotime(date('Y-m-d 00:00:00', $parentTask->date_end));
+                $date_start_search = $projectTask->date_start;
+            }
+        }
+
+        $i = 0;
+        $nb_hour_left = $this->nb_hour;
+        $date_current_search = $date_start_search;
+        $projectTask->date_start = $projectTask->date_end = null; // TODO il faut prendre en compte ici, un décalage pour la date de début si il y a un lien de parenté entre les tâches
+//        var_dump($projectTask->fk_task_parent);
+
+
+        // TODO cette boucle ainsi que l'init des variables juste au dessus doit être dans une méthode à part entière car devra être appelé lors de l'update des tâches
+        while ('Olaf is incredible')
+        {
+            $TCapacityInfoByDate = $ws->getCapacityLeftRange($PDOdb, $date_current_search, $date_current_search);
+
+            if (!empty($TCapacityInfoByDate))
+            {
+                reset($TCapacityInfoByDate);
+                $key = key($TCapacityInfoByDate);
+                $TCapacityInfo = $TCapacityInfoByDate[$key];
+
+                $capacity = $TCapacityInfo['nb_hour_capacity'];
+                $capacityLeft = $TCapacityInfo['capacityLeft'];
+                $nb_ressource = $TCapacityInfo['nb_ressource'];
+
+                if ($capacityLeft !== 'NA' && $capacityLeft > 0 && $nb_ressource > 0)
+                {
+                    // set date début car il se peut que nous sommes un jour non dispo pour le poste de travail
+                    if ($projectTask->date_start === null) $projectTask->date_start = $date_current_search;
+
+                    do {
+                        if ($capacityLeft >= $capacity && $nb_hour_left >= $capacity)
+                        {
+                            $nb_hour_left-= $capacity;
+                            $capacityLeft-= $capacity;
+                        }
+                        // $capacityLeft > 0 donc on utilise le reste
+                        else
+                        {
+                            $nb_hour_left-= $capacityLeft;
+                            $capacityLeft = 0;
+                        }
+
+                        $nb_ressource-= 1; // Chaque boucle utilise le temps d'une ressource
+
+                    // Si c'est du non parallélisable, alors il faut stopper immédiatement, autrement on continue tant qu'il y a de la dispo temps & ressource ou on s'arrête si le nombre d'heure de travail passe à 0 ou inférieur (ce qui veut dire que nous avons suffisamment de dispo)
+                    } while ($TCapacityInfo['is_parallele'] && $capacityLeft > 0 && $nb_ressource > 0 && $nb_hour_left > 0);
+                }
+            }
+
+            if ($nb_hour_left <= 0) break; // pas besoin de chercher de la dispo les jours suivants
+            else $date_current_search = strtotime('+1 day', $date_current_search);
+
+            $i++;
+            if (!empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) break; // sécurité, permet de plafonner la planification sur x jours
+        }
+
+        // TODO voir si on met pas 23:59:59 (quand la demi journée sera gérée)
+        $projectTask->date_end = $date_current_search + 12 * 3600; // Calage à midi pour que prod planning (Gantt) affiche correctement la prise en compte du dernier jour
+
 		$res = $projectTask->create($user);
 
         if($res<0) {
@@ -3093,7 +3202,11 @@ class TAssetWorkstationOF extends TObjetStd{
             if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
 
                 //On prend la date la plus petite
-                if($projectTask->date_start > $OF->date_lancement) $projectTask->date_start = strtotime(' +' . (int)$this->nb_days_before_beginning . 'days', $OF->date_lancement);
+                if($projectTask->date_start > $OF->date_lancement)
+                {
+                    $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
+                    $projectTask->date_start = strtotime(' +' .$delta. ' days', $OF->date_lancement);
+                }
 
                 //On prend la date la plus grande
                 if($projectTask->date_end < $OF->date_besoin) $projectTask->date_end = $OF->date_besoin;
@@ -3101,7 +3214,8 @@ class TAssetWorkstationOF extends TObjetStd{
                 if($projectTask->date_end < $projectTask->date_start) $projectTask->date_end = $projectTask->date_start;
             }
             else {
-                $projectTask->date_start = strtotime(' +' . (int)$this->nb_days_before_beginning . 'days', $OF->date_lancement);
+                $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
+                $projectTask->date_start = strtotime(' +' .$delta. ' days', $OF->date_lancement);
                 $projectTask->date_end = $OF->date_besoin;
                 if($projectTask->date_end < $projectTask->date_start) $projectTask->date_end = $projectTask->date_start;
             }
@@ -3240,7 +3354,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
         if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
-			$this->manageProjectTask($PDOdb);
+			$this->manageProjectTask($PDOdb); // TODO lors de la mise à jour d'une date de livraison sur une commande fournisseur, il faudrait penser à faire appel au save des TAssetWorkstationOF pour mettre à jour toutes les dates des tâches ( attention, il faudra les exclure eux même dans la recherche de capacité )
 		}
 		parent::save($PDOdb);
 	}
