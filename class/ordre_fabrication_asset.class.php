@@ -2834,7 +2834,26 @@ class TAssetOFLine extends TObjetStd{
 
                         $lastInsert = count($Of->TAssetWorkstationOF);
                         $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_assetOf = $this->fk_assetOf;
-                        $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
+                        $action = '';
+
+                        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
+                            $taskstatic = new Task($db);
+                            $TTask = $taskstatic->getTasksArray(null, null, $Of->fk_project);
+
+                            if(!empty($TTask)) {
+                                foreach($TTask as $task) {
+                                    $task->fetch_optionals();
+                                    if(!empty($task->array_options['options_fk_workstation']) && $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_asset_workstation == $task->array_options['options_fk_workstation']){
+                                        $action = 'updateTask';
+                                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_project_task=$task->id;
+                                        $Of->from_create=1;
+                                    }
+                                }
+                            }
+                        }
+
+                        if($action == 'updateTask') $Of->TAssetWorkstationOF[$lastInsert - 1]->updateTask($PDOdb, $db, $conf, $user, $Of);
+                        else $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
                     }
                 }
 
