@@ -372,6 +372,18 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>'AssetProductionOrderNONCOMPLIANT',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
+                    'url'=>'/of/liste_of.php?mode=non_compliant',
+                    'position'=>310+$r,
+                    'enabled'=>'$conf->global->OF_MANAGE_NON_COMPLIANT',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry

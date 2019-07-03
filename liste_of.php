@@ -231,11 +231,20 @@ function _liste(&$PDOdb)
 		    $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
 
 		}
+        if($mode == 'non_compliant'){
+            $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'element_element eenc ON (ofe.rowid=eenc.fk_source AND eenc.sourcetype="tassetof" AND eenc.targettype="project_task" )';
+            $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'projet_task task ON (task.rowid=eenc.fk_target)';
+            $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'projet_task_extrafields taskext ON (task.rowid=taskext.fk_object)';
+        }
 
 	}
 
 	$sql.="  WHERE ofe.entity=".$conf->entity;
 
+    if($mode == 'non_compliant'){
+        if(!empty($conf->global->OF_WORKSTATION_NON_COMPLIANT)) $sql .= " AND taskext.fk_workstation IN (".$conf->global->OF_WORKSTATION_NON_COMPLIANT.")";
+        else setEventMessage($langs->trans('WarningMustSetConfOF_WORKSTATION_NON_COMPLIANT'),'warnings');
+    }
 	if($fk_soc>0) $sql.=" AND ofe.fk_soc=".$fk_soc;
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
 	if($fk_commande>0){
@@ -310,7 +319,12 @@ function _liste(&$PDOdb)
 
 	echo $form->hidden('action', '');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
+    if(!empty($mode)) echo $form->hidden('mode', $mode);
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
+
+    if($mode =='supplier_order') $title = $langs->trans('AssetProductionSupplierOrder');
+    if($mode =='non_compliant') $title = $langs->trans('ListOFAssetNonCompliant');
+    else $title = $langs->trans('ListOFAsset');
 
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
@@ -339,7 +353,7 @@ function _liste(&$PDOdb)
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
-			'titre'=>($mode =='supplier_order' ? $langs->trans('AssetProductionSupplierOrder') : $langs->trans('ListOFAsset'))
+			'titre'=>$title
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
