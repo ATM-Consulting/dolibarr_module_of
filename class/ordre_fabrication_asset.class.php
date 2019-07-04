@@ -3224,7 +3224,7 @@ class TAssetWorkstationOF extends TObjetStd{
             }
             else
             {
-                $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
+                $delta = (int) $this->nb_days_before_reapro; // non prise en compte de $this->nb_days_before_beginning car il est naturellement ajouté plus bas
                 $date_start_search = strtotime(' +'.$delta.' days', $OF->date_besoin); // TODO complètement incohérent de ce baser sur la date du besoin
             }
         }
@@ -3261,11 +3261,11 @@ class TAssetWorkstationOF extends TObjetStd{
                     }
                 }
 
-                if ($OF->getId() == 9137)
-                {
-                    var_dump($sql, $arr);
-                    exit;
-                }
+//                if ($OF->getId() == 9137)
+//                {
+//                    var_dump($sql, $arr);
+//                    exit;
+//                }
 
             }
 
@@ -3280,6 +3280,12 @@ class TAssetWorkstationOF extends TObjetStd{
                     $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
                     $date_start_search = strtotime(' +'.$delta.' days', $OF->date_besoin); // TODO complètement incohérent de ce baser sur la date du besoin
                 }
+            }
+
+            // Délai avant démarrage
+            if ($this->nb_days_before_beginning > 0)
+            {
+                $date_start_search = strtotime('+'.$this->nb_days_before_beginning.' days', $date_start_search);
             }
 
 

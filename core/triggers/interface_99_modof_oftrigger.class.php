@@ -388,7 +388,7 @@ class Interfaceoftrigger
         
         dol_include_once('/projet/class/task.class.php');
         
-        if(!empty($conf->of->enabled)) {
+        if(!empty($conf->of->enabled) && !empty($object->date_livraison)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
             dol_include_once('/of/class/ordre_fabrication_asset.class.php');
@@ -422,8 +422,6 @@ class Interfaceoftrigger
                                 $TExcludeTaskId[$tmpWsof->fk_project_task] = $tmpWsof->fk_project_task;
                             }
                         }
-
-                        $TWorkstationOfIdUpdated = array();
 
                         // Concat arrays with preserving keys
                         $TExcludeTaskId = $TExcludeTaskId + $TExcludeTaskIdCurrentOf;
