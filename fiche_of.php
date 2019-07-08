@@ -979,7 +979,8 @@ function _fiche_ligne(&$form, &$of, $type){
 function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 {
     global $conf,$langs;
-
+    $langs->load('assetatm@assetatm');
+    
     if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->{ ATM_ASSET_NAME }->enabled) ) return '';
 
     $TAsset = $assetOFLine->getAssetLinked($PDOdb);
@@ -997,7 +998,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     }
     foreach($TAsset as &$asset)
     {
-        $r .= $asset->getNomUrl(1, 1, 2);
+        $r .= $asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && strtotime($asset->dluo) < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');
 
         if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
         {
