@@ -141,7 +141,7 @@ if($object->id) {
                         dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1),
                         $commande,
                         'commande',
-                        '',
+                        '&id='.$object->id,
                         0,
                         $relativepathwithnofile,        // relative path with no file. For example "0/1"
                         0,
@@ -168,7 +168,7 @@ if($object->id) {
                 dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1),
                 $commande,
                 'commande',
-                '',
+                '&id='.$object->id,
                 0,
                 $relativepathwithnofile,        // relative path with no file. For example "0/1"
                 0,
@@ -200,7 +200,7 @@ if($object->id) {
                     dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1),
                     $product,
                     'product',
-                    '',
+                    '&id='.$object->id,
                     0,
                     $relativepathwithnofile,        // relative path with no file. For example "0/1"
                     0,
