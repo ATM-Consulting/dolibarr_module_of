@@ -8,7 +8,8 @@
 		switch ($type) {
 
 			case 'assetOF':
-				$head= array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
+				$head= array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche')
+                            , array(dol_buildpath('/of/document.php?id='.$asset->getId(),1), $langs->trans('Documents'),'document'));
 
 				break;
 
@@ -820,4 +821,41 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
 
     dol_syslog("functions2::get_next_value return ".$numFinal,LOG_DEBUG);
     return $numFinal;
+}
+
+function of_banner(TAssetOF $object) {
+    global $langs, $conf, $db;
+    $PDOdb = new TPDOdb;
+    $soc = new Societe($db);
+    $proj = new Project($db);
+    print '<div class="OFMaster" assetOf_id="'.$object->getId().'">
+
+			<table width="100%" class="border">
+
+				<tr><td width="20%">'.$langs->transnoentitiesnoconv('NumberOf').'</td><td>'.$object->getNumero($PDOdb).'</td></tr>
+				<tr rel="ordre">
+					<td>'.$langs->transnoentities('Ordre').'</td>
+					<td>'.$langs->trans($object->ordre).'</td>
+				</tr>';
+    if(!empty($object->fk_soc)){
+        $soc->fetch($object->fk_soc);
+        print '<tr rel="customer">
+					<td>' . $langs->transnoentities('Customer') . '</td>
+					<td>' . $soc->getNomUrl(1) . '</td>
+				</tr>';
+    }
+    if(!empty($object->fk_project)) {
+        $proj->fetch($object->fk_project);
+        print '<tr rel="customer">
+					<td>' . $langs->transnoentities('Project') . '</td>
+					<td>' . $proj->getNomUrl(1) . '</td>
+				</tr>';
+    }
+	print '</table>
+			</div></br>	'
+
+;
+
+
+
 }
