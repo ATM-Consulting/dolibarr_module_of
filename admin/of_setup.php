@@ -675,6 +675,9 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_KEEP_PRODUCT_DOCUMENTS');
 print '</td></tr>';
 
+setup_print_on_off('OF_SHOW_ORDER_DOCUMENTS');
+setup_print_on_off('OF_SHOW_PRODUCT_DOCUMENTS');
+
 print "</table>";
 
 
