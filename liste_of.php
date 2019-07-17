@@ -98,6 +98,12 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				$assetOf->fk_soc = $fk_soc;
 				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
 				$assetOf->save($PDOdb);
+
+                if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && !$oneOF && $assetOf->fk_commande > 0) {
+                    $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
+                    $assetOf->copyAllFiles($order_dir);
+                }
+
 				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
 					$TAsset = GETPOST('TAsset');
@@ -114,6 +120,10 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 			}
 		}
+        if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && $oneOF && $assetOf->fk_commande > 0) {
+            $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
+            $assetOf->copyAllFiles($order_dir);
+        }
 
 		setEventMessage($langs->trans('OFAssetCreated'), 'mesgs');
 	}
