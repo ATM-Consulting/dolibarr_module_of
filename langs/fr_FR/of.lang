@@ -356,4 +356,4 @@ OF_MANAGE_ORDER_LINK_BY_LINEDETAIL=Améliore la précision si l'of est créé li
 UpdateRank=Mettre à jour les rangs de priorisation
 WarningMustSetConfOF_WORKSTATION_NON_COMPLIANT=Veuillez définir les postes de travail utilisés pour la gestion des non-conformes dans la configuration du module
 OF_KEEP_ORDER_DOCUMENTS=Copier les documents (fichiers joints) de la commande lors de la conversion
-OF_KEEP_PRODUCT_DOCUMENTS=Copier les documents (fichiers joints) des produits lors de la conversion
+OF_KEEP_PRODUCT_DOCUMENTS=Copier les documents (fichiers joints) des produits lors de la conversion d'une commande en OF
