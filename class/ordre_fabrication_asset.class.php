@@ -1104,8 +1104,31 @@ class TAssetOF extends TObjetStd{
 			$this->set_current_cost_for_to_make();
 		}
 
+        if(!empty($conf->global->OF_KEEP_PRODUCT_DOCUMENTS) && !empty($fk_product)) {
+            $prod = new Product($db);
+            $prod->fetch($fk_product);
+
+            if(!empty($conf->product->enabled)) $product_dir = $conf->product->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+            else if(!empty($conf->service->enabled)) $product_dir = $conf->service->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+
+            $this->copyAllFiles($product_dir);
+        }
+
 		return $idAssetOFLine;
 	}
+
+    function copyAllFiles($dir) {
+        global $conf;
+        $PDOdb = new TPDOdb;
+        $upload_dir = $conf->of->multidir_output[$this->entity] . '/' . get_exdir(0, 0, 0, 0, $this, 'tassetof') . dol_sanitizeFileName($this->getNumero($PDOdb));
+        $TFiles = dol_dir_list($dir);
+        if(!empty($TFiles)) {
+            foreach($TFiles as $file) {
+                if(!is_dir($upload_dir)) dol_mkdir($upload_dir);
+                dol_copy($file['fullname'], $upload_dir . '/' . $file['name']);
+            }
+        }
+    }
 
 	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0)
 	{
