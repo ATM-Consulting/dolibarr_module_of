@@ -98,6 +98,22 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				$assetOf->fk_soc = $fk_soc;
 				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
 				$assetOf->save($PDOdb);
+
+                if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && !$oneOF && $assetOf->fk_commande > 0) {
+                    $upload_dir = $conf->of->multidir_output[$assetOf->entity] . '/' . get_exdir(0, 0, 0, 0, $assetOf, 'tassetof') . dol_sanitizeFileName($assetOf->numero);
+                    $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
+                    _copyAllFiles($order_dir, $upload_dir);
+                }
+                if(!empty($conf->global->OF_KEEP_PRODUCT_DOCUMENTS) && !empty($fk_product)) {
+                    $prod = new Product($db);
+                    $prod->fetch($fk_product);
+                    $upload_dir = $conf->of->multidir_output[$assetOf->entity] . '/' . get_exdir(0, 0, 0, 0, $assetOf, 'tassetof') . dol_sanitizeFileName($assetOf->numero);
+
+                    if(!empty($conf->product->enabled)) $product_dir = $conf->product->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+                    else if(!empty($conf->service->enabled)) $product_dir = $conf->service->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+
+                    _copyAllFiles($product_dir, $upload_dir);
+                }
 				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
 					$TAsset = GETPOST('TAsset');
@@ -114,10 +130,25 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 			}
 		}
+        if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && $oneOF) {
+            $upload_dir = $conf->of->multidir_output[$assetOf->entity] . '/' . get_exdir(0, 0, 0, 0, $assetOf, 'tassetof') . dol_sanitizeFileName($assetOf->numero);
+            $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
+            _copyAllFiles($order_dir, $upload_dir);
+        }
 
 		setEventMessage($langs->trans('OFAssetCreated'), 'mesgs');
 	}
 
+}
+
+function _copyAllFiles($dir, $upload_dir) {
+    $TFiles = dol_dir_list($dir);
+    if(!empty($TFiles)) {
+        foreach($TFiles as $file) {
+            if(!is_dir($upload_dir)) dol_mkdir($upload_dir);
+            dol_copy($file['fullname'], $upload_dir . '/' . $file['name']);
+        }
+    }
 }
 
 function _liste(&$PDOdb)
