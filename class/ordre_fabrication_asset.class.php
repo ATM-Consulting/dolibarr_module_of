@@ -1703,8 +1703,7 @@ class TAssetOF extends TObjetStd{
 
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf of";
-		$sql.= " INNER JOIN ".MAIN_DB_PREFIX."element_element ee ON (of.rowid = ee.fk_source AND ee.sourcetype = 'ordre_fabrication' AND ee.targettype = 'order_supplier')";
-		$sql.= " WHERE ee.fk_target = ".$id_command;
+		$sql.= " WHERE fk_commande = ".$id_command;
 		$resql = $db->query($sql);
 
 		while($res = $db->fetch_object($resql)) {
