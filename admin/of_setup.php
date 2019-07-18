@@ -659,6 +659,25 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_CLOSE_OF_ON_CLOSE_ALL_TASK');
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_KEEP_ORDER_DOCUMENTS').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_KEEP_ORDER_DOCUMENTS');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_KEEP_PRODUCT_DOCUMENTS').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_KEEP_PRODUCT_DOCUMENTS');
+print '</td></tr>';
+
+setup_print_on_off('OF_SHOW_ORDER_DOCUMENTS');
+setup_print_on_off('OF_SHOW_PRODUCT_DOCUMENTS');
+
 print "</table>";
 
 print '<table class="noborder" width="100%">';
