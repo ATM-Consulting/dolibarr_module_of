@@ -398,6 +398,19 @@ class modof extends DolibarrModules
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
+        $this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+                                  'type'=>'left',			// This is a Top menu entry
+                                  'titre'=>'ShippablePrevReport',
+                                  'mainmenu'=>'of',
+                                  'leftmenu'=>'',
+                                  'url'=>'/of/shipable_prev.php',
+                                  'position'=>310+$r,
+                                  'enabled'=>'',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                                  'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                                  'target'=>'',
+                                  'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+        $r++;
+
 
 		// Add here entries to declare new menus
 		//
@@ -477,6 +490,9 @@ class modof extends DolibarrModules
 
         $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
+
+        $extrafields=new ExtraFields($this->db);
+        $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
 		// template
 		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
