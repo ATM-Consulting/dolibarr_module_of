@@ -52,7 +52,7 @@ if($id > 0 || !empty($ref)) {
 
     $upload_dir = $conf->of->multidir_output[$object->entity] . '/' . get_exdir(0, 0, 0, 0, $object, 'tassetof') . dol_sanitizeFileName($object->ref);
 }
-$modulepart = 'tassetof';
+$modulepart = 'of';
 
 /*
  * Actions
