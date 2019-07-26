@@ -2757,6 +2757,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fk_project = $OF->fk_project;
 		$projectTask->ref = $modTask->getNextValue(0, $projectTask);
 		$projectTask->label = $ws->libelle;
+		$projectTask->description = $this->note_private;
 
         if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
 
@@ -2834,6 +2835,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
+		$projectTask->description = $this->note_private;
 
 		if($projectTask->planned_workload<=0)  $projectTask->planned_workload = $this->nb_hour*3600;
 
