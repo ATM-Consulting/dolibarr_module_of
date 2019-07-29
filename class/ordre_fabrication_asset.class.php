@@ -1926,8 +1926,7 @@ class TAssetOF extends TObjetStd{
 
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf of";
-		$sql.= " INNER JOIN ".MAIN_DB_PREFIX."element_element ee ON (of.rowid = ee.fk_source AND ee.sourcetype = 'ordre_fabrication' AND ee.targettype = 'order_supplier')";
-		$sql.= " WHERE ee.fk_target = ".$id_command;
+		$sql.= " WHERE fk_commande = ".$id_command;
 		$resql = $db->query($sql);
 
 		while($res = $db->fetch_object($resql)) {
@@ -3033,6 +3032,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fk_project = $OF->fk_project;
 		$projectTask->ref = $modTask->getNextValue(0, $projectTask);
 		$projectTask->label = $ws->libelle;
+		$projectTask->description = $this->note_private;
 
         if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
 
@@ -3124,6 +3124,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
+		$projectTask->description = $this->note_private;
 
         if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
             $projectTask->planned_workload += $this->nb_hour * 3600;
