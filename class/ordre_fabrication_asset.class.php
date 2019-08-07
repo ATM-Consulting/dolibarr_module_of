@@ -3338,7 +3338,7 @@ class TAssetWorkstationOF extends TObjetStd{
                 $parentTask = new Task($projectTask->db);
                 if ($parentTask->fetch($projectTask->fk_task_parent) > 0)
                 {
-                    $date_end = strtotime(date('Y-m-d 00:00:00', $parentTask->date_end));
+                    $date_end = strtotime(date('Y-m-d 00:00:00', $parentTask->date_end).' +1 day');
                     if ($date_start_search < $date_end) $date_start_search = $date_end;
                 }
             }
