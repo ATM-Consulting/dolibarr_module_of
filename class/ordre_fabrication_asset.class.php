@@ -196,15 +196,17 @@ class TAssetOF extends TObjetStd{
 		/** @var TAssetOF[] $TOf */
 		$TOf = array();
 
-		$TIdOfEnfant = array();
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false
-		krsort($TIdOfEnfant);
+//		$TIdOfEnfant = array();
+//		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false
+//		krsort($TIdOfEnfant);
+//
+//		foreach ($TIdOfEnfant as $i => $id_of)
+//		{
+//			$TOf[$i] = new TAssetOF;
+//			$TOf[$i]->load($PDOdb, $id_of);
+//		}
 
-		foreach ($TIdOfEnfant as $i => $id_of)
-		{
-			$TOf[$i] = new TAssetOF;
-			$TOf[$i]->load($PDOdb, $id_of);
-		}
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
 
 		$TOf[] = &$this;
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
@@ -481,6 +483,26 @@ class TAssetOF extends TObjetStd{
             , array('rowid')
         );
     }
+
+	/**
+	 * Permet de mettre à jour l'attribut date_besoin
+	 * S'il est chargé, alors l'update en BDD est faite aussi
+	 * @param $PDOdb
+	 * @param $time
+	 * @return bool
+	 */
+	public function updateDateBesoin($PDOdb, $time)
+	{
+		$this->date_besoin = $time;
+
+		if ($this->getId() <= 0) return false;
+
+		return $PDOdb->dbupdate(
+			$this->get_table()
+			, array('date_besoin' => date('Y-m-d', $time), 'rowid' => $this->getId())
+			, array('rowid')
+		);
+	}
 
     /**
      * Permet de calculer la date de lancement de l'OF lors de sa validation
@@ -3412,6 +3434,13 @@ class TAssetWorkstationOF extends TObjetStd{
             $res_date_start = $date_start_search;
             $res_date_end = $projectTask->date_start + $this->nb_hour * 3600;
         }
+
+        // INFO ceci devrait être dans la méthode validate() de l'objet OF juste après le save(), mais comme on calcul correctement les dates ici je suis obligé de faire ça là
+		$date_besoin_for_children = strtotime('-1 day', $OF->date_lancement);
+		foreach ($OF->TAssetOF as $childOf)
+		{
+			$res = $childOf->updateDateBesoin($PDOdb, $date_besoin_for_children);
+		}
 
         return array('date_start' => $res_date_start, 'date_end' => $res_date_end);
     }
