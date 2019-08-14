@@ -3436,6 +3436,7 @@ class TAssetWorkstationOF extends TObjetStd{
         }
 
         // INFO ceci devrait être dans la méthode validate() de l'objet OF juste après le save(), mais comme on calcul correctement les dates ici je suis obligé de faire ça là
+		// TODO je ne prends pas en compte si on tombe sur un jour non travaillé (exemple : un dimanche)
 		$date_besoin_for_children = strtotime('-1 day', $OF->date_lancement);
 		foreach ($OF->TAssetOF as $childOf)
 		{
