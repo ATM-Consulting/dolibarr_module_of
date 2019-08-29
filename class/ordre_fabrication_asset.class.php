@@ -55,8 +55,12 @@ class TAssetOF extends TObjetStd{
  	public $date_end;
  	public $note;
 
+ 	public $PDOdb;
+
 	function __construct() {
 	    global $conf;
+
+	    $this->PDOdb = new TPDOdb;
 
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
@@ -246,7 +250,8 @@ class TAssetOF extends TObjetStd{
 				$of->unsetChildDeleted = true;
 
 				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
-				$of->TAssetOF= array();
+				$TAssetOF_tmp = $of->TAssetOF;
+                $of->TAssetOF= array();
 
 				foreach ($of->TAssetOFLine as $k => &$ofLine)
 				{
@@ -286,13 +291,108 @@ class TAssetOF extends TObjetStd{
 				}
 
 				$of->save($PDOdb);
+                $of->TAssetOF = $TAssetOF_tmp;
 			}
-			//exit('la');
+
+            if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK))
+            {
+                $fk_task_last = $this->applyHirarchyOnTask(); // création des liens parent/enfant entre les tâches
+                $this->calculTaskDates(); // calcul des dates pour respecter l'enchainement des dates
+            }
+
 			return 1;
 		}
 
 		return -1;
 	}
+
+    /**
+     * @param  int|null    $fk_task_prev
+     * @return int|null     null if nothing, >0 to get the last task id
+     */
+	public function applyHirarchyOnTask($fk_task_prev = null, $recursivity = true)
+    {
+        global $db, $user;
+
+        // TODO faire la gestion des erreurs
+        /** @var TAssetWorkstationOf $workstationOf */
+        $TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+        foreach ($TAssetWorkstationOFReverse as $workstationOf)
+        {
+            if (!isset($workstationOf->projectTask) && !empty($workstationOf->fk_project_task))
+            {
+                $workstationOf->projectTask = new Task($db);
+                $workstationOf->projectTask->fetch($workstationOf->fk_project_task);
+            }
+
+            if (empty($workstationOf->projectTask->id))
+            {
+                continue; // Pas de liaison avec une tâche, probablement dû au fait qu'il n'ait pas de liaison avec un workstation
+            }
+
+            if ($fk_task_prev !== null)
+            {
+                $workstationOf->projectTask->fk_task_parent = $fk_task_prev;
+                $workstationOf->projectTask->update($user);
+            }
+
+            $fk_task_prev = $workstationOf->projectTask->id;
+        }
+
+        if ($recursivity && !empty($this->TAssetOF))
+        {
+            foreach ($this->TAssetOF as $childOf)
+            {
+                $childOf->applyHirarchyOnTask($fk_task_prev);
+            }
+        }
+
+        return $fk_task_prev;
+    }
+
+    // TODO faire la gestion des erreurs
+    public function calculTaskDates()
+    {
+        global $db, $user;
+
+        $last_date_end = null;
+
+        if (!empty($this->TAssetOF))
+        {
+            $TAssetOfReverse = array_reverse($this->TAssetOF);
+            foreach ($TAssetOfReverse as $assetOf)
+            {
+                $last_date_end = $assetOf->calculTaskDates();
+            }
+        }
+
+//        $TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+        foreach ($this->TAssetWorkstationOF as $workstationOf)
+        {
+            if (!isset($workstationOf->ws) && !empty($workstationOf->fk_asset_workstation))
+            {
+                $workstationOf->ws = new TAssetWorkstationOF();
+                $workstationOf->ws->load($this->PDOdb, $workstationOf->fk_asset_workstation);
+            }
+            if (!isset($workstationOf->projectTask) && !empty($workstationOf->fk_project_task))
+            {
+                $workstationOf->projectTask = new Task($db);
+                $workstationOf->projectTask->fetch($workstationOf->fk_project_task);
+            }
+
+            if (!empty($workstationOf->ws->id) && !empty($workstationOf->projectTask->id))
+            {
+                $TDate = $workstationOf->calculTaskDates($this->PDOdb, $this, $workstationOf->ws, $workstationOf->projectTask, $last_date_end);
+                $workstationOf->projectTask->date_start = $TDate['date_start'];
+                $workstationOf->projectTask->date_end = $TDate['date_end'];
+
+                $last_date_end = $TDate['date_end'];
+                $workstationOf->projectTask->update($user);
+            }
+        }
+
+        return $last_date_end;
+    }
 
 	function create_new_project() {
 
@@ -3186,29 +3286,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->ref = $modTask->getNextValue(0, $projectTask);
 		$projectTask->label = $ws->libelle;
 
-        if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
-
-        	$TIdOf = array($this->fk_assetOf);
-        	$OF->getListeOFEnfants($PDOdb,$TIdOf);
-        	krsort($TIdOf);
-            if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
-
-                $resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
-                FROM " . MAIN_DB_PREFIX . "projet_task t LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
-                WHERE t.fk_projet=" . $OF->fk_project . " AND ee.fk_source IN (" . implode(',', $TIdOf) . ")");
-
-            }else {
-                $resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
-                FROM " . MAIN_DB_PREFIX . "projet_task t LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (t.rowid=tex.fk_object)
-                WHERE t.fk_projet=" . $OF->fk_project . " AND tex.fk_of IN (" . implode(',', $TIdOf) . ")");
-            }
-        	$objTask = $db->fetch_object($resIdTask);
-        	$projectTask->fk_task_parent = (int)$objTask->rowid;
-
-        }
-        else {
-            $projectTask->fk_task_parent = 0;
-        }
+        $projectTask->fk_task_parent = 0;
 
 		$projectTask->planned_workload = $this->nb_hour*3600;
 
@@ -3243,9 +3321,14 @@ class TAssetWorkstationOF extends TObjetStd{
 			$projectTask->array_options['options_fk_product']=$p->id;
 		}
 
-        $TDate = $this->calculTaskDates($PDOdb, $OF, $ws, $projectTask);
-        $projectTask->date_start = $TDate['date_start'];
-        $projectTask->date_end = $TDate['date_end'];
+        // Si cette conf est disable alors oui, on calcul les dates, autrement non car ce sera fait au niveau de la méthode 'validate' de l'objet OF
+        if(empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK))
+        {
+            // TODO vérifier que le calcul des dates soit cohérent
+            $TDate = $this->calculTaskDates($PDOdb, $OF, $ws, $projectTask);
+            $projectTask->date_start = $TDate['date_start'];
+            $projectTask->date_end = $TDate['date_end'];
+        }
 
         $res = $projectTask->create($user);
 
@@ -3257,6 +3340,8 @@ class TAssetWorkstationOF extends TObjetStd{
         else{
             $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
             $this->fk_project_task = $projectTask->id;
+            $this->projectTask = $projectTask;
+            $this->ws = $ws;
         }
 
 		$this->updateAssociation($PDOdb, $db, $projectTask);
@@ -3334,6 +3419,7 @@ class TAssetWorkstationOF extends TObjetStd{
             $date_start_search = $OF->getMaxDateEndOnChildrenOf();
             if ($date_start_search === false)
             {
+//                var_dump($OF->ref, $OF->getId(), $OF->date_lancement, $this->nb_days_before_reapro);exit;
                 if (!empty($OF->date_lancement))
                 {
                     $date_start_search = $OF->date_lancement; // Ici la date de lancement doit déjà prendre en compte le temps de réapro
@@ -3355,15 +3441,15 @@ class TAssetWorkstationOF extends TObjetStd{
         if (!empty($conf->workstation->enabled))
         {
             // TODO mériterait un peu d'otpimisation en passant en param le timestamp de la date de fin de la tâche parente directement plutôt que de le fetcher ici
-            if ($projectTask->fk_task_parent > 0)
-            {
-                $parentTask = new Task($projectTask->db);
-                if ($parentTask->fetch($projectTask->fk_task_parent) > 0)
-                {
-                    $date_end = strtotime(date('Y-m-d 00:00:00', $parentTask->date_end).' +1 day');
-                    if ($date_start_search < $date_end) $date_start_search = $date_end;
-                }
-            }
+//            if ($projectTask->fk_task_parent > 0)
+//            {
+//                $parentTask = new Task($projectTask->db);
+//                if ($parentTask->fetch($projectTask->fk_task_parent) > 0)
+//                {
+//                    $date_end = strtotime(date('Y-m-d 00:00:00', $parentTask->date_end).' +1 day');
+//                    if ($date_start_search < $date_end) $date_start_search = $date_end;
+//                }
+//            }
 
             // Délai avant démarrage dans une variable pour décrément
             if ($this->nb_days_before_beginning > 0)
