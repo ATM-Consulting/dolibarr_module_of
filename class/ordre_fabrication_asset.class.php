@@ -192,6 +192,22 @@ class TAssetOF extends TObjetStd{
 		return true;
 	}
 
+	public function getListChildrenOf()
+    {
+        if (!empty($this->TAssetOF)) $TChildren = $this->TAssetOF;
+        else $TChildren = array();
+
+        $TSubChildren = array();
+        foreach ($TChildren as $childOf)
+        {
+            $TSubChildren = $childOf->getListChildrenOf();
+        }
+
+        $TChildren = array_merge($TChildren, $TSubChildren);
+
+        return $TChildren;
+    }
+
 	function validate(&$PDOdb) {
 
 		global $conf,$langs;
@@ -210,7 +226,8 @@ class TAssetOF extends TObjetStd{
 //			$TOf[$i]->load($PDOdb, $id_of);
 //		}
 
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
+//		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->getListChildrenOf();
 
 		$TOf[] = &$this;
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
