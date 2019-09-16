@@ -2246,7 +2246,11 @@ class TAssetOF extends TObjetStd{
 
 	}
 
-	public function getMaxDateEndOnChildrenOf()
+    /**
+     * @param TPDOdb $PDOdb
+     * @return bool|int|string
+     */
+	public function getMaxDateEndOnChildrenOf($PDOdb)
     {
         global $db;
 
@@ -3399,6 +3403,32 @@ class TAssetWorkstationOF extends TObjetStd{
 		$this->updateAssociation($PDOdb, $db, $projectTask);
 	}
 
+	public function getMaxDateEndOnChildrenTask($projectTask)
+    {
+        global $db;
+
+        $result = null;
+
+        $sql = 'SELECT MAX(t.datee) as datee FROM '.MAIN_DB_PREFIX.'projet_task t';
+        $sql.= ' WHERE fk_task_parent = '.$projectTask->id;
+
+        $resql = $db->query($sql);
+        if ($resql)
+        {
+            if (($arr = $db->fetch_array($resql)))
+            {
+                $result = $db->jdate($arr['datee']);
+            }
+        }
+        else
+        {
+            $this->error = $db->lasterror();
+            $this->errors[] = $this->error;
+        }
+
+        return $result;
+    }
+
     /**
      * @param      $PDOdb
      * @param TAssetOf     $OF
@@ -3416,10 +3446,9 @@ class TAssetWorkstationOF extends TObjetStd{
 
         if ($date_start_search === null)
         {
-            $date_start_search = $OF->getMaxDateEndOnChildrenOf();
-            if ($date_start_search === false)
+            $date_start_search = $this->getMaxDateEndOnChildrenTask($projectTask);
+            if (empty($date_start_search))
             {
-//                var_dump($OF->ref, $OF->getId(), $OF->date_lancement, $this->nb_days_before_reapro);exit;
                 if (!empty($OF->date_lancement))
                 {
                     $date_start_search = $OF->date_lancement; // Ici la date de lancement doit déjà prendre en compte le temps de réapro
@@ -3437,6 +3466,12 @@ class TAssetWorkstationOF extends TObjetStd{
                 if ($OF->date_lancement != $date_start_search) $OF->updateDateLancement($PDOdb, $date_start_search);
             }
         }
+        else
+        {
+            $date_start_search = strtotime('+1 day', $date_start_search);
+        }
+
+        $date_start_search = strtotime('midnight', $date_start_search);
 
         if (!empty($conf->workstation->enabled))
         {
@@ -3528,6 +3563,8 @@ class TAssetWorkstationOF extends TObjetStd{
 		{
 			$res = $childOf->updateDateBesoin($PDOdb, $date_besoin_for_children);
 		}
+
+        $res_date_end = strtotime(date('Y-m-d 23:59:59', $res_date_end));
 
         return array('date_start' => $res_date_start, 'date_end' => $res_date_end);
     }
