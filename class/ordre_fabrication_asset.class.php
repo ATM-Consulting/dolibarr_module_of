@@ -2174,7 +2174,6 @@ class TAssetOFLine extends TObjetStd{
 					if($mouvement == 'destockage')  {
 						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
 							$qty_asset_to_stock=$asset->contenancereel_value;
-							
 							if($i+1 == $nb_asset) {
 								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
 							}
@@ -2183,7 +2182,8 @@ class TAssetOFLine extends TObjetStd{
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
 						else {
-							$qty_asset_to_stock = $qty_to_stock_rest;
+							if($nb_asset-$i > 0) $qty_asset_to_stock = $qty_to_stock_rest/($nb_asset-$i);
+							else $qty_asset_to_stock = $qty_to_stock_rest;
 						}
 					}
 					else {
