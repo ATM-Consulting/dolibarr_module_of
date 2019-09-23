@@ -472,7 +472,7 @@ class Interfaceoftrigger
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
                             WHERE ee.fk_source = " .$fk_of  . " AND (t.progress<100 OR t.progress IS NULL) AND t.rowid !=".$task->id;
         }
-		print_r($sql);exit;
+
         $res = $db->query($sql);
         if($res === false) {
 
