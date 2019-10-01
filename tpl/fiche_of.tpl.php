@@ -12,7 +12,7 @@
 </style>
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">
 		<form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
-				<input type="hidden" value="save" name="action">
+				<input type="hidden" value="[view.action]" name="action">
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">
 				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">
 				<input type="hidden" value="[assetOf.id]" name="id">
@@ -75,25 +75,8 @@
 
 				[onshow;block=end]
 				<tr rel="status">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Status)]</td>
-					<td class="editableField">[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
-					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
-						<span class="viewmode notinparentview">
-
-
-						[onshow;block=begin;when [view.status]=='DRAFT']
-							,[view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('[view.langs.transnoentities(ValidateManufacturingOrder)]')) { submitForm([assetOf.id],'valider'); }" class="butAction" name="valider" value="[view.langs.transnoentities(Validate)]">
-						[onshow;block=end]
-						[onshow;block=begin;when [view.status]=='VALID']
-							, [view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('[view.langs.transnoentities(StartManufacturingOrder)]')) { submitForm([assetOf.id],'lancer'); }" class="butAction" name="lancer" value="[view.langs.transnoentities(ProductionInProgress)]">
-						[onshow;block=end]
-						[onshow;block=begin;when [view.status]=='OPEN']
-							, [view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('[view.langs.transnoentities(FinishManufacturingOrder)]')) { submitForm([assetOf.id],'terminer'); }" class="butAction" name="terminer" value="[view.langs.transnoentities(Finish)]">
-							<!-- <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication ?');" class="butAction">Terminer</a> -->
-						[onshow;block=end]
-					[onshow;block=end]
-					</span>
-					</td>
+					<td>[view.langs.transnoentities(Status)][view.editFieldStatus;strconv=no]</td>
+					<td>[assetOf.status;strconv=no]</td>
 				</tr>
 
 				<tr rel="note">

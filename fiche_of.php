@@ -32,6 +32,8 @@ $hookmanager->initHooks(array('ofcard'));
 
 $PDOdb=new TPDOdb;
 $assetOf=new TAssetOF;
+
+$quicksave= GETPOST('quicksave');
 $id = GETPOST('id', 'int');
 if (!empty($id))
 {
@@ -1013,7 +1015,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 }
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenclature=0) {
-	global $langs,$db,$conf,$user,$hookmanager;
+	global $langs,$db,$conf,$user,$hookmanager,$quicksave;
 	/***************************************************
 	* PAGE
 	*
@@ -1253,6 +1255,30 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
     }
     else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
 
+    // EDITION RAPIDE DU STATUT
+    $statusHtml = $TTransStatus[$assetOf->status];
+    if($quicksave=='status'){
+    	$formTypAff=$form->type_aff; // save
+    	$form->type_aff = 'edit'; // force mode
+    	$statusHtml = $form->combo('','status',$TTransStatus,$assetOf->status);
+    	$statusHtml.= '<input class="button" value="'.$langs->trans('Modify').'" type="submit">';
+    	$statusHtml.= '<a class="button" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'" >'.$langs->trans('Cancel').'</a>';
+    	$form->type_aff=$formTypAff; // restore
+    	$statusHtml.="<script>$(document).ready(function() { $('a.quickEditButton').hide();});</script>";
+    }
+    elseif($mode == 'view'){
+    	$textSetTo = ' <i class="fa fa-arrow-right"></i> ' . $langs->trans('SetStateTo').' : ';
+    	if($assetOf->status == 'DRAFT'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\'[view.langs.transnoentities(ValidateManufacturingOrder)]\')) { submitForm([assetOf.id],\'valider\'); }" class="butAction" name="valider" value="'.$langs->trans('Validate').'">';
+		}elseif($assetOf->status == 'VALID'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\'[view.langs.transnoentities(StartManufacturingOrder)]\')) { submitForm([assetOf.id],\'lancer\'); }" class="butAction" name="lancer" value="'.$langs->trans('ProductionInProgress').'">';
+		}elseif($assetOf->status == 'OPEN'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\'[view.langs.transnoentities(FinishManufacturingOrder)]\')) { submitForm([assetOf.id],\'terminer\'); }" class="butAction" name="terminer" value="'.$langs->trans('Finish').'">';
+		}
+    }
+
+
+
 	print $TBS->render('tpl/fiche_of.tpl.php'
 		,array(
 			'TNeeded'=>$TNeeded
@@ -1280,7 +1306,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 					,'quantity_to_create'=>$quantity_to_create
 					,'product_to_create'=>$link_product_to_add
 
-					,'status'=>$form->combo('','status',$TTransStatus,$assetOf->status)
+					,'status'=>$statusHtml
 					,'statustxt'=>$TTransStatus[$assetOf->status]
 					,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
 					,'url' => dol_buildpath('/of/fiche_of.php', 1)
@@ -1304,6 +1330,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			)
 			,'view'=>array(
 				'mode'=>$mode
+				,'action' => !empty($quicksave)?'quick-save':'save'
 				,'status'=>$assetOf->status
 				,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
 				,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
@@ -1324,6 +1351,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'show_cost'=>(int)$user->rights->of->of->price
 				,'langs'=>$langs
 				,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
+				,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
 				,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
 			)
 			,'rights'=>array(
