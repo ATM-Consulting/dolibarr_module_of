@@ -509,7 +509,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 	    // numéroOF_nom ou id du poste
 	    $code = $assetOf->numero . "_" . $v->id ;
-	    
+
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
 			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
@@ -570,8 +570,8 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 	if(defined('MAIN_INFO_SOCIETE_LOGO')){
 	    $logo = DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO;
 	}
-	 
-	
+
+
 	$file_path = $TBS->render($locationTemplate
 		,array(
 			'lignesToMake'=>$TToMake
@@ -686,27 +686,27 @@ function getBarCode($code='') {
     global $conf,$db;
     $modulepart = 'barcode';
     $generator='tcpdfbarcode';
-    
+
     $encoding='C128';
-    
+
     $readable="Y";
-        
+
     $dirbarcode=array_merge(array("/core/modules/barcode/doc/"),$conf->modules_parts['barcode']);
-        
+
     $result='';
-        
+
     foreach($dirbarcode as $reldir)
     {
         $dir=dol_buildpath($reldir,0);
         $newdir=dol_osencode($dir);
-        
+
         // Check if directory exists (we do not use dol_is_dir to avoid loading files.lib.php)
         if (! is_dir($newdir)) continue;
-        
+
         $result=@include_once $newdir.$generator.'.modules.php';
         if ($result) break;
     }
-        
+
     // Load barcode class
     $classname = "mod".ucfirst($generator);
     $module = new $classname($db);
@@ -717,7 +717,7 @@ function getBarCode($code='') {
             return $conf->barcode->dir_temp.'/barcode_'.$code.'_'.$encoding.'.png';
         }
     }
-    
+
     return '';
 }
 
@@ -1039,7 +1039,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			-webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.52);
 			-moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.52);
 			box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.52);
-            
+
             padding:5px; // Visualisation améliorée
 			margin-bottom:20px;
 		}
@@ -1101,15 +1101,15 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
 		}
 	}
-	
+
 	$select_product = '';
 	if (empty($_REQUEST['fk_product']))
 	{
 		ob_start();
 		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,0,0,'minwidth300');
-		$select_product = ob_get_clean();	
+		$select_product = ob_get_clean();
 	}
-	
+
 	$Tid = array();
 	//$Tid[] = $assetOf->rowid;
 	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
@@ -1211,11 +1211,11 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
     elseif($mode == 'view'){
     	$textSetTo = ' <i class="fa fa-arrow-right"></i> ' . $langs->trans('SetStateTo').' : ';
     	if($assetOf->status == 'DRAFT'){
-    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\'[view.langs.transnoentities(ValidateManufacturingOrder)]\')) { submitForm([assetOf.id],\'valider\'); }" class="butAction" name="valider" value="'.$langs->trans('Validate').'">';
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('ValidateManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'valider\'); }" class="butAction" name="valider" value="'.$langs->trans('Validate').'">';
 		}elseif($assetOf->status == 'VALID'){
-    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\'[view.langs.transnoentities(StartManufacturingOrder)]\')) { submitForm([assetOf.id],\'lancer\'); }" class="butAction" name="lancer" value="'.$langs->trans('ProductionInProgress').'">';
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('StartManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'lancer\'); }" class="butAction" name="lancer" value="'.$langs->trans('ProductionInProgress').'">';
 		}elseif($assetOf->status == 'OPEN'){
-    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\'[view.langs.transnoentities(FinishManufacturingOrder)]\')) { submitForm([assetOf.id],\'terminer\'); }" class="butAction" name="terminer" value="'.$langs->trans('Finish').'">';
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('FinishManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'terminer\'); }" class="butAction" name="terminer" value="'.$langs->trans('Finish').'">';
 		}
     }
 
@@ -1310,7 +1310,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 function calc_mini_tu1($FieldName,&$CurrVal,&$CurrPrm,&$TBS)
 {
 	global $conf;
-	
+
 	$CurrVal = $CurrVal * $conf->global->OF_COEF_MINI_TU_1;
 }
 
