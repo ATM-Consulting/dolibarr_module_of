@@ -35,14 +35,19 @@ $assetOf=new TAssetOF;
 
 $quicksave= GETPOST('quicksave');
 $id = GETPOST('id', 'int');
+$action = GETPOST('action');
 if (!empty($id))
 {
 	$assetOf->load($PDOdb, $id);
 	if ($assetOf->entity != $conf->entity) accessforbidden();
 }
 
+$parameters = array('of' => $assetOf, 'id' => $id);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $assetOf, $action); // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
 // Get parameters
-_action();
+if (empty($reshook)) _action();
 
 // Protection if external user
 if ($user->societe_id > 0)
@@ -1027,9 +1032,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 
 	}
-
-	$parameters = array('id'=>$assetOf->getId());
-	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+// 	Un doActions après avoir éxécuté les actions ...
+//	$parameters = array('id'=>$assetOf->getId());
+//	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
