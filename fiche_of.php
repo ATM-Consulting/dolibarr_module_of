@@ -1005,7 +1005,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     }
     foreach($TAsset as &$asset)
     {
-        $r .= "<br />".$asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && strtotime($asset->dluo) < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');
+        $r .= "<br />".$asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && $asset->dluo < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');
 
         if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
         {
