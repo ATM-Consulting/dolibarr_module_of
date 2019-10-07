@@ -29,6 +29,7 @@
 		case 'printTicket':
 			_printTicket($PDOdb);
 		default:
+			set_time_limit(0);
 			_liste($PDOdb);
 			break;
 	}
