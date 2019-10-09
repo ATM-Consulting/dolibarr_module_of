@@ -584,6 +584,7 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_SHOW_WS_IN_LIST');
 print '</td></tr>';
 
+setup_print_on_off('OF_REAL_HOUR_CAN_BE_EMPTY', $langs->trans('OF_REAL_HOUR_CAN_BE_EMPTY'));
 
 print '</table>';
 
