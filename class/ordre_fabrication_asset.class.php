@@ -2168,6 +2168,7 @@ class TAssetOFLine extends TObjetStd{
             else{
 
 				$nb_asset = count($TAsset); $i=0;
+
                 foreach($TAsset as $asset)
                 {
 					$qty_asset_to_stock=0;
@@ -2474,11 +2475,28 @@ class TAssetOFLine extends TObjetStd{
 	            }
 	        }
 
+	        if (!empty($conf->global->OF_REORDER_LINKED_ASSET_BY_DLU))
+			{
+				usort($Tab, array($this, 'reoderLinkedAssetsByDlu'));
+			}
+
 			return $Tab;
 		}
 
         return array();
     }
+
+	function reoderLinkedAssetsByDlu(&$a,&$b) {
+
+		if($a->dluo < $b->dluo) {
+			return -1;
+		}
+		else if($a->dluo > $b->dluo) {
+			return 1;
+		}
+		else return 0;
+
+	}
 
     function addAssetLink(&$asset)
     {
