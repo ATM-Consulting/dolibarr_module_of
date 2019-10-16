@@ -2313,7 +2313,23 @@ class TAssetOFLine extends TObjetStd{
 
 		if ($conf->global->USE_LOT_IN_OF)
 		{
-			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+			if (!empty($conf->global->OF_CONCAT_MULTIPLE_LOT) && $this->type == 'NEEDED')
+			{
+				$TAsset = $this->getAssetLinked($PDOdb);
+
+				if (!empty($TAsset))
+				{
+					$tempTab = array();
+					foreach ($TAsset as $asset)
+					{
+						$tempTab[] = $asset->lot_number;
+					}
+
+					$sql.= ' AND lot_number in ("'.implode('","', $tempTab) .'")';
+				}
+
+			}
+			else $sql .= ' AND lot_number = "'.$this->lot_number.'"';
 		}
 
 		$sql.= $completeSql;
