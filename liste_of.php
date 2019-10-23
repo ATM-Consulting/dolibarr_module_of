@@ -19,23 +19,35 @@
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
 
-	switch ($action)
-	{
-		case 'createOFCommande':
-			set_time_limit(0);
-			_createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
-			_liste($PDOdb);
-			break;
-        case 'setRank':
-			_setAllRank($PDOdb, GETPOST('of_rank'), GETPOST('old_of_rank'));
-			_liste($PDOdb);
-			break;
-		case 'printTicket':
-			_printTicket($PDOdb);
-		default:
-			_liste($PDOdb);
-			break;
-	}
+    $hookmanager->initHooks(array('listof'));
+
+    $object = '';
+
+    $parameters=array();
+    $reshook=$hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
+    if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+    if (empty($reshook))
+    {
+        switch ($action)
+        {
+            case 'createOFCommande':
+                set_time_limit(0);
+                _createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
+                _liste($PDOdb);
+                break;
+            case 'setRank':
+                _setAllRank($PDOdb, GETPOST('of_rank'), GETPOST('old_of_rank'));
+                _liste($PDOdb);
+                break;
+            case 'printTicket':
+                _printTicket($PDOdb);
+            default:
+                _liste($PDOdb);
+                break;
+        }
+    }
+
 
 /*
  * Créé des Of depuis un tableau de product
@@ -132,7 +144,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 function _liste(&$PDOdb)
 {
-    global $langs,$db,$user,$conf,$TCacheWorkstation;
+    global $langs,$db,$user,$conf,$TCacheWorkstation,$hookmanager;
 
     $page = 0;
     $param = '';
@@ -476,90 +488,95 @@ function _liste(&$PDOdb)
 			$var=!$var;
 			//print "<tr ".$bc[$var].">";
 
-			if($prod->product_type == 9 && !empty($conf->subtotal->enabled)) {
-				print "<tr>";
-				print "<td>&nbsp;</td>";
-				print '<td colspan="6" '.($prod->qteCommandee>50 ? 'style="text-align:right; padding-right:'.((100 - $prod->qteCommandee)*10).'px;"' : 'style="text-align:left; padding-left:'.(($prod->qteCommandee)*10).'px;"').'><strong>';
-                print empty($prod->description) ? $prod->lineLabel: $prod->description;
-                print '</strong></td>';
-			}
-			else if(empty($prod->rowid)) {
-				// ligne libre
-				print "<tr>";
-				  print "<td>&nbsp;</td>";
+            $parameters = array('commande' => $commande, 'var' => $var, 'i' => $i);
+            $reshook = $hookmanager->executeHooks('printObjectLine', $parameters, $prod, $action);    // Note that $action and $object may have been modified by some hooks
 
-				print "<td colspan=\"4\">";
-				print $prod->description;
-				print '</td>';
+            if (empty($reshook))
+            {
+                if($prod->product_type == 9 && !empty($conf->subtotal->enabled)) {
+                    print "<tr>";
+                    print "<td>&nbsp;</td>";
+                    print '<td colspan="6" '.($prod->qteCommandee>50 ? 'style="text-align:right; padding-right:'.((100 - $prod->qteCommandee)*10).'px;"' : 'style="text-align:left; padding-left:'.(($prod->qteCommandee)*10).'px;"').'><strong>';
+                    print empty($prod->description) ? $prod->lineLabel: $prod->description;
+                    print '</strong></td>';
+                }
+                else if(empty($prod->rowid)) {
+                    // ligne libre
+                    print "<tr>";
+                    print "<td>&nbsp;</td>";
 
-			}
-			else {
+                    print "<td colspan=\"4\">";
+                    print $prod->description;
+                    print '</td>';
 
-				print "<tr ".$bc[$var].">";
-			       print "<td>".($i+1)."</td>";
+                }
+                else {
 
-				print "<td>";
-				$p_static = new Product($db);
-				$p_static->fetch($prod->rowid);
-				$p_static->load_stock();
-				$p_static->ref = $prod->refProd;
-				$p_static->id = $prod->rowid;
-				print $p_static->getNomUrl(1);
-				print "</td>\n";
-				print '<td>';
-				print $prod->nomProd;
+                    print "<tr ".$bc[$var].">";
+                    print "<td>".($i+1)."</td>";
 
-				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
-					$line = new OrderLine($db);
-					$line->fetch($prod->fk_commandedet);
-					$line->fetch_optionals($prod->fk_commandedet);
+                    print "<td>";
+                    $p_static = new Product($db);
+                    $p_static->fetch($prod->rowid);
+                    $p_static->load_stock();
+                    $p_static->ref = $prod->refProd;
+                    $p_static->id = $prod->rowid;
+                    print $p_static->getNomUrl(1);
+                    print "</td>\n";
+                    print '<td>';
+                    print $prod->nomProd;
 
-					echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
-					if($line->array_options['options_fk_asset']>0) {
-						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
+                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+                        $line = new OrderLine($db);
+                        $line->fetch($prod->fk_commandedet);
+                        $line->fetch_optionals($prod->fk_commandedet);
 
-						$asset=new TAsset();
-						$asset->load($PDOdb, $line->array_options['options_fk_asset']);
+                        echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
+                        if($line->array_options['options_fk_asset']>0) {
+                            dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
-						echo ' '.$asset->getNomUrl(true,true,true);
-					}
+                            $asset=new TAsset();
+                            $asset->load($PDOdb, $line->array_options['options_fk_asset']);
 
-				}
+                            echo ' '.$asset->getNomUrl(true,true,true);
+                        }
 
-				print '</td>';
-				print '<td>';
-				print $p_static->stock_reel;
-				print '</td>';
-                $sqlOf = "SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
+                    }
+
+                    print '</td>';
+                    print '<td>';
+                    print $p_static->stock_reel;
+                    print '</td>';
+                    $sqlOf = "SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
 						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf) WHERE ";
-                if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
-                $sqlOf .=" ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet;
-				$resOf = $db->query($sqlOf);
+                    if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
+                    $sqlOf .=" ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet;
+                    $resOf = $db->query($sqlOf);
 
-				$objof = $db->fetch_object($resOf);
-				$qtyInOF = $objof->qty;
+                    $objof = $db->fetch_object($resOf);
+                    $qtyInOF = $objof->qty;
 
-				print "<td>";
-				print $qtyInOF;
-				print "</td>";
-
-
-
-				$qtyToMake = $prod->qteCommandee - $qtyInOF;
-
-			    	        print "<td>";
-			    	        print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $qtyToMake>0 ? $qtyToMake : 0,3,255);
-                        	print "</td>";
-
-                        	print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false, $qtyToMake>0 ,'','checkOF' );
-	                        print "</td>";
+                    print "<td>";
+                    print $qtyInOF;
+                    print "</td>";
 
 
-			                print "</tr>\n";
-				$i++;
+
+                    $qtyToMake = $prod->qteCommandee - $qtyInOF;
+
+                    print "<td>";
+                    print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $qtyToMake>0 ? $qtyToMake : 0,3,255);
+                    print "</td>";
+
+                    print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false, $qtyToMake>0 ,'','checkOF' );
+                    print "</td>";
 
 
-			}
+                    print "</tr>\n";
+                    $i++;
+
+                }
+            }
 
 		}
 
