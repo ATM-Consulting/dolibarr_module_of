@@ -134,6 +134,11 @@ function _liste(&$PDOdb)
 {
     global $langs,$db,$user,$conf,$TCacheWorkstation;
 
+    $page = 0;
+    $param = '';
+    $sortfield = '';
+    $sortorder = '';
+
 	llxHeader('',$langs->trans('ListOFAsset'),'','');
 	//getStandartJS();
 
@@ -152,7 +157,7 @@ function _liste(&$PDOdb)
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
 		$picto=($product->type==1?'service':'product');
-		dol_fiche_head($head, 'tabOF2', $titre, 0, $picto);
+		dol_fiche_head($head, 'tabOF2', $titre, -1, $picto);
 	}
 	elseif($fk_commande > 0)
 	{
@@ -168,8 +173,8 @@ function _liste(&$PDOdb)
 		}
 
 		$head=commande_prepare_head($commande, $user);
-		$titre=$langs->trans("CustomerOrder".$product->type);
-		dol_fiche_head($head, 'tabOF3', $titre, 0, "order");
+		$titre=$langs->trans("CustomerOrder");
+		dol_fiche_head($head, 'tabOF3', $titre, -1, "order");
 	}
 
 	$form=new TFormCore;
@@ -724,6 +729,8 @@ function _liste(&$PDOdb)
 				)
 		));
 	}
+
+    dol_fiche_end(-1);
 
 	$PDOdb->close();
 	llxFooter('');
