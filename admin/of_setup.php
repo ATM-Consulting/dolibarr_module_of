@@ -132,7 +132,7 @@ dol_fiche_head(
     $head,
     'settings',
     $langs->trans("Module104161Name"),
-    0,
+    1,
     "of@of"
 );
 $PDOdb = new TPDOdb;
@@ -816,6 +816,8 @@ function showParameters(&$form) {
 	<br /><br />
 	<?php
 }
+
+dol_fiche_end(1);
 
 llxFooter();
 
