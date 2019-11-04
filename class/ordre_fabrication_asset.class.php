@@ -2290,7 +2290,7 @@ class TAssetOFLine extends TObjetStd{
 
 		//echo $this->qty;exit;
 
-		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
+		/** If type of equipment is cumulable then we destock 1 or more equipment until we have the necessary quantity */
 		if ($is_cumulate || $is_unit) // si traitement unitaire c'est pareil
 		{
 			$sql.= ' WHERE status != "USED" ';

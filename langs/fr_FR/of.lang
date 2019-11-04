@@ -12,6 +12,8 @@ OFActions=Actions
 ParametersWorkstation=Paramètres Poste de travail
 ParametersWorkflow=Paramètres Workflow
 
+Card=Fiche
+
 # EQUIPEMENT
 GPAO=GPAO
 Asset=Equipement
