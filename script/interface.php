@@ -1,7 +1,7 @@
 <?php
 
 define('INC_FROM_CRON_SCRIPT', true);
-set_time_limit(0);
+@set_time_limit(0);
 require('../config.php');
 dol_include_once('/of/lib/of.lib.php');
 dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
