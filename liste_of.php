@@ -280,7 +280,7 @@ function _liste(&$PDOdb)
 		unset($TStatus['CLOSE']);
 
 		$NOTCLOSED = "'".implode("','", array_keys($TStatus))."'";
-		$TSearch['status']['recherche'][$NOTCLOSED] = "tous sauf terminé";
+		$TSearch['status']['recherche'][$NOTCLOSED] = $langs->trans('AllExceptClosed');
 	}
 
 	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
