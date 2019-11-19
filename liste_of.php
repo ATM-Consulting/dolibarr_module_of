@@ -232,8 +232,6 @@ function _liste(&$PDOdb)
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
 	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
 
-	//if ($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status'] == 'NOTCLOSED') $sql.=" AND ofe.status <> 'CLOSE'";
-
 	if($mode =='supplier_order') {
 		$sql.=" AND cf.fk_statut IN (2,3,4) ";
 		$sql.=" GROUP BY cf.rowid, ofe.rowid ";
@@ -284,7 +282,7 @@ function _liste(&$PDOdb)
 		$NOTCLOSED = "'".implode("','", array_keys($TStatus))."'";
 		$TSearch['status']['recherche'][$NOTCLOSED] = "tous sauf terminé";
 	}
-	//if ($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status'] == 'NOTCLOSED') unset($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status']);
+
 	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
 
 	if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) $TMath['order_line_price'] = 'sum';
