@@ -43,6 +43,7 @@
             case 'printTicket':
                 _printTicket($PDOdb);
             default:
+			set_time_limit(0);
                 _liste($PDOdb);
                 break;
         }
@@ -336,6 +337,11 @@ function _liste(&$PDOdb)
 		        ,'date_end'=>array('recherche'=>'calendars','table'=>'ofe')
 		        ,'fk_asset_workstation'=>array('recherche'=>$TCacheWorkstation, 'table'=>'wof')
 		);
+		$TStatus = TAssetOF::$TStatus;
+		unset($TStatus['CLOSE']);
+
+		$NOTCLOSED = "'".implode("','", array_keys($TStatus))."'";
+		$TSearch['status']['recherche'][$NOTCLOSED] = $langs->trans('AllExceptClosed');
 	}
 
 	if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
@@ -343,6 +349,13 @@ function _liste(&$PDOdb)
 	if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) $TMath['order_line_price'] = 'sum';
 
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
+
+
+	$allExceptClose = false;
+	if($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status'] == $NOTCLOSED)
+	{
+		$allExceptClose = true;
+	}
 
 	echo $form->hidden('action', '');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
@@ -427,6 +440,7 @@ function _liste(&$PDOdb)
 		)
 		,'operator'=>array(
 			'fk_asset_workstation'=>'='
+			,'status' => $allExceptClose ? 'IN' : "="
 		)
         ,'search'=>$TSearch
 	));
