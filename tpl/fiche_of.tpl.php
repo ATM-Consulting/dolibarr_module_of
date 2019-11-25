@@ -408,7 +408,7 @@
 			</tr>
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 				<tr id="tr_select_nomenclature" style="display:none;">
-					<td style="width:80px;" title="Nomenclature">Nomen. : </td>
+					<td style="width:80px;" title="[view.langs.transnoentities(OFNomenclature)]">[view.langs.transnoentities(OFNomenclatureShort)] : </td>
 					<td><select name="fk_nomenclature"></select></td>
 				</tr>
 			[onshow;block=end]
