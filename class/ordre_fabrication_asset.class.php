@@ -29,7 +29,7 @@ class TAssetOF extends TObjetStd{
 
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
-		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project',array('type'=>'integer','index'=>true));
+		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project,rank',array('type'=>'integer','index'=>true));
 		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
@@ -100,6 +100,36 @@ class TAssetOF extends TObjetStd{
 
 
 		return $res;
+	}
+
+	function loadByProductCategory(&$db, $categ, $fk_soc, $status) {
+
+		//On récupère l'of ayant des produits ayant pour catégorie la même catégorie et étant brouillon
+        $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of 
+                LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofline ON (of.rowid = ofline.fk_assetOf AND ofline.type='TO_MAKE')
+                LEFT JOIN ".MAIN_DB_PREFIX."categorie_product cat ON (ofline.fk_product = cat.fk_product)
+                WHERE cat.fk_categorie = $categ->id
+                AND of.fk_soc = $fk_soc
+                AND of.status = '$status'";
+
+        $db->Execute($sql);
+        $TOfIds = $db->Get_All();
+        $TOfs = array();
+        foreach($TOfIds as $fk_of){
+            $TOfs[$fk_of->rowid]++;
+        }
+
+        foreach($TOfs as $fk_of => $nb_line){
+            $this->load($db, $fk_of);
+            $countLineToMake = 0;
+            foreach($this->TAssetOFLine as $line){
+                if($line->type == 'TO_MAKE')$countLineToMake++;
+            }
+
+            if($nb_line == $countLineToMake)return $this->id;//Si tous les tomake sont dans la même catégorie, on a trouvé un of compatible
+        }
+
+        return -1;
 	}
 
 	function sortWorkStationByRank(&$a,&$b) {
@@ -471,6 +501,8 @@ class TAssetOF extends TObjetStd{
 		global $user,$langs,$conf, $db;
 	//	var_dump( $this->status, debug_backtrace());
 
+        $onUpdate = 0;
+
 		$this->set_temps_fabrication();
 		$this->set_fourniture_cost();
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
@@ -504,11 +536,27 @@ class TAssetOF extends TObjetStd{
 
 		foreach($this->TAssetOF as &$of) $of->fk_project = $this->fk_project;
 
+        if(!empty($this->id)) {
+            $this->setDelaiLancement($PDOdb);
+            $onUpdate = 1; //pour éviter de faire 2x le traitement
+        }
+
+        if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)){
+
+            if(!empty($this->date_lancement)) {
+                if(!empty($this->rank)) $this->ajustRank();
+                else $this->getNextRank();
+            } else {
+                setEventMessage($langs->trans('MissingLaunchingDateForRank'), 'warnings');
+            }
+        }
+
 		parent::save($PDOdb);
 
-		$this->setDelaiLancement($PDOdb);
+        if(!$onUpdate) $this->setDelaiLancement($PDOdb);
 
         $this->getNumero($PDOdb, true);
+
 
 		// Appel des triggers
 		include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
@@ -520,14 +568,154 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 
+    function ajustRank() {
+
+	    $old_rank = $this->getOldRank();
+
+        if($old_rank > $this->rank || empty($old_rank))$this->setRank($old_rank,$this->rank,1);
+        else $this->setRank($this->rank,$old_rank,-1);
+
+        if($this->isRankTooHigh()) $this->getNextRank(); // On le replace là où il faut
+
+    }
+
+    function isRankTooHigh(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+        $sql = "SELECT rowid FROM $this->table WHERE date_lancement='$launchingDate' AND rank=".($this->rank-1);
+
+        if(!empty($this->id)) $sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+        if(!empty($resql) && $db->num_rows($resql)>0 || $this->rank==1) return false;// Le premier est le seul à ne pas pouvoir avoir de précédent
+
+        return true;
+    }
+
+    function getOldRank(){
+	    global $db;
+
+        $sql = "SELECT  rank FROM $this->table WHERE rowid=$this->rowid";
+        $resql = $db->query($sql);
+
+        if(!empty($resql)){
+            $obj = $db->fetch_object($resql);
+            return $obj->rank;
+        }
+
+        return 0;
+    }
+
+   /* function rankDirection(){
+        global $db;
+
+        if(!empty($this->id)) {
+            $sql = "SELECT rank FROM $this->table WHERE rowid = $this->id";
+            $resql = $db->query($sql);
+            if(!empty($resql)) {
+                $db->fetch_object();
+            }
+        }
+
+	    return 1;
+    }*/
+
+    /*function fillMissingRank() {
+        global $db;
+
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        $sql = "SELECT
+             CONCAT(z.expected, IF(z.got-1>z.expected, CONCAT(' thru ',z.got-1), '')) AS missing
+            FROM (
+                 SELECT
+                  @rownum:=@rownum+1 AS expected,
+                  IF(@rownum=rank, 0, @rownum:=rank) AS got
+                 FROM
+                  (SELECT @rownum:=0) AS a
+                  JOIN $this->table
+                  WHERE date_lancement='$launchingDate'";
+        $sql .= " ORDER BY rank
+             ) AS z
+            WHERE z.got!=0;"; // On récupère tous les manquants (soit un nb s'il est seul sinon de tel val à tel val)
+        //si ça peut aider à comprendre la requête : https://stackoverflow.com/questions/4340793/how-to-find-gaps-in-sequential-numbering-in-mysql/29736658#29736658
+        $resql = $db->query($sql);
+        if(!empty($resql) && $db->num_rows($resql)>0) {
+            $obj = $db->fetch_object($resql);
+
+            if(strpos($obj->missing, ' thru ') === false){
+                $sqlUpdate="UPDATE $this->table SET rank=rank-1 WHERE rank>$obj->missing AND date_lancement='$launchingDate'";
+                $db->query($sqlUpdate);
+            }else {
+                $limits = explode(' thru ', $obj->missing);
+                $sqlUpdate="UPDATE $this->table SET rank=rank-".($limits[1]-$limits[0]+1)." WHERE rank>$limits[0] AND date_lancement='$launchingDate'";
+                $db->query($sqlUpdate);
+            }
+            $this->fillMissingRank();
+        }
+    }*/
+
+    function setRank($high_rank, $low_rank, $value) {
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        if(!empty($high_rank)) $sqlEmptyOldRank = "AND rank <= $high_rank";
+        else $sqlEmptyOldRank = '';
+
+        $sql = "SELECT rowid, rank FROM $this->table WHERE date_lancement='$launchingDate' AND rank>=$low_rank $sqlEmptyOldRank";
+
+        if(!empty($this->id)) $sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+
+        if(!empty($resql)) {
+            while($obj = $db->fetch_object($resql)) {
+                $sqlUpdate = "UPDATE $this->table SET rank=" . ($obj->rank + $value) . " WHERE rowid=$obj->rowid";
+
+                $db->query($sqlUpdate);
+            }
+        }
+    }
+
+    /*function hasSameRank(){
+        global $db;
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+
+        //On vérifie qu'il n'y a pas d'autres rangs de même niveau
+        $sql = "SELECT rowid FROM $this->table WHERE date_lancement='$launchingDate' AND rank=$this->rank";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+
+        if(!empty($resql) && $db->num_rows($resql) > 0)return true;
+        return false;
+    }*/
+
+	function getNextRank(){
+	    global $db;
+
+        $launchingDate = date('Y-m-d', $this->date_lancement);
+        $sql = "SELECT MAX(rank) as max_rank FROM $this->table WHERE date_lancement='$launchingDate'";
+        if(!empty($this->id))$sql .= " AND rowid!=$this->id";
+
+        $resql = $db->query($sql);
+        $this->rank = 1;
+
+        if(!empty($resql)){
+            $obj = $db->fetch_object($resql);
+            $this->rank = $obj->max_rank +1;
+        }
+
+    }
+
     function getNumero(&$PDOdb, $save=false) {
         global $db, $conf;
 
         if(empty($this->numero)) {
-            dol_include_once('core/lib/functions2.lib.php');
+            dol_include_once('of/lib/of.lib.php');
 
             $mask = empty($conf->global->OF_MASK) ? 'OF{00000}' : $conf->global->OF_MASK;
-            $numero = get_next_value($db,$mask,'assetOf','numero');
+            $numero = get_next_value_PDOdb($PDOdb,$mask,'assetOf','numero');
 
             if($save) {
                 $this->numero = $numero;
@@ -829,7 +1017,7 @@ class TAssetOF extends TObjetStd{
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
 			else $stock =$product->stock_reel;
 		}
-		
+
 		// MAIN_MAX_DECIMALS_STOCK
 		return price2num($stock, 'MS');
 	}
@@ -916,8 +1104,31 @@ class TAssetOF extends TObjetStd{
 			$this->set_current_cost_for_to_make();
 		}
 
+        if(!empty($conf->global->OF_KEEP_PRODUCT_DOCUMENTS) && !empty($fk_product)) {
+            $prod = new Product($db);
+            $prod->fetch($fk_product);
+
+            if(!empty($conf->product->enabled)) $product_dir = $conf->product->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+            else if(!empty($conf->service->enabled)) $product_dir = $conf->service->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+
+            $this->copyAllFiles($product_dir);
+        }
+
 		return $idAssetOFLine;
 	}
+
+    function copyAllFiles($dir) {
+        global $conf;
+        $PDOdb = new TPDOdb;
+        $upload_dir = $conf->of->multidir_output[$this->entity] . '/' . get_exdir(0, 0, 0, 0, $this, 'tassetof') . dol_sanitizeFileName($this->getNumero($PDOdb));
+        $TFiles = dol_dir_list($dir);
+        if(!empty($TFiles)) {
+            foreach($TFiles as $file) {
+                if(!is_dir($upload_dir)) dol_mkdir($upload_dir);
+                dol_copy($file['fullname'], $upload_dir . '/' . $file['name']);
+            }
+        }
+    }
 
 	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0)
 	{
@@ -1114,7 +1325,7 @@ class TAssetOF extends TObjetStd{
 
 				}
 
-				if($wsof->nb_hour_real == 0) {
+				if($wsof->nb_hour_real == 0 && empty($conf->global->OF_REAL_HOUR_CAN_BE_EMPTY)) {
 					$wsof->nb_hour_real = $wsof->nb_hour;
 				}
 
@@ -1633,6 +1844,18 @@ class TAssetOF extends TObjetStd{
 
 	}
 
+    function getLinesProductToMake() {
+        $TLine = array();
+        if(!empty($this->TAssetOFLine)) {
+            foreach ($this->TAssetOFLine as &$line) {
+                if($line->type === 'TO_MAKE') $TLine[]= $line;
+            }
+        }
+
+        return $TLine;
+
+    }
+
 	/*
 	 * Permet de supprimer le/les OF enfants
 	 * return 0 si aucun OF
@@ -1795,9 +2018,9 @@ class TAssetOFLine extends TObjetStd{
 
     	$this->TChamps = array();
 		$this->add_champs('entity,fk_assetOf,fk_product,fk_product_fournisseur_price,fk_entrepot,fk_nomenclature,nomenclature_valide,fk_commandedet',array('type'=>'integer','index'=>true));
-		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp',array('type'=>'float'));
+		$this->add_champs('qty_needed,qty,qty_used,qty_stock,conditionnement,conditionnement_unit,pmp,qty_non_compliant',array('type'=>'float'));
 		$this->add_champs('type,lot_number,measuring_units',array('type'=>'string'));
-	        $this->add_champs('note_private',array('type'=>'text'));
+	    $this->add_champs('note_private',array('type'=>'text'));
 
 		//clé étrangère
 		parent::add_champs('fk_assetOf_line_parent',array('type'=>'integer','index'=>true));
@@ -1943,8 +2166,9 @@ class TAssetOFLine extends TObjetStd{
 
             }
             else{
-				
+
 				$nb_asset = count($TAsset); $i=0;
+
                 foreach($TAsset as $asset)
                 {
 					$qty_asset_to_stock=0;
@@ -1964,7 +2188,7 @@ class TAssetOFLine extends TObjetStd{
 						}
 					}
 					else {
-						
+
 						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
 							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
 							if($i+1 == $nb_asset) {
@@ -1974,9 +2198,9 @@ class TAssetOFLine extends TObjetStd{
 						else {
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
-						
-					}	
-					
+
+					}
+
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
 					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
@@ -1985,11 +2209,11 @@ class TAssetOFLine extends TObjetStd{
 							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
 					$qty_to_stock_rest-= $qty_asset_to_stock;
-					
+
 					$i++;
 
 					if($qty_to_stock_rest<=0)break;
-					
+
 
                 }
 
@@ -2006,9 +2230,9 @@ class TAssetOFLine extends TObjetStd{
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
-		
+
 		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
-		
+
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
@@ -2090,7 +2314,23 @@ class TAssetOFLine extends TObjetStd{
 
 		if ($conf->global->USE_LOT_IN_OF)
 		{
-			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+			if (!empty($conf->global->OF_CONCAT_MULTIPLE_LOT) && $this->type == 'NEEDED')
+			{
+				$TAsset = $this->getAssetLinked($PDOdb);
+
+				if (!empty($TAsset))
+				{
+					$tempTab = array();
+					foreach ($TAsset as $asset)
+					{
+						$tempTab[] = $asset->lot_number;
+					}
+
+					$sql.= ' AND lot_number in ("'.implode('","', $tempTab) .'")';
+				}
+
+			}
+			else $sql .= ' AND lot_number = "'.$this->lot_number.'"';
 		}
 
 		$sql.= $completeSql;
@@ -2235,11 +2475,28 @@ class TAssetOFLine extends TObjetStd{
 	            }
 	        }
 
+	        if (!empty($conf->global->OF_REORDER_LINKED_ASSET_BY_DLU))
+			{
+				usort($Tab, array($this, 'reoderLinkedAssetsByDlu'));
+			}
+
 			return $Tab;
 		}
 
         return array();
     }
+
+	function reoderLinkedAssetsByDlu(&$a,&$b) {
+
+		if($a->dluo < $b->dluo) {
+			return -1;
+		}
+		else if($a->dluo > $b->dluo) {
+			return 1;
+		}
+		else return 0;
+
+	}
 
     function addAssetLink(&$asset)
     {
@@ -2311,7 +2568,7 @@ class TAssetOFLine extends TObjetStd{
 			{
 				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
 			}
-			
+
             $contenance_max = $assetType->contenance_value;
             $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
@@ -2611,6 +2868,58 @@ class TAssetOFLine extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 
+		//si lors de l'enregistrement, il y a des non conformes, on ajoute les postes de travail et on crée les taches si conf activé.
+        if(!empty($conf->global->OF_WORKSTATION_NON_COMPLIANT) && !empty($this->qty_non_compliant) && !empty($this->fk_assetOf)) { //Pour chaque of non conforme
+
+            $Of = new TAssetOF;
+            $Of->load($PDOdb, $this->fk_assetOf);
+            if($Of->status == 'OPEN' || $Of->status == 'CLOSE') {
+                $TFKWorkstationToAdd = explode(',', $conf->global->OF_WORKSTATION_NON_COMPLIANT);
+
+                foreach($TFKWorkstationToAdd as $key => $fk_workstation) {
+                    foreach($Of->TAssetWorkstationOF as $TAssetWorkstationOF) { //Pour éviter de créer des workstation en double
+                        if($fk_workstation == $TAssetWorkstationOF->fk_asset_workstation) unset($TFKWorkstationToAdd[$key]);
+                    }
+                }
+                foreach($TFKWorkstationToAdd as $fk_workstation) {
+                    $Of->addofworkstation($PDOdb, $fk_workstation, 0, 0, 0, 0, '', 0);
+
+                    if(!empty($conf->global->ASSET_USE_PROJECT_TASK)) {
+                        require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
+                        require_once DOL_DOCUMENT_ROOT . '/core/modules/project/task/' . $conf->global->PROJECT_TASK_ADDON . '.php';
+
+                        $lastInsert = count($Of->TAssetWorkstationOF);
+                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_assetOf = $this->fk_assetOf;
+                        $action = '';
+
+                        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
+                            $taskstatic = new Task($db);
+                            $TTask = $taskstatic->getTasksArray(null, null, $Of->fk_project);
+
+                            if(!empty($TTask)) {
+                                foreach($TTask as $task) {
+                                    $task->fetch_optionals();
+                                    if(!empty($task->array_options['options_fk_workstation']) && $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_asset_workstation == $task->array_options['options_fk_workstation']){
+                                        $action = 'updateTask';
+                                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_project_task=$task->id;
+                                        $Of->from_create=1;
+                                    }
+                                }
+                            }
+                        }
+
+                        if($action == 'updateTask') $Of->TAssetWorkstationOF[$lastInsert - 1]->updateTask($PDOdb, $db, $conf, $user, $Of);
+                        else $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
+                    }
+                }
+
+                foreach($Of->TChildObjetStd as $key => $TChildObjetStd) { // Sinon boucle infini car AssetOfline est l'enfant d'of et j'ai besoin de save les enfants pour les assetofworkstation
+                    if($TChildObjetStd['class'] == get_class($this)) unset($Of->TChildObjetStd[$key]);
+                }
+                $Of->save($PDOdb);
+            }
+        }
+
 		$this->TAssetOFLine=array(); // on ne doit pas intéragir avec la ligne enfant de celle-ci (problème d'intrications récurssives)
 
 		return parent::save($PDOdb);
@@ -2764,10 +3073,17 @@ class TAssetWorkstationOF extends TObjetStd{
         	$TIdOf = array($this->fk_assetOf);
         	$OF->getListeOFEnfants($PDOdb,$TIdOf);
         	krsort($TIdOf);
+            if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
 
-        	$resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
-            FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)
-            WHERE t.fk_projet=".$OF->fk_project." AND tex.fk_of IN (".implode(',',$TIdOf).")");
+                $resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
+                FROM " . MAIN_DB_PREFIX . "projet_task t LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
+                WHERE t.fk_projet=" . $OF->fk_project . " AND ee.fk_source IN (" . implode(',', $TIdOf) . ")");
+
+            }else {
+                $resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
+                FROM " . MAIN_DB_PREFIX . "projet_task t LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (t.rowid=tex.fk_object)
+                WHERE t.fk_projet=" . $OF->fk_project . " AND tex.fk_of IN (" . implode(',', $TIdOf) . ")");
+            }
         	$objTask = $db->fetch_object($resIdTask);
         	$projectTask->fk_task_parent = (int)$objTask->rowid;
 
@@ -2805,6 +3121,11 @@ class TAssetWorkstationOF extends TObjetStd{
        	$projectTask->array_options['options_grid_use']=1;
        	$projectTask->array_options['options_fk_workstation']=$ws->getId();
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
+
+
+
+
+
 		$projectTask->date_c=dol_now();
 
 		$p = new Product($db);
@@ -2814,12 +3135,14 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 
 		$res = $projectTask->create($user);
+
         if($res<0) {
             var_dump($projectTask->error, $projectTask);
 
             exit('ErrorCreateTaskWS') ;
         }
         else{
+            $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
             $this->fk_project_task = $projectTask->id;
         }
 
@@ -2837,14 +3160,29 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fk_project = $OF->fk_project;
 		$projectTask->description = $this->note_private;
 
-		if($projectTask->planned_workload<=0)  $projectTask->planned_workload = $this->nb_hour*3600;
+        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
+            $projectTask->planned_workload += $this->nb_hour * 3600;
+            $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
+        } // On cumul le temps dans la tache
+        else if($projectTask->planned_workload <= 0) $projectTask->planned_workload = $this->nb_hour * 3600;
 
-		if(empty($conf->gantt->enabled)) {
-			$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',$OF->date_lancement);
-			$projectTask->date_end = $OF->date_besoin;
-			if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
+        if(empty($conf->gantt->enabled)) {
+            if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
 
-		}
+                //On prend la date la plus petite
+                if($projectTask->date_start > $OF->date_lancement) $projectTask->date_start = strtotime(' +' . (int)$this->nb_days_before_beginning . 'days', $OF->date_lancement);
+
+                //On prend la date la plus grande
+                if($projectTask->date_end < $OF->date_besoin) $projectTask->date_end = $OF->date_besoin;
+
+                if($projectTask->date_end < $projectTask->date_start) $projectTask->date_end = $projectTask->date_start;
+            }
+            else {
+                $projectTask->date_start = strtotime(' +' . (int)$this->nb_days_before_beginning . 'days', $OF->date_lancement);
+                $projectTask->date_end = $OF->date_besoin;
+                if($projectTask->date_end < $projectTask->date_start) $projectTask->date_end = $projectTask->date_start;
+            }
+        }
 
 		$projectTask->update($user);
 
@@ -2894,7 +3232,27 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		$action = '';
 
-		if ($of->fk_project > 0 && $this->fk_project_task == 0) $action = 'createTask';
+		if ($of->fk_project > 0 && $this->fk_project_task == 0){
+
+		    $action = 'createTask';
+
+            if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
+
+                $taskstatic = new Task($db);
+                $TTask = $taskstatic->getTasksArray(null, null, $of->fk_project);
+                if(!empty($TTask)) {
+                    foreach($TTask as $task) {
+                        $task->fetch_optionals();
+                        if(!empty($task->array_options['options_fk_workstation']) && $this->fk_asset_workstation == $task->array_options['options_fk_workstation']){
+                            $action = 'updateTask';
+                            $this->fk_project_task=$task->id;
+                            $of->from_create=1;
+                        }
+
+                    }
+                }
+            }
+        }
 		elseif ($of->fk_project > 0 && $this->fk_project_task > 0) $action = 'updateTask';
 		elseif ($of->fk_project == 0 && $this->fk_project_task > 0) $action = 'deleteTask';
 
@@ -2907,7 +3265,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				$this->updateTask($PDOdb, $db, $conf, $user, $of);
 				break;
 			case 'deleteTask':
-				$this->deleteTask($db, $conf, $user);
+                if(empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) || !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && $this->isLastLink())$this->deleteTask($db, $conf, $user);
 				break;
 			default:
 				break;
@@ -2929,12 +3287,19 @@ class TAssetWorkstationOF extends TObjetStd{
 		else{
 			$db = &$this->db;
 		}
+        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
+            $sql = "SELECT (SUM(tt.thm * tt.task_duration) / SUM(tt.task_duration)) as thm
+			FROM " . MAIN_DB_PREFIX . "projet_task_time tt
+			LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object = tt.fk_task)
+			LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=tt.fk_task AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
+			WHERE ee.fk_source = " . $this->fk_assetOf . " AND tex.fk_workstation=" . $this->fk_asset_workstation . " AND tt.thm>0";
 
-		$sql="SELECT (SUM(tt.thm * tt.task_duration) / SUM(tt.task_duration)) as thm
-			FROM ".MAIN_DB_PREFIX."projet_task_time tt
-				LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (tex.fk_object = tt.fk_task)
-			WHERE tex.fk_of = ".$this->fk_assetOf." AND tex.fk_workstation=".$this->fk_asset_workstation." AND tt.thm>0";
-
+        }else {
+            $sql = "SELECT (SUM(tt.thm * tt.task_duration) / SUM(tt.task_duration)) as thm
+			FROM " . MAIN_DB_PREFIX . "projet_task_time tt
+				LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object = tt.fk_task)
+			WHERE tex.fk_of = " . $this->fk_assetOf . " AND tex.fk_workstation=" . $this->fk_asset_workstation . " AND tt.thm>0";
+        }
 		$res = $db->query($sql);
 		if($obj = $db->fetch_object($res)) {
 			if($obj->thm>0)	$this->thm = (float)$obj->thm;
@@ -3024,6 +3389,10 @@ class TAssetWorkstationOF extends TObjetStd{
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND (targettype = "user" OR targettype = "task")';
 		$PDOdb->Execute($sql);
 
+		if( !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($this->fk_assetOf)) {
+            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . 'element_element WHERE fk_source = ' . (int)$this->fk_assetOf . ' AND sourcetype = "tassetof" AND (targettype = "task")';
+            $PDOdb->Execute($sql);
+        }
 		if ($this->fk_project_task > 0)
 		{
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
@@ -3036,7 +3405,7 @@ class TAssetWorkstationOF extends TObjetStd{
 			if($projectTask->fetch($this->fk_project_task) > 0) {
 				// Suppression des occurences qui définissent cette tâches en tant que parente
 				$db->query('UPDATE '.MAIN_DB_PREFIX.'projet_task SET fk_task_parent = 0 WHERE fk_task_parent = '.$projectTask->id);
-				$projectTask->delete($user);
+                if(empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) || !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && $this->isLastLink())$projectTask->delete($user);
 			}
 		}
 
@@ -3193,6 +3562,18 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->progress = $progress;
 		$projectTask->update($db);
 	}
+
+	function isLastLink(){
+	    global $db;
+
+	    $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."asset_workstation_of WHERE fk_project_task=".$this->fk_project_task;
+	    $resql = $db->query($sql);
+	    $rows = $db->num_rows($resql);
+
+	    if($rows > 1) return false;
+
+	    return true;
+    }
 
 }
 

@@ -35,14 +35,19 @@ $assetOf=new TAssetOF;
 
 $quicksave= GETPOST('quicksave');
 $id = GETPOST('id', 'int');
+$action = GETPOST('action');
 if (!empty($id))
 {
 	$assetOf->load($PDOdb, $id);
 	if ($assetOf->entity != $conf->entity) accessforbidden();
 }
 
+$parameters = array('of' => $assetOf, 'id' => $id);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $assetOf, $action); // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
 // Get parameters
-_action();
+if (empty($reshook)) _action();
 
 // Protection if external user
 if ($user->societe_id > 0)
@@ -158,6 +163,7 @@ function _action() {
 			//Permet de mettre à jour le lot de l'OF parent
 			if (!empty($assetOf->fk_assetOf_parent)) $assetOf->update_parent = true;
 			$assetOf->save($PDOdb);
+            $assetOf->load($PDOdb,$assetOf->rowid); // Pour remettre à jour les  données (je suis tombé plusieurs fois sur ce cas après un save)
 
 			_fiche($PDOdb,$assetOf, $mode);
 
@@ -951,6 +957,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
+				,'qty_non_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_non_compliant]', $TAssetOFLine->qty_non_compliant,  5,5,'','') : $TAssetOFLine->qty_non_compliant)
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
@@ -979,6 +986,7 @@ function _fiche_ligne(&$form, &$of, $type){
 function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 {
     global $conf,$langs;
+    $langs->load('assetatm@assetatm');
 
     if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->{ ATM_ASSET_NAME }->enabled) ) return '';
 
@@ -997,7 +1005,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     }
     foreach($TAsset as &$asset)
     {
-        $r .= $asset->getNomUrl(1, 1, 2);
+        $r .= "<br />".$asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && $asset->dluo < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');
 
         if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
         {
@@ -1024,9 +1032,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 
 	}
-
-	$parameters = array('id'=>$assetOf->getId());
-	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+// 	Un doActions après avoir éxécuté les actions ...
+//	$parameters = array('id'=>$assetOf->getId());
+//	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
@@ -1106,8 +1114,40 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if (empty($_REQUEST['fk_product']))
 	{
 		ob_start();
-		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,0,0,'minwidth300');
+		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,1,0,'minwidth300');
 		$select_product = ob_get_clean();
+
+		?>
+		<script type="text/javascript">
+                $(document).on('keypress',function(e) {
+                       if ($('input:focus').length == 0) {
+                            $('#fk_product').select2('open');
+                        }
+                });
+        </script>
+        <?php
+        if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
+        ?>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+
+                    let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
+                    $('#fk_product').on("select2:select", function(e) {
+                        let select = $("select[name='fk_nomenclature'] option");
+                        if(select.length){//check if element exist
+                            if(select.length <= 1 ){ //s'il n'y a qu'une seule nomenclature ou moins on ajoute la ligne à la volée
+                                $("button:contains('"+contentBtAdd+"')").click();
+                            }
+                        }else {
+                             $("button:contains('"+contentBtAdd+"')").click();
+                        }
+                    });
+                });
+
+            </script>
+        <?php
+        }
 	}
 
 	$Tid = array();
@@ -1182,7 +1222,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
     $TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
 
-    $order_amount = $o->total_ht;
+    $order_amount = $commande->total_ht; //$o n'existait pas
     if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
 
         $line_to_make = $assetOf->getLineProductToMake();
@@ -1196,6 +1236,29 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
         }
 
     }
+    $TCommandes=array();
+    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+        $displayOrders = '';
+        $TLine_to_make = $assetOf->getLinesProductToMake();
+
+
+        foreach($TLine_to_make as $line){
+            if(!empty($line->fk_commandedet)){
+                $commande = new Commande($db);
+                $orderLine = new OrderLine($db);
+                $orderLine->fetch($line->fk_commandedet);
+                $commande->fetch($orderLine->fk_commande);
+                $TCommandes[$orderLine->fk_commande] = $commande;
+
+            }
+            elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+
+        }
+    }
+    if(!empty($TCommandes)){
+        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
+    }
+    else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
 
     // EDITION RAPIDE DU STATUT
     $statusHtml = $TTransStatus[$assetOf->status];
@@ -1219,88 +1282,94 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		}
     }
 
-
-
-	print $TBS->render('tpl/fiche_of.tpl.php'
-		,array(
-			'TNeeded'=>$TNeeded
-			,'TTomake'=>$TToMake
-			,'workstation'=>$TWorkstation
-		)
-		,array(
-			'assetOf'=>array(
-					'id'=> $assetOf->getId()
-					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
-					,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-			    ,'fk_commande'=>($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency))
-					//,'statut_commande'=> $commande->getLibStatut(0)
-					,'commande_fournisseur'=>$HtmlCmdFourn
-					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
-					,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
-					,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
-					,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
-
-					,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
-					,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
-
-					,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
-
-					,'quantity_to_create'=>$quantity_to_create
-					,'product_to_create'=>$link_product_to_add
-
-					,'status'=>$statusHtml
-					,'statustxt'=>$TTransStatus[$assetOf->status]
-					,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
-					,'url' => dol_buildpath('/of/fiche_of.php', 1)
-					,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 1) : dol_buildpath('/of/liste_of.php', 1)
-					,'fk_product_to_add'=>$fk_product_to_add
-					,'fk_nomenclature'=>$fk_nomenclature
-					,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
-					,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
-
-					,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
-					,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
-					,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
-					,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
-					,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
-					,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
-					,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
-					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
-			        ,'date_end'=>$assetOf->get_date('date_end')
-			    ,'date_start'=>$assetOf->get_date('date_start')
-			)
-			,'view'=>array(
-				'mode'=>$mode
-				,'action' => !empty($quicksave)?'quick-save':'save'
-				,'status'=>$assetOf->status
-				,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
-				,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
-				,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
-				,'select_product'=>$select_product
-				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
-				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
-				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-				,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
-				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
-				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
-				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
-				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
-				,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
-				,'hasChildren' => (int) !empty($Tid)
-				,'user_id'=>$user->id
-				,'workstation_module_activate'=>(int) $conf->workstation->enabled
-				,'show_cost'=>(int)$user->rights->of->of->price
-				,'langs'=>$langs
-				,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
-				,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
-				,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
-			)
-			,'rights'=>array(
-				'show_ws_time'=>$user->rights->of->of->show_ws_time
-			)
-			,'conf'=>$conf
-		)
+	$tpl = 'tpl/fiche_of.tpl.php';
+	$TBlocks = array(
+		'TNeeded'=>$TNeeded
+		,'TTomake'=>$TToMake
+		,'workstation'=>$TWorkstation
 	);
+
+	$TFields = array(
+		'assetOf'=>array(
+				'id'=> $assetOf->getId()
+				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
+				,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
+				,'fk_commande'=>!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders))
+				//,'statut_commande'=> $commande->getLibStatut(0)
+				,'commande_fournisseur'=>$HtmlCmdFourn
+				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
+				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
+				,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
+				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
+
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
+
+				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
+
+				,'quantity_to_create'=>$quantity_to_create
+				,'product_to_create'=>$link_product_to_add
+
+				,'status'=>$statusHtml
+				,'statustxt'=>$TTransStatus[$assetOf->status]
+				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
+				,'url' => dol_buildpath('/of/fiche_of.php', 1)
+				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 1) : dol_buildpath('/of/liste_of.php', 1)
+				,'fk_product_to_add'=>$fk_product_to_add
+				,'fk_nomenclature'=>$fk_nomenclature
+				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
+				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
+
+				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
+				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
+				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
+				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
+				,'date_end'=>$assetOf->get_date('date_end')
+				,'date_start'=>$assetOf->get_date('date_start')
+				,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
+		)
+		,'view'=>array(
+			'mode'=>$mode
+			,'action' => !empty($quicksave)?'quick-save':'save'
+			,'status'=>$assetOf->status
+			,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
+			,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
+			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
+			,'select_product'=>$select_product
+			,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
+			//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
+			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
+			,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
+			,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
+			,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
+			,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
+			,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
+			,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
+			,'hasChildren' => (int) !empty($Tid)
+			,'user_id'=>$user->id
+			,'workstation_module_activate'=>(int) $conf->workstation->enabled
+			,'show_cost'=>(int)$user->rights->of->of->price
+			,'langs'=>$langs
+			,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
+			,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
+			,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
+		)
+		,'rights'=>array(
+			'show_ws_time'=>$user->rights->of->of->show_ws_time
+		)
+		,'conf'=>$conf
+	);
+
+	// Change view from hooks
+	$parameters=array(  'tpl' => &$tpl, 'TBlocks' => &$TBlocks, 'TFields' => &$TFields, 'renderer' => &$TBS);
+	$reshook=$hookmanager->executeHooks('TBSConfig',$parameters,$assetOf);    // Note that $action and $object may have been modified by hook
+	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+	print $TBS->render($tpl, $TBlocks, $TFields);
 
 	echo $form->end_form();
 

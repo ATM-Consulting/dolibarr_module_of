@@ -256,6 +256,50 @@ class Actionsof
 		}
 	}
 
+	function printCommonFooter($parameters, &$object, &$action, $hookmanager){
+	    global $conf;
+
+        if ($parameters['currentcontext'] === 'tasklist' && (float) DOL_VERSION >= 9 && $conf->global->ASSET_CUMULATE_PROJECT_TASK) {
+            ?>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    $('#search_options_fk_of').remove(); //Remove search
+                    $('th[data-titlekey="fk_of"] a').contents().unwrap(); // remove order by
+
+                    $('td[data-key="fk_of"]').each(function(){
+
+                        let fkTask=$(this).parent('tr').data('rowid');
+                        let url = ''+'<?php echo dol_buildpath('/of/script/interface.php',2)?>';
+                        let td_of = $(this);
+                        $.ajax({
+                            url:url
+                            ,data:{
+                                get:'getLinkedOf'
+                                ,fk_task:fkTask
+                            }
+                        }).done(function(result) {
+                            var TOfs = jQuery.parseJSON(result);
+
+                            if(!jQuery.isEmptyObject(TOfs)) {
+
+                                var html = '';
+
+                                $.each( TOfs, function( i, Of ){
+                                    html += Of.ref + "</br>";
+                                });
+
+                                td_of.html(html);
+                            }
+                        });
+                    });
+                });
+            </script>
+
+            <?php
+        }
+    }
+
 	private function _calcQtyOfProductInOf(&$db, &$conf, &$product)
 	{
 		dol_include_once('/of/lib/of.lib.php');

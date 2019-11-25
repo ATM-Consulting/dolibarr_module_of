@@ -19,20 +19,36 @@
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
 
-	switch ($action)
-	{
-		case 'createOFCommande':
+    $hookmanager->initHooks(array('listof'));
+
+    $object = '';
+
+    $parameters=array();
+    $reshook=$hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
+    if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+    if (empty($reshook))
+    {
+        switch ($action)
+        {
+            case 'createOFCommande':
+                set_time_limit(0);
+                _createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
+                _liste($PDOdb);
+                break;
+            case 'setRank':
+                _setAllRank($PDOdb, GETPOST('of_rank'), GETPOST('old_of_rank'));
+                _liste($PDOdb);
+                break;
+            case 'printTicket':
+                _printTicket($PDOdb);
+            default:
 			set_time_limit(0);
-			_createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
-			_liste($PDOdb);
-			break;
-		case 'printTicket':
-			_printTicket($PDOdb);
-		default:
-			set_time_limit(0);
-			_liste($PDOdb);
-			break;
-	}
+                _liste($PDOdb);
+                break;
+        }
+    }
+
 
 /*
  * Créé des Of depuis un tableau de product
@@ -95,6 +111,12 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 				$assetOf->fk_soc = $fk_soc;
 				$idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
 				$assetOf->save($PDOdb);
+
+                if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && !$oneOF && $assetOf->fk_commande > 0) {
+                    $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
+                    $assetOf->copyAllFiles($order_dir);
+                }
+
 				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
 					$TAsset = GETPOST('TAsset');
@@ -111,6 +133,10 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 			}
 		}
+        if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && $oneOF && $assetOf->fk_commande > 0) {
+            $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
+            $assetOf->copyAllFiles($order_dir);
+        }
 
 		setEventMessage($langs->trans('OFAssetCreated'), 'mesgs');
 	}
@@ -119,7 +145,12 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 function _liste(&$PDOdb)
 {
-    global $langs,$db,$user,$conf,$TCacheWorkstation;
+    global $langs,$db,$user,$conf,$TCacheWorkstation,$hookmanager;
+
+    $page = 0;
+    $param = '';
+    $sortfield = '';
+    $sortorder = '';
 
 	llxHeader('',$langs->trans('ListOFAsset'),'','');
 	//getStandartJS();
@@ -139,7 +170,7 @@ function _liste(&$PDOdb)
 		$head=product_prepare_head($product, $user);
 		$titre=$langs->trans("CardProduct".$product->type);
 		$picto=($product->type==1?'service':'product');
-		dol_fiche_head($head, 'tabOF2', $titre, 0, $picto);
+		dol_fiche_head($head, 'tabOF2', $titre, -1, $picto);
 	}
 	elseif($fk_commande > 0)
 	{
@@ -155,8 +186,8 @@ function _liste(&$PDOdb)
 		}
 
 		$head=commande_prepare_head($commande, $user);
-		$titre=$langs->trans("CustomerOrder".$product->type);
-		dol_fiche_head($head, 'tabOF3', $titre, 0, "order");
+		$titre=$langs->trans("CustomerOrder");
+		dol_fiche_head($head, 'tabOF3', $titre, -1, "order");
 	}
 
 	$form=new TFormCore;
@@ -176,7 +207,7 @@ function _liste(&$PDOdb)
 		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
-
+        if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql.=', ofe.rank';
 	}
 	else {
 		$sql.=" ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
@@ -184,8 +215,11 @@ function _liste(&$PDOdb)
         ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation")."
         , ofe.date_lancement
         , ofe.date_besoin
-        , ofe.date_end
-        , ofe.fk_commande";
+        , ofe.date_end";
+
+        if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+            $sql .= ", GROUP_CONCAT(DISTINCT cd.fk_commande SEPARATOR ',') as fk_commande";
+        } else $sql.=", ofe.fk_commande";
 
 		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
 
@@ -197,7 +231,9 @@ function _liste(&$PDOdb)
 		, ofe.status, ofe.fk_user
 		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
-		, '' AS printTicket ";
+		, '' AS printTicket  ";
+
+		if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql.=', ofe.rank';
 
 	}
 
@@ -218,27 +254,52 @@ function _liste(&$PDOdb)
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
 
-		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+		if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE) || !empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
 
 		    $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
 
 		}
+        if($mode == 'non_compliant'){
+            $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'element_element eenc ON (ofe.rowid=eenc.fk_source AND eenc.sourcetype="tassetof" AND eenc.targettype="project_task" )';
+            $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'projet_task task ON (task.rowid=eenc.fk_target)';
+            $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'projet_task_extrafields taskext ON (task.rowid=taskext.fk_object)';
+        }
 
 	}
 
 	$sql.="  WHERE ofe.entity=".$conf->entity;
 
+    if($mode == 'non_compliant'){
+        if(!empty($conf->global->OF_WORKSTATION_NON_COMPLIANT)) $sql .= " AND taskext.fk_workstation IN (".$conf->global->OF_WORKSTATION_NON_COMPLIANT.")";
+        else setEventMessage($langs->trans('WarningMustSetConfOF_WORKSTATION_NON_COMPLIANT'),'warnings');
+    }
 	if($fk_soc>0) $sql.=" AND ofe.fk_soc=".$fk_soc;
 	if($fk_product>0) $sql.=" AND ofel.fk_product=".$fk_product;
-	if($fk_commande>0) $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
+	if($fk_commande>0){
+        if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+            $TLineIds = array();
+            if(!empty($commande->lines)){
 
-	if($mode =='supplier_order') {
+                foreach($commande->lines as $line)$TLineIds[]=$line->id;
+
+                $sql.=" AND ofel.fk_commandedet IN (".implode(',',$TLineIds).") AND ofe.fk_assetOf_parent = 0 ";
+
+            }else $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
+
+        }
+        else $sql.=" AND ofe.fk_commande=".$fk_commande." AND ofe.fk_assetOf_parent = 0 ";
+    }
+
+
+    if($mode =='supplier_order') {
 		$sql.=" AND cf.fk_statut IN (2,3,4) ";
 		$sql.=" GROUP BY cf.rowid, ofe.rowid ";
 	}
 	else{
 		$sql.=" GROUP BY ofe.rowid ";
 	}
+    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))$orderBy=array("date_lancement" => "ASC", "rank"=>"ASC",'rowid'=>'DESC');
+    else $orderBy=array('rowid'=>'DESC');
 
 	$TMath=array();
 	$THide = array('rowid','fk_commandedet','fk_user','fk_product','fk_soc');
@@ -298,7 +359,12 @@ function _liste(&$PDOdb)
 
 	echo $form->hidden('action', '');
 	if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
+    if(!empty($mode)) echo $form->hidden('mode', $mode);
 	if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
+
+    if($mode =='supplier_order') $title = $langs->trans('AssetProductionSupplierOrder');
+    else if($mode =='non_compliant') $title = $langs->trans('ListOFAssetNonCompliant');
+    else $title = $langs->trans('ListOFAsset');
 
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
@@ -327,7 +393,7 @@ function _liste(&$PDOdb)
 		)
 		,'math'=>$TMath
 		,'liste'=>array(
-			'titre'=>($mode =='supplier_order' ? $langs->trans('AssetProductionSupplierOrder') : $langs->trans('ListOFAsset'))
+			'titre'=>$title
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
@@ -354,12 +420,11 @@ function _liste(&$PDOdb)
 			,'supplierOrderId'=>$langs->trans('AssetProductionSupplierOrder')
 			,'date_livraison'=>$langs->trans('DeliveryDate')
 		    ,'date_end'=>$langs->trans('DateEnd')
+            ,'rank' => $langs->trans('Rank')
 		    ,'fk_asset_workstation'=>$langs->trans('Workstations')
 		    ,'order_line_price'=>$langs->trans('OrderLinePrice')
 		)
-		,'orderBy'=>array(
-			'rowid'=>'DESC'
-		)
+
 		,'eval'=>array(
 			'ordre'=>'TAssetOF::ordre("@val@")'
 			,'status'=>'TAssetOF::status("@val@", true)'
@@ -370,6 +435,7 @@ function _liste(&$PDOdb)
 			,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
 			,'numero'=>'get_format_link_of("@val@",@rowid@)'
 			,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
+			,'rank'=>'get_number_input("of_rank[@rowid@]",@rank@)'
 
 		)
 		,'operator'=>array(
@@ -382,6 +448,9 @@ function _liste(&$PDOdb)
 	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
 		echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
 	}
+    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
+        echo '<p align="right"><input id="bt_updateRank" class="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'setRank\');" type="submit" value="'.$langs->trans('UpdateRank').'"/></p>';
+    }
 
 	$form->end();
 
@@ -433,89 +502,95 @@ function _liste(&$PDOdb)
 			$var=!$var;
 			//print "<tr ".$bc[$var].">";
 
-			if($prod->product_type == 9 && !empty($conf->subtotal->enabled)) {
-				print "<tr>";
-				print "<td>&nbsp;</td>";
-				print '<td colspan="6" '.($prod->qteCommandee>50 ? 'style="text-align:right; padding-right:'.((100 - $prod->qteCommandee)*10).'px;"' : 'style="text-align:left; padding-left:'.(($prod->qteCommandee)*10).'px;"').'><strong>';
-                print empty($prod->description) ? $prod->lineLabel: $prod->description;
-                print '</strong></td>';
-			}
-			else if(empty($prod->rowid)) {
-				// ligne libre
-				print "<tr>";
-				  print "<td>&nbsp;</td>";
+            $parameters = array('commande' => $commande, 'var' => $var, 'i' => $i);
+            $reshook = $hookmanager->executeHooks('printObjectLine', $parameters, $prod, $action);    // Note that $action and $object may have been modified by some hooks
 
-				print "<td colspan=\"4\">";
-				print $prod->description;
-				print '</td>';
+            if (empty($reshook))
+            {
+                if($prod->product_type == 9 && !empty($conf->subtotal->enabled)) {
+                    print "<tr>";
+                    print "<td>&nbsp;</td>";
+                    print '<td colspan="6" '.($prod->qteCommandee>50 ? 'style="text-align:right; padding-right:'.((100 - $prod->qteCommandee)*10).'px;"' : 'style="text-align:left; padding-left:'.(($prod->qteCommandee)*10).'px;"').'><strong>';
+                    print empty($prod->description) ? $prod->lineLabel: $prod->description;
+                    print '</strong></td>';
+                }
+                else if(empty($prod->rowid)) {
+                    // ligne libre
+                    print "<tr>";
+                    print "<td>&nbsp;</td>";
 
-			}
-			else {
+                    print "<td colspan=\"4\">";
+                    print $prod->description;
+                    print '</td>';
 
-				print "<tr ".$bc[$var].">";
-			       print "<td>".($i+1)."</td>";
+                }
+                else {
 
-				print "<td>";
-				$p_static = new Product($db);
-				$p_static->fetch($prod->rowid);
-				$p_static->load_stock();
-				$p_static->ref = $prod->refProd;
-				$p_static->id = $prod->rowid;
-				print $p_static->getNomUrl(1);
-				print "</td>\n";
-				print '<td>';
-				print $prod->nomProd;
+                    print "<tr ".$bc[$var].">";
+                    print "<td>".($i+1)."</td>";
 
-				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
-					$line = new OrderLine($db);
-					$line->fetch($prod->fk_commandedet);
-					$line->fetch_optionals($prod->fk_commandedet);
+                    print "<td>";
+                    $p_static = new Product($db);
+                    $p_static->fetch($prod->rowid);
+                    $p_static->load_stock();
+                    $p_static->ref = $prod->refProd;
+                    $p_static->id = $prod->rowid;
+                    print $p_static->getNomUrl(1);
+                    print "</td>\n";
+                    print '<td>';
+                    print $prod->nomProd;
 
-					echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
-					if($line->array_options['options_fk_asset']>0) {
-						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
+                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+                        $line = new OrderLine($db);
+                        $line->fetch($prod->fk_commandedet);
+                        $line->fetch_optionals($prod->fk_commandedet);
 
-						$asset=new TAsset();
-						$asset->load($PDOdb, $line->array_options['options_fk_asset']);
+                        echo '<input type="hidden" name="TAsset['.$prod->fk_commandedet.']" value="'.(int)$line->array_options['options_fk_asset'].'" >';
+                        if($line->array_options['options_fk_asset']>0) {
+                            dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
-						echo ' '.$asset->getNomUrl(true,true,true);
-					}
+                            $asset=new TAsset();
+                            $asset->load($PDOdb, $line->array_options['options_fk_asset']);
 
-				}
+                            echo ' '.$asset->getNomUrl(true,true,true);
+                        }
 
-				print '</td>';
-				print '<td>';
-				print $p_static->stock_reel;
-				print '</td>';
+                    }
 
-				$resOf = $db->query("SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
-						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf)
-					WHERE of.fk_commande=".$fk_commande." AND ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet);
+                    print '</td>';
+                    print '<td>';
+                    print $p_static->stock_reel;
+                    print '</td>';
+                    $sqlOf = "SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
+						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf) WHERE ";
+                    if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
+                    $sqlOf .=" ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet;
+                    $resOf = $db->query($sqlOf);
 
-				$objof = $db->fetch_object($resOf);
-				$qtyInOF = $objof->qty;
+                    $objof = $db->fetch_object($resOf);
+                    $qtyInOF = $objof->qty;
 
-				print "<td>";
-				print $qtyInOF;
-				print "</td>";
-
-
-
-				$qtyToMake = $prod->qteCommandee - $qtyInOF;
-
-			    	        print "<td>";
-			    	        print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $qtyToMake>0 ? $qtyToMake : 0,3,255);
-                        	print "</td>";
-
-                        	print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false, $qtyToMake>0 ,'','checkOF' );
-	                        print "</td>";
+                    print "<td>";
+                    print $qtyInOF;
+                    print "</td>";
 
 
-			                print "</tr>\n";
-				$i++;
+
+                    $qtyToMake = $prod->qteCommandee - $qtyInOF;
+
+                    print "<td>";
+                    print $form->texte('','TQuantites['.$prod->fk_commandedet.']', $qtyToMake>0 ? $qtyToMake : 0,3,255);
+                    print "</td>";
+
+                    print "<td>".$form->checkbox1('', 'TProducts['.$prod->fk_commandedet.']['.(int)$prod->rowid.']', false, $qtyToMake>0 ,'','checkOF' );
+                    print "</td>";
 
 
-			}
+                    print "</tr>\n";
+                    $i++;
+
+                }
+            }
 
 		}
 
@@ -651,6 +726,8 @@ function _liste(&$PDOdb)
 
 		}
 
+
+
 		echo '</div>';
 
 	}
@@ -683,6 +760,8 @@ function _liste(&$PDOdb)
 				)
 		));
 	}
+
+    dol_fiche_end(-1);
 
 	$PDOdb->close();
 	llxFooter('');
@@ -785,23 +864,30 @@ function get_format_label_supplier_order($fk){
 function get_format_libelle_commande($fk, $fk_commandedet=0, $fk_products='')
 {
     global $db,$langs,$conf;
+    $TCommandeIds = array();
+    if(strpos($fk,',')!==false) {
+        $TCommandeIds = explode(',', $fk);
+    }else $TCommandeIds[] = (int)$fk;
 
-    $fk = (int)$fk;
     $fk_commandedet = (int)$fk_commandedet;
+    if(!empty($TCommandeIds)) {
+        $res = '';
+        foreach($TCommandeIds as $fk) {
+            $fk = (int) $fk;
 
-    if($fk>0)
-    {
-        $o = new Commande($db);
-        if($o->fetch($fk)>0) {
+            if($fk > 0) {
+                $o = new Commande($db);
+                if($o->fetch($fk) > 0) {
 
-            $res = '<span style="white-space:nowrap;">'.$o->getNomUrl(1);
-            $res.= '<br />'.price($o->total_ht,0,$langs,1,-1,-1,$conf->currency);
-            $res.='</span>';
+                    $res .= '<div style="white-space:nowrap;">' . $o->getNomUrl(1);
+                    $res .= '<br />' . price($o->total_ht, 0, $langs, 1, -1, -1, $conf->currency);
+                    $res .= '</div>';
 
-            return $res;
+
+                } else return $fk;
+            }
         }
-
-		else return $fk;
+        return $res;
     }
 
     return '';
@@ -930,4 +1016,25 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	}//exit;
 
 	return $TInfoEtiquette;
+}
+
+function get_number_input($name, $value) {
+    return '<input type="number" name="'.$name.'" value="'.$value.'"/><input type="hidden" name="old_'.$name.'" value="'.$value.'"/>';
+}
+
+function _setAllRank($PDOdb, $TNewRank, $TOldRank) {
+    $TToUpdate= array();
+    //On récupère uniquement les ofs qui ont été modifiés
+    foreach($TNewRank as $key => $val){
+        if($val != $TOldRank[$key]) $TToUpdate[$key] = $val;
+    }
+    if(!empty($TToUpdate)) {
+        asort($TToUpdate); //On réordonne par value (pour que les valeurs les plus basses soient traités en première)
+        foreach($TToUpdate as $fk_of => $new_rank) {
+            $assetOf = new TAssetOF;
+            $assetOf->load($PDOdb, $fk_of);
+            $assetOf->rank = $new_rank;
+            $assetOf->save($PDOdb);
+        }
+    }
 }

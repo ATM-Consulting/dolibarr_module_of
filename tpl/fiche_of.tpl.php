@@ -30,7 +30,12 @@
 				[onshow;block=end]
 				<tr><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr rel="fk_commande">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Order)]</td>
+                    [onshow;block=begin;when [conf.global.OF_MANAGE_ORDER_LINK_BY_LINE;noerr]!=1]
+					    <td>[view.editField;strconv=no][view.langs.transnoentities(Order)]</td>
+                    [onshow;block=end]
+                    [onshow;block=begin;when [conf.global.OF_MANAGE_ORDER_LINK_BY_LINE;noerr]==1]
+                    <td>[view.langs.transnoentities(Order)]</td>
+                    [onshow;block=end]
 					<td class="editableField">[assetOf.fk_commande;strconv=no;magnet=tr]</td>
 				</tr>
 				<tr><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
@@ -78,7 +83,12 @@
 					<td>[view.editField;strconv=no][view.langs.transnoentities(Comments)]</td>
 					<td class="editableField">[assetOf.note;strconv=no]</td>
 				</tr>
-
+                [onshow;block=begin;when [conf.global.OF_RANK_PRIOR_BY_LAUNCHING_DATE;noerr]==1]
+                    <tr rel="rank">
+                        <td>[view.editField;strconv=no][view.langs.transnoentities(Rank)]</td>
+                        <td class="editableField">[assetOf.rank;strconv=no]</td>
+                    </tr>
+                [onshow;block=end]
 			</table>
 
 			<div class="of-details" style="margin-top: 25px;">
@@ -98,8 +108,16 @@
 									[onshow;block=end]
 									<td>[view.langs.transnoentities(Product)]</td>
 									<td>[view.langs.transnoentities(QtyToProduce)]</td>
-									<td>[view.langs.transnoentities(ProduceQty)]</td>
+                                    [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]!=1]
+									    <td>[view.langs.transnoentities(ProduceQty)]</td>
+                                    [onshow;block=end]
+                                    [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]==1]
+									    <td>[view.langs.transnoentities(Compliant)]</td>
+                                    [onshow;block=end]
 									<td>[view.langs.transnoentities(Supplier)]</td>
+                                    [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]==1]
+                                        <td >[view.langs.transnoentities(NonCompliant)]</td>
+                                    [onshow;block=end]
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[view.langs.transnoentities(Warehouse)]</td>
 									[onshow;block=end]
@@ -126,6 +144,9 @@
 									<td valign="top">[TTomake.qty;strconv=no]</td>
 									<td valign="top">[TTomake.qty_used;strconv=no]</td>
 									<td width="30%" valign="top">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
+                                    [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]==1]
+                                        <td valign="top">[TTomake.qty_non_compliant;strconv=no]</td>
+                                    [onshow;block=end]
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
 										<td width="20%">[TTomake.fk_entrepot;strconv=no]</td>
 									[onshow;block=end]
@@ -607,6 +628,8 @@
 			$(".btnaddproduct" ).unbind().click(function() {
 				var type = $(this).attr('rel');
 				var idassetOf = $(this).attr('id_assetOf');
+
+                $('#fk_product').val(null).trigger('change');//reinit le select
 
 				$( "#dialog" ).dialog({
 					show: {

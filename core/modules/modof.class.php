@@ -59,7 +59,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module of";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.9.1';
+		$this->version = '1.13.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -90,7 +90,7 @@ class modof extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'triggers' => 1,
-			'hooks'=>array('ordersuppliercard', 'productstock','searchform')
+			'hooks'=>array('ordersuppliercard', 'productstock','searchform', 'tasklist')
 		);
 
 		// Data directories to create when module is enabled.
@@ -372,6 +372,18 @@ class modof extends DolibarrModules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
+        $this->menu[$r]=array(  'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',         // Put 0 if this is a top menu
+                    'type'=>'left',         // This is a Top menu entry
+                    'titre'=>'AssetProductionOrderNONCOMPLIANT',
+                    'mainmenu'=>'of',
+                    'leftmenu'=>'',
+                    'url'=>'/of/liste_of.php?mode=non_compliant',
+                    'position'=>310+$r,
+                    'enabled'=>'$conf->global->OF_MANAGE_NON_COMPLIANT',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'target'=>'',
+                    'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
+        $r++;
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
 					'type'=>'left',			// This is a Top menu entry
@@ -385,6 +397,19 @@ class modof extends DolibarrModules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
+
+        $this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=of,fk_leftmenu=assetOFlist',			// Put 0 if this is a top menu
+                                  'type'=>'left',			// This is a Top menu entry
+                                  'titre'=>'ShippablePrevReport',
+                                  'mainmenu'=>'of',
+                                  'leftmenu'=>'',
+                                  'url'=>'/of/shipable_prev.php',
+                                  'position'=>310+$r,
+                                  'enabled'=>'',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                                  'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                                  'target'=>'',
+                                  'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
+        $r++;
 
 
 		// Add here entries to declare new menus
@@ -449,7 +474,7 @@ class modof extends DolibarrModules
 	function init($options='')
 	{
 		global $user;
-		
+
 		$sql = array();
 
 		define('INC_FROM_DOLIBARR',true);
@@ -465,6 +490,9 @@ class modof extends DolibarrModules
 
         $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
+
+        $extrafields=new ExtraFields($this->db);
+        $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
 		// template
 		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
@@ -498,11 +526,11 @@ class modof extends DolibarrModules
 				'params' => '',
 				'datestart' => time()
 		));
-		
+
 		dol_include_once('/cron/class/cronjob.class.php');
-		
+
 		foreach($TCron as $cronvalue) {
-			
+
 			$req = "
 				SELECT rowid
 				FROM " . MAIN_DB_PREFIX . "cronjob
@@ -511,25 +539,27 @@ class modof extends DolibarrModules
 				AND objectname = '" . $cronvalue['objectname'] . "'
 				AND methodename = '" . $cronvalue['methodename'] . "'
 			";
-			
+
 			$res = $this->db->query($req);
 			$job = $this->db->fetch_object($res);
-			
+
 			if (empty($job->rowid)) {
 				$cronTask = new Cronjob($this->db);
 				foreach ($cronvalue as $key => $value) {
 					$cronTask->{$key} = $value;
 				}
-				
+
 				$res = $cronTask->create($user);
 				if($res<=0) {
 					var_dump($res,$cronTask);
 					exit;
 				}
 			}
-			
+
 		}
-		
+
+		$this->transformExtraFkOfIntoElementElement();
+
 		return $this->_init($sql, $options);
 	}
 
@@ -547,5 +577,32 @@ class modof extends DolibarrModules
 
 		return $this->_remove($sql, $options);
 	}
+
+
+    function transformExtraFkOfIntoElementElement() {
+        global $db;
+        dol_include_once('/projet/class/task.class.php');
+        //Check si on a pas déjà fait appel à cette fonction
+        $sqlCheck = "SELECT * FROM " . MAIN_DB_PREFIX . "element_element WHERE sourcetype='tassetof'";
+        $resqlCheck = $db->query($sqlCheck);
+
+        if(!empty($resqlCheck) && $db->num_rows($resqlCheck) == 0) {
+
+            //On ajoute les objets liés
+            $sql = "SELECT t.rowid, tex.fk_of FROM " . MAIN_DB_PREFIX . "projet_task t 
+            LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid) 
+            LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
+            WHERE tex.fk_of IS NOT NULL ";
+
+            $resql = $db->query($sql);
+            if(!empty($resql) && $db->num_rows($resql) > 0) {
+                while($obj = $db->fetch_object($resql)) {
+                    $t = new Task($db);
+                    $t->fetch($obj->rowid);
+                    if(!empty($obj->fk_of)) $t->add_object_linked('tassetof', $obj->fk_of);
+                }
+            }
+        }
+    }
 
 }

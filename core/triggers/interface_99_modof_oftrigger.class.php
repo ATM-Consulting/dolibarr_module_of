@@ -160,7 +160,7 @@ class Interfaceoftrigger
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $_REQUEST['id'];
 							$assetOF->fk_soc = $object->socid;
-							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty);
+							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
 
 						}
@@ -199,36 +199,22 @@ class Interfaceoftrigger
 		else if($action === 'TASK_MODIFY') {
 		    if(!empty($conf->workstation->enabled) && !empty($conf->of->enabled) ) {
 
-		        if(!empty($conf->global->OF_CLOSE_OF_ON_CLOSE_ALL_TASK) && !empty($object->array_options['options_fk_of']) && $object->progress==100) {
+		        if( !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) ) {
+                    if (!isset($conf->tassetof))$conf->tassetof = new \stdClass(); // for warning
+		            $conf->tassetof->enabled = 1; // pour fetchobjectlinked
+                    $object->fetchObjectLinked(0,'tassetof',$object->id,$object->element,'OR',1,'sourcetype',0);
+                }
 
-		            $db = &$object->db;
-		            $res = $db->query("SELECT count(*) as nb
-                            FROM ".MAIN_DB_PREFIX."projet_task t
-                                LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (tex.fk_object=t.rowid)
-                            WHERE tex.fk_of=".(int)$object->array_options['options_fk_of']." AND t.progress<100");
-		            if( $res=== false ) {
+		        if(!empty($conf->global->OF_CLOSE_OF_ON_CLOSE_ALL_TASK)
+                    && ((!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($object->linkedObjectsIds['tassetof'])) || !empty($object->array_options['options_fk_of']))
+                    && $object->progress==100) {
 
-		                $this->error=$db->lasterr;
-		                return -1;
-
-		            }
-
-		            $row = $db->fetch_object($res);
-
-		            if($row->nb == 0) {
-
-    		            define('INC_FROM_DOLIBARR',true);
-    		            dol_include_once('/of/config.php');
-    		            dol_include_once('/of/class/ordre_fabrication_asset.class.php');
-    		            $PDOdb=new TPDOdb;
-
-    		            $assetOf=new TAssetOF();
-    		            $assetOf->load($PDOdb,$object->array_options['options_fk_of']);
-    		            $assetOf->closeOF($PDOdb);
-
-		            }
-		        }
-
+                    if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)) {
+                        foreach($object->linkedObjectsIds['tassetof'] as $fk_of) $this->closeOfIfTaskDone($fk_of, $object);
+                    } else {
+                        $this->closeOfIfTaskDone($object->array_options['options_fk_of'], $object);
+                    }
+                }
 
 		    }
 		}
@@ -241,7 +227,10 @@ class Interfaceoftrigger
  		        $sql = "UPDATE ".MAIN_DB_PREFIX."asset_workstation_of SET fk_project_task = 0 WHERE fk_project_task = " . $object->id;
  		        $res = $db->query($sql);
  		        if (!$res) setEventMessage('Erreur de mise à jour du poste de travail lié', 'errors');
+                $object->deleteObjectLinked();
 		    }
+
+
 		}
 		elseif($action==='TASK_TIMESPENT_CREATE') {
 			if(!empty($conf->workstation->enabled)) {
@@ -466,6 +455,43 @@ class Interfaceoftrigger
                     
                 }
             }
+        }
+    }
+
+    private function closeOfIfTaskDone ($fk_of, $task) {
+        global $conf, $db;
+
+        $sql = "SELECT count(*) as nb
+                            FROM " . MAIN_DB_PREFIX . "projet_task t";
+
+        if(empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid)
+                            WHERE tex.fk_of=" . $fk_of . " AND (t.progress<100 OR t.progress IS NULL)";
+        }
+        else {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
+                            WHERE ee.fk_source = " .$fk_of  . " AND (t.progress<100 OR t.progress IS NULL) AND t.rowid !=".$task->id;
+        }
+
+        $res = $db->query($sql);
+        if($res === false) {
+
+            $this->error = $db->lasterr;
+            return -1;
+        }
+
+        $row = $db->fetch_object($res);
+
+        if($row->nb == 0) {
+
+            define('INC_FROM_DOLIBARR', true);
+            dol_include_once('/of/config.php');
+            dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+            $PDOdb = new TPDOdb;
+
+            $assetOf = new TAssetOF();
+            $assetOf->load($PDOdb, $fk_of);
+            $assetOf->closeOF($PDOdb);
         }
     }
 }
