@@ -24,6 +24,17 @@ class TAssetOF extends TObjetStd{
 			,'CLOSE'=>'Done'
 		);
 
+ 	function fetchObjectLinked($sourceid = null, $sourcetype = '', $targetid = null, $targettype = '', $clause = 'OR', $alsosametype = 1, $orderby = 'sourcetype', $loadalsoobjects = 1)
+    {
+        $this->linkedObjectsIds=array();
+        $this->linkedObjects=array();
+
+        // TODO usurper via un objet Generic l'appel standard
+        // ...
+
+        return 1;
+    }
+
 	function __construct() {
 	    global $conf;
 
@@ -34,6 +45,7 @@ class TAssetOF extends TObjetStd{
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
 		$this->add_champs('note','type=text;');
+		$this->add_champs('modelpdf',array('type' => 'string'));
 		$this->_init_vars();
 		$this->start();
 
