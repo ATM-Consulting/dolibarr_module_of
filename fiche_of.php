@@ -271,7 +271,7 @@ function _action() {
                 $assetOf->modelpdf = GETPOST('model');
                 $assetOf->save($PDOdb);
             }
-			
+
 			if(empty($conf->global->OF_PRINT_IN_PDF)) {
 				generateODTOF($PDOdb, $assetOf, false);
 
@@ -325,6 +325,30 @@ function _action() {
 			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'#builddoc');
 			exit;
 			break;
+
+		case 'remove_file':
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+
+			$id_of = $_REQUEST['id'];
+
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $id_of, false);
+
+			$langs->load("other");
+			$filetodelete=GETPOST('file', 'alpha');
+			$upload_dir = $conf->of->dir_output;
+			$file =	$upload_dir	. '/' .	$filetodelete;
+			$ret=dol_delete_file($file, 0, 0, 0);
+			if ($ret) setEventMessages($langs->trans("FileWasRemoved", $filetodelete), null, 'mesgs');
+			else setEventMessages($langs->trans("ErrorFailToDeleteFile", $filetodelete), null, 'errors');
+
+			// Make a redirect to avoid to keep the remove_file into the url that create side effects
+			$urltoredirect = $_SERVER['REQUEST_URI'];
+			$urltoredirect = preg_replace('/#builddoc$/', '', $urltoredirect);
+			$urltoredirect = preg_replace('/action=remove_file&?/', '', $urltoredirect);
+
+			header('Location: '.$urltoredirect);
+			exit;
 
 		case 'addAssetLink':
 			$assetOf=new TAssetOF;
