@@ -32,7 +32,7 @@
         switch ($action)
         {
             case 'createOFCommande':
-                set_time_limit(0);
+                @set_time_limit(0);
                 _createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
                 _liste($PDOdb);
                 break;

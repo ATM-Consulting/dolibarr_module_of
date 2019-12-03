@@ -244,6 +244,7 @@ class modof extends DolibarrModules
 		$r=0;
 
 		$langs->load('of@of'); // load lang file to translate menu
+
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
 		$r=0;

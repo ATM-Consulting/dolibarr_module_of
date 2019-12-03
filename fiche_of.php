@@ -1,6 +1,6 @@
 <?php
 
-set_time_limit(120);
+@set_time_limit(120);
 
 require('config.php');
 
@@ -23,7 +23,7 @@ dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php'); // TODO à re
 
 if(!$user->rights->of->of->lire) accessforbidden();
 
-// Load traductions files requiredby by page
+// Load translation files required by page
 $langs->load("other");
 $langs->load("orders");
 $langs->load("of@of");
