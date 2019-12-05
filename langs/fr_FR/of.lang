@@ -12,6 +12,8 @@ OFActions=Actions
 ParametersWorkstation=Paramètres Poste de travail
 ParametersWorkflow=Paramètres Workflow
 
+Card=Fiche
+
 # EQUIPEMENT
 GPAO=GPAO
 Asset=Equipement
@@ -78,6 +80,8 @@ OFSupplierLineComp=Fabrication interne
 OFSupplierLineStockRemoval=Sortie de stock
 OFSupplierLineSupOrder=Commande fournisseur
 OFValidate=Valider
+OFNomenclatureShort=Nomen.
+OFNomenclature=Nomenclature
 NomenclatureToSelect=Nomenclature à sélectionner
 Link=Lier
 DeleteLink=Suppresion du lien
