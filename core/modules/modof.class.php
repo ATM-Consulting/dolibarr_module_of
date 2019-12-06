@@ -90,8 +90,14 @@ class modof extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'triggers' => 1,
-			'hooks'=>array('ordersuppliercard', 'productstock','searchform', 'tasklist')
-            ,'dir' => array('output' => 'of')
+			'hooks'=>array(
+				'ordersuppliercard',
+				'productstock',
+				'searchform',
+				'tasklist',
+				'ordercard'
+			),
+			'dir' => array('output' => 'of')
 		);
 
 		// Data directories to create when module is enabled.

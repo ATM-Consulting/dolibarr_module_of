@@ -307,6 +307,81 @@ class Actionsof
 		return _calcQtyOfProductInOf($db, $conf, $product);
 	}
 
+	/*
+		 * Overloading the addMoreActionsButtons function
+		 *
+		 * @param   array()         $parameters     Hook metadatas (context, etc...)
+		 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+		 * @param   string          $action         Current action (if set). Generally create or edit or null
+		 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+		 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+		 */
+	public function addMoreActionsButtons(&$parameters, &$object, &$action, $hookmanager)
+	{
+		global $conf, $langs, $db;
 
+		$TContext = explode(':',$parameters['context']);
+
+		if(in_array('ordercard',$TContext) && !empty($conf->global->OF_DISPLAY_OF_ON_COMMANDLINES))
+		{
+			dol_include_once('/of/lib/of.lib.php');
+
+			$jsonObjectData =array();
+			foreach($object->lines as $i => $line)
+			{
+				$jsonObjectData[$line->id] = new stdClass();
+				$jsonObjectData[$line->id]->id = $line->id;
+				$TOf = getOFForLine($line);
+				$jsonObjectData[$line->id]->TOf = implode('<br>', $TOf);
+			}
+
+			?>
+			<script type="application/javascript">
+				$( document ).ready(function() {
+
+					var jsonObjectData = <?php print json_encode($jsonObjectData) ; ?> ;
+
+					// ADD NEW COLS
+					$("#tablelines tr").each(function( index ) {
+
+						$colSpanBase = 1; // nombre de colonnes ajoutées
+
+						if($( this ).hasClass( "liste_titre" ))
+						{
+							// PARTIE TITRE
+							$('<td align="center" class="linecolof"><?php print $langs->transnoentities('OF'); ?></td>').insertBefore($( this ).find("td.linecoldescription"));
+						}
+						else if($( this ).data( "product_type" ) == "9"){
+							$( this ).find("td[colspan]:first").attr('colspan',    parseInt($( this ).find("td[colspan]:first").attr('colspan')) + 1  );
+						}
+						else
+						{
+							// PARTIE LIGNE
+							var nobottom = '';
+							if($( this ).hasClass( "liste_titre_create" ) || $( this ).attr("data-element") == "extrafield" ){
+								nobottom = ' nobottom ';
+							}
+
+							// New columns
+							$('<td align="center" class="linecolof' + nobottom + '"></td>').insertBefore($( this ).find("td.linecoldescription"));
+
+
+							if($( this ).hasClass( "liste_titre_create" )){
+								$( this ).find("td.linecoledit").attr('colspan',    parseInt($( this ).find("td.linecoledit").attr('colspan')) + $colSpanBase  );
+							}
+
+						}
+					});
+
+					// Affichage des données
+					$.each(jsonObjectData, function(i, item) {
+						$("#row-" + jsonObjectData[i].id + " .linecolof:first").html(jsonObjectData[i].TOf);
+					});
+
+				});
+			</script>
+			<?php
+		}
+	}
 
 }
