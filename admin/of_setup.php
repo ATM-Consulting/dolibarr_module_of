@@ -486,6 +486,8 @@ $var=!$var;
 
     setup_print_on_off('OF_MANAGE_ORDER_LINK_BY_LINE', $langs->trans('OF_MANAGE_ORDER_LINK_BY_LINE') , $langs->trans('OF_MANAGE_ORDER_LINK_BY_LINEDETAIL'));
 
+    setup_print_on_off('OF_DISPLAY_OF_ON_COMMANDLINES');
+
 
 print '</table>';
 
