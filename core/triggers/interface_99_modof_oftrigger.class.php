@@ -388,7 +388,7 @@ class Interfaceoftrigger
         
         dol_include_once('/projet/class/task.class.php');
         
-        if(!empty($conf->of->enabled)) {
+        if(!empty($conf->of->enabled) && !empty($object->date_livraison)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
             dol_include_once('/of/class/ordre_fabrication_asset.class.php');
@@ -409,48 +409,77 @@ class Interfaceoftrigger
                     $of->load($PDOdb, $id_of);
                     
                     if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
-                        foreach($of->TAssetOFLine as &$ofLine) {
-                            foreach($ofLine->TWorkstation as &$ws) {
-                                foreach($of->TAssetWorkstationOF as &$wsof) {
-                                    
-                                    if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0) {
-                                        
-                                        if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
-                                            
-                                            foreach($object->lines as &$line) {
-                                                
-                                                if($line->fk_product == $ofLine->fk_product) {
-                                                    // calcul du délai de liv + délai de démarrage
-                                                    
-                                                    $addDays = 0;
-                                                    $resprice = $db->query("SELECT delivery_time_days FROM ".MAIN_DB_PREFIX."product_fournisseur_price WHERE fk_product = ".$ofLine->fk_product." AND fk_soc = ".$object->socid." AND unitprice = ". $line->subprice);
-                                                    $res = $db->fetch_object($resprice);
-                                                    
-                                                    if (!empty($res->delivery_time_days) && empty($object->date_livraison)) $addDays += (int)$res->delivery_time_days;
-                                                    if (!empty($wsof->nb_days_before_beginning)) $addDays += $wsof->nb_days_before_beginning;
-                                                    
-                                                    // à partir de quand ?
-                                                    $date = dol_now();
-                                                    if (!empty($object->date_livraison)) $date = $object->date_livraison;
-                                                    
-                                                    $projectTask = new Task($db);
-                                                    $projectTask->fetch($wsof->fk_project_task);
-                                                    $projectTask->date_start = strtotime("+". $addDays ." day", $date);
-                                                    
-                                                    $projectTask->update($user);
-                                                    
-                                                }
-                                                
+
+                        $TOfParent = $of->getListeOfParents($PDOdb, 'object', true);
+
+                        $TExcludeTaskIdCurrentOf = $TExcludeTaskId = array();
+                        foreach($of->TAssetWorkstationOF as &$tmpWsof) $TExcludeTaskIdCurrentOf[$tmpWsof->fk_project_task] = $tmpWsof->fk_project_task;
+
+                        foreach ($TOfParent as $tmpOf)
+                        {
+                            foreach($tmpOf->TAssetWorkstationOF as &$tmpWsof)
+                            {
+                                $TExcludeTaskId[$tmpWsof->fk_project_task] = $tmpWsof->fk_project_task;
+                            }
+                        }
+
+                        // Concat arrays with preserving keys
+                        $TExcludeTaskId = $TExcludeTaskId + $TExcludeTaskIdCurrentOf;
+                        foreach($of->TAssetOFLine as &$ofLine)
+                        {
+                            foreach($ofLine->TWorkstation as &$ws)
+                            {
+                                foreach($of->TAssetWorkstationOF as &$wsof)
+                                {
+                                    if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task > 0)
+                                    {
+                                        foreach($object->lines as &$line)
+                                        {
+                                            if($line->fk_product == $ofLine->fk_product)
+                                            {
+                                                $date = dol_now();
+                                                if (!empty($object->date_livraison)) $date = $object->date_livraison;
+
+                                                $wsof->manageProjectTask($PDOdb, $date, true, $TExcludeTaskId);
+                                                unset($TExcludeTaskId[$wsof->fk_project_task], $TExcludeTaskIdCurrentOf[$wsof->fk_project_task]);
                                             }
-                                            
+
                                         }
                                         break;
                                     }
+//                                    else
+//                                    {
+                                        // TODO il faudrait recalculer aussi les dates des autres tâches non concerné par la commande fournisseur car il est possible qu'il y ai un impact
+                                        // Attention ceci doit ce faire en dehors des boucles ici, car il est nécessaire d'impacter toutes les tâches concernées
+//                                    }
                                     
                                 }
                             }
                         }
-                        
+
+                        if (!empty($TOfParent))
+                        {
+                            // si la commande fournisseur impact un seul poste de travail, il faut maintenant purger le tableau pour ne pas exclure les autres pour les OF parents
+                            if (!empty($TExcludeTaskIdCurrentOf))
+                            {
+                                foreach ($TExcludeTaskIdCurrentOf as $fk_project_task)
+                                {
+                                    unset($TExcludeTaskId[$fk_project_task]);
+                                }
+                                unset($TExcludeTaskIdCurrentOf);
+                            }
+
+                            foreach ($TOfParent as $of)
+                            {
+                                foreach ($of->TAssetWorkstationOF as &$wsof)
+                                {
+                                    $wsof->manageProjectTask($PDOdb, null, true, $TExcludeTaskId);
+                                    unset($TExcludeTaskId[$wsof->fk_project_task]);
+                                }
+                            }
+                        }
+
+
                     }
                     
                 }

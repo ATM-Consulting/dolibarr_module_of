@@ -432,9 +432,7 @@
 </div>
 
 	<div style="clear:both;"></div>
-		<div id="assetChildContener" [view.hasChildren;noerr;if [val]==0;then 'style="display:none"';else '']>
-			<h2 id="titleOFEnfants">[view.langs.transnoentities(OFChild)]</h2>
-		</div>
+
 	<script type="text/javascript">
 
 		$(document).ready(function() {

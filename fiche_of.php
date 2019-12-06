@@ -1407,7 +1407,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 	print $TBS->render($tpl, $TBlocks, $TFields);
-
+//var_dump($tpl, $TBlocks, $TFields);
 	if ($mode == 'view')
     {
         $assetOf->thirdparty = $client;
@@ -1454,6 +1454,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 		print '</div></div></div>';
     }
+
+	print '
+		<div style="clear:both;"></div>
+        <br />
+        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
+			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
+		</div>
+    ';
 
 	echo $form->end_form();
 

@@ -41,3 +41,5 @@ class ModelePDFOf extends CommonDocGenerator
         return $liste;
     }
 }
+
+class ModeleOf extends ModelePDFOf {}
