@@ -331,7 +331,8 @@ class Actionsof
 			{
 				$jsonObjectData[$line->id] = new stdClass();
 				$jsonObjectData[$line->id]->id = $line->id;
-				$jsonObjectData[$line->id]->TOf = getOFForLine($line);
+				$TOf = getOFForLine($line);
+				$jsonObjectData[$line->id]->TOf = implode('<br>', $TOf);
 			}
 
 			?>

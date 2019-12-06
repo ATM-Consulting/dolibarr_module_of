@@ -1062,6 +1062,8 @@ function getOFForLine($line)
 {
 	global $conf, $db;
 
+	$TOF = array();
+
 	$sql = "SELECT DISTINCT ofe.rowid";
 
 	$sql.=" FROM ".MAIN_DB_PREFIX."assetOf as ofe
@@ -1090,7 +1092,6 @@ function getOFForLine($line)
 			$pdo = new TPDOdb;
 			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
-			$TOF = array();
 			while ($obj = $db->fetch_object($resql))
 			{
 				$of = new TAssetOF;
@@ -1102,9 +1103,8 @@ function getOFForLine($line)
 
 			}
 
-			return implode('<br>', $TOF);
 		}
 	}
 
-	var_dump($TOF);
+	return $TOF;
 }
