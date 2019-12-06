@@ -216,7 +216,7 @@ DEFINE_HEIGHT_DIV=Définir la hauteur de chaque étiquette (en mm)
 OF_CONCAT_WS_ON_ADD=Concatener les temps des postes de charges
 MinimalViewForChilOF=Vue minimale pour les OFs enfants
 
-DateLaunch=Date de lancement
+DateLaunch=Date de lancement prévisionnelle
 DateBesoin=Date du besoin
 
 ofSetup=Configuration 

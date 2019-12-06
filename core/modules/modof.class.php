@@ -96,7 +96,8 @@ class modof extends DolibarrModules
 				'searchform',
 				'tasklist',
 				'ordercard'
-			)
+			),
+			'dir' => array('output' => 'of')
 		);
 
 		// Data directories to create when module is enabled.
@@ -596,8 +597,8 @@ class modof extends DolibarrModules
         if(!empty($resqlCheck) && $db->num_rows($resqlCheck) == 0) {
 
             //On ajoute les objets liés
-            $sql = "SELECT t.rowid, tex.fk_of FROM " . MAIN_DB_PREFIX . "projet_task t
-            LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid)
+            $sql = "SELECT t.rowid, tex.fk_of FROM " . MAIN_DB_PREFIX . "projet_task t 
+            LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid) 
             LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
             WHERE tex.fk_of IS NOT NULL ";
 

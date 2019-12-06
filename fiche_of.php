@@ -259,14 +259,21 @@ function _action() {
 			break;
 
 		case 'createDocOF':
+        case 'builddoc':
 
 			$id_of = $_REQUEST['id'];
 
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $id_of, false);
 
+			if (GETPOSTISSET('model'))
+            {
+                $assetOf->modelpdf = GETPOST('model');
+                $assetOf->save($PDOdb);
+            }
+
 			if(empty($conf->global->OF_PRINT_IN_PDF)) {
-				generateODTOF($PDOdb, $assetOf, true);
+				generateODTOF($PDOdb, $assetOf, false);
 
 			}
 			else {
@@ -315,7 +322,33 @@ function _action() {
 				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			}
 
+			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'#builddoc');
+			exit;
 			break;
+
+		case 'remove_file':
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+
+			$id_of = $_REQUEST['id'];
+
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $id_of, false);
+
+			$langs->load("other");
+			$filetodelete=GETPOST('file', 'alpha');
+			$upload_dir = $conf->of->dir_output;
+			$file =	$upload_dir	. '/' .	$filetodelete;
+			$ret=dol_delete_file($file, 0, 0, 0);
+			if ($ret) setEventMessages($langs->trans("FileWasRemoved", $filetodelete), null, 'mesgs');
+			else setEventMessages($langs->trans("ErrorFailToDeleteFile", $filetodelete), null, 'errors');
+
+			// Make a redirect to avoid to keep the remove_file into the url that create side effects
+			$urltoredirect = $_SERVER['REQUEST_URI'];
+			$urltoredirect = preg_replace('/#builddoc$/', '', $urltoredirect);
+			$urltoredirect = preg_replace('/action=remove_file&?/', '', $urltoredirect);
+
+			header('Location: '.$urltoredirect);
+			exit;
 
 		case 'addAssetLink':
 			$assetOf=new TAssetOF;
@@ -546,8 +579,10 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 	}
 
-	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.( $conf->entity>1 ? '/'.$conf->entity : ''  ).'/of/'.$dirName.'/';
+	$dirName = dol_sanitizeFileName($assetOf->ref);
+//	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
+	$dir = $conf->of->multidir_output[$assetOf->entity].'/'.$dirName.'/';
+
 
 	@mkdir($dir, 0777, true);
 
@@ -555,7 +590,8 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		$template = TEMPLATE_OF;
 	}
 	else{
-		if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
+	    if (GETPOSTISSET('model')) $template = GETPOST('model');
+		else if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
 		else $template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
@@ -1371,6 +1407,61 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 	print $TBS->render($tpl, $TBlocks, $TFields);
+//var_dump($tpl, $TBlocks, $TFields);
+	if ($mode == 'view')
+    {
+        $assetOf->thirdparty = $client;
+
+        require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+        $formfile = new FormFile($db);
+
+        $usercanread = $user->rights->of->of->lire;
+        $usercancreate = $user->rights->of->read; // voir le descripteur du module pour comprendre U_u
+
+        print '<div class="fichecenter"><div class="fichehalfleft">';
+		print '<a name="builddoc"></a>'; // ancre
+		/*
+		 * Documents generes
+		 */
+		$filename = dol_sanitizeFileName($assetOf->ref);
+//		$filename = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
+		$filedir = $conf->of->multidir_output[$assetOf->entity] . "/" . $filename;
+		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $assetOf->id;
+
+		$genallowed = $usercanread;
+		$delallowed = $usercancreate;
+
+		print $formfile->showdocuments('of', $filename, $filedir, $urlsource, $genallowed, $delallowed, $assetOf->modelpdf, 1, 0, 0, 28, 0, '', 0, '', $client->default_lang, '', $assetOf);
+
+// TODO uncomment to show linked objects
+//		// Show links to link elements
+//		$linktoelem = $doliform->showLinkToObjectBlock($assetOf, null, array('propal'));
+//
+//		$compatibleImportElementsList = false;
+//		if($user->rights->propal->creer && $assetOf->statut == Propal::STATUS_DRAFT)
+//		{
+//		    $compatibleImportElementsList = array('commande','propal'); // import from linked elements
+//		}
+//		$somethingshown = $doliform->showLinkedObjectBlock($assetOf, $linktoelem, $compatibleImportElementsList);
+//
+//		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+
+// TODO uncomment to show ActionComm linked
+//		// List of actions on element
+//		include_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
+//		$formactions = new FormActions($db);
+//		$somethingshown = $formactions->showactions($assetOf, 'propal', $assetOf->fk_soc, 1);
+
+		print '</div></div></div>';
+    }
+
+	print '
+		<div style="clear:both;"></div>
+        <br />
+        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
+			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
+		</div>
+    ';
 
 	echo $form->end_form();
 

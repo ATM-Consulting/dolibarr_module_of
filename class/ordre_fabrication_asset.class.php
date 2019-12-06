@@ -6,6 +6,13 @@ class TAssetOF extends TObjetStd{
  * */
 	var $element = 'of';
 
+    /** @var TAssetOFLine[] */
+    public $TAssetOFLine = array();
+    /** @var TAssetWorkstationOF[] */
+    public $TAssetWorkstationOF = array();
+    /** @var TAssetOF[] */
+    public $TAssetOF = array();
+
  	static $TOrdre=array(
 			'ASAP'=>'ASAP'
 			,'TODAY'=>'ForToday'
@@ -24,8 +31,47 @@ class TAssetOF extends TObjetStd{
 			,'CLOSE'=>'Done'
 		);
 
+ 	public $entity;
+ 	public $fk_user;
+ 	public $fk_assetOf_parent;
+ 	public $fk_soc;
+ 	public $fk_commande;
+ 	public $fk_project;
+ 	public $rank;
+ 	public $temps_estime_fabrication;
+ 	public $temps_reel_fabrication;
+ 	public $mo_cost;
+ 	public $mo_estimated_cost;
+ 	public $compo_cost;
+ 	public $compo_estimated_cost;
+ 	public $total_cost;
+ 	public $total_estimated_cost;
+ 	public $ordre;
+ 	public $numero;
+ 	public $status;
+ 	public $date_besoin;
+ 	public $date_lancement;
+ 	public $date_start;
+ 	public $date_end;
+ 	public $note;
+
+ 	public $PDOdb;
+
+	function fetchObjectLinked($sourceid = null, $sourcetype = '', $targetid = null, $targettype = '', $clause = 'OR', $alsosametype = 1, $orderby = 'sourcetype', $loadalsoobjects = 1)
+    {
+        $this->linkedObjectsIds=array();
+        $this->linkedObjects=array();
+
+        // TODO usurper via un objet Generic l'appel standard
+        // ...
+
+        return 1;
+    }
+
 	function __construct() {
 	    global $conf;
+
+	    $this->PDOdb = new TPDOdb;
 
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
@@ -34,6 +80,7 @@ class TAssetOF extends TObjetStd{
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
 		$this->add_champs('note','type=text;');
+		$this->add_champs('modelpdf',array('type' => 'string'));
 		$this->_init_vars();
 		$this->start();
 
@@ -157,22 +204,42 @@ class TAssetOF extends TObjetStd{
 		return true;
 	}
 
+	public function getListChildrenOf()
+    {
+        if (!empty($this->TAssetOF)) $TChildren = $this->TAssetOF;
+        else $TChildren = array();
+
+        $TSubChildren = array();
+        foreach ($TChildren as $childOf)
+        {
+            $TSubChildren = $childOf->getListChildrenOf();
+        }
+
+        $TChildren = array_merge($TChildren, $TSubChildren);
+
+        return $TChildren;
+    }
+
 	function validate(&$PDOdb) {
 
 		global $conf,$langs;
 
 		$error = 0;
+		/** @var TAssetOF[] $TOf */
 		$TOf = array();
 
-		$TIdOfEnfant = array();
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false
-		krsort($TIdOfEnfant);
+//		$TIdOfEnfant = array();
+//		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIdOfEnfant, $this->getId()); // TODO virer cet appel pour utiliser l'attribut ->TAssetOF en récursion puis retirer un peu plus bas le "->withChild" à false
+//		krsort($TIdOfEnfant);
+//
+//		foreach ($TIdOfEnfant as $i => $id_of)
+//		{
+//			$TOf[$i] = new TAssetOF;
+//			$TOf[$i]->load($PDOdb, $id_of);
+//		}
 
-		foreach ($TIdOfEnfant as $i => $id_of)
-		{
-			$TOf[$i] = new TAssetOF;
-			$TOf[$i]->load($PDOdb, $id_of);
-		}
+//		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->getListChildrenOf();
 
 		$TOf[] = &$this;
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
@@ -212,7 +279,8 @@ class TAssetOF extends TObjetStd{
 				$of->unsetChildDeleted = true;
 
 				// On met déjà à jour tous les OFs enfant (même si récursion) un à un, donc je ne veux pas qu'il enregistre les enfants (->TAssetOf) ça sert à rien
-				$of->TAssetOF= array();
+				$TAssetOF_tmp = $of->TAssetOF;
+                $of->TAssetOF= array();
 
 				foreach ($of->TAssetOFLine as $k => &$ofLine)
 				{
@@ -222,6 +290,7 @@ class TAssetOF extends TObjetStd{
 
 						if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
 							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
+                            // TODO à voir si je conserve le délai de réappro au niveau de l'objet $ofLine dans un attribut nb_days_before_reapro
 //var_dump($nb);
 							foreach($ofLine->TWorkstation as &$ws) {
 								foreach($of->TAssetWorkstationOF as &$wsof) {
@@ -231,12 +300,14 @@ class TAssetOF extends TObjetStd{
 										$wsof->save($PDOdb);
 									}
 
+									// TODO vérifier le test sur : $wsof->nb_days_before_beginning<=0
 									if($ws->id == $wsof->fk_asset_workstation/* && $wsof->fk_project_task>0 */&& ($wsof->nb_days_before_beginning<=0 || !empty($TAllow_modify[$wsof->fk_asset_workstation] ))) {
 										if($ws->type == 'STT') {
 											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug
 										}
 										else if($wsof->nb_days_before_beginning < $nb) {
-											$wsof->nb_days_before_beginning = $nb;
+										    if (empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY_DISABLE_DELAY_BEFORE_START))	$wsof->nb_days_before_beginning = $nb;
+										    else $wsof->nb_days_before_reapro = $nb;
 										}
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
 
@@ -249,13 +320,108 @@ class TAssetOF extends TObjetStd{
 				}
 
 				$of->save($PDOdb);
+                $of->TAssetOF = $TAssetOF_tmp;
 			}
-			//exit('la');
+
+            if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK))
+            {
+                $fk_task_last = $this->applyHirarchyOnTask(); // création des liens parent/enfant entre les tâches
+                $this->calculTaskDates(); // calcul des dates pour respecter l'enchainement des dates
+            }
+
 			return 1;
 		}
 
 		return -1;
 	}
+
+    /**
+     * @param  int|null    $fk_task_prev
+     * @return int|null     null if nothing, >0 to get the last task id
+     */
+	public function applyHirarchyOnTask($fk_task_prev = null, $recursivity = true)
+    {
+        global $db, $user;
+
+        // TODO faire la gestion des erreurs
+        /** @var TAssetWorkstationOf $workstationOf */
+        $TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+        foreach ($TAssetWorkstationOFReverse as $workstationOf)
+        {
+            if (!isset($workstationOf->projectTask) && !empty($workstationOf->fk_project_task))
+            {
+                $workstationOf->projectTask = new Task($db);
+                $workstationOf->projectTask->fetch($workstationOf->fk_project_task);
+            }
+
+            if (empty($workstationOf->projectTask->id))
+            {
+                continue; // Pas de liaison avec une tâche, probablement dû au fait qu'il n'ait pas de liaison avec un workstation
+            }
+
+            if ($fk_task_prev !== null)
+            {
+                $workstationOf->projectTask->fk_task_parent = $fk_task_prev;
+                $workstationOf->projectTask->update($user);
+            }
+
+            $fk_task_prev = $workstationOf->projectTask->id;
+        }
+
+        if ($recursivity && !empty($this->TAssetOF))
+        {
+            foreach ($this->TAssetOF as $childOf)
+            {
+                $childOf->applyHirarchyOnTask($fk_task_prev);
+            }
+        }
+
+        return $fk_task_prev;
+    }
+
+    // TODO faire la gestion des erreurs
+    public function calculTaskDates()
+    {
+        global $db, $user;
+
+        $last_date_end = null;
+
+        if (!empty($this->TAssetOF))
+        {
+            $TAssetOfReverse = array_reverse($this->TAssetOF);
+            foreach ($TAssetOfReverse as $assetOf)
+            {
+                $last_date_end = $assetOf->calculTaskDates();
+            }
+        }
+
+//        $TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+        foreach ($this->TAssetWorkstationOF as $workstationOf)
+        {
+            if (!isset($workstationOf->ws) && !empty($workstationOf->fk_asset_workstation))
+            {
+                $workstationOf->ws = new TAssetWorkstationOF();
+                $workstationOf->ws->load($this->PDOdb, $workstationOf->fk_asset_workstation);
+            }
+            if (!isset($workstationOf->projectTask) && !empty($workstationOf->fk_project_task))
+            {
+                $workstationOf->projectTask = new Task($db);
+                $workstationOf->projectTask->fetch($workstationOf->fk_project_task);
+            }
+
+            if (!empty($workstationOf->ws->id) && !empty($workstationOf->projectTask->id))
+            {
+                $TDate = $workstationOf->calculTaskDates($this->PDOdb, $this, $workstationOf->ws, $workstationOf->projectTask, $last_date_end);
+                $workstationOf->projectTask->date_start = $TDate['date_start'];
+                $workstationOf->projectTask->date_end = $TDate['date_end'];
+
+                $last_date_end = $TDate['date_end'];
+                $workstationOf->projectTask->update($user);
+            }
+        }
+
+        return $last_date_end;
+    }
 
 	function create_new_project() {
 
@@ -427,7 +593,55 @@ class TAssetOF extends TObjetStd{
 		else return array();
 	}
 
+    /**
+     * Permet de mettre à jour l'attribut date_lancement, que l'objet soit chargé ou non
+     * S'il est chargé, alors l'update en BDD est faite aussi
+     * @param $PDOdb
+     * @param $time
+     * @return bool
+     */
+	public function updateDateLancement($PDOdb, $time)
+    {
+        $this->date_lancement = $time;
+
+        if ($this->getId() <= 0) return false;
+
+        return $PDOdb->dbupdate(
+            $this->get_table()
+            , array('date_lancement' => date('Y-m-d', $time), 'rowid' => $this->getId())
+            , array('rowid')
+        );
+    }
+
+	/**
+	 * Permet de mettre à jour l'attribut date_besoin
+	 * S'il est chargé, alors l'update en BDD est faite aussi
+	 * @param $PDOdb
+	 * @param $time
+	 * @return bool
+	 */
+	public function updateDateBesoin($PDOdb, $time)
+	{
+		$this->date_besoin = $time;
+
+		if ($this->getId() <= 0) return false;
+
+		return $PDOdb->dbupdate(
+			$this->get_table()
+			, array('date_besoin' => date('Y-m-d', $time), 'rowid' => $this->getId())
+			, array('rowid')
+		);
+	}
+
+    /**
+     * Permet de calculer la date de lancement de l'OF lors de sa validation
+     * Attention, les délai de réapprovisionnement sont prisent en compte
+     * @param     $PDOdb
+     * @param int $time
+     */
 	function setDelaiLancement(&$PDOdb, $time = 0) {
+
+	    global $conf;
 
 		if((empty($this->date_lancement) && $this->status != 'DRAFT')
 		 || ( $this->date_lancement < $time ))
@@ -440,20 +654,51 @@ class TAssetOF extends TObjetStd{
 			{
 				//Methode 1, le MAX(appro) + SUM(service)
 				if($ofLine->type == 'NEEDED') {
+                    /**
+                     * TODO utiliser l'attribut nb_days_before_reapro au lieu de @see TAssetOFLine::getNbDayForReapro()
+                     * @see TAssetOF::validate
+                     */
 					$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
 
 					if($ofLine->product->type == 1) {
 						$nb_day_service+=$nb;
 					}
 					else {
+					    // On garde uniquement le temps de réapprovisionnement le plus grand
 						if($nb_day_prod<$nb)$nb_day_prod = $nb;
 					}
 
 				}
 			}
 
+			$date_lancement = strtotime('midnight');
 			$delai = $nb_day_prod + $nb_day_service;
-			$this->date_lancement = strtotime('+'.$delai.' day midnight');
+
+            if ($delai > 0)
+            {
+                if (!empty($conf->global->OF_LANCEMENT_SKIP_DAYS_OF_WEEK))
+                {
+                    $i=0;
+                    $TDayToSkip = explode(',', $conf->global->OF_LANCEMENT_SKIP_DAYS_OF_WEEK);
+                    while ($delai > 0)
+                    {
+                        if (!empty($conf->global->OF_LANCEMENT_SKIP_DAYS_OF_WEEK_LIMIT_LOOP) && $conf->global->OF_LANCEMENT_SKIP_DAYS_OF_WEEK_LIMIT_LOOP < $i) break;
+
+                        $date_lancement = strtotime('+1 day', $date_lancement);
+
+                        if (in_array(date('w', $date_lancement), $TDayToSkip) === true) continue;
+                        else $delai--;
+
+                        $i++;
+                    }
+                }
+                else
+                {
+                    $date_lancement = strtotime('+'.$delai.' day', $date_lancement);
+                }
+            }
+
+            $this->date_lancement = $date_lancement;
 
 			if( $this->date_lancement < $time ) $this->date_lancement = $time;
 
@@ -461,7 +706,7 @@ class TAssetOF extends TObjetStd{
 
 			if( $this->date_lancement < $time_child ) $this->date_lancement = $time_child;
 
-			$PDOdb->dbupdate($this->get_table(), array('date_lancement'=>date('Y-m-d', $this->date_lancement),'rowid'=>$this->getId()),array('rowid'));
+			$this->updateDateLancement($PDOdb, $this->date_lancement);
 
 		}
 
@@ -1017,12 +1262,15 @@ class TAssetOF extends TObjetStd{
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
 			else $stock =$product->stock_reel;
 		}
-
+		
 		// MAIN_MAX_DECIMALS_STOCK
 		return price2num($stock, 'MS');
 	}
 
-	/* Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
+    /**
+     * Add TO_MAKE line
+     *
+     * Ajoute une ligne de produit à l'OF et les lignes dépendantes à la volée (créé les ofs enfant par extension)
 	 *
 	 * @return id line
 	 */
@@ -1117,7 +1365,7 @@ class TAssetOF extends TObjetStd{
 		return $idAssetOFLine;
 	}
 
-    function copyAllFiles($dir) {
+	function copyAllFiles($dir) {
         global $conf;
         $PDOdb = new TPDOdb;
         $upload_dir = $conf->of->multidir_output[$this->entity] . '/' . get_exdir(0, 0, 0, 0, $this, 'tassetof') . dol_sanitizeFileName($this->getNumero($PDOdb));
@@ -1130,8 +1378,28 @@ class TAssetOF extends TObjetStd{
         }
     }
 
-	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0)
-	{
+    /**
+     * @param        $PDOdb
+     * @param        $fk_asset_workstation
+     * @param int    $nb_hour
+     * @param int    $nb_hour_prepare
+     * @param int    $nb_hour_manufacture
+     * @param int    $rang
+     * @param string $private_note
+     * @param int    $nb_days_before_beginning
+     * @param int    $nb_days_before_reapro
+     * @return bool|int|string
+     * @deprecated
+     * @see addWorkstation
+     */
+	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0, $nb_days_before_reapro = 0)
+    {
+        return $this->addTAssetWorkstationOF($PDOdb, $fk_asset_workstation, $nb_hour, $nb_hour_prepare,$nb_hour_manufacture,$rang,$private_note,$nb_days_before_beginning, $nb_days_before_reapro);
+    }
+
+
+    function addTAssetWorkstationOF(&$PDOdb, $fk_asset_workstation, $nb_hour=0, $nb_hour_prepare=0,$nb_hour_manufacture=0,$rang=0,$private_note = '',$nb_days_before_beginning=0, $nb_days_before_reapro = 0)
+    {
 		global $conf;
 
 		if(empty($nb_hour))$nb_hour = $nb_hour_prepare + $nb_hour_manufacture;
@@ -1148,6 +1416,7 @@ class TAssetOF extends TObjetStd{
 		$this->TAssetWorkstationOF[$k]->nb_hour_manufacture += $nb_hour_manufacture* $coef;
 		$this->TAssetWorkstationOF[$k]->nb_hour += $nb_hour * $coef;
 		$this->TAssetWorkstationOF[$k]->nb_days_before_beginning = $nb_days_before_beginning;
+		$this->TAssetWorkstationOF[$k]->nb_days_before_reapro = $nb_days_before_reapro;
 
 		$this->TAssetWorkstationOF[$k]->rang = $rang;
 
@@ -1187,7 +1456,7 @@ class TAssetOF extends TObjetStd{
 
 							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || !empty($conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF)) {
 
-								$k = $this->addofworkstation($PDOdb
+								$k = $this->addTAssetWorkstationOF($PDOdb
 										,$nws->fk_workstation
 										,$nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
 										,$nws->nb_hour_prepare
@@ -1195,6 +1464,7 @@ class TAssetOF extends TObjetStd{
 										,$nws->rang
 										,$nws->note_private
 										,$nws->nb_days_before_beginning
+										,$nws->nb_days_before_reapro
 								);
 
 								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
@@ -1712,6 +1982,28 @@ class TAssetOF extends TObjetStd{
 
 	}
 
+	public function getListeOfParents(&$PDOdb, $type = 'id', $loadChild = false, $recursive = true)
+    {
+        $TRes = array();
+
+        if (!empty($this->fk_assetOf_parent))
+        {
+            $of = new TAssetOF;
+            $of->load($PDOdb, $this->fk_assetOf_parent, $loadChild);
+            if ($type == 'object') $TRes[] = $of;
+            else $TRes[] = $of->getId();
+
+            if ($recursive)
+            {
+                $result = $of->getListeOfParents($PDOdb, $recursive);
+                $TRes = array_merge($TRes, $result);
+            }
+        }
+
+
+        return $TRes;
+    }
+
 	public function addAssetLink(&$asset, $id_line) {
 
 
@@ -2004,6 +2296,41 @@ class TAssetOF extends TObjetStd{
 		return QualityControl::getControlPDF($this->id, $this->element);
 
 	}
+
+    /**
+     * @param TPDOdb $PDOdb
+     * @return bool|int|string
+     */
+	public function getMaxDateEndOnChildrenOf($PDOdb)
+    {
+        global $db;
+
+        $date_start_search = false;
+
+        // Récuperation de la date le plus éloigné dans le temps sur les OF enfants
+        $sql = 'SELECT MAX(t.datee) as datee FROM '.MAIN_DB_PREFIX.'projet_task t';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'projet_task_extrafields te ON (te.fk_object = t.rowid)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'asset_workstation_of awo ON (awo.fk_project_task = t.rowid AND awo.fk_asset_workstation = te.fk_workstation)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf o ON (o.rowid = awo.fk_assetOf)';
+        $sql.= ' WHERE o.fk_assetOf_parent = '.$this->getId();
+        $sql.= ' AND o.status NOT IN ("OPEN", "CLOSE")';
+
+        $resql = $db->query($sql);
+        if ($resql)
+        {
+            $arr = $db->fetch_array($resql);
+            if ($arr['datee'] !== null)
+            {
+                $date_start_search = $db->jdate($arr['datee']);
+            }
+        }
+        else
+        {
+            $this->error = $db->lasterror();
+        }
+
+        return $date_start_search;
+    }
 }
 
 class TAssetOFLine extends TObjetStd{
@@ -2166,15 +2493,15 @@ class TAssetOFLine extends TObjetStd{
 
             }
             else{
-
+				
 				$nb_asset = count($TAsset); $i=0;
-
                 foreach($TAsset as $asset)
                 {
 					$qty_asset_to_stock=0;
 					if($mouvement == 'destockage')  {
 						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
 							$qty_asset_to_stock=$asset->contenancereel_value;
+							
 							if($i+1 == $nb_asset) {
 								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
 							}
@@ -2188,7 +2515,7 @@ class TAssetOFLine extends TObjetStd{
 						}
 					}
 					else {
-
+						
 						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
 							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
 							if($i+1 == $nb_asset) {
@@ -2198,9 +2525,9 @@ class TAssetOFLine extends TObjetStd{
 						else {
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
-
-					}
-
+						
+					}	
+					
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
 					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
@@ -2209,11 +2536,11 @@ class TAssetOFLine extends TObjetStd{
 							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
 					$qty_to_stock_rest-= $qty_asset_to_stock;
-
+					
 					$i++;
 
 					if($qty_to_stock_rest<=0)break;
-
+					
 
                 }
 
@@ -2230,9 +2557,9 @@ class TAssetOFLine extends TObjetStd{
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
-
+		
 		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
-
+		
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
@@ -2568,7 +2895,7 @@ class TAssetOFLine extends TObjetStd{
 			{
 				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
 			}
-
+			
             $contenance_max = $assetType->contenance_value;
             $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
@@ -3022,7 +3349,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'asset_workstation_of');
     	$this->add_champs('fk_assetOf, fk_asset_workstation, fk_project_task',array('type'=>'integer', 'index'=>true) );
-		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm,nb_days_before_beginning',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
+		$this->add_champs('nb_hour,nb_hour_real,nb_hour_prepare,rang,thm,nb_days_before_beginning,nb_days_before_reapro',array('type'=>'float')); // nombre d'heure associé au poste de charge sur un OF
 		$this->add_champs('note_private',array('type'=>'text'));
 
 		// J'ai rajouté nb_hour_prepare dans cette table parce que quand on veut afficher le nombre d'heures de préparation pour un poste de travail sur l'odt of,
@@ -3068,35 +3395,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->label = $ws->libelle;
 		$projectTask->description = $this->note_private;
 
-        if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
-
-        	$TIdOf = array($this->fk_assetOf);
-        	$OF->getListeOFEnfants($PDOdb,$TIdOf);
-        	krsort($TIdOf);
-            if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
-
-                $resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
-                FROM " . MAIN_DB_PREFIX . "projet_task t LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
-                WHERE t.fk_projet=" . $OF->fk_project . " AND ee.fk_source IN (" . implode(',', $TIdOf) . ")");
-
-            }else {
-                $resIdTask = $db->query("SELECT MAX(t.rowid) as rowid
-                FROM " . MAIN_DB_PREFIX . "projet_task t LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (t.rowid=tex.fk_object)
-                WHERE t.fk_projet=" . $OF->fk_project . " AND tex.fk_of IN (" . implode(',', $TIdOf) . ")");
-            }
-        	$objTask = $db->fetch_object($resIdTask);
-        	$projectTask->fk_task_parent = (int)$objTask->rowid;
-
-        }
-        else {
-            $projectTask->fk_task_parent = 0;
-        }
-
-
-		$projectTask->date_start = strtotime(' +'.(int)$this->nb_days_before_beginning.'days',!empty($OF->date_lancement) ? $OF->date_lancement : $OF->date_besoin);
-
-		$projectTask->date_end = $OF->date_besoin;
-		if($projectTask->date_end<$projectTask->date_start)$projectTask->date_end = $projectTask->date_start;
+        $projectTask->fk_task_parent = 0;
 
 		$projectTask->planned_workload = $this->nb_hour*3600;
 
@@ -3123,9 +3422,6 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
 
 
-
-
-
 		$projectTask->date_c=dol_now();
 
 		$p = new Product($db);
@@ -3134,7 +3430,16 @@ class TAssetWorkstationOF extends TObjetStd{
 			$projectTask->array_options['options_fk_product']=$p->id;
 		}
 
-		$res = $projectTask->create($user);
+        // Si cette conf est disable alors oui, on calcul les dates, autrement non car ce sera fait au niveau de la méthode 'validate' de l'objet OF
+        if(empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK))
+        {
+            // TODO vérifier que le calcul des dates soit cohérent
+            $TDate = $this->calculTaskDates($PDOdb, $OF, $ws, $projectTask);
+            $projectTask->date_start = $TDate['date_start'];
+            $projectTask->date_end = $TDate['date_end'];
+        }
+
+        $res = $projectTask->create($user);
 
         if($res<0) {
             var_dump($projectTask->error, $projectTask);
@@ -3144,12 +3449,14 @@ class TAssetWorkstationOF extends TObjetStd{
         else{
             $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
             $this->fk_project_task = $projectTask->id;
+            $this->projectTask = $projectTask;
+            $this->ws = $ws;
         }
 
 		$this->updateAssociation($PDOdb, $db, $projectTask);
 	}
 
-	function updateTask(&$PDOdb, &$db, &$conf, &$user, &$OF)
+	function updateTask(&$PDOdb, &$db, &$conf, &$user, &$OF, $date_start_search = null, $TExcludeTaskId = array())
 	{
 		if (!$user->id)	$user->id = GETPOST('user_id');
 
@@ -3166,11 +3473,16 @@ class TAssetWorkstationOF extends TObjetStd{
         } // On cumul le temps dans la tache
         else if($projectTask->planned_workload <= 0) $projectTask->planned_workload = $this->nb_hour * 3600;
 
+        // FIXME je crois que cette partie ne sert à rien
         if(empty($conf->gantt->enabled)) {
             if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
 
                 //On prend la date la plus petite
-                if($projectTask->date_start > $OF->date_lancement) $projectTask->date_start = strtotime(' +' . (int)$this->nb_days_before_beginning . 'days', $OF->date_lancement);
+                if($projectTask->date_start > $OF->date_lancement)
+                {
+                    $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
+                    $projectTask->date_start = strtotime(' +' .$delta. ' days', $OF->date_lancement);
+                }
 
                 //On prend la date la plus grande
                 if($projectTask->date_end < $OF->date_besoin) $projectTask->date_end = $OF->date_besoin;
@@ -3178,16 +3490,190 @@ class TAssetWorkstationOF extends TObjetStd{
                 if($projectTask->date_end < $projectTask->date_start) $projectTask->date_end = $projectTask->date_start;
             }
             else {
-                $projectTask->date_start = strtotime(' +' . (int)$this->nb_days_before_beginning . 'days', $OF->date_lancement);
+                $delta = (int) $this->nb_days_before_beginning + (int) $this->nb_days_before_reapro;
+                $projectTask->date_start = strtotime(' +' .$delta. ' days', $OF->date_lancement);
                 $projectTask->date_end = $OF->date_besoin;
                 if($projectTask->date_end < $projectTask->date_start) $projectTask->date_end = $projectTask->date_start;
             }
         }
 
-		$projectTask->update($user);
+
+        $ws = new TAssetWorkstation;
+        $ws->load($PDOdb, $this->fk_asset_workstation);
+        $TDate = $this->calculTaskDates($PDOdb, $OF, $ws, $projectTask, $date_start_search, $TExcludeTaskId);
+        $projectTask->date_start = $TDate['date_start'];
+        $projectTask->date_end = $TDate['date_end'];
+
+        $projectTask->update($user);
 
 		$this->updateAssociation($PDOdb, $db, $projectTask);
 	}
+
+	public function getMaxDateEndOnChildrenTask($projectTask)
+    {
+        global $db;
+
+        $result = null;
+
+        $sql = 'SELECT MAX(t.datee) as datee FROM '.MAIN_DB_PREFIX.'projet_task t';
+        $sql.= ' WHERE fk_task_parent = '.$projectTask->id;
+
+        $resql = $db->query($sql);
+        if ($resql)
+        {
+            if (($arr = $db->fetch_array($resql)))
+            {
+                $result = $db->jdate($arr['datee']);
+            }
+        }
+        else
+        {
+            $this->error = $db->lasterror();
+            $this->errors[] = $this->error;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param      $PDOdb
+     * @param TAssetOf     $OF
+     * @param TWorkstation     $ws
+     * @param      $projectTask
+     * @param null $date_start_search
+     * @param array $TExcludeTaskId
+     * @return array
+     */
+	public function calculTaskDates($PDOdb, $OF, $ws, $projectTask, $date_start_search = null, $TExcludeTaskId = array())
+    {
+        global $conf;
+
+        $res_date_start = $res_date_end = null; // TODO il faut prendre en compte ici, un décalage pour la date de début si il y a un lien de parenté entre les tâches
+
+        if ($date_start_search === null)
+        {
+            $date_start_search = $this->getMaxDateEndOnChildrenTask($projectTask);
+            if (empty($date_start_search))
+            {
+                if (!empty($OF->date_lancement))
+                {
+                    $date_start_search = $OF->date_lancement; // Ici la date de lancement doit déjà prendre en compte le temps de réapro
+                }
+                else
+                {
+                    $delta = (int) $this->nb_days_before_reapro; // non prise en compte de $this->nb_days_before_beginning car il est naturellement ajouté plus bas
+                    $date_start_search = strtotime(' +'.$delta.' days', $OF->date_besoin); // TODO complètement incohérent de ce baser sur la date du besoin
+                }
+            }
+            else
+            {
+                // Je force le passage du timestamp à minuit car sinon il y a de forte chance que ça engendre des décalages
+                $date_start_search = strtotime('midnight', $date_start_search);
+                if ($OF->date_lancement != $date_start_search) $OF->updateDateLancement($PDOdb, $date_start_search);
+            }
+        }
+        else
+        {
+            $date_start_search = strtotime('+1 day', $date_start_search);
+        }
+
+        $date_start_search = strtotime('midnight', $date_start_search);
+
+        if (!empty($conf->workstation->enabled))
+        {
+            // TODO mériterait un peu d'otpimisation en passant en param le timestamp de la date de fin de la tâche parente directement plutôt que de le fetcher ici
+//            if ($projectTask->fk_task_parent > 0)
+//            {
+//                $parentTask = new Task($projectTask->db);
+//                if ($parentTask->fetch($projectTask->fk_task_parent) > 0)
+//                {
+//                    $date_end = strtotime(date('Y-m-d 00:00:00', $parentTask->date_end).' +1 day');
+//                    if ($date_start_search < $date_end) $date_start_search = $date_end;
+//                }
+//            }
+
+            // Délai avant démarrage dans une variable pour décrément
+            if ($this->nb_days_before_beginning > 0)
+            {
+                $date_start_search = strtotime('+'.$this->nb_days_before_beginning.' days', $date_start_search);
+            }
+
+            $i = 0;
+            $nb_hour_left = $this->nb_hour;
+            $date_current_search = $date_start_search;
+
+
+            if (!empty($projectTask->id)) $TExcludeTaskId[] = $projectTask->id;
+
+            // TODO cette boucle ainsi que l'init des variables juste au dessus doit être dans une méthode à part entière car devra être appelé lors de l'update des tâches
+            while ('Olaf is incredible')
+            {
+                // @INFO Les postes de travail de type STT sont planifiés correctement avec la capacité de définie
+                $TCapacityInfoByDate = $ws->getCapacityLeftRange($PDOdb, $date_current_search, $date_current_search, false, $TExcludeTaskId);
+
+                if (!empty($TCapacityInfoByDate))
+                {
+                    reset($TCapacityInfoByDate);
+                    $key = key($TCapacityInfoByDate);
+                    $TCapacityInfo = $TCapacityInfoByDate[$key];
+
+                    $capacity = $TCapacityInfo['nb_hour_capacity'];
+                    $capacityLeft = $TCapacityInfo['capacityLeft'];
+                    $nb_ressource = $TCapacityInfo['nb_ressource'];
+
+                    if ($capacityLeft !== 'NA' && $capacityLeft > 0 && $nb_ressource > 0)
+                    {
+                            // set date début car il se peut que nous sommes un jour non dispo pour le poste de travail
+                            if ($res_date_start === null) $res_date_start = $date_current_search;
+
+                            do {
+                                if ($capacityLeft >= $capacity && $nb_hour_left >= $capacity)
+                                {
+                                    $nb_hour_left-= $capacity;
+                                    $capacityLeft-= $capacity;
+                                }
+                                // $capacityLeft > 0 donc on utilise le reste
+                                else
+                                {
+                                    $nb_hour_left-= $capacityLeft;
+                                    $capacityLeft = 0;
+                                }
+
+                                $nb_ressource-= 1; // Chaque boucle utilise le temps d'une ressource
+
+                                // Si c'est du non parallélisable, alors il faut stopper immédiatement, autrement on continue tant qu'il y a de la dispo temps & ressource ou on s'arrête si le nombre d'heure de travail passe à 0 ou inférieur (ce qui veut dire que nous avons suffisamment de dispo)
+                            } while ($TCapacityInfo['is_parallele'] && $capacityLeft > 0 && $nb_ressource > 0 && $nb_hour_left > 0);
+                    }
+                }
+
+                if ($nb_hour_left <= 0) break; // pas besoin de chercher de la dispo les jours suivants
+                else $date_current_search = strtotime('+1 day', $date_current_search);
+
+                $i++;
+                if (!empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) break; // sécurité, permet de plafonner la planification sur x jours
+            }
+
+            // TODO voir si on met pas 23:59:59 (quand la demi journée sera gérée, pour le moment je met par défaut à 12:00:00)
+            $res_date_end = $date_current_search + 12 * 3600; // Calage à midi pour que prod planning (Gantt) affiche correctement la prise en compte du dernier jour
+        }
+        else
+        {
+            $res_date_start = $date_start_search;
+            $res_date_end = $projectTask->date_start + $this->nb_hour * 3600;
+        }
+
+        // INFO ceci devrait être dans la méthode validate() de l'objet OF juste après le save(), mais comme on calcul correctement les dates ici je suis obligé de faire ça là
+		// TODO je ne prends pas en compte si on tombe sur un jour non travaillé (exemple : un dimanche)
+		$date_besoin_for_children = strtotime('-1 day', $OF->date_lancement);
+		foreach ($OF->TAssetOF as $childOf)
+		{
+			$res = $childOf->updateDateBesoin($PDOdb, $date_besoin_for_children);
+		}
+
+        $res_date_end = strtotime(date('Y-m-d 23:59:59', $res_date_end));
+
+        return array('date_start' => $res_date_start, 'date_end' => $res_date_end);
+    }
 
 	function updateAssociation(&$PDOdb, &$db, &$projectTask)
 	{
@@ -3219,13 +3705,13 @@ class TAssetWorkstationOF extends TObjetStd{
 		$this->fk_project_task = 0;
 	}
 
-	function manageProjectTask(&$PDOdb)
+	function manageProjectTask(&$PDOdb, $date_start_search = null, $force = false, $TExcludeTaskId = array())
 	{
 		global $db,$conf,$user;
-
 		$of=new TAssetOF;
 		$of->load($PDOdb, $this->fk_assetOf, false);
-		if ($of->status !== 'VALID') return false; // of non valide on ne créé par les tâches
+
+		if (!$force && $of->status !== 'VALID') return false; // of non valide on ne créé par les tâches
 
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
@@ -3259,10 +3745,10 @@ class TAssetWorkstationOF extends TObjetStd{
 		switch ($action)
 		{
 			case 'createTask':
-				$this->createTask($PDOdb, $db, $conf, $user, $of);
+				$this->createTask($PDOdb, $db, $conf, $user, $of, null, $TExcludeTaskId);
 				break;
 			case 'updateTask':
-				$this->updateTask($PDOdb, $db, $conf, $user, $of);
+				$this->updateTask($PDOdb, $db, $conf, $user, $of, $date_start_search, $TExcludeTaskId);
 				break;
 			case 'deleteTask':
                 if(empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) || !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && $this->isLastLink())$this->deleteTask($db, $conf, $user);
@@ -3317,7 +3803,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
         if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
 		{
-			$this->manageProjectTask($PDOdb);
+			$this->manageProjectTask($PDOdb); // TODO lors de la mise à jour d'une date de livraison sur une commande fournisseur, il faudrait penser à faire appel au save des TAssetWorkstationOF pour mettre à jour toutes les dates des tâches ( attention, il faudra les exclure eux même dans la recherche de capacité )
 		}
 		parent::save($PDOdb);
 	}
