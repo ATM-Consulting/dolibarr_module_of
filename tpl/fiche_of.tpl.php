@@ -12,7 +12,7 @@
 </style>
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">
 		<form id="formOF[assetOf.id]" name="formOF[assetOf.id]" action="fiche_of.php" method="POST">
-				<input type="hidden" value="save" name="action">
+				<input type="hidden" value="[view.action]" name="action">
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">
 				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">
 				<input type="hidden" value="[assetOf.id]" name="id">
@@ -75,25 +75,8 @@
 
 				[onshow;block=end]
 				<tr rel="status">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Status)]</td>
-					<td class="editableField">[assetOf.status;strconv=no]<span style="display:none;">[assetOf.statustxt;strconv=no]</span>
-					[onshow;block=begin;when [view.status]!='CLOSE';when [view.mode]=='view']
-						<span class="viewmode notinparentview">
-
-
-						[onshow;block=begin;when [view.status]=='DRAFT']
-							,[view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('[view.langs.transnoentities(ValidateManufacturingOrder)]')) { submitForm([assetOf.id],'valider'); }" class="butAction" name="valider" value="[view.langs.transnoentities(Validate)]">
-						[onshow;block=end]
-						[onshow;block=begin;when [view.status]=='VALID']
-							, [view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('[view.langs.transnoentities(StartManufacturingOrder)]')) { submitForm([assetOf.id],'lancer'); }" class="butAction" name="lancer" value="[view.langs.transnoentities(ProductionInProgress)]">
-						[onshow;block=end]
-						[onshow;block=begin;when [view.status]=='OPEN']
-							, [view.langs.transnoentities(SetStateTo)] :<input type="button" onclick="if (confirm('[view.langs.transnoentities(FinishManufacturingOrder)]')) { submitForm([assetOf.id],'terminer'); }" class="butAction" name="terminer" value="[view.langs.transnoentities(Finish)]">
-							<!-- <a href="[assetOf.url]?id=[assetOf.id]&action=terminer" onclick="return confirm('Terminer cet Ordre de Fabrication ?');" class="butAction">Terminer</a> -->
-						[onshow;block=end]
-					[onshow;block=end]
-					</span>
-					</td>
+					<td>[view.langs.transnoentities(Status)][view.editFieldStatus;strconv=no]</td>
+					<td>[assetOf.status;strconv=no]</td>
 				</tr>
 
 				<tr rel="note">
@@ -396,7 +379,6 @@
 						<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
 					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">[view.langs.transnoentities(Modify)]</a>
-					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">[view.langs.transnoentities(Print)]</a>
 
 				</div>
 			[onshow;block=end]
@@ -425,7 +407,7 @@
 			</tr>
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 				<tr id="tr_select_nomenclature" style="display:none;">
-					<td style="width:80px;" title="Nomenclature">Nomen. : </td>
+					<td style="width:80px;" title="[view.langs.transnoentities(OFNomenclature)]">[view.langs.transnoentities(OFNomenclatureShort)] : </td>
 					<td><select name="fk_nomenclature"></select></td>
 				</tr>
 			[onshow;block=end]
@@ -450,9 +432,7 @@
 </div>
 
 	<div style="clear:both;"></div>
-		<div id="assetChildContener" [view.hasChildren;noerr;if [val]==0;then 'style="display:none"';else '']>
-			<h2 id="titleOFEnfants">[view.langs.transnoentities(OFChild)]</h2>
-		</div>
+
 	<script type="text/javascript">
 
 		$(document).ready(function() {

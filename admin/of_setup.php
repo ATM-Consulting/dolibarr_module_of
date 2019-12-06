@@ -132,7 +132,7 @@ dol_fiche_head(
     $head,
     'settings',
     $langs->trans("Module104161Name"),
-    0,
+    1,
     "of@of"
 );
 $PDOdb = new TPDOdb;
@@ -584,6 +584,7 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('OF_SHOW_WS_IN_LIST');
 print '</td></tr>';
 
+setup_print_on_off('OF_REAL_HOUR_CAN_BE_EMPTY', $langs->trans('OF_REAL_HOUR_CAN_BE_EMPTY'));
 
 print '</table>';
 
@@ -657,6 +658,75 @@ print '<td>'.$langs->trans('OF_CLOSE_OF_ON_CLOSE_ALL_TASK').'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('OF_CLOSE_OF_ON_CLOSE_ALL_TASK');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_KEEP_ORDER_DOCUMENTS').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_KEEP_ORDER_DOCUMENTS');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('OF_KEEP_PRODUCT_DOCUMENTS').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('OF_KEEP_PRODUCT_DOCUMENTS');
+print '</td></tr>';
+
+setup_print_on_off('OF_SHOW_ORDER_DOCUMENTS');
+setup_print_on_off('OF_SHOW_PRODUCT_DOCUMENTS');
+
+print "</table>";
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("ParametersReport").'</td>'."\n";
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="400">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD">';
+$liste = _getDateExtrafields('commande_fournisseurdet');
+print $form->selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="400">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD">';
+$liste = _getDateExtrafields('commandedet');
+print $form->selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="400">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD">';
+$liste = _getDateExtrafields('propaldet');
+print $form->selectarray('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD,1);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
 print '</td></tr>';
 
 print "</table>";
@@ -747,6 +817,17 @@ function showParameters(&$form) {
 	<?php
 }
 
+dol_fiche_end(1);
+
 llxFooter();
 
 $db->close();
+
+function _getDateExtrafields($elementtype){
+    global $db;
+    dol_include_once('/core/class/extrafields.class.php');
+    $extra = new ExtraFields($db);
+    $extra->fetch_name_optionals_label($elementtype);
+    if(!empty($extra->attributes[$elementtype]['label'])) return $extra->attributes[$elementtype]['label'];
+    else return array();
+}

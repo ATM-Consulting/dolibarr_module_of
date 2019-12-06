@@ -57,6 +57,17 @@ class TAssetOF extends TObjetStd{
 
  	public $PDOdb;
 
+	function fetchObjectLinked($sourceid = null, $sourcetype = '', $targetid = null, $targettype = '', $clause = 'OR', $alsosametype = 1, $orderby = 'sourcetype', $loadalsoobjects = 1)
+    {
+        $this->linkedObjectsIds=array();
+        $this->linkedObjects=array();
+
+        // TODO usurper via un objet Generic l'appel standard
+        // ...
+
+        return 1;
+    }
+
 	function __construct() {
 	    global $conf;
 
@@ -65,10 +76,11 @@ class TAssetOF extends TObjetStd{
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
 
 		$this->add_champs('entity,fk_user,fk_assetOf_parent,fk_soc,fk_commande,fk_project,rank',array('type'=>'integer','index'=>true));
-		$this->add_champs('temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
+		$this->add_champs('entity,temps_estime_fabrication,temps_reel_fabrication,mo_cost,mo_estimated_cost,compo_cost,compo_estimated_cost,total_cost,total_estimated_cost','type=float;');
 		$this->add_champs('ordre,numero,status','type=chaine;');
 		$this->add_champs('date_besoin,date_lancement,date_start,date_end',array('type'=>'date'));
 		$this->add_champs('note','type=text;');
+		$this->add_champs('modelpdf',array('type' => 'string'));
 		$this->_init_vars();
 		$this->start();
 
@@ -1340,8 +1352,31 @@ class TAssetOF extends TObjetStd{
 			$this->set_current_cost_for_to_make();
 		}
 
+        if(!empty($conf->global->OF_KEEP_PRODUCT_DOCUMENTS) && !empty($fk_product)) {
+            $prod = new Product($db);
+            $prod->fetch($fk_product);
+
+            if(!empty($conf->product->enabled)) $product_dir = $conf->product->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+            else if(!empty($conf->service->enabled)) $product_dir = $conf->service->multidir_output[$prod->entity] . '/' . get_exdir(0, 0, 0, 0, $prod, 'product') . dol_sanitizeFileName($prod->ref);
+
+            $this->copyAllFiles($product_dir);
+        }
+
 		return $idAssetOFLine;
 	}
+
+	function copyAllFiles($dir) {
+        global $conf;
+        $PDOdb = new TPDOdb;
+        $upload_dir = $conf->of->multidir_output[$this->entity] . '/' . get_exdir(0, 0, 0, 0, $this, 'tassetof') . dol_sanitizeFileName($this->getNumero($PDOdb));
+        $TFiles = dol_dir_list($dir);
+        if(!empty($TFiles)) {
+            foreach($TFiles as $file) {
+                if(!is_dir($upload_dir)) dol_mkdir($upload_dir);
+                dol_copy($file['fullname'], $upload_dir . '/' . $file['name']);
+            }
+        }
+    }
 
     /**
      * @param        $PDOdb
@@ -1560,7 +1595,7 @@ class TAssetOF extends TObjetStd{
 
 				}
 
-				if($wsof->nb_hour_real == 0) {
+				if($wsof->nb_hour_real == 0 && empty($conf->global->OF_REAL_HOUR_CAN_BE_EMPTY)) {
 					$wsof->nb_hour_real = $wsof->nb_hour;
 				}
 
@@ -2183,8 +2218,7 @@ class TAssetOF extends TObjetStd{
 
 		$sql = "SELECT rowid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."assetOf of";
-		$sql.= " INNER JOIN ".MAIN_DB_PREFIX."element_element ee ON (of.rowid = ee.fk_source AND ee.sourcetype = 'ordre_fabrication' AND ee.targettype = 'order_supplier')";
-		$sql.= " WHERE ee.fk_target = ".$id_command;
+		$sql.= " WHERE fk_commande = ".$id_command;
 		$resql = $db->query($sql);
 
 		while($res = $db->fetch_object($resql)) {
@@ -2476,7 +2510,8 @@ class TAssetOFLine extends TObjetStd{
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
 						else {
-							$qty_asset_to_stock = $qty_to_stock_rest;
+							if($nb_asset-$i > 0) $qty_asset_to_stock = $qty_to_stock_rest/($nb_asset-$i);
+							else $qty_asset_to_stock = $qty_to_stock_rest;
 						}
 					}
 					else {
@@ -2582,7 +2617,7 @@ class TAssetOFLine extends TObjetStd{
 
 		//echo $this->qty;exit;
 
-		//Si type equipement est cumulable alors on destock 1 ou +sieurs équipements jusqu'à avoir la qté nécéssaire
+		/** If type of equipment is cumulable then we destock 1 or more equipment until we have the necessary quantity */
 		if ($is_cumulate || $is_unit) // si traitement unitaire c'est pareil
 		{
 			$sql.= ' WHERE status != "USED" ';
@@ -2606,7 +2641,23 @@ class TAssetOFLine extends TObjetStd{
 
 		if ($conf->global->USE_LOT_IN_OF)
 		{
-			$sql .= ' AND lot_number = "'.$this->lot_number.'"';
+			if (!empty($conf->global->OF_CONCAT_MULTIPLE_LOT) && $this->type == 'NEEDED')
+			{
+				$TAsset = $this->getAssetLinked($PDOdb);
+
+				if (!empty($TAsset))
+				{
+					$tempTab = array();
+					foreach ($TAsset as $asset)
+					{
+						$tempTab[] = $asset->lot_number;
+					}
+
+					$sql.= ' AND lot_number in ("'.implode('","', $tempTab) .'")';
+				}
+
+			}
+			else $sql .= ' AND lot_number = "'.$this->lot_number.'"';
 		}
 
 		$sql.= $completeSql;
@@ -2751,11 +2802,28 @@ class TAssetOFLine extends TObjetStd{
 	            }
 	        }
 
+	        if (!empty($conf->global->OF_REORDER_LINKED_ASSET_BY_DLU))
+			{
+				usort($Tab, array($this, 'reoderLinkedAssetsByDlu'));
+			}
+
 			return $Tab;
 		}
 
         return array();
     }
+
+	function reoderLinkedAssetsByDlu(&$a,&$b) {
+
+		if($a->dluo < $b->dluo) {
+			return -1;
+		}
+		else if($a->dluo > $b->dluo) {
+			return 1;
+		}
+		else return 0;
+
+	}
 
     function addAssetLink(&$asset)
     {
@@ -3149,7 +3217,26 @@ class TAssetOFLine extends TObjetStd{
 
                         $lastInsert = count($Of->TAssetWorkstationOF);
                         $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_assetOf = $this->fk_assetOf;
-                        $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
+                        $action = '';
+
+                        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
+                            $taskstatic = new Task($db);
+                            $TTask = $taskstatic->getTasksArray(null, null, $Of->fk_project);
+
+                            if(!empty($TTask)) {
+                                foreach($TTask as $task) {
+                                    $task->fetch_optionals();
+                                    if(!empty($task->array_options['options_fk_workstation']) && $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_asset_workstation == $task->array_options['options_fk_workstation']){
+                                        $action = 'updateTask';
+                                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_project_task=$task->id;
+                                        $Of->from_create=1;
+                                    }
+                                }
+                            }
+                        }
+
+                        if($action == 'updateTask') $Of->TAssetWorkstationOF[$lastInsert - 1]->updateTask($PDOdb, $db, $conf, $user, $Of);
+                        else $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
                     }
                 }
 
@@ -3306,6 +3393,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fk_project = $OF->fk_project;
 		$projectTask->ref = $modTask->getNextValue(0, $projectTask);
 		$projectTask->label = $ws->libelle;
+		$projectTask->description = $this->note_private;
 
         $projectTask->fk_task_parent = 0;
 
@@ -3377,6 +3465,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
 		$projectTask->fk_project = $OF->fk_project;
+		$projectTask->description = $this->note_private;
 
         if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($OF->from_create)) {
             $projectTask->planned_workload += $this->nb_hour * 3600;

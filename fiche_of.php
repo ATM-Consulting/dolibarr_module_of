@@ -1,6 +1,6 @@
 <?php
 
-set_time_limit(120);
+@set_time_limit(120);
 
 require('config.php');
 
@@ -23,7 +23,7 @@ dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php'); // TODO à re
 
 if(!$user->rights->of->of->lire) accessforbidden();
 
-// Load traductions files requiredby by page
+// Load translation files required by page
 $langs->load("other");
 $langs->load("orders");
 $langs->load("of@of");
@@ -32,15 +32,22 @@ $hookmanager->initHooks(array('ofcard'));
 
 $PDOdb=new TPDOdb;
 $assetOf=new TAssetOF;
+
+$quicksave= GETPOST('quicksave');
 $id = GETPOST('id', 'int');
+$action = GETPOST('action');
 if (!empty($id))
 {
 	$assetOf->load($PDOdb, $id);
 	if ($assetOf->entity != $conf->entity) accessforbidden();
 }
 
+$parameters = array('of' => $assetOf, 'id' => $id);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $assetOf, $action); // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
 // Get parameters
-_action();
+if (empty($reshook)) _action();
 
 // Protection if external user
 if ($user->societe_id > 0)
@@ -252,14 +259,21 @@ function _action() {
 			break;
 
 		case 'createDocOF':
+        case 'builddoc':
 
 			$id_of = $_REQUEST['id'];
 
 			$assetOf=new TAssetOF;
 			$assetOf->load($PDOdb, $id_of, false);
 
+			if (GETPOSTISSET('model'))
+            {
+                $assetOf->modelpdf = GETPOST('model');
+                $assetOf->save($PDOdb);
+            }
+
 			if(empty($conf->global->OF_PRINT_IN_PDF)) {
-				generateODTOF($PDOdb, $assetOf, true);
+				generateODTOF($PDOdb, $assetOf, false);
 
 			}
 			else {
@@ -308,7 +322,33 @@ function _action() {
 				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			}
 
+			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'#builddoc');
+			exit;
 			break;
+
+		case 'remove_file':
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+
+			$id_of = $_REQUEST['id'];
+
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, $id_of, false);
+
+			$langs->load("other");
+			$filetodelete=GETPOST('file', 'alpha');
+			$upload_dir = $conf->of->dir_output;
+			$file =	$upload_dir	. '/' .	$filetodelete;
+			$ret=dol_delete_file($file, 0, 0, 0);
+			if ($ret) setEventMessages($langs->trans("FileWasRemoved", $filetodelete), null, 'mesgs');
+			else setEventMessages($langs->trans("ErrorFailToDeleteFile", $filetodelete), null, 'errors');
+
+			// Make a redirect to avoid to keep the remove_file into the url that create side effects
+			$urltoredirect = $_SERVER['REQUEST_URI'];
+			$urltoredirect = preg_replace('/#builddoc$/', '', $urltoredirect);
+			$urltoredirect = preg_replace('/action=remove_file&?/', '', $urltoredirect);
+
+			header('Location: '.$urltoredirect);
+			exit;
 
 		case 'addAssetLink':
 			$assetOf=new TAssetOF;
@@ -508,7 +548,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 	    // numéroOF_nom ou id du poste
 	    $code = $assetOf->numero . "_" . $v->id ;
-	    
+
 		$TWorkstations[] = array(
 			'libelle' => utf8_decode($v->ws->libelle)
 			//,'nb_hour_max' => utf8_decode($v->ws->nb_hour_max)
@@ -517,8 +557,9 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 			,'note_private' => utf8_decode($v->note_private)
-		    	,'barcode' => getBarCode($code)
 		);
+
+		if ($conf->barcode->enabled) $TWorkstations['barcode'] = getBarCode($code);
 
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
 		{
@@ -538,8 +579,10 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 
 	}
 
-	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.( $conf->entity>1 ? '/'.$conf->entity : ''  ).'/of/'.$dirName.'/';
+	$dirName = dol_sanitizeFileName($assetOf->ref);
+//	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
+	$dir = $conf->of->multidir_output[$assetOf->entity].'/'.$dirName.'/';
+
 
 	@mkdir($dir, 0777, true);
 
@@ -547,7 +590,8 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		$template = TEMPLATE_OF;
 	}
 	else{
-		if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
+	    if (GETPOSTISSET('model')) $template = GETPOST('model');
+		else if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
 		else $template = "templateOF.odt";
 		//$template = "templateOF.doc";
 	}
@@ -569,8 +613,8 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 	if(defined('MAIN_INFO_SOCIETE_LOGO')){
 	    $logo = DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO;
 	}
-	 
-	
+
+
 	$file_path = $TBS->render($locationTemplate
 		,array(
 			'lignesToMake'=>$TToMake
@@ -685,27 +729,27 @@ function getBarCode($code='') {
     global $conf,$db;
     $modulepart = 'barcode';
     $generator='tcpdfbarcode';
-    
+
     $encoding='C128';
-    
+
     $readable="Y";
-        
+
     $dirbarcode=array_merge(array("/core/modules/barcode/doc/"),$conf->modules_parts['barcode']);
-        
+
     $result='';
-        
+
     foreach($dirbarcode as $reldir)
     {
         $dir=dol_buildpath($reldir,0);
         $newdir=dol_osencode($dir);
-        
+
         // Check if directory exists (we do not use dol_is_dir to avoid loading files.lib.php)
         if (! is_dir($newdir)) continue;
-        
+
         $result=@include_once $newdir.$generator.'.modules.php';
         if ($result) break;
     }
-        
+
     // Load barcode class
     $classname = "mod".ucfirst($generator);
     $module = new $classname($db);
@@ -716,7 +760,7 @@ function getBarCode($code='') {
             return $conf->barcode->dir_temp.'/barcode_'.$code.'_'.$encoding.'.png';
         }
     }
-    
+
     return '';
 }
 
@@ -979,6 +1023,7 @@ function _fiche_ligne(&$form, &$of, $type){
 function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 {
     global $conf,$langs;
+    $langs->load('assetatm@assetatm');
 
     if(empty($conf->global->USE_LOT_IN_OF) || empty($conf->{ ATM_ASSET_NAME }->enabled) ) return '';
 
@@ -997,7 +1042,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     }
     foreach($TAsset as &$asset)
     {
-        $r .= $asset->getNomUrl(1, 1, 2);
+        $r .= "<br />".$asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && $asset->dluo < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');
 
         if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
         {
@@ -1012,7 +1057,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 }
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenclature=0) {
-	global $langs,$db,$conf,$user,$hookmanager;
+	global $langs,$db,$conf,$user,$hookmanager,$quicksave;
 	/***************************************************
 	* PAGE
 	*
@@ -1024,9 +1069,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 
 	}
-
-	$parameters = array('id'=>$assetOf->getId());
-	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+// 	Un doActions après avoir éxécuté les actions ...
+//	$parameters = array('id'=>$assetOf->getId());
+//	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
@@ -1101,7 +1146,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
 		}
 	}
-	
+
 	$select_product = '';
 	if (empty($_REQUEST['fk_product']))
 	{
@@ -1141,7 +1186,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
         <?php
         }
 	}
-	
+
 	$Tid = array();
 	//$Tid[] = $assetOf->rowid;
 	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
@@ -1252,85 +1297,171 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
     }
     else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
 
-	print $TBS->render('tpl/fiche_of.tpl.php'
-		,array(
-			'TNeeded'=>$TNeeded
-			,'TTomake'=>$TToMake
-			,'workstation'=>$TWorkstation
-		)
-		,array(
-			'assetOf'=>array(
-					'id'=> $assetOf->getId()
-					,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
-					,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-			        ,'fk_commande'=>!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders))
-					//,'statut_commande'=> $commande->getLibStatut(0)
-					,'commande_fournisseur'=>$HtmlCmdFourn
-					,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
-					,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
-					,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
-					,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
+    // EDITION RAPIDE DU STATUT
+    $statusHtml = $TTransStatus[$assetOf->status];
+    if($quicksave=='status'){
+    	$formTypAff=$form->type_aff; // save
+    	$form->type_aff = 'edit'; // force mode
+    	$statusHtml = $form->combo('','status',$TTransStatus,$assetOf->status);
+    	$statusHtml.= '<input class="button" value="'.$langs->trans('Modify').'" type="submit">';
+    	$statusHtml.= '<a class="button" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'" >'.$langs->trans('Cancel').'</a>';
+    	$form->type_aff=$formTypAff; // restore
+    	$statusHtml.="<script>$(document).ready(function() { $('a.quickEditButton').hide();});</script>";
+    }
+    elseif($mode == 'view'){
+    	$textSetTo = ' <i class="fa fa-arrow-right"></i> ' . $langs->trans('SetStateTo').' : ';
+    	if($assetOf->status == 'DRAFT'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('ValidateManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'valider\'); }" class="butAction" name="valider" value="'.$langs->trans('Validate').'">';
+		}elseif($assetOf->status == 'VALID'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('StartManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'lancer\'); }" class="butAction" name="lancer" value="'.$langs->trans('ProductionInProgress').'">';
+		}elseif($assetOf->status == 'OPEN'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('FinishManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'terminer\'); }" class="butAction" name="terminer" value="'.$langs->trans('Finish').'">';
+		}
+    }
 
-					,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
-					,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
-
-					,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
-
-					,'quantity_to_create'=>$quantity_to_create
-					,'product_to_create'=>$link_product_to_add
-
-					,'status'=>$form->combo('','status',$TTransStatus,$assetOf->status)
-					,'statustxt'=>$TTransStatus[$assetOf->status]
-					,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
-					,'url' => dol_buildpath('/of/fiche_of.php', 1)
-					,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 1) : dol_buildpath('/of/liste_of.php', 1)
-					,'fk_product_to_add'=>$fk_product_to_add
-					,'fk_nomenclature'=>$fk_nomenclature
-					,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
-					,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
-
-					,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
-					,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
-					,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
-					,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
-					,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
-					,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
-					,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
-					,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
-			        ,'date_end'=>$assetOf->get_date('date_end')
-			    ,'date_start'=>$assetOf->get_date('date_start')
-					,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
-			)
-			,'view'=>array(
-				'mode'=>$mode
-				,'status'=>$assetOf->status
-				,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
-				,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
-				,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
-				,'select_product'=>$select_product
-				,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
-				//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
-				,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-				,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
-				,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
-				,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
-				,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
-				,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
-				,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
-				,'hasChildren' => (int) !empty($Tid)
-				,'user_id'=>$user->id
-				,'workstation_module_activate'=>(int) $conf->workstation->enabled
-				,'show_cost'=>(int)$user->rights->of->of->price
-				,'langs'=>$langs
-				,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
-				,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
-			)
-			,'rights'=>array(
-				'show_ws_time'=>$user->rights->of->of->show_ws_time
-			)
-			,'conf'=>$conf
-		)
+	$tpl = 'tpl/fiche_of.tpl.php';
+	$TBlocks = array(
+		'TNeeded'=>$TNeeded
+		,'TTomake'=>$TToMake
+		,'workstation'=>$TWorkstation
 	);
+
+	$TFields = array(
+		'assetOf'=>array(
+				'id'=> $assetOf->getId()
+				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
+				,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
+				,'fk_commande'=>!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders))
+				//,'statut_commande'=> $commande->getLibStatut(0)
+				,'commande_fournisseur'=>$HtmlCmdFourn
+				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
+				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
+				,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
+				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
+
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
+
+				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
+
+				,'quantity_to_create'=>$quantity_to_create
+				,'product_to_create'=>$link_product_to_add
+
+				,'status'=>$statusHtml
+				,'statustxt'=>$TTransStatus[$assetOf->status]
+				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
+				,'url' => dol_buildpath('/of/fiche_of.php', 1)
+				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 1) : dol_buildpath('/of/liste_of.php', 1)
+				,'fk_product_to_add'=>$fk_product_to_add
+				,'fk_nomenclature'=>$fk_nomenclature
+				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
+				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
+
+				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
+				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
+				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
+				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
+				,'date_end'=>$assetOf->get_date('date_end')
+				,'date_start'=>$assetOf->get_date('date_start')
+				,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
+		)
+		,'view'=>array(
+			'mode'=>$mode
+			,'action' => !empty($quicksave)?'quick-save':'save'
+			,'status'=>$assetOf->status
+			,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
+			,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
+			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
+			,'select_product'=>$select_product
+			,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
+			//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
+			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
+			,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
+			,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
+			,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
+			,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
+			,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
+			,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
+			,'hasChildren' => (int) !empty($Tid)
+			,'user_id'=>$user->id
+			,'workstation_module_activate'=>(int) $conf->workstation->enabled
+			,'show_cost'=>(int)$user->rights->of->of->price
+			,'langs'=>$langs
+			,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
+			,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
+			,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
+		)
+		,'rights'=>array(
+			'show_ws_time'=>$user->rights->of->of->show_ws_time
+		)
+		,'conf'=>$conf
+	);
+
+	// Change view from hooks
+	$parameters=array(  'tpl' => &$tpl, 'TBlocks' => &$TBlocks, 'TFields' => &$TFields, 'renderer' => &$TBS);
+	$reshook=$hookmanager->executeHooks('TBSConfig',$parameters,$assetOf);    // Note that $action and $object may have been modified by hook
+	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+	print $TBS->render($tpl, $TBlocks, $TFields);
+//var_dump($tpl, $TBlocks, $TFields);
+	if ($mode == 'view')
+    {
+        $assetOf->thirdparty = $client;
+
+        require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+        $formfile = new FormFile($db);
+
+        $usercanread = $user->rights->of->of->lire;
+        $usercancreate = $user->rights->of->read; // voir le descripteur du module pour comprendre U_u
+
+        print '<div class="fichecenter"><div class="fichehalfleft">';
+		print '<a name="builddoc"></a>'; // ancre
+		/*
+		 * Documents generes
+		 */
+		$filename = dol_sanitizeFileName($assetOf->ref);
+//		$filename = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
+		$filedir = $conf->of->multidir_output[$assetOf->entity] . "/" . $filename;
+		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $assetOf->id;
+
+		$genallowed = $usercanread;
+		$delallowed = $usercancreate;
+
+		print $formfile->showdocuments('of', $filename, $filedir, $urlsource, $genallowed, $delallowed, $assetOf->modelpdf, 1, 0, 0, 28, 0, '', 0, '', $client->default_lang, '', $assetOf);
+
+// TODO uncomment to show linked objects
+//		// Show links to link elements
+//		$linktoelem = $doliform->showLinkToObjectBlock($assetOf, null, array('propal'));
+//
+//		$compatibleImportElementsList = false;
+//		if($user->rights->propal->creer && $assetOf->statut == Propal::STATUS_DRAFT)
+//		{
+//		    $compatibleImportElementsList = array('commande','propal'); // import from linked elements
+//		}
+//		$somethingshown = $doliform->showLinkedObjectBlock($assetOf, $linktoelem, $compatibleImportElementsList);
+//
+//		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+
+// TODO uncomment to show ActionComm linked
+//		// List of actions on element
+//		include_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
+//		$formactions = new FormActions($db);
+//		$somethingshown = $formactions->showactions($assetOf, 'propal', $assetOf->fk_soc, 1);
+
+		print '</div></div></div>';
+    }
+
+	print '
+		<div style="clear:both;"></div>
+        <br />
+        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
+			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
+		</div>
+    ';
 
 	echo $form->end_form();
 
@@ -1340,7 +1471,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 function calc_mini_tu1($FieldName,&$CurrVal,&$CurrPrm,&$TBS)
 {
 	global $conf;
-	
+
 	$CurrVal = $CurrVal * $conf->global->OF_COEF_MINI_TU_1;
 }
 

@@ -495,11 +495,11 @@ class Interfaceoftrigger
 
         if(empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid)
-                            WHERE tex.fk_of=" . $fk_of . " AND t.progress<100";
+                            WHERE tex.fk_of=" . $fk_of . " AND (t.progress<100 OR t.progress IS NULL)";
         }
         else {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
-                            WHERE ee.fk_source = " .$fk_of  . " AND t.progress<100 AND t.rowid !=".$task->id;
+                            WHERE ee.fk_source = " .$fk_of  . " AND (t.progress<100 OR t.progress IS NULL) AND t.rowid !=".$task->id;
         }
 
         $res = $db->query($sql);

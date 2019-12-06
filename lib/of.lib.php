@@ -8,10 +8,12 @@
 		switch ($type) {
 
 			case 'assetOF':
-				$head= array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche'));
+				$head= array(
+				    array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), $langs->trans('Card'),'fiche'),
+                    array(dol_buildpath('/of/document.php?id='.$asset->getId(),1), $langs->trans('Documents'),'document'),
+                );
 
 				break;
-
 		}
 
 		$h = count($head);
@@ -820,4 +822,235 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
 
     dol_syslog("functions2::get_next_value return ".$numFinal,LOG_DEBUG);
     return $numFinal;
+}
+
+function of_banner(TAssetOF $object) {
+    global $langs, $conf, $db;
+    $PDOdb = new TPDOdb;
+    $soc = new Societe($db);
+    $proj = new Project($db);
+    print '<div class="OFMaster" assetOf_id="'.$object->getId().'">
+
+			<table width="100%" class="border">
+
+				<tr><td width="20%">'.$langs->transnoentitiesnoconv('NumberOf').'</td><td>'.$object->getNumero($PDOdb).'</td></tr>
+				<tr rel="ordre">
+					<td>'.$langs->transnoentities('Ordre').'</td>
+					<td>'.$langs->trans($object->ordre).'</td>
+				</tr>';
+    if(!empty($object->fk_soc)){
+        $soc->fetch($object->fk_soc);
+        print '<tr rel="customer">
+					<td>' . $langs->transnoentities('Customer') . '</td>
+					<td>' . $soc->getNomUrl(1) . '</td>
+				</tr>';
+    }
+    if(!empty($object->fk_project)) {
+        $proj->fetch($object->fk_project);
+        print '<tr rel="customer">
+					<td>' . $langs->transnoentities('Project') . '</td>
+					<td>' . $proj->getNomUrl(1) . '</td>
+				</tr>';
+    }
+	print '</table>
+			</div></br>	'
+
+;
+
+
+
+}
+
+function _getProductIdFromNomen(&$TProductId, $details_nomenclature)
+{
+    foreach($details_nomenclature as $detail){
+        if(!empty($detail['childs'])) _getProductIdFromNomen($TProductId, $detail['childs']);
+        $TProductId[$detail['fk_product']]=$detail['fk_product'];
+    }
+}
+
+function _getDetailStock(&$line, &$TProductStock, &$TDetails)
+{
+    global $conf;
+    if(empty($line->of_date_de_livraison))return -3;
+    $qtyToDestock = $line->qty;
+
+/*
+ * 1st step on verif si stock physique is enough
+ */
+    if(isset($TProductStock[$line->fk_product]['stock'])){
+        $TDetails[$line->id]['stock_reel'] = $TProductStock[$line->fk_product]['stock'];
+
+        if($qtyToDestock < $TProductStock[$line->fk_product]['stock']){
+            $TProductStock[$line->fk_product]['stock']-= $qtyToDestock;
+            $qtyToDestock=0;
+        }
+        else{
+            $qtyToDestock -= $TProductStock[$line->fk_product]['stock'];
+            $TProductStock[$line->fk_product]['stock']= 0;
+        }
+
+    }
+
+
+/*
+ * 2nd step on verif si on peut compenser le manque avec les prochaines cmd fourn
+ */
+    if($qtyToDestock > 0 && !empty($TProductStock[$line->fk_product]['supplier_order'])){
+        foreach($TProductStock[$line->fk_product]['supplier_order'] as $date => $stock_by_order) {
+            if($qtyToDestock <= 0) break; // La quantité totale est trouvée
+
+            if(!empty($date) && !empty($line->of_date_de_livraison)){
+                $tms_fourn = strtotime($date);
+                if($tms_fourn < $line->of_date_de_livraison) {
+                    foreach($stock_by_order as $fk_order => $stock) {
+                        $TDetails[$line->id]['supplier_order'][$fk_order] += $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+
+                        if($qtyToDestock < $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order]){
+                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] -= $qtyToDestock;
+                            $qtyToDestock=0;
+                        }
+                        else{
+                            $qtyToDestock -= $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order];
+                            $TProductStock[$line->fk_product]['supplier_order'][$date][$fk_order] = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+/*
+ * 3rd step : Si on a toujours pas de quoi fournir le client, on vérifie si on a de quoi créer les produits et que le délai est ok
+ */
+    if($qtyToDestock > 0 && !empty($line->details_nomenclature)){
+        $isNomenOK = 0;
+        foreach($line->details_nomenclature as $detail){
+
+            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails[$line->id], $line->of_date_de_livraison, $qtyToDestock);
+            if($isNomenOK < 0) break;
+        }
+    }
+    if($qtyToDestock<=0 || $isNomenOK > 0)$TDetails[$line->id]['status'] = 1;
+}
+
+
+function _getDetailFromNomenclature($details_nomenclature, &$TProductStock, &$TDetails, $date_de_livraison, $qtyToDestock){
+
+    $qtyToDestock = $details_nomenclature['qty'] * $qtyToDestock;
+    /*
+     * 1st step on verif si stock physique is enough
+     */
+    if(!empty($TProductStock[$details_nomenclature['fk_product']]['stock'])){
+        $TDetails['childs'][$details_nomenclature['fk_product']]['stock_reel'] = $qtyToDestock .'/'.$TProductStock[$details_nomenclature['fk_product']]['stock'];
+
+        if($qtyToDestock < $TProductStock[$details_nomenclature['fk_product']]['stock']){
+            $TProductStock[$details_nomenclature['fk_product']]['stock']-= $qtyToDestock;
+            $qtyToDestock=0;
+        }
+        else{
+            $qtyToDestock -= $TProductStock[$details_nomenclature['fk_product']]['stock'];
+            $TProductStock[$details_nomenclature['fk_product']]['stock']= 0;
+        }
+
+    }
+
+
+    /*
+     * 2nd step on verif si on peut compenser le manque avec les prochaines cmd fourn
+     */
+    if($qtyToDestock > 0 && !empty($TProductStock[$details_nomenclature['fk_product']]['supplier_order'])){
+        foreach($TProductStock[$details_nomenclature['fk_product']]['supplier_order'] as $date => $stock_by_order) {
+            if($qtyToDestock <= 0) break; // La quantité totale est trouvée
+
+            if(!empty($date) && !empty($date_de_livraison)){
+                $qtyToDisplay = $qtyToDestock;
+                $tms_fourn = strtotime($date);
+                if($tms_fourn < $date_de_livraison) {
+                    foreach($stock_by_order as $fk_order => $stock) {
+                        $TDetails['childs'][$details_nomenclature['fk_product']]['supplier_order'][$fk_order] += $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order];
+
+                        if($qtyToDestock < $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order]){
+                            $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order] -= $qtyToDestock;
+                            $qtyToDestock=0;
+                        }
+                        else{
+                            $qtyToDestock -= $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order];
+                            $TProductStock[$details_nomenclature['fk_product']]['supplier_order'][$date][$fk_order] = 0;
+                        }
+                    }
+                    $TDetails['childs'][$details_nomenclature['fk_product']]['supplier_order'][$fk_order] = $qtyToDisplay .'/'.$TDetails['childs'][$details_nomenclature['fk_product']]['supplier_order'][$fk_order];
+                }
+            }
+        }
+    }
+    /*
+     * 3rd step : Si on a toujours pas de quoi fournir le client, on vérifie si on a de quoi créer les produits et que le délai est ok
+     */
+    if($qtyToDestock > 0 && !empty($details_nomenclature['childs'])){
+        $isNomenOK = 0;
+        foreach($details_nomenclature['childs'] as $detail){
+            $isNomenOK = _getDetailFromNomenclature($detail, $TProductStock, $TDetails['childs'][$details_nomenclature['fk_product']], $date_de_livraison, $qtyToDestock);
+            if($isNomenOK < 0) break;
+        }
+    }
+    if($qtyToDestock<=0 || $isNomenOK > 0){
+        $TDetails['childs'][$details_nomenclature['fk_product']]['status'] = 1;
+        return 1;
+    }
+    return -1;
+
+}
+
+function _getPictoDetail($TDetailStock, $lineid, &$stock_tooltip, $level = 1) {
+    global $langs, $db;
+    $nbsp = '';
+    for($i = 1; $i < $level; $i++) $nbsp .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+    $is_null = 1;
+    if(!empty($TDetailStock[$lineid])) {
+        foreach($TDetailStock[$lineid] as $type => $detail) {
+
+            if($type == 'stock_reel') {
+                $stock_tooltip .= $nbsp . $langs->trans('PhysicalStock') . ' : ' . $detail . '</br>';
+                $is_null = 0;
+            }
+
+            if($type == 'supplier_order') {
+
+                $stock_tooltip .= $nbsp . $langs->trans('SupplierOrder') . ' : </br>';
+                foreach($detail as $fk_supplier_order => $stock) {
+                    $fourncmd = new CommandeFournisseur($db);
+                    $fourncmd->fetch($fk_supplier_order);
+                    $stock_tooltip .= '&nbsp;&nbsp;&nbsp;&nbsp;' .$nbsp . $fourncmd->getNomUrl(1) . ' ==> ' . $stock . '</br>';
+                }
+                $is_null = 0;
+            }
+
+            if($type == 'childs') {
+                $stock_tooltip .= $nbsp . $langs->trans('Nomenclature') . ' : </br>';
+                foreach($detail as $fk_product => $TDetails) {
+                    $prod = new Product($db);
+                    $prod->fetch($fk_product);
+                    $stock_tooltip .= '&nbsp;&nbsp;&nbsp;&nbsp;' . $nbsp . $prod->getNomUrl(1) . ' : </br>';
+                    _getPictoDetail($detail, $fk_product, $stock_tooltip, $level + 1);
+                }
+                $is_null = 0;
+            }
+        }
+    }
+    if(!empty($is_null)) $stock_tooltip .= $nbsp.'Pas de stock';
+}
+
+function _getIconStatus($TDetailStock, $TLines, $lineid) {
+	global $conf;
+	$style = ' border-radius: 50%;
+	    width: 20px;
+        height: 20px;
+        display: inline-block;';
+    if(!empty($TDetailStock[$lineid]['status'])) $style .= 'background:#8DDE8D;';
+    else if(empty($TLines[$lineid]->of_date_de_livraison)) $style .= 'background:#dedb8d;';
+    else $style .= 'background:#de8d8d;';
+
+    $icon = '<div class="shippable_status" style="'.$style.'"></div>';
+
+    return $icon;
 }
