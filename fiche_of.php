@@ -807,6 +807,12 @@ function _get_line_order_extrafields($fk_commandedet) {
 
 }
 
+/**
+ * @param TFormCore $form
+ * @param TAssetOF  $of
+ * @param string    $type
+ * @return array
+ */
 function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs,$hookmanager,$user;
 //TODO rules guys ! To Facto ! AA
@@ -815,6 +821,7 @@ function _fiche_ligne(&$form, &$of, $type){
     $PDOdb=new TPDOdb;
 	$TRes = array();
 	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
+	    /** @var TAssetOFLine $TAssetOFLine */
 		$product = &$TAssetOFLine->product;
         if(is_null($product)) {
             $product=new Product($db);
@@ -1000,6 +1007,15 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			    ,'extrafields'=>(empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD) ? '' : _get_line_order_extrafields($TAssetOFLine->fk_commandedet))
 			);
+            if ($conf->global->OF_USE_REFLINENUMBER) {
+                $editmode = ($form->type_aff == 'edit' && $of->status=='DRAFT'); // for later: make the field editable here?
+                if ($editmode || !$editmode) {
+                    dol_include_once('/commande/class/commande.class.php');
+                    $line = new OrderLine($db);
+                    $line->fetch_optionals($TAssetOFLine->fk_commandedet);
+                    $TLine['reflinenumber'] = $line->array_options['options_reflinenumber'];
+                }
+            }
 
 
 			mergeObjectAttr($product, $TLine);

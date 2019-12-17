@@ -488,6 +488,8 @@ $var=!$var;
 
     setup_print_on_off('OF_DISPLAY_OF_ON_COMMANDLINES');
 
+    setup_print_on_off('OF_USE_REFLINENUMBER', $langs->trans('OF_USE_REFLINENUMBER'), $langs->trans('OF_USE_REFLINENUMBER_help'));
+
 
 print '</table>';
 

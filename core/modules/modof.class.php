@@ -502,6 +502,9 @@ class modof extends DolibarrModules
         $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
+        $extrafields=new ExtraFields($this->db);
+        $res = $extrafields->addExtraField('reflinenumber', 'RefLineNumber', 'varchar', 100, '32', 'commandedet', 0, 0, '', array('options'=>array(''=>null)), 0, '', '1', '', '', '', '', 0);
+
 		// template
 		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
 		$dirodt=DOL_DATA_ROOT.'/of/template/';

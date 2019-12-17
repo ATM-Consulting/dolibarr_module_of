@@ -379,3 +379,8 @@ OrderLinkedFiles=Fichiers et documents joints de la commande %s
 ProductLinkedFiles= Fichiers et documents joints du produit %s
 OF_REAL_HOUR_CAN_BE_EMPTY=Heures réelles peuvent être vides
 OF_DISPLAY_OF_ON_COMMANDLINES=Afficher les of liés sur les lignes de commandes client
+
+# Ref Line Number
+OF_USE_REFLINENUMBER=Utiliser les numéros de lignes de référence
+OF_USE_REFLINENUMBER_help=Ils permettent de lier un OF à un élément externe numéroté, par exemple une ligne de tableur
+RefLineNumber=Ligne de référence

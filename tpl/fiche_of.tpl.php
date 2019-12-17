@@ -102,6 +102,9 @@
 							<!-- TO_MAKE -->
 							<table width="100%" class="border tomake">
 								<tr style="background-color:#dedede;">
+                                    [onshow;block=begin;when [conf.global.OF_USE_REFLINENUMBER;noerr]==1]
+                                        <td>[view.langs.transnoentities(RefLineNumber)]</td>
+                                    [onshow;block=end]
 									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(OFActions)]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[view.langs.transnoentities(Lot)]</td>
@@ -125,6 +128,9 @@
 
 								</tr>
 								<tr id="[TTomake.id]">
+                                    [onshow;block=begin;when [conf.global.OF_USE_REFLINENUMBER;noerr]==1]
+                                        <td>[TTomake.reflinenumber;strconv=no]</td>
+                                    [onshow;block=end]
 									<td align="center" valign="top" class="draftedit">[TTomake.addneeded;strconv=no]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td valign="top">[TTomake.lot_number;strconv=no]</td>
