@@ -43,6 +43,35 @@ if (! $user->admin) {
 // Parameters
 $action = GETPOST('action', 'alpha');
 
+/**
+ * @param $visibility
+ * @return boolean 0=error; 1=success
+ */
+function set_reflinenumber_extrafield_visibility($visibility) {
+	global $db;
+	dol_include_once('/core/class/extrafields.class.php');
+	$sql = sprintf("UPDATE %s SET list = %d WHERE name = 'reflinenumber' AND elementtype = 'commandedet' AND entity IN (%s)",
+        MAIN_DB_PREFIX . 'extrafields',
+        $visibility,
+        getEntity('extrafields')
+    );
+	$resql = $db->query($sql);
+	return boolval($resql);
+}
+
+function handle_ajax_query() {
+    $code = GETPOST('code', 'alpha');
+    $val = GETPOST('val', 'alpha');
+    if (set_reflinenumber_extrafield_visibility(intval($val))) {
+        return 'success';
+    } else {
+        return 'failure';
+    }
+}
+
+// CMMCM: Dolibarr ne permet pas d’ajouter un hook sur dolibarr_set_const()
+if ($action=='ajax') { echo handle_ajax_query(); exit; }
+
 /*
  * Actions
  */
@@ -488,7 +517,21 @@ $var=!$var;
 
     setup_print_on_off('OF_DISPLAY_OF_ON_COMMANDLINES');
 
+    // T1107 : l’extrafield numéro de ligne de référence sur commandedet doit être rendu invisible si on désactive la conf (d’où le <script>)
     setup_print_on_off('OF_USE_REFLINENUMBER', $langs->trans('OF_USE_REFLINENUMBER'), $langs->trans('OF_USE_REFLINENUMBER_help'));
+    ?><script>
+    (function() {
+        let setRefLineNumberExtrafieldVisibility = function(visibility) {
+            $.get('of_setup.php', { action: 'ajax', code: 'OF_USE_REFLINENUMBER', val: visibility }).done((data) => {
+                if (data === 'failure') $.jnotify(data, 'error', true);
+            });
+        };
+        $(function() {
+            $("#set_OF_USE_REFLINENUMBER").click(() => setRefLineNumberExtrafieldVisibility(1));
+            $("#del_OF_USE_REFLINENUMBER").click(() => setRefLineNumberExtrafieldVisibility(0));
+        });
+    })();
+    </script><?php
 
 
 print '</table>';
