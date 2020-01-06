@@ -1008,15 +1008,15 @@ function _fiche_ligne(&$form, &$of, $type){
 			    ,'extrafields'=>(empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD) ? '' : _get_line_order_extrafields($TAssetOFLine->fk_commandedet))
 			);
             if ($conf->global->OF_USE_REFLINENUMBER) {
-                $editmode = ($form->type_aff == 'edit' && $of->status=='DRAFT'); // for later: make the field editable here?
-                if ($editmode || !$editmode) {
-                    dol_include_once('/commande/class/commande.class.php');
-                    $line = new OrderLine($db);
-                    $line->fetch_optionals($TAssetOFLine->fk_commandedet);
-                    $TLine['reflinenumber'] = $line->array_options['options_reflinenumber'];
-                }
-            }
+				dol_include_once('/commande/class/commande.class.php');
 
+				$TLine['reflinenumber'] = ''; // empty by default
+				if (!empty($TAssetOFLine->fk_commandedet)) {
+					$line = new OrderLine($db);
+					$line->fetch_optionals($TAssetOFLine->fk_commandedet);
+					$TLine['reflinenumber'] = $line->array_options['options_reflinenumber'] ? $line->array_options['options_reflinenumber'] : '';
+				}
+            }
 
 			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;

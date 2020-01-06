@@ -129,7 +129,7 @@
 								</tr>
 								<tr id="[TTomake.id]">
                                     [onshow;block=begin;when [conf.global.OF_USE_REFLINENUMBER;noerr]==1]
-                                        <td>[TTomake.reflinenumber;strconv=no]</td>
+                                        <td>[TTomake.reflinenumber;strconv=no;noerr]</td>
                                     [onshow;block=end]
 									<td align="center" valign="top" class="draftedit">[TTomake.addneeded;strconv=no]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
@@ -141,10 +141,10 @@
 										( Poids : [TTomake.object_attr_weight;frm=0 000,00] [TTomake.object_attr_weight_units;onformat=measuring_units_weight_string], Mini-TU1 : [TTomake.object_attr_weight;onformat=calc_mini_tu1;frm=0 000,00] [TTomake.object_attr_weight_units;onformat=measuring_units_weight_string] )
 									[onshow;block=end]
 									[onshow;block=end]
-									
+
 									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
-									[onshow;block=end]	
+									[onshow;block=end]
 										[TTomake.extrafields;strconv=no]
 									</td>
 									<td valign="top">[TTomake.qty;strconv=no]</td>
@@ -167,7 +167,7 @@
 						<td colspan="4" style="height:40px; border-left: none; text-align: right;">
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">[view.langs.transnoentities(AddProduct)]</a>
 						</td>
-					</tr>	
+					</tr>
 						[onshow;block=end]
 				</table>
 			</div>
@@ -372,7 +372,7 @@
 					[onshow;block=begin;when [view.show_cost]=='1']
 						<a onclick="if(!confirm('[view.langs.transnoentities(ReloadPriceFourn)]')) return false;" class="butActionDelete warning" href="[assetOf.url]?id=[assetOf.id]&action=reload_pmp">[view.langs.transnoentities(ReloadPrice)]</a>
 					[onshow;block=end]
-				
+
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
 							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[view.langs.transnoentities(Delete)]</a>

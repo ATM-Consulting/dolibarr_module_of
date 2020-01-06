@@ -336,3 +336,9 @@ InssuficienteAssetContenanceToAddFromOF=Capacity of equipment %s exceeded
 OfTransfertQtyPlannedIntoUsed=Transfer the planned into used
 
 OF_HANDLE_ORDER_LINE_DESC=Copy order line desription into the PO and display it on labels
+
+
+# Ref Line Number
+OF_USE_REFLINENUMBER=Reference line number
+OF_USE_REFLINENUMBER_help=Reference line numbers allow you to link your invoice, proposal or order lines to an arbitrary external number (for instance the row number of a client-provided specification spreadsheet). Reference line numbers are purely informational.
+RefLineNumber=Reference line

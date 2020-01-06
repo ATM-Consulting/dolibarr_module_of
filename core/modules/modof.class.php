@@ -95,7 +95,12 @@ class modof extends DolibarrModules
 				'productstock',
 				'searchform',
 				'tasklist',
-				'ordercard'
+				'ordercard',
+				'propalcard',
+				'invoicecard',
+				'orderlist',
+				'propallist',
+				'invoicelist'
 			),
 			'dir' => array('output' => 'of')
 		);
@@ -495,15 +500,31 @@ class modof extends DolibarrModules
 		dol_include_once('/core/class/extrafields.class.php');
         $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('fk_of', 'Ordre de Fabrication', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('assetOf:numero:rowid'=>null))));
-
-        $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
-
-        $extrafields=new ExtraFields($this->db);
         $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
-        $extrafields=new ExtraFields($this->db);
-        $res = $extrafields->addExtraField('reflinenumber', 'RefLineNumber', 'varchar', 100, '32', 'commandedet', 0, 0, '', array('options'=>array(''=>null)), 0, '', '1', '', '', '', '', 0);
+		foreach (array('commandedet', 'propaldet', 'facturedet') as $elementtype) {
+			$res = $extrafields->addExtraField(
+				'reflinenumber',
+				'RefLineNumber',
+				'varchar',
+				100,
+				'128',
+				$elementtype,
+				0,
+				0,
+				'',
+				array('options'=>array(''=>null)),
+				0,
+				'',
+				'1',
+				'',
+				'',
+				'',
+				'',
+				0
+			);
+		}
 
 		// template
 		$src=dol_buildpath('/of/exempleTemplate/templateOF.odt');
@@ -600,8 +621,8 @@ class modof extends DolibarrModules
         if(!empty($resqlCheck) && $db->num_rows($resqlCheck) == 0) {
 
             //On ajoute les objets liés
-            $sql = "SELECT t.rowid, tex.fk_of FROM " . MAIN_DB_PREFIX . "projet_task t 
-            LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid) 
+            $sql = "SELECT t.rowid, tex.fk_of FROM " . MAIN_DB_PREFIX . "projet_task t
+            LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid)
             LEFT JOIN " . MAIN_DB_PREFIX . "element_element ee  ON (ee.fk_target=t.rowid AND ee.targettype='project_task' AND ee.sourcetype='tassetof')
             WHERE tex.fk_of IS NOT NULL ";
 
