@@ -517,7 +517,6 @@ class Actionsof
 			<script type="application/javascript">
 				$(function() {
 					let jsonObjectData = <?php echo json_encode($jsonObjectData) ; ?>;
-					console.log(jsonObjectData);
 
 					// ADD NEW COLS
 					$("#tablelines tr").each(function() {
@@ -525,7 +524,7 @@ class Actionsof
 						if($( this ).hasClass("liste_titre")) {
 							// PARTIE TITRE
 							$('<td align="center" class="colreflinenumber">' + jsonObjectData.trans['RefLineNumber'] + '</td>').insertAfter($( this ).find("td.linecoldescription"));
-						} else if($( this ).data("product_type") === "9") {
+						} else if($( this ).data("product_type") === 9) {
 							$( this ).find("td[colspan]:first").attr('colspan', parseInt($( this ).find("td[colspan]:first").attr('colspan')) + 1);
 						} else {
 							// PARTIE LIGNE
