@@ -374,3 +374,5 @@ OF_SHOW_PRODUCT_DOCUMENTS=Afficher les documents liés du produit dans l'OF
 OrderLinkedFiles=Fichiers et documents joints de la commande %s
 ProductLinkedFiles= Fichiers et documents joints du produit %s
 OF_REAL_HOUR_CAN_BE_EMPTY=Heures réelles peuvent être vides
+
+OF_product_in_of=Produit présent dans un ou plusieurs OF
