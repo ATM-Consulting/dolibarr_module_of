@@ -55,6 +55,35 @@ class TAssetOF extends TObjetStd{
 		$this->entity = $conf->entity;
 	}
 
+    /**
+     * @param DoliDB $db        Object db connector
+     * @param int $fk_product   id product to test
+     * @return array
+     */
+	public static function productInOf($db, $fk_product)
+    {
+        $TOfId = array();
+        $sql = 'SELECT DISTINCT o.rowid FROM '.MAIN_DB_PREFIX.'assetOf o';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf_line ol ON (o.rowid = ol.fk_assetOf)';
+        $sql.= ' WHERE ol.fk_product = '.intval($fk_product);
+
+        $resql = $db->query($sql);
+        if ($resql)
+        {
+            while ($obj = $db->fetch_object($resql))
+            {
+                $TOfId[$obj->rowid] = $obj->rowid;
+            }
+        }
+        else
+        {
+            dol_print_error($db);
+        }
+
+        return $TOfId;
+    }
+
+
 	function set_current_cost_for_to_make($compo_planned_cost= false) {
 
 		$this->set_temps_fabrication(true);
