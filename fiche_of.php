@@ -1120,7 +1120,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		?>
 		<script type="text/javascript">
                 $(document).on('keypress',function(e) {
-                       if ($('input:focus').length == 0) {
+                       if ($('input:focus').length == 0 && $("#dialog").is(':visible')) {
                             $('#fk_product').select2('open');
                         }
                 });
