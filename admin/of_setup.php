@@ -50,11 +50,8 @@ $action = GETPOST('action', 'alpha');
 function set_reflinenumber_extrafield_visibility($visibility) {
 	global $db;
 	dol_include_once('/core/class/extrafields.class.php');
-	$sql = sprintf("UPDATE %s SET list = %d WHERE name = 'reflinenumber' AND elementtype IN ('commandedet', 'propaldet', 'facturedet') AND entity IN (%s)",
-        MAIN_DB_PREFIX . 'extrafields',
-        $visibility,
-        getEntity('extrafields')
-    );
+	$sql = 'UPDATE ' . MAIN_DB_PREFIX . 'extrafields SET list = ' . intval($visibility)
+		. ' WHERE name = "reflinenumber" AND elementtype IN ("commandedet", "propaldet", "facturedet") AND entity IN (' . getEntity('extrafields') . ')';
 	$resql = $db->query($sql);
 	return boolval($resql);
 }
