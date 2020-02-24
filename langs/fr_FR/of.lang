@@ -12,6 +12,8 @@ OFActions=Actions
 ParametersWorkstation=Paramètres Poste de travail
 ParametersWorkflow=Paramètres Workflow
 
+Card=Fiche
+
 # EQUIPEMENT
 GPAO=GPAO
 Asset=Equipement
@@ -78,6 +80,8 @@ OFSupplierLineComp=Fabrication interne
 OFSupplierLineStockRemoval=Sortie de stock
 OFSupplierLineSupOrder=Commande fournisseur
 OFValidate=Valider
+OFNomenclatureShort=Nomen.
+OFNomenclature=Nomenclature
 NomenclatureToSelect=Nomenclature à sélectionner
 Link=Lier
 DeleteLink=Suppresion du lien
@@ -212,7 +216,7 @@ DEFINE_HEIGHT_DIV=Définir la hauteur de chaque étiquette (en mm)
 OF_CONCAT_WS_ON_ADD=Concatener les temps des postes de charges
 MinimalViewForChilOF=Vue minimale pour les OFs enfants
 
-DateLaunch=Date de lancement
+DateLaunch=Date de lancement prévisionnelle
 DateBesoin=Date du besoin
 
 ofSetup=Configuration 
@@ -374,5 +378,10 @@ OF_SHOW_PRODUCT_DOCUMENTS=Afficher les documents liés du produit dans l'OF
 OrderLinkedFiles=Fichiers et documents joints de la commande %s
 ProductLinkedFiles= Fichiers et documents joints du produit %s
 OF_REAL_HOUR_CAN_BE_EMPTY=Heures réelles peuvent être vides
+OF_DISPLAY_OF_ON_COMMANDLINES=Afficher les of liés sur les lignes de commandes client
 
+# Ref Line Number
+OF_USE_REFLINENUMBER=Utiliser les numéros de lignes de référence
+OF_USE_REFLINENUMBER_help=Ils permettent de lier, à titre indicatif, une ligne de commande, devis ou facture à un élément externe numéroté, par exemple une ligne de tableur.
+RefLineNumber=Ligne de référence
 OF_product_in_of=Produit présent dans un ou plusieurs OF

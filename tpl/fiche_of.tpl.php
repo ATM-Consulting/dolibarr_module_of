@@ -102,6 +102,9 @@
 							<!-- TO_MAKE -->
 							<table width="100%" class="border tomake">
 								<tr style="background-color:#dedede;">
+                                    [onshow;block=begin;when [conf.global.OF_USE_REFLINENUMBER;noerr]==1]
+                                        <td>[view.langs.transnoentities(RefLineNumber)]</td>
+                                    [onshow;block=end]
 									<td class="draftedit" style="width:20px;">[view.langs.transnoentities(OFActions)]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[view.langs.transnoentities(Lot)]</td>
@@ -125,6 +128,9 @@
 
 								</tr>
 								<tr id="[TTomake.id]">
+                                    [onshow;block=begin;when [conf.global.OF_USE_REFLINENUMBER;noerr]==1]
+                                        <td>[TTomake.reflinenumber;strconv=no;noerr]</td>
+                                    [onshow;block=end]
 									<td align="center" valign="top" class="draftedit">[TTomake.addneeded;strconv=no]</td>
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td valign="top">[TTomake.lot_number;strconv=no]</td>
@@ -135,10 +141,10 @@
 										( Poids : [TTomake.object_attr_weight;frm=0 000,00] [TTomake.object_attr_weight_units;onformat=measuring_units_weight_string], Mini-TU1 : [TTomake.object_attr_weight;onformat=calc_mini_tu1;frm=0 000,00] [TTomake.object_attr_weight_units;onformat=measuring_units_weight_string] )
 									[onshow;block=end]
 									[onshow;block=end]
-									
+
 									[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 										<div>[TTomake.nomenclature;block=tr;strconv=no]</div>
-									[onshow;block=end]	
+									[onshow;block=end]
 										[TTomake.extrafields;strconv=no]
 									</td>
 									<td valign="top">[TTomake.qty;strconv=no]</td>
@@ -161,7 +167,7 @@
 						<td colspan="4" style="height:40px; border-left: none; text-align: right;">
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="TO_MAKE">[view.langs.transnoentities(AddProduct)]</a>
 						</td>
-					</tr>	
+					</tr>
 						[onshow;block=end]
 				</table>
 			</div>
@@ -366,7 +372,7 @@
 					[onshow;block=begin;when [view.show_cost]=='1']
 						<a onclick="if(!confirm('[view.langs.transnoentities(ReloadPriceFourn)]')) return false;" class="butActionDelete warning" href="[assetOf.url]?id=[assetOf.id]&action=reload_pmp">[view.langs.transnoentities(ReloadPrice)]</a>
 					[onshow;block=end]
-				
+
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
 							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[view.langs.transnoentities(Delete)]</a>
@@ -379,7 +385,6 @@
 						<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
 					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">[view.langs.transnoentities(Modify)]</a>
-					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">[view.langs.transnoentities(Print)]</a>
 
 				</div>
 			[onshow;block=end]
@@ -408,7 +413,7 @@
 			</tr>
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 				<tr id="tr_select_nomenclature" style="display:none;">
-					<td style="width:80px;" title="Nomenclature">Nomen. : </td>
+					<td style="width:80px;" title="[view.langs.transnoentities(OFNomenclature)]">[view.langs.transnoentities(OFNomenclatureShort)] : </td>
 					<td><select name="fk_nomenclature"></select></td>
 				</tr>
 			[onshow;block=end]
@@ -433,9 +438,7 @@
 </div>
 
 	<div style="clear:both;"></div>
-		<div id="assetChildContener" [view.hasChildren;noerr;if [val]==0;then 'style="display:none"';else '']>
-			<h2 id="titleOFEnfants">[view.langs.transnoentities(OFChild)]</h2>
-		</div>
+
 	<script type="text/javascript">
 
 		$(document).ready(function() {

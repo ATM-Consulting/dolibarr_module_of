@@ -216,6 +216,109 @@ class Actionsof
 		return 0;
 	}
 
+	/**
+	 * PDF Evolution Columns
+	 * @param array              $parameters     Hook metadatas (context, etc...)
+	 * @param CommonDocGenerator $pdfDoc
+	 * @param string             $action         Current action (if set). Generally create or edit or null
+	 * @param HookManager        $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function defineColumnField($parameters, &$pdfDoc, &$action, $hookmanager)
+	{
+		global $conf, $user, $langs;
+		if (empty($conf->global->OF_USE_REFLINENUMBER)) return 0;
+
+		// Translations
+		$langs->loadLangs(array("of@of"));
+
+		$TContext = explode(':',$parameters['context']);
+
+		/*
+		 * For example
+		 $this->cols['theColKey'] = array(
+			 'rank' => $rank, // int : use for ordering columns
+			 'width' => 20, // the column width in mm
+			 'title' => array(
+				 'textkey' => 'yourLangKey', // if there is no label, yourLangKey will be translated to replace label
+				 'label' => ' ', // the final label : used fore final generated text
+				 'align' => 'L', // text alignement :  R,C,L
+				 'padding' => array(0.5,0.5,0.5,0.5), // Like css 0 => top , 1 => right, 2 => bottom, 3 => left
+			 ),
+			 'content' => array(
+				 'align' => 'L', // text alignement :  R,C,L
+				 'padding' => array(0.5,0.5,0.5,0.5), // Like css 0 => top , 1 => right, 2 => bottom, 3 => left
+			 ),
+		 );
+ 		*/
+
+		$def = array(
+			'rank' => 55,
+			'width' => 20, // in mm
+			'status' => false,
+			'title' => array(
+				'label' => $langs->transnoentities('RefLineNumber')
+			),
+			'content' => array(
+				'align' => 'C', // text alignement :  R,C,L
+			),
+			'border-left' => true, // add left line separator
+		);
+
+		$objectDocCompatible =array('commande', 'facture', 'shipping', 'propal');
+		if (in_array($parameters['object']->element, $objectDocCompatible)){
+			$def['status'] = true;
+		}
+
+		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',1);
+		return 0;
+	}
+
+	/**
+	 * Overloading the printPDFline function
+	 *
+	 * @param   array              $parameters  Hook metadatas (context, etc...)
+	 * @param   CommonDocGenerator $pdfDoc      The object to process
+	 * @param   string             $action      Current action (if set). Generally create or edit or null
+	 * @param   HookManager        $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int  < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function printPDFLine($parameters, &$pdfDoc, &$action, $hookmanager)
+	{
+		global $conf, $user, $langs;
+		if (empty($conf->global->OF_USE_REFLINENUMBER)) return 0;
+		$pdf =& $parameters['pdf'];
+		$i = $parameters['i'];
+		$outputlangs = $parameters['outputlangs'];
+
+		$returnVal = 0;
+
+		/** @var $object CommonObject */
+		$object = $parameters['object'];
+
+		if ($pdfDoc->getColumnStatus('RefLineNumber'))
+		{
+			$line = $object->lines[$i];
+			$reflinenumber = null;
+			if (!empty($line)
+				&& is_object($line)
+				&& is_callable(array($line, 'fetch_optionals'), true)
+				&& $line->fetch_optionals() > 0
+				&& !empty($line->array_options['options_reflinenumber']))
+			{
+				$reflinenumber = $line->array_options['options_reflinenumber'];
+			} else {
+				$reflinenumber = '';
+			}
+			if(!empty($reflinenumber)){
+				$pdfDoc->printStdColumnContent($pdf, $parameters['curY'], 'RefLineNumber', $reflinenumber);
+				$parameters['nexY'] = max($pdf->GetY(),$parameters['nexY']);
+				$returnVal =  1;
+			}
+		}
+		return $returnVal;
+	}
+
 	function formCreateThirdpartyOptions($parameters, &$object, &$action, $hookmanager){
 
 
@@ -225,7 +328,6 @@ class Actionsof
 		global $db;
 
 	}
-
 
 	function addMoreLine($parameters, &$object, &$action, $hookmanager)
 	{
@@ -307,6 +409,148 @@ class Actionsof
 		return _calcQtyOfProductInOf($db, $conf, $product);
 	}
 
+	/*
+		 * Overloading the addMoreActionsButtons function
+		 *
+		 * @param   array()         $parameters     Hook metadatas (context, etc...)
+		 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+		 * @param   string          $action         Current action (if set). Generally create or edit or null
+		 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+		 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+		 */
+	public function addMoreActionsButtons(&$parameters, &$object, &$action, $hookmanager)
+	{
+		global $conf, $langs, $db;
+
+		$TContext = explode(':',$parameters['context']);
+
+		if(in_array('ordercard',$TContext) && !empty($conf->global->OF_DISPLAY_OF_ON_COMMANDLINES))
+		{
+			dol_include_once('/of/lib/of.lib.php');
+
+			$jsonObjectData =array();
+			foreach($object->lines as $i => $line)
+			{
+				$jsonObjectData[$line->id] = new stdClass();
+				$jsonObjectData[$line->id]->id = $line->id;
+				$TOf = getOFForLine($line);
+				$jsonObjectData[$line->id]->TOf = implode('<br>', $TOf);
+			}
+
+			?>
+			<script type="application/javascript">
+				$( document ).ready(function() {
+
+					var jsonObjectData = <?php print json_encode($jsonObjectData) ; ?> ;
+
+					// ADD NEW COLS
+					$("#tablelines tr").each(function( index ) {
+
+						$colSpanBase = 1; // nombre de colonnes ajoutées
+
+						if($( this ).hasClass( "liste_titre" ))
+						{
+							// PARTIE TITRE
+							$('<td align="center" class="linecolof"><?php print $langs->transnoentities('OF'); ?></td>').insertBefore($( this ).find("td.linecoldescription"));
+						}
+						else if($( this ).data( "product_type" ) == "9"){
+							$( this ).find("td[colspan]:first").attr('colspan',    parseInt($( this ).find("td[colspan]:first").attr('colspan')) + 1  );
+						}
+						else
+						{
+							// PARTIE LIGNE
+							var nobottom = '';
+							if($( this ).hasClass( "liste_titre_create" ) || $( this ).attr("data-element") == "extrafield" ){
+								nobottom = ' nobottom ';
+							}
+
+							// New columns
+							$('<td align="center" class="linecolof' + nobottom + '"></td>').insertBefore($( this ).find("td.linecoldescription"));
 
 
+							if($( this ).hasClass( "liste_titre_create" )){
+								$( this ).find("td.linecoledit").attr('colspan',    parseInt($( this ).find("td.linecoledit").attr('colspan')) + $colSpanBase  );
+							}
+
+						}
+					});
+
+					// Affichage des données
+					$.each(jsonObjectData, function(i, item) {
+						$("#row-" + jsonObjectData[i].id + " .linecolof:first").html(jsonObjectData[i].TOf);
+					});
+
+				});
+			</script>
+			<?php
+		}
+		if (!empty($conf->global->OF_USE_REFLINENUMBER)
+			&& (
+				in_array('ordercard', $TContext)
+				|| in_array('invoicecard', $TContext)
+				|| in_array('propalcard', $TContext)
+			)
+		)
+		{
+			dol_include_once('/of/lib/of.lib.php');
+
+			$jsonObjectData =array(
+				'lines' => array_map(
+					function ($l) {
+						return array(
+							'id' => $l->id,
+							'reflinenumber' => $l->array_options['options_reflinenumber'],
+							'isModSubtotalLine' => TSubtotal::isModSubtotalLine($l),
+							'isTitle'           => TSubtotal::isTitle($l),
+							'isSubtotal'        => TSubtotal::isSubtotal($l),
+							'isFreeText'        => TSubtotal::isFreeText($l),
+						);
+					},
+					$object->lines
+				),
+				'trans' => array(
+					'RefLineNumber' => $langs->trans('RefLineNumber')
+				),
+			);
+
+			?>
+			<script type="application/javascript">
+				$(function() {
+					let jsonObjectData = <?php echo json_encode($jsonObjectData) ; ?>;
+
+					// ADD NEW COLS
+					$("#tablelines tr").each(function() {
+						$colSpanBase = 1; // nombre de colonnes ajoutées
+						if($( this ).hasClass("liste_titre")) {
+							// PARTIE TITRE
+							$('<td align="center" class="colreflinenumber">' + jsonObjectData.trans['RefLineNumber'] + '</td>').insertAfter($( this ).find("td.linecoldescription"));
+						} else if($( this ).data("product_type") === 9) {
+							$( this ).find("td[colspan]:first").attr('colspan', parseInt($( this ).find("td[colspan]:first").attr('colspan')) + 1);
+						} else {
+							// PARTIE LIGNE
+							let nobottom = '';
+							if($( this ).hasClass( "liste_titre_create" ) || $( this ).attr("data-element") == "extrafield" ){
+								nobottom = ' nobottom ';
+							}
+
+							// New columns
+							$('<td align="center" class="colreflinenumber' + nobottom + '"></td>').insertAfter($( this ).find("td.linecoldescription"));
+
+							if($( this ).hasClass("liste_titre_create")){
+								$( this ).find("td.linecoledit").attr('colspan', parseInt($( this ).find("td.linecoledit").attr('colspan')) + $colSpanBase);
+							}
+
+						}
+					});
+
+					// Affichage des données
+					$.each(jsonObjectData.lines, function(i, item) {
+						$("#row-" + item.id + " .colreflinenumber:first").html(item.reflinenumber);
+					});
+
+				});
+			</script>
+			<?php
+		}
+	}
 }

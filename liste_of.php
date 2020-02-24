@@ -32,7 +32,7 @@
         switch ($action)
         {
             case 'createOFCommande':
-                set_time_limit(0);
+                @set_time_limit(0);
                 _createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
                 _liste($PDOdb);
                 break;
@@ -237,6 +237,14 @@ function _liste(&$PDOdb)
 
 	}
 
+	// Add fields from hooks
+	$parameters=array(
+		'listname' => 'OrderOFList',
+		'mode' => $mode
+	);
+	$reshook=$hookmanager->executeHooks('printFieldListSelect',$parameters);    // Note that $action and $object may have been modified by hook
+	$sql.=$hookmanager->resPrint;
+
 	if($mode =='supplier_order') {
 		$sql.=" FROM ".MAIN_DB_PREFIX."commande_fournisseur cf
 		  INNER JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target=cf.rowid AND ee.sourcetype='ordre_fabrication' AND targettype='order_supplier' )
@@ -264,10 +272,17 @@ function _liste(&$PDOdb)
             $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'projet_task task ON (task.rowid=eenc.fk_target)';
             $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'projet_task_extrafields taskext ON (task.rowid=taskext.fk_object)';
         }
-
 	}
 
 	$sql.="  WHERE ofe.entity=".$conf->entity;
+
+	// Add where from hooks
+	$parameters=array(
+		'listname' => 'OrderOFList',
+		'mode' => $mode
+	);
+	$reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters);    // Note that $action and $object may have been modified by hook
+	$sql.=$hookmanager->resPrint;
 
     if($mode == 'non_compliant'){
         if(!empty($conf->global->OF_WORKSTATION_NON_COMPLIANT)) $sql .= " AND taskext.fk_workstation IN (".$conf->global->OF_WORKSTATION_NON_COMPLIANT.")";
@@ -366,7 +381,7 @@ function _liste(&$PDOdb)
     else if($mode =='non_compliant') $title = $langs->trans('ListOFAssetNonCompliant');
     else $title = $langs->trans('ListOFAsset');
 
-	$r->liste($PDOdb, $sql, array(
+	$listViewConfig = array(
 		'limit'=>array(
 			'nbLine'=>$conf->liste_limit
 		)
@@ -402,27 +417,27 @@ function _liste(&$PDOdb)
 			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
 		,'title'=>array(
-			'numero'=>$langs->trans('OfNumber')
-			,'fk_commande'=>$langs->trans('CustomerOrder')
-			,'ordre'=>$langs->trans('Rank')
-			,'date_lancement'=>$langs->trans('DateStart')
-			,'date_besoin'=>$langs->trans('DateNeeded')
-			,'status'=>$langs->trans('Status')
-			,'login'=>$langs->trans('UserAssign')
-			,'product'=>$langs->trans('Product')
-			,'client'=>$langs->trans('Customer')
-			,'nb_product_to_make'=>$langs->trans('NumberProductToMake')
+			'numero'=>                   $langs->trans('OfNumber')
+			,'fk_commande'=>             $langs->trans('CustomerOrder')
+			,'ordre'=>                   $langs->trans('Rank')
+			,'date_lancement'=>          $langs->trans('DateStart')
+			,'date_besoin'=>             $langs->trans('DateNeeded')
+			,'status'=>                  $langs->trans('Status')
+			,'login'=>                   $langs->trans('UserAssign')
+			,'product'=>                 $langs->trans('Product')
+			,'client'=>                  $langs->trans('Customer')
+			,'nb_product_to_make'=>      $langs->trans('NumberProductToMake')
 			,'temps_estime_fabrication'=>$langs->trans('EstimatedMakeTimeInHours')
-			,'total_cost'=>$langs->trans('RealCost')
-			,'total_estimated_cost'=>$langs->trans('EstimatedCost')
-			,'printTicket' =>$langs->trans('PrintTicket')
-			,'fk_project'=>$langs->trans('Project')
-			,'supplierOrderId'=>$langs->trans('AssetProductionSupplierOrder')
-			,'date_livraison'=>$langs->trans('DeliveryDate')
-		    ,'date_end'=>$langs->trans('DateEnd')
-            ,'rank' => $langs->trans('Rank')
-		    ,'fk_asset_workstation'=>$langs->trans('Workstations')
-		    ,'order_line_price'=>$langs->trans('OrderLinePrice')
+			,'total_cost'=>              $langs->trans('RealCost')
+			,'total_estimated_cost'=>    $langs->trans('EstimatedCost')
+			,'printTicket' =>            $langs->trans('PrintTicket')
+			,'fk_project'=>              $langs->trans('Project')
+			,'supplierOrderId'=>         $langs->trans('AssetProductionSupplierOrder')
+			,'date_livraison'=>          $langs->trans('DeliveryDate')
+			,'date_end'=>                $langs->trans('DateEnd')
+			,'rank' =>                   $langs->trans('Rank')
+			,'fk_asset_workstation'=>    $langs->trans('Workstations')
+			,'order_line_price'=>        $langs->trans('OrderLinePrice')
 		)
 
 		,'eval'=>array(
@@ -443,7 +458,21 @@ function _liste(&$PDOdb)
 			,'status' => $allExceptClose ? 'IN' : "="
 		)
         ,'search'=>$TSearch
-	));
+	);
+
+	// Change view from hooks
+	$parameters=array(
+		'listViewConfig' => $listViewConfig,
+		'listname' => 'OrderOFList'
+	);
+	$reshook=$hookmanager->executeHooks('listViewConfig',$parameters,$r);    // Note that $action and $object may have been modified by hook
+	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+	if ($reshook>0)
+	{
+		$listViewConfig = $hookmanager->resArray;
+	}
+
+	$r->liste($PDOdb, $sql, $listViewConfig);
 
 	if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
 		echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
@@ -630,12 +659,24 @@ function _liste(&$PDOdb)
 		if(!empty($fk_product))
 		{
             $sql="SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(IF(ofel.qty>0,ofel.qty,ofel.qty_needed) ) as nb_product_needed, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
-            , ofe.status, ofe.fk_user, ofe.total_cost
-              FROM ".MAIN_DB_PREFIX."assetOf as ofe
+            , ofe.status, ofe.fk_user, ofe.total_cost ";
+
+			// Add fields from hooks
+			$parameters=array('listname' => 'OFListProductNeeded');
+			$reshook=$hookmanager->executeHooks('printFieldListSelect',$parameters);    // Note that $action and $object may have been modified by hook
+			$sql.=$hookmanager->resPrint;
+
+			$sql.=" FROM ".MAIN_DB_PREFIX."assetOf as ofe
               LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'NEEDED')
               LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
               LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)
               WHERE ofe.entity=".$conf->entity." AND ofel.fk_product=".$fk_product." AND ofe.status!='CLOSE'";
+
+			// Add where from hooks
+			$parameters=array('listname' => 'OFListProductNeeded');
+			$reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters);    // Note that $action and $object may have been modified by hook
+			$sql.=$hookmanager->resPrint;
+
 
             $sql.=" GROUP BY ofe.rowid ";
 
@@ -651,7 +692,7 @@ function _liste(&$PDOdb)
 
             $l=new TListviewTBS('listeofproductneeded');
             echo $langs->trans('ofListProductNeeded');
-            echo $l->render($PDOdb, $sql, array(
+            $listViewConfig =array(
                 'limit'=>array(
                     'nbLine'=>$conf->liste_limit
                 )
@@ -697,8 +738,21 @@ function _liste(&$PDOdb)
                     ,'product' => 'get_format_libelle_produit(@fk_product@)'
                     ,'client' => 'get_format_libelle_societe(@fk_soc@)'
                 )
-            ));
+            );
 
+			// Change view from hooks
+			$parameters=array(
+				'listViewConfig' => $listViewConfig,
+				'listname' => 'OFListProductNeeded'
+			);
+			$reshook=$hookmanager->executeHooks('listViewConfig',$parameters,$r);    // Note that $action and $object may have been modified by hook
+			if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+			if ($reshook>0)
+			{
+				$listViewConfig = $hookmanager->resArray;
+			}
+
+			echo $l->render($PDOdb, $sql, $listViewConfig);
 		}
 
 		echo '<div class="tabsAction">';

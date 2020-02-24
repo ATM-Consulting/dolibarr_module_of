@@ -8,11 +8,12 @@
 		switch ($type) {
 
 			case 'assetOF':
-				$head= array(array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), 'Fiche','fiche')
-                            , array(dol_buildpath('/of/document.php?id='.$asset->getId(),1), $langs->trans('Documents'),'document'));
+				$head= array(
+				    array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), $langs->trans('Card'),'fiche'),
+                    array(dol_buildpath('/of/document.php?id='.$asset->getId(),1), $langs->trans('Documents'),'document'),
+                );
 
 				break;
-
 		}
 
 		$h = count($head);
@@ -1052,4 +1053,58 @@ function _getIconStatus($TDetailStock, $TLines, $lineid) {
     $icon = '<div class="shippable_status" style="'.$style.'"></div>';
 
     return $icon;
+}
+
+/**
+ * @param OrderLine $line
+ */
+function getOFForLine($line)
+{
+	global $conf, $db;
+
+	$TOF = array();
+
+	$sql = "SELECT DISTINCT ofe.rowid";
+
+	$sql.=" FROM ".MAIN_DB_PREFIX."assetOf as ofe
+			LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
+			LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
+			LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
+
+	if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
+
+	$sql.="  WHERE ofe.entity=".$conf->entity;
+
+	if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+
+			$sql.=" AND ofel.fk_commandedet = ".$line->id." AND ofe.fk_assetOf_parent = 0 ";
+
+	}
+	else $sql.=" AND ofe.fk_commande=".$line->fk_commande." AND ofe.fk_assetOf_parent = 0 AND ofel.fk_product = ".$line->fk_product;
+
+	$sql.=" GROUP BY ofe.rowid ";
+
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		if ($db->num_rows($resql))
+		{
+			$pdo = new TPDOdb;
+			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+
+			while ($obj = $db->fetch_object($resql))
+			{
+				$of = new TAssetOF;
+				$res = $of->load($pdo, $obj->rowid);
+				if ($res)
+				{
+					$TOF[] = $of->getNomUrl();
+				}
+
+			}
+
+		}
+	}
+
+	return $TOF;
 }
