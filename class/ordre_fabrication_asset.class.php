@@ -1844,7 +1844,7 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function createOfAndCommandesFourn(&$PDOdb) {
-		global $db, $user;
+		global $db, $user, $conf;
 
 		dol_include_once("fourn/class/fournisseur.commande.class.php");
 
@@ -1871,7 +1871,8 @@ class TAssetOF extends TObjetStd{
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
 
 						// On récupère la ligne prix fournisseur correspondante
-						$sql = "SELECT rowid, fk_soc, fk_product, price, compose_fourni, quantity, ref_fourn, tva_tx";
+						$sql = "SELECT rowid, fk_soc, fk_product, price, quantity, ref_fourn, tva_tx";
+						if (!empty($conf->assetatm->enabled)) $sql.= ', compose_fourni';
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
 						$sql.= " WHERE rowid = ".$ofLigne->fk_product_fournisseur_price;
 						$resql = $db->query($sql);
@@ -3173,8 +3174,11 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	function loadFournisseurPrice(&$PDOdb) {
-		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity, pfp.compose_fourni,s.nom as 'name'
-		FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
+	    global $conf;
+
+		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity,s.nom as 'name'";
+        if (!empty($conf->assetatm->enabled)) $sql.= ', pfp.compose_fourni';
+		$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
 		WHERE fk_product = ".(int)$this->fk_product;
 
 		$PDOdb->Execute($sql);
