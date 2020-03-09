@@ -1098,7 +1098,7 @@ function getOFForLine($line)
 				$res = $of->load($pdo, $obj->rowid);
 				if ($res)
 				{
-					$TOF[] = $of->getNomUrl();
+					$TOF[] = $of->getNomUrl('', 1);
 				}
 
 			}

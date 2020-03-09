@@ -590,13 +590,23 @@ class TAssetOF extends TObjetStd{
 		return $night;
 	}
 
-	function getNomUrl($picto=0) {
+	function getNomUrl($picto=0, $details = 0) {
 		global $langs;
+
 		$label = $langs->trans('titleOfToolTip', $this->numero);
-		return '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
-				.($picto ? img_picto('','object_list.png','',0).' ' : '')
-				.$this->numero
-				.'</a>';
+
+		$str =  '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
+                .($picto ? img_picto('','object_list.png','',0).' ' : '')
+                .$this->numero
+                .'</a>';
+
+		if(!empty($details)) {
+		    $str .= ' ('.$langs->trans($this->getLibStatus()).')'
+                    .'<br>'
+                    . date('d/m/Y', $this->date_besoin);
+        }
+
+		return $str;
 	}
 
 	/**
