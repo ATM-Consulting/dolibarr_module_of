@@ -557,9 +557,8 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 			,'note_private' => utf8_decode($v->note_private)
+			,'barcode' => ($conf->barcode->enabled) ? getBarCode($code) : ''
 		);
-
-		if ($conf->barcode->enabled) $TWorkstations['barcode'] = getBarCode($code);
 
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
 		{
@@ -613,7 +612,6 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 	if(defined('MAIN_INFO_SOCIETE_LOGO')){
 	    $logo = DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO;
 	}
-
 
 	$file_path = $TBS->render($locationTemplate
 		,array(
