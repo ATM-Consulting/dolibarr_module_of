@@ -13,6 +13,7 @@ ParametersWorkstation = Paramètres Poste de travail
 ParametersWorkflow = Paramètres Workflow
 
 Card = Fiche
+AbricotNeedUpdate = Le module abricot doit être mis à jour
 
 # EQUIPEMENT 
 GPAO = GPAO
