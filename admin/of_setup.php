@@ -165,6 +165,11 @@ $PDOdb = new TPDOdb;
 $formCore=new TFormcore;
 // Setup page goes here
 $form=new Form($db);
+
+if(!function_exists('setup_print_title')){
+	print '<div class="error" >'.$langs->trans('AbricotNeedUpdate').' : <a href="http://wiki.atm-consulting.fr/index.php/Accueil#Abricot" target="_blank"><i class="fa fa-info"></i> Wiki</a></div>';
+}
+
 $var=false;
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -546,6 +551,15 @@ print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_USE_PROJECT_TASK');
 print '</td></tr>';
+
+$attr = array(
+	'type'=>'number',
+	'min' => 0,
+	'max' => 1000,
+	'placeholder' => 60
+);
+setup_print_input_form_part('OF_MAX_EXECUTION_SEARCH_PLANIF', $langs->trans('OF_MAX_EXECUTION_SEARCH_PLANIF'), '', $attr, 'input', $langs->trans('OF_MAX_EXECUTION_SEARCH_PLANIF_HELP'));
+
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';

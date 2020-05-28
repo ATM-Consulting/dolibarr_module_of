@@ -117,6 +117,8 @@ ofQtyLotIsNotEnough = Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement 
 titleOfToolTip = <u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
 OF_COEF_MINI_TU_1 = Coefficient du Mini-TU 1 (exemple pour 9%% : reseigner 0.91)
 AllExceptClosed = Tous sauf terminé
+OF_MAX_EXECUTION_SEARCH_PLANIF = Plafond de recherche de planification pour la tâche à créer (en jours)
+OF_MAX_EXECUTION_SEARCH_PLANIF_HELP = Attention ! Un nombre trop grand de jours peut entrainner des temps de traitement lors de la validations d'OF extrêmement long.
 
 #LOT 
 ListAssetLot = Liste des lots d'équipement

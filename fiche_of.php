@@ -407,10 +407,16 @@ function _action() {
 		default:
 
 			$assetOf=new TAssetOF;
-			if(GETPOST('id')>0) $assetOf->load($PDOdb, GETPOST('id'), false);
-			else if(GETPOST('ref')!='') $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
+			$id = GETPOST('id', 'int');
+			if($id>0) $res = $assetOf->load($PDOdb, GETPOST('id', 'int'), false);
+			else if(GETPOST('ref')!='') $res = $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
 
-			_fiche($PDOdb, $assetOf, 'view');
+			if($res){
+				_fiche($PDOdb, $assetOf, 'view');
+			}
+			else{
+				dol_print_error('', 'OF not loaded');
+			}
 
 			break;
 	}
