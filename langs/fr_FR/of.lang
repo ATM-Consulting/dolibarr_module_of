@@ -119,7 +119,7 @@ titleOfToolTip = <u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
 OF_COEF_MINI_TU_1 = Coefficient du Mini-TU 1 (exemple pour 9%% : reseigner 0.91)
 AllExceptClosed = Tous sauf terminé
 OF_MAX_EXECUTION_SEARCH_PLANIF = Plafond de recherche de planification pour la tâche à créer (en jours)
-OF_MAX_EXECUTION_SEARCH_PLANIF_HELP = Attention ! Un nombre trop grand de jours peut entrainner des temps de traitement lors de la validations d'OF extrêmement long.
+OF_MAX_EXECUTION_SEARCH_PLANIF_HELP = <em>Cette configuration nécessite l'activation de la configuration ci-dessus.</em><br/><br/>Au-delà de ce nombre de jours, si aucun créneau disponible n'est trouvé pour ce poste de travail, la tâche n'est pas créée.<br/><br/><strong>Attention ! </strong>Un nombre trop grand de jours peut entrainner des temps de traitement lors de la validations d'OF extrêmement long.
 
 #LOT 
 ListAssetLot = Liste des lots d'équipement
@@ -161,18 +161,28 @@ AssetEmptyControlMultiple=Aucune valeur à afficher
 AssetCreateControlMultiple=Créer une valeur
 
 #Configuration
+ParamLinkedToOFOthers = Configurations diverses
+OptionForNumberingTemplate = Configuration de la numérotation des Ordres de fabrication
+ParamLinkedToOFChildren = Configuration en lien avec les OF enfants
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
 DefaultWarehouseIdToMake=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits à fabriquer)
 DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
 UseDefinedWarehouse=Permet de définir des entrepôts par défaut pour le stockage/destockage des équipements
 ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt défini sur chaque équipement)
-CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
+CreateAssetChildrenOF = Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
+CreateAssetChildrenOFHelp = Par défaut, si le stock d’un produit nécessaire à la fabrication n’est pas suffisant aucun OF enfant n’est créé. Si cette option est activée, les produits nécessaires à la fabrication dont le stock est insuffisant créeront des OF enfants.
 CreateAssetChildrenOFOnVirtualStock=Déclencher la création d'OF enfant sur stock théorique négatif (si non, le stock réel est pris en compte)
+CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK_HELP = Par défaut, si le stock théorique d’un produit nécessaire à la fabrication n’est pas suffisant aucun OF enfant n’est créé. Si cette option est activée, les produits nécessaires à la fabrication dont le stock théorique est insuffisant créeront des OF enfants.
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
+CreateAssetChildrenOFWithComposantConfirmChangeState = Confirmation
+CreateAssetChildrenOFWithComposantConfirmChangeStateContent = Cette configuration activera également la configuration
+CREATE_CHILDREN_OF_COMPOSANT_HELP = Si l’une des configurations permettant la création d’OFs enfants est activée (ci-dessus), l’activation de cette option permet de ne les créer que pour les sous-produits n’ayant pas de stock physique et qui contiennent eux-mêmes des sous-produits.
 UsetAssetProductionAttributs=Utiliser les champs de production
 CreteAssetOFOnOrderValidation=Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel=Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
 UseBatchNumberInOf=Utiliser la gestion des lots dans OF
+USE_LOT_IN_OF_DESC=Cette option est la même que celle de la configuration du module Equipement, l'activer / désactiver le fait également sur la conf du module équipement...
+USE_LOT_IN_OF_HELP=Cette option ne doit être utilisée que si vous utilisez le module “Equipement (AssetATM)” qui permet d’associer un numéro de lot/série pour la traçabilité de vos produits. <br/><br/>Par défaut, les OF ne gèrent pas cette notion de traçabilité des produits (utilisés ou fabriqués). <br/><br/>Cette option vous permet de gérer cette notion dans OF en indiquant le numéro de lot/série de vos produits nécessaires à la fabrication. <br/>Elle permet également d'associer un numéro de lot/série pour les produits fabriqués. La liste des lots est ensuite disponible dans le manu GPAO >> Equipement >> Liste des lots.
 AllBatchNumberAreMandatory=Lot obligatoire sur tous les éléments de l'OF
 AssetDefinedUserByWorkstation=Permettre l'association d'un ou plusieurs utilisateurs d'être assigné à un poste de travail sur un OF
 AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail sur un OF
@@ -187,7 +197,7 @@ CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", 
 CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement"=> "Liste des Lots"=> "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
 
 AssetOFConfirmChangeStateTitle=Désactiver la création d'OF enfants
-AssetOFConfirmChangeState=Si vous désactivez cette fonctionnalitée, les paramètres liés à la création/suppression des OF seront eux aussi désactivés
+AssetOFConfirmChangeState=La desactivation de cette option, désactive les configurations suivantes :
 AssetMsgSaveTask=Tâche enregistrée
 AssetErrSaveTask=Erreur lors de l'enregistrement
 AssetMsgDeleteTask=Tâche supprimée
@@ -218,6 +228,7 @@ DEFINE_HEIGHT_DIV=Définir la hauteur de chaque étiquette (en mm)
 
 OF_CONCAT_WS_ON_ADD=Concatener les temps des postes de charges
 MinimalViewForChilOF=Vue minimale pour les OFs enfants
+OF_MINIMAL_VIEW_CHILD_OF_HELP = Par défaut, lors de la création d’OF enfants, ceux-ci sont affichés dans leur intégralité sur la même page que l’OF parent. <br/><br/>Si cette option est activée, une liste des OFs enfants apparaîtra en bas de page de l’OF parent. Cette liste proposera des liens cliquables vers les OFs enfants correspondant.
 
 DateLaunch=Date de lancement prévisionnelle
 DateBesoin=Date du besoin
@@ -225,8 +236,8 @@ DateBesoin=Date du besoin
 ofSetup=Configuration 
 QtyUsed=Quantité utilisée
 
-
-
+ActualOFREfConf = Masque de numérotation actuel
+NextOfRef = Prochaine référence
 
 
 OfNumber=Numéro

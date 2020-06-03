@@ -168,78 +168,86 @@ $form=new Form($db);
 
 if(!function_exists('setup_print_title')){
 	print '<div class="error" >'.$langs->trans('AbricotNeedUpdate').' : <a href="http://wiki.atm-consulting.fr/index.php/Accueil#Abricot" target="_blank"><i class="fa fa-info"></i> Wiki</a></div>';
+	exit;
 }
 
-$var=false;
+
+
 print '<table class="noborder" width="100%">';
-print '<tr class="liste_titre">';
-print '<td>'.$langs->trans("Parameters").'</td>'."\n";
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("OF_MASK").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="300" style="white-space:nowrap;">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_OF_MASK">';
-
-print $formCore->texte('', 'OF_MASK', (empty($conf->global->OF_MASK) ? '' : $conf->global->OF_MASK), 20,255,' placeholder="OF{00000}" ');
 
 
+
+// **************************
+// CONFIGURATION NUMEROTATION
+// **************************
+setup_print_title('OptionForNumberingTemplate');
+
+
+// MASQUE DE NUMÉROTATION
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 $assetOf=new TAssetOF();
-echo ' - prochain numéro : '.$assetOf->getNumero($PDOdb,false).' ';
 
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("CreateAssetChildrenOF").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('CREATE_CHILDREN_OF', array('alert' => array('method'=>'fnHideOPCAAdrr' ,'del' => array('content'=>$langs->trans('AssetOFConfirmChangeState'), 'title'=>$langs->trans('AssetOFConfirmChangeStateTitle'))), 'del' => array('CREATE_CHILDREN_OF_COMPOSANT', 'CREATE_OF_ON_ORDER_VALIDATE', 'DELETE_OF_ON_ORDER_CANCEL')));
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("CreateAssetChildrenOFOnVirtualStock").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK');
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("MinimalViewForChilOF").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('OF_MINIMAL_VIEW_CHILD_OF');
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("CreateAssetChildrenOFWithComposant").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('CREATE_CHILDREN_OF_COMPOSANT', array('set' => array('CREATE_CHILDREN_OF' => 1)));
-print '</td></tr>';
-
-if(!empty($conf->{ ATM_ASSET_NAME }->enabled)) {
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("UseBatchNumberInOf").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('USE_LOT_IN_OF');
-	print '</td></tr>';
-
+$actualRefConf = 'OF{00000}';
+if(!empty($conf->global->OF_MASK)){
+	$actualRefConf = $conf->global->OF_MASK;
 }
+$tooltip=$langs->trans("GenericMaskCodes");
+
+$newtNumberOf = $langs->trans('ActualOFREfConf').' '. $actualRefConf . ' ' . $langs->trans('NextOfRef') . ' : '.$assetOf->getNumero($PDOdb,false).' ';
+
+$attr = array(
+	'placeholder' => 'OF{00000}'
+);
+setup_print_input_form_part('OF_MASK', false, $newtNumberOf, $attr, 'input', $tooltip);
+
+
+// *****************************************
+// CONFIGURATION EN LIEN AVEC LES OF ENFANTS
+// *****************************************
+setup_print_title('ParamLinkedToOFChildren');
+
+$ajaxConstantOnOffInput = array(
+	'alert' => array(
+		'method'=>'fnHideOPCAAdrr' ,
+		'del' => array(
+			'content'=>$langs->transnoentities('AssetOFConfirmChangeState')
+				."<ul><li>".$langs->transnoentities('CreateAssetChildrenOFWithComposant')."</li>"
+				."<li>".$langs->transnoentities('CreateAssetChildrenOF')."</li>"
+				."<li>".$langs->transnoentities('DeleteAssetOFOnOrderCancel')."</li></ul>",
+			'title'=>$langs->transnoentities('AssetOFConfirmChangeStateTitle')
+		)
+	),
+	'del' => array(
+		'CREATE_CHILDREN_OF_COMPOSANT',
+		'CREATE_OF_ON_ORDER_VALIDATE',
+		'DELETE_OF_ON_ORDER_CANCEL'
+	)
+);
+
+setup_print_on_off('CREATE_CHILDREN_OF', $langs->trans("CreateAssetChildrenOF"), '', 'CreateAssetChildrenOFHelp', 300, false, $ajaxConstantOnOffInput);
+setup_print_on_off('CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK', $langs->trans("CreateAssetChildrenOFOnVirtualStock"));
+setup_print_on_off('OF_MINIMAL_VIEW_CHILD_OF', $langs->trans("MinimalViewForChilOF"));
+
+$ajaxConstantOnOffInput = array(
+	'alert' => array(
+		'set' => array(
+			'content'=>$langs->transnoentities('CreateAssetChildrenOFWithComposantConfirmChangeStateContent')
+				."<ul><li>".$langs->transnoentities('CreateAssetChildrenOF')."</li></ul>",
+			'title'=>$langs->transnoentities('CreateAssetChildrenOFWithComposantConfirmChangeState')
+		)
+	),
+	'set' => array('CREATE_CHILDREN_OF' => 1)
+);
+setup_print_on_off('CREATE_CHILDREN_OF_COMPOSANT', $langs->trans("CreateAssetChildrenOFWithComposant"), '', 'CREATE_CHILDREN_OF_COMPOSANT_HELP', 300, false, $ajaxConstantOnOffInput);
+
+
+// ********************
+// CONFIGURATION DIVERS
+// ********************
+setup_print_title('ParamLinkedToOFOthers');
+
+
+
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
