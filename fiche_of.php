@@ -408,7 +408,7 @@ function _action() {
 
 			$assetOf=new TAssetOF;
 			$id = GETPOST('id', 'int');
-			if($id>0) $res = $assetOf->load($PDOdb, GETPOST('id', 'int'), false);
+			if($id>0) $res = $assetOf->load($PDOdb, $id, false);
 			else if(GETPOST('ref')!='') $res = $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
 
 			if($res){
@@ -797,6 +797,7 @@ function _get_line_order_extrafields($fk_commandedet) {
 
     if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM)) {
         $TIn = explode(',', $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM);
+		$TIn = array_map('trim', $TIn);
 
         foreach($extrafieldsline->attribute_label as $field=>$data) {
 

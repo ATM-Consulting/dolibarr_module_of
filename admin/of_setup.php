@@ -208,7 +208,6 @@ setup_print_title('ParamLinkedToOFChildren');
 
 $ajaxConstantOnOffInput = array(
 	'alert' => array(
-		'method'=>'fnHideOPCAAdrr' ,
 		'del' => array(
 			'content'=>$langs->transnoentities('AssetOFConfirmChangeState')
 				."<ul><li>".$langs->transnoentities('CreateAssetChildrenOFWithComposant')."</li>"
@@ -239,7 +238,61 @@ $ajaxConstantOnOffInput = array(
 	'set' => array('CREATE_CHILDREN_OF' => 1)
 );
 setup_print_on_off('CREATE_CHILDREN_OF_COMPOSANT', $langs->trans("CreateAssetChildrenOFWithComposant"), '', 'CREATE_CHILDREN_OF_COMPOSANT_HELP', 300, false, $ajaxConstantOnOffInput);
+setup_print_on_off('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS', $langs->trans("AssetChildOfStatusFollowParentStatus"));
 
+
+// ********************
+// CONFIGURATION STOCKS
+// ********************
+setup_print_title('ParamLinkedToOFStocks');
+
+setup_print_on_off('ASSET_ADD_NEEDED_QTY_ZERO', $langs->trans("AssetAddNeededQtyZero"));
+setup_print_on_off('ASSET_NEGATIVE_DESTOCK', $langs->trans("AssetNegativeDestock"));
+setup_print_on_off('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');
+setup_print_on_off('OF_USE_DESTOCKAGE_PARTIEL', $langs->trans("AssetUseDestockagePartiel"));
+
+// Deprecated
+setup_print_on_off('OF_SHOW_QTY_THEORIQUE_MOINS_OF', '<em>'.$langs->trans("OfShowQtytheorique").'</em>');
+
+
+// ********************
+// CONFIGURATION PRINTS
+// ********************
+setup_print_title('ParamLinkedToOFPrints');
+
+setup_print_on_off('OF_PRINT_IN_PDF', false, 'OF_PRINT_IN_PDF_NEED');
+
+$ajaxConstantOnOffInput = array(
+	'alert' => array(
+		'set' => array(
+			'content'=>$langs->transnoentities('ConfirmChangeStateContentOptionActivationImpact')
+				."<br/>+ ".$langs->transnoentities('OF_PRINT_IN_PDF'),
+			'title'=>$langs->transnoentities('AssetConcatPDF')
+		)
+	),
+	'set' => array('OF_PRINT_IN_PDF' => 1)
+);
+setup_print_on_off('ASSET_CONCAT_PDF', $langs->trans("AssetConcatPDF"), '', 'ASSET_CONCAT_PDF_HELP', 300, false, $ajaxConstantOnOffInput);
+
+
+
+
+// ********************
+// CONFIGURATION ORDERS
+// ********************
+setup_print_title('ParamLinkedToOrders');
+
+setup_print_on_off('OF_SHOW_ORDER_LINE_PRICE');
+setup_print_on_off('OF_SHOW_LINE_ORDER_EXTRAFIELD');
+$tooltip=$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM_HELP");
+$attr = array(
+	'size' => '80',
+	'maxlength' => '255'
+);
+setup_print_input_form_part('OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM', false, '', $attr, 'input', $tooltip);
+
+setup_print_on_off('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK');
+setup_print_on_off('OF_HANDLE_ORDER_LINE_DESC');
 
 // ********************
 // CONFIGURATION DIVERS
@@ -249,119 +302,6 @@ setup_print_title('ParamLinkedToOFOthers');
 
 
 
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("AssetAddNeededQtyZero").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('ASSET_ADD_NEEDED_QTY_ZERO');
-print '</td></tr>';
-
-$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("AssetNegativeDestock").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_NEGATIVE_DESTOCK');
-	print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("AssetChildOfStatusFollowParentStatus").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS');
-	print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OF_CHECK_IF_WAREHOUSE_ON_OF_LINE").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');
-    print '</td></tr>';
-
-    $var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OF_PRINT_IN_PDF").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_PRINT_IN_PDF');
-    print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("AssetConcatPDF").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('ASSET_CONCAT_PDF');
-	print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->transnoentitiesnoconv("AssetUseDestockagePartiel").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_USE_DESTOCKAGE_PARTIEL');
-    print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OfShowQtytheorique").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_SHOW_QTY_THEORIQUE_MOINS_OF');
-    print '</td></tr>';
-
-    $var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OF_SHOW_ORDER_LINE_PRICE").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_SHOW_ORDER_LINE_PRICE');
-    print '</td></tr>';
-
-    $var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_SHOW_LINE_ORDER_EXTRAFIELD');
-    print '</td></tr>';
-
-    if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD)) {
-
-
-        $var=!$var;
-        print '<tr '.$bc[$var].'>';
-        print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM").'</td>';
-        print '<td align="center" width="20">&nbsp;</td>';
-        print '<td align="right" width="300" style="white-space:nowrap;">';
-        print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-        print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-        print '<input type="hidden" name="action" value="set_OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM">';
-        print $formCore->texte('', 'OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM', (empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM) ? '' : $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM), 80,255,' placeholder="" ');
-        print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-        print '</form>';
-        print '</td></tr>';
-
-    }
-
-    $var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK").'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK');
-    print '</td></tr>';
-
-    $var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans('OF_HANDLE_ORDER_LINE_DESC').'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_HANDLE_ORDER_LINE_DESC');
-    print '</td></tr>';
 
     $var=!$var;
     print '<tr '.$bc[$var].'>';
