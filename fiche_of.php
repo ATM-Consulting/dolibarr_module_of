@@ -407,10 +407,16 @@ function _action() {
 		default:
 
 			$assetOf=new TAssetOF;
-			if(GETPOST('id')>0) $assetOf->load($PDOdb, GETPOST('id'), false);
-			else if(GETPOST('ref')!='') $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
+			$id = GETPOST('id', 'int');
+			if($id>0) $res = $assetOf->load($PDOdb, $id, false);
+			else if(GETPOST('ref')!='') $res = $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
 
-			_fiche($PDOdb, $assetOf, 'view');
+			if($res){
+				_fiche($PDOdb, $assetOf, 'view');
+			}
+			else{
+				dol_print_error('', 'OF not loaded');
+			}
 
 			break;
 	}
@@ -791,6 +797,7 @@ function _get_line_order_extrafields($fk_commandedet) {
 
     if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM)) {
         $TIn = explode(',', $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM);
+		$TIn = array_map('trim', $TIn);
 
         foreach($extrafieldsline->attribute_label as $field=>$data) {
 
