@@ -72,14 +72,18 @@ NotConcatQtyForNeeded = Dissocier les quantités des produits, nécessaires à l
 AssetUseDestockagePartiel = Utiliser le destockage/stockage partiel.
 OF_USE_DESTOCKAGE_PARTIEL_HELP = <strong>Si option active : </strong><br/>Les produits nécessaires à la fabrication se déstockent lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". <br /><br />Les produits à fabriquer s'ajouteront en stock lorsque la "Quantité produite" est mise à jour sur un OF à l'état "Production en cours". <br /><br /><em>Cette option est intéressante combinée avec la configuration "Ajouter les composants avec une quantité à 0". </em><br/><br/><strong>Par défaut, la gestion des stocks s’effectue de la manière suivante :</strong><br/>- Pour les produits nécessaires à la fabrication, si la quantité utilisée est nulle, ils se déstockent de la quantité nécessaire lors du passage de l’OF au statut “Terminé”, si la quantité utilisée n'est pas nulle, ils se déstockent de cette quantité<br/>- Le stock des produits à créer s’incrémente de la quantité à créer lors du passage de l’OF au statut “Terminé”.Lorsque cette option est activée, la gestion des stocks s’effectue de la manière suivante :<br/>- Les produits nécessaires à la fabrication se déstockent lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours"<br/>- Les produits à fabriquer s'ajouteront en stock lorsque la "Quantité produite" est mise à jour sur un OF à l'état "Production en cours"
 
+ParamLinkedToOFTagsPrints = Configuration en lien avec la gestion des étiquettes
 ofLabelQtyTheoriqueMoinsOf = Stock théorique - quantité OF
 ofResultQty = %s (Qté à produire : %s / Qté utilisée : %s)
 OfShowQtytheorique = Déprécié : Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
 OF_SHOW_QTY_THEORIQUE_MOINS_OF_HELP = Déprécié depuis Dolibarr version 3.8. Permettait l’ajout d’un champ supplémentaire de “Stock théorique OF” prenant en compte les produits à déstocker/créer qui se trouvent dans les OFs en attente de fabrication.
 ofPrintTicket = Impression étiquette
 ofListProductNeeded = <strong>Liste OF ayant besoin du produit</strong>
-set_ABRICOT_WKHTMLTOPDF_CMD = Commande pour la génération PDF des étiquettes (WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/)
+ABRICOT_WKHTMLTOPDF_CMD = Commande pour la génération PDF des étiquettes
+ABRICOT_WKHTMLTOPDF_CMD_DESC = WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/
+ABRICOT_WKHTMLTOPDF_CMD_HELP = Cette option permet de définir un nombre d’étiquette à imprimer par page lors de la génération via le bouton “Impression étiquette” des listes d’OFs. Si aucune valeur n’est renseignée, la valeur par défaut est 0. Si vous renseignez “-1”, la colonne du nombre d’étiquettes et le bouton d'impression ne seront pas affichés.
 OfNbTicketrPerPage = Valeur par défaut d'impression étiquette par page (-1 pour désactiver la fonctionnalité)
+OF_NB_TICKET_PER_PAGE_HELP = Cette option permet de définir un nombre d’étiquette à imprimer par page lors de la génération via le bouton “Impression étiquette” des listes d’OFs.<br/><br/>Si aucune valeur n’est renseignée, la valeur par défaut est 0. Si vous renseignez “-1”, la colonne du nombre d’étiquettes et le bouton d'impression ne seront pas affichés.
 ofError_fk_entrepot_missing = Erreur : une ou plusieurs lignes non pas d'entrepôt affecté sur l'of : %s
 OF_CHECK_IF_WAREHOUSE_ON_OF_LINE = Vérifier qu'un entrepôt est saisie sur chaque ligne de l'OF sur l'action "Valider", si la configuration du changement de statut peuple les OFs enfants alors la vérification se fera aussi sur les enfants
 OF_CHECK_IF_WAREHOUSE_ON_OF_LINE_HELP = Cette option ne s’applique que lorsque la configuration “Permet de définir manuellement les entrepôts à utiliser pour le stockage/déstockage des équipements sur chaque OF” est activée. Une fois activée, vous ne pourrez pas valider un OF si un des produits (nécessaires ou à créer) n’a pas d’entrepôt défini sur sa ligne dans l’OF. Cette vérification s’applique également aux OFs enfants si l’option de suivi des statuts est activée.
@@ -230,6 +234,7 @@ products=produit(s)
 
 # Etiquettes
 CHOOSE_CUSTOM_LABEL=Choisir un type d'étiquettes personalisable
+DEFAULT_ETIQUETTES_HELP = Permet de définir le template utilisé pour la génération des étiquettes. Les modèles selectionnable sont ceux situés dans le répertoire “htdocs/custom/of/exempleTemplate”. Si vous choisissez le modèle “etiquette_custom.html”, des options supplémentaires de configuration des étiquettes s’offrent à vous pour ajuster les marges, les largeurs, les hauteurs, etc.
 DEFINE_MARGIN_TOP=Définir la marge du haut de page (en px)
 DEFINE_MARGIN_LEFT=Définir la marge de gauche de la colonne de gauche (en px)
 DEFINE_WIDTH_DIV=Définir la largeur de chaque étiquette (en pourcents) 
@@ -355,11 +360,11 @@ OF_SHOW_WS_IN_LIST=Afficher les postes de charge dans la liste des OFs
 Workstations=Postes de charge
 
 
-OF_SHOW_LINE_ORDER_EXTRAFIELD = Afficher les extrafields de la ligne de commande pour les produits à créer dans les OFs
-OF_SHOW_LINE_ORDER_EXTRAFIELD_HELP = Cette option vous permet de voir apparaître les extrafields renseignés sur les lignes de produit d’une commande client sous le libellé du produit à créer dans l’OF issu de cette commande client. Vous devez donc avoir créé un OF depuis une commande client et que les lignes de cette commande possèdent des extrafields.
-OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les extrafields à ces clefs
-OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM_HELP = Si la fonctionnalité précédente est activée, vous avez accès à cette option supplémentaire qui vous permet de n’afficher que les extrafields correspondant aux clés souhaitées. Ces clés sont défini lors de la création des attributs supplémentaires dans la configuration du module “Commande client”. Vous pouvez séparer ces extrafields par des virgules sans espaces.
-OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les extrafields de la commande dans les tâches liées si existant
+OF_SHOW_LINE_ORDER_EXTRAFIELD = Afficher les "champs complémentaires" de la ligne de commande pour les produits à créer dans les OFs
+OF_SHOW_LINE_ORDER_EXTRAFIELD_HELP = Cette option vous permet de voir apparaître les "champs complémentaires" renseignés sur les lignes de produit d’une commande client sous le libellé du produit à créer dans l’OF issu de cette commande client. Vous devez donc avoir créé un OF depuis une commande client et que les lignes de cette commande possèdent des "champs complémentaires".
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les "champs complémentaires" à ces clefs
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM_HELP = Si la fonctionnalité précédente est activée, vous avez accès à cette option supplémentaire qui vous permet de n’afficher que les "champs complémentaires" correspondant aux clés souhaitées. Ces clés sont défini lors de la création des attributs supplémentaires dans la configuration du module “Commande client”. Vous pouvez séparer ces "champs complémentaires" par des virgules sans espaces.
+OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les "champs complémentaires" de la commande dans les tâches liées si existant
 
 EndDate=Date de fin	
 OF_MASK=Masque de numérotation des OFs
@@ -383,7 +388,9 @@ OF_MANAGE_NON_COMPLIANT=Gestion des non-conformes
 Compliant = Quantité conforme
 NonCompliant = Quantité non conforme
 
+ParamLinkedToOFGPAO = Configuration en lien avec la gestion de production
 OF_RANK_PRIOR_BY_LAUNCHING_DATE=Priorisation des OFs en fonction de la date de lancement
+OF_RANK_PRIOR_BY_LAUNCHING_DATE_HELP = Par défaut, dans la liste des OFs, les OFs sont triés par date de création. Si cette option est activée, les OFs seront triés par date de lancement (fiche OF) qui correspond à la date de début (liste des OFs).<br/><br/>Cette fonctionnalité ajoute un bouton “Mettre à jour les rangs de priorisation” ainsi qu’une colonne “Rang” sur la liste des OFs et sur les fiches OF.
 MissingLaunchingDateForRank=Date de lancement manquante pour gérer les rangs
 CumulateProjectTask=Cumuler le temps des tâches si c'est le même poste de travail (dépend de la configuration "%s")
 OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des non-conformes
