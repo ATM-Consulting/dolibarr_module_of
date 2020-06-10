@@ -1,3 +1,4 @@
+<!-- START fiche_of.tpl -->
 <style type="text/css">
 	/* Nécessaire pour cacher les informations qui ne doivent pas être accessibles à la 1ere étape de création d'un OF :: C'est très sale */
 	[onshow;block=begin;when [assetOf.id]==0]
@@ -920,3 +921,4 @@
 			});
 		}
 </script>
+<!-- END fiche_of.tpl -->
