@@ -275,6 +275,40 @@ $ajaxConstantOnOffInput = array(
 setup_print_on_off('ASSET_CONCAT_PDF', $langs->trans("AssetConcatPDF"), '', 'ASSET_CONCAT_PDF_HELP', 300, false, $ajaxConstantOnOffInput);
 
 
+// ************************
+// CONFIGURATION TAG PRINTS
+// ************************
+setup_print_title('ParamLinkedToOFTagsPrints');
+
+$input = $formCore->number("", "OF_NB_TICKET_PER_PAGE",$conf->global->OF_NB_TICKET_PER_PAGE,10,1,-1);
+setup_print_input_form_part('OF_NB_TICKET_PER_PAGE', $langs->trans("OfNbTicketrPerPage"), '', array(), $input, 'OF_NB_TICKET_PER_PAGE_HELP');
+
+$tooltip=$langs->trans("DEFAULT_ETIQUETTES_HELP");
+$liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
+$input = $form->selectarray('DEFAULT_ETIQUETTES', $liste, $conf->global->DEFAULT_ETIQUETTES);
+setup_print_input_form_part('DEFAULT_ETIQUETTES', $langs->trans('CHOOSE_CUSTOM_LABEL'), '', array(), $input, $tooltip);
+
+print '<tbody class="default-etiquette-sub-conf" data-target="2" style="display: '.($conf->global->DEFAULT_ETIQUETTES!=2?'none':'').'" >';
+if($conf->global->DEFAULT_ETIQUETTES == 2){
+
+	$attrNumb = array('maxlength' => '10', 'type' => 'number', 'step' => '1', 'min' => 0);
+	$attrPercent = array('maxlength' => '10', 'type' => 'number', 'step' => '0.01', 'min' => 0, 'max' => 100);
+
+	setup_print_input_form_part('DEFINE_MARGIN_TOP', false, '', $attrNumb);
+	setup_print_input_form_part('DEFINE_MARGIN_TOP_CELL', false, '', $attrNumb);
+	setup_print_input_form_part('DEFINE_MARGIN_LEFT', false, '', $attrNumb);
+	setup_print_input_form_part('DEFINE_MARGIN_RIGHT', false, '', $attrNumb);
+	setup_print_input_form_part('DEFINE_WIDTH_DIV', false, '', $attrPercent);
+	setup_print_input_form_part('DEFINE_HEIGHT_DIV', false, '', $attrNumb);
+}
+print '</tbody>';
+?><script>(function() {
+		$( "#DEFAULT_ETIQUETTES" ).change(function() {
+			$('.default-etiquette-sub-conf').hide();
+			$('.default-etiquette-sub-conf[data-target="' + $(this).val() + '"]').show();
+		});
+	})();
+</script><?php
 
 
 // ********************
@@ -294,6 +328,25 @@ setup_print_input_form_part('OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM', false, ''
 setup_print_on_off('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK');
 setup_print_on_off('OF_HANDLE_ORDER_LINE_DESC');
 
+
+// ******************
+// CONFIGURATION GPAO
+// ******************
+setup_print_title('ParamLinkedToOFGPAO');
+
+setup_print_on_off('OF_RANK_PRIOR_BY_LAUNCHING_DATE');
+setup_print_on_off('OF_MANAGE_NON_COMPLIANT');
+
+if(!empty($conf->workstation->enabled)){
+	$input = $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT),0, 0, '', 0, 300);
+	setup_print_input_form_part('OF_WORKSTATION_NON_COMPLIANT', false, '', array(), $input);
+}
+
+$tooltip=$langs->trans("ABRICOT_WKHTMLTOPDF_CMD_HELP");
+$input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
+setup_print_input_form_part('ABRICOT_WKHTMLTOPDF_CMD', false, 'ABRICOT_WKHTMLTOPDF_CMD_DESC', array(), $input, $tooltip);
+
+
 // ********************
 // CONFIGURATION DIVERS
 // ********************
@@ -303,153 +356,7 @@ setup_print_title('ParamLinkedToOFOthers');
 
 
 
-    $var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans('OF_RANK_PRIOR_BY_LAUNCHING_DATE').'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_RANK_PRIOR_BY_LAUNCHING_DATE');
-    print '</td></tr>';
 
-	$var=!$var;
-    print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans('OF_MANAGE_NON_COMPLIANT').'</td>';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print ajax_constantonoff('OF_MANAGE_NON_COMPLIANT');
-    print '</td></tr>';
-
-    if(!empty($conf->workstation->enabled)) {
-
-        $var = !$var;
-        print '<tr ' . $bc[$var] . '>';
-        print '<td>' . $langs->trans('OF_WORKSTATION_NON_COMPLIANT') . '</td>';
-        print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-        print '<td align="center" width="20">&nbsp;</td>';
-        print '<td align="center" width="300">';
-        print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-        print '<input type="hidden" name="action" value="set_OF_WORKSTATION_NON_COMPLIANT">';
-        print $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT),0, 0, '', 0, 300);
-        print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-        print '</form>';
-        print '</td></tr>';
-    }
-   $var=!$var;
-	print '<tr '.$bc[$var].'>';
-    print '<td>'.$langs->trans("OfNbTicketrPerPage").'</td>';
-    print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-    print '<td align="center" width="20">&nbsp;</td>';
-    print '<td align="center" width="300">';
-    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-    print '<input type="hidden" name="action" value="set_OF_NB_TICKET_PER_PAGE">';
-    print $formCore->number("", "OF_NB_TICKET_PER_PAGE",$conf->global->OF_NB_TICKET_PER_PAGE,10,1,-1);
-    print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-    print '</form>';
-    print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("set_ABRICOT_WKHTMLTOPDF_CMD").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="right" width="300" style="white-space:nowrap;">';
-	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-	print '<input type="hidden" name="action" value="set_ABRICOT_WKHTMLTOPDF_CMD">';
-	print $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
-	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-	print '</form>';
-	print '</td></tr>';
-
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("CHOOSE_CUSTOM_LABEL").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="right" width="300">';
-	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-	print '<input type="hidden" name="action" value="set_DEFAULT_ETIQUETTES">';
-	$liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
-	print $form->selectarray('DEFAULT_ETIQUETTES', $liste, $conf->global->DEFAULT_ETIQUETTES);
-	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-	print '</form>';
-	print '</td></tr>';
-
-
-	if($conf->global->DEFAULT_ETIQUETTES == 2){
-
-			print '<tr '.$bc[$var].'>';
-			print '<td>'.$langs->trans("DEFINE_MARGIN_TOP").'</td>';
-			print '<td align="center" width="20">&nbsp;</td>';
-			print '<td align="right" width="300">';
-			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_TOP">';
-			print $formCore->texte('', 'DEFINE_MARGIN_TOP', $conf->global->DEFINE_MARGIN_TOP, 10, 10);
-			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-			print '</form>';
-			print '</td></tr>';
-
-			print '<tr '.$bc[$var].'>';
-			print '<td>'.$langs->trans("DEFINE_MARGIN_TOP_CELL").'</td>';
-			print '<td align="center" width="20">&nbsp;</td>';
-			print '<td align="right" width="300">';
-			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_TOP_CELL">';
-			print $formCore->texte('', 'DEFINE_MARGIN_TOP_CELL', $conf->global->DEFINE_MARGIN_TOP_CELL, 10, 10);
-			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-			print '</form>';
-			print '</td></tr>';
-
-			print '<tr '.$bc[$var].'>';
-			print '<td>'.$langs->trans("DEFINE_MARGIN_LEFT").'</td>';
-			print '<td align="center" width="20">&nbsp;</td>';
-			print '<td align="right" width="300">';
-			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_LEFT">';
-			print $formCore->texte('', 'DEFINE_MARGIN_LEFT', $conf->global->DEFINE_MARGIN_LEFT, 10, 10);
-			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-			print '</form>';
-			print '</td></tr>';
-
-			print '<tr '.$bc[$var].'>';
-			print '<td>'.$langs->trans("DEFINE_MARGIN_RIGHT").'</td>';
-			print '<td align="center" width="20">&nbsp;</td>';
-			print '<td align="right" width="300">';
-			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			print '<input type="hidden" name="action" value="set_DEFINE_MARGIN_RIGHT">';
-			print $formCore->texte('', 'DEFINE_MARGIN_RIGHT', $conf->global->DEFINE_MARGIN_RIGHT, 10, 10);
-			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-			print '</form>';
-			print '</td></tr>';
-
-			print '<tr '.$bc[$var].'>';
-			print '<td>'.$langs->trans("DEFINE_WIDTH_DIV").'</td>';
-			print '<td align="center" width="20">&nbsp;</td>';
-			print '<td align="right" width="300">';
-			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			print '<input type="hidden" name="action" value="set_DEFINE_WIDTH_DIV">';
-			print $formCore->texte('', 'DEFINE_WIDTH_DIV', $conf->global->DEFINE_WIDTH_DIV, 10, 10);
-			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-			print '</form>';
-			print '</td></tr>';
-
-			print '<tr '.$bc[$var].'>';
-			print '<td>'.$langs->trans("DEFINE_HEIGHT_DIV").'</td>';
-			print '<td align="center" width="20">&nbsp;</td>';
-			print '<td align="right" width="300">';
-			print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			print '<input type="hidden" name="action" value="set_DEFINE_HEIGHT_DIV">';
-			print $formCore->texte('', 'DEFINE_HEIGHT_DIV', $conf->global->DEFINE_HEIGHT_DIV, 10, 10);
-			print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-			print '</form>';
-			print '</td></tr>';
-
-	}
 
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("OF_COEF_MINI_TU_1").'</td>';
