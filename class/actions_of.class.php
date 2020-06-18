@@ -401,6 +401,7 @@ class Actionsof
 
             <?php
         }
+		return 0;
     }
 
 	private function _calcQtyOfProductInOf(&$db, &$conf, &$product)
