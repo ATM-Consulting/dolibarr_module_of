@@ -407,10 +407,16 @@ function _action() {
 		default:
 
 			$assetOf=new TAssetOF;
-			if(GETPOST('id')>0) $assetOf->load($PDOdb, GETPOST('id'), false);
-			else if(GETPOST('ref')!='') $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
+			$id = GETPOST('id', 'int');
+			if($id>0) $res = $assetOf->load($PDOdb, $id, false);
+			else if(GETPOST('ref')!='') $res = $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
 
-			_fiche($PDOdb, $assetOf, 'view');
+			if($res){
+				_fiche($PDOdb, $assetOf, 'view');
+			}
+			else{
+				dol_print_error('', 'OF not loaded');
+			}
 
 			break;
 	}
@@ -791,6 +797,7 @@ function _get_line_order_extrafields($fk_commandedet) {
 
     if(!empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM)) {
         $TIn = explode(',', $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM);
+		$TIn = array_map('trim', $TIn);
 
         foreach($extrafieldsline->attribute_label as $field=>$data) {
 
@@ -999,7 +1006,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'TO_MAKE')
 			        ,'nomenclature'=>$nomenclature
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
-				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
+				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,10,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
 				,'qty_non_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_non_compliant]', $TAssetOFLine->qty_non_compliant,  5,5,'','') : $TAssetOFLine->qty_non_compliant)
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')

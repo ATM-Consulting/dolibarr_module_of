@@ -1,143 +1,160 @@
 # Dolibarr language file - fr_FR
-CHARSET=UTF-8
+CHARSET = UTF-8
 
-Module104161Name=OF
-Module104161Desc=Gestion des ordres de fabrication (GPAO)
-CreateAssetLot=Créer un lot d'équipements
-CreateAsset=Créer un équipement
-AssetSetup=Configuration du module Equipement
-LotDisabled=L'option pour utiliser des lots dans OF est désactiver
-ficheOF=Fiche
-OFActions=Actions
-ParametersWorkstation=Paramètres Poste de travail
-ParametersWorkflow=Paramètres Workflow
+Module104161Name = OF (Ordre de fabrication)
+Module104161Desc = Gestion des ordres de fabrication (GPAO)
+CreateAssetLot = Créer un lot d'équipements
+CreateAsset = Créer un équipement
+AssetSetup = Configuration du module Equipement
+LotDisabled = L'option pour utiliser des lots dans OF est désactiver
+ficheOF = Fiche
+OFActions = Actions
+ParametersWorkstation = Paramètres Poste de travail
+ParametersWorkflow = Paramètres Workflow
 
-Card=Fiche
+Card = Fiche
+AbricotNeedUpdate = Le module abricot doit être mis à jour
 
-# EQUIPEMENT
-GPAO=GPAO
-Asset=Equipement
-ListAsset=Liste des équipements
-ListAssetLent=Liste des équipements prêtés
-AssetDeleted=Equipement supprimé
-AssetType=Type d'Equipement
-AssetListType=Liste des types d'équipements
-AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher
-AssetListFields=Champs des équipements
-AssetAddType=Ajouter un type d'équipement
-AssetCreateType=Création type d'équipement
-AssetToComplete=A completer
-AssetLotsList=Liste des Lots
-AssetLoaned=Prêté
-AssetDescDLUO=Date Limite d'Utilisation Optimale
-ImpossibleToCreateAsset=Impossible de créer l'équipement
-AssetDefaultDLUO=Decalage en jours de la date limite d'utilisation optimale
-Asset_show_DLUO=Afficher la Date Limite d'Utilisation Optimale
-NoAsset=Il n'y a aucun Équipement
-Asset_DefaultCompose_fourni=Valeur par defaut de "Composé fourni" (Prix d'achat fournisseur)
+# EQUIPEMENT 
+GPAO = GPAO
+Asset = Equipement
+ListAsset = Liste des équipements
+ListAssetLent = Liste des équipements prêtés
+AssetDeleted = Equipement supprimé
+AssetType = Type d'Equipement
+AssetListType = Liste des types d'équipements
+AssetTypeMsgNothing = Il n'y a aucun type d'équipement à afficher
+AssetListFields = Champs des équipements
+AssetAddType = Ajouter un type d'équipement
+AssetCreateType = Création type d'équipement
+AssetToComplete = A completer
+AssetLotsList = Liste des Lots
+AssetLoaned = Prêté
+AssetDescDLUO = Date Limite d'Utilisation Optimale
+ImpossibleToCreateAsset = Impossible de créer l'équipement
+AssetDefaultDLUO = Decalage en jours de la date limite d'utilisation optimale
+Asset_show_DLUO = Afficher la Date Limite d'Utilisation Optimale
+NoAsset = Il n'y a aucun Équipement
+Asset_DefaultCompose_fourni = Valeur par defaut de "Composé fourni" (Prix d'achat fournisseur)
 
 # ORDRE DE FABRICATION
-OFAsset=Ordre de fabrication
-OFAssetCreated=Ordre(s) de fabrication créé(s) avec succès
-CreateOFAsset=Créer un Ordre de Fabrication
-ListOFAsset=Liste des ordres de fabrication
-ListOFAssetNonCompliant=Liste des ordres de fabrication non conformes
-OFAssetDeleted=Ordre de fabrication %s supprimé
-createOFFile=Générer document papier
-WorkStation=Poste de travail
-workstation=poste de travail
-ListOrderProducts=Liste des produits de la commande
-AssetProductionOrder=Ordre de Fabrication
-AssetProductionOrderDraft=Brouillon
-AssetProductionOrderVALID=Validé
-AssetProductionOrderNEEDOFFER=Attente prix
-AssetProductionOrderONORDER=Attente fourniture
-AssetProductionOrderOPEN=En cours
-AssetProductionOrderCLOSE=Terminé
-AssetProductionOrderNONCOMPLIANT=Non conforme
-AssetNewProductionOrder=Nouvel ordre de Fabrication
-OFAttachedClosedAutomatically=Ordre de fabrication %s clôturé automatiquement
-AssetAddNeededQtyZero=Ajouter les composants avec une quantité à 0
-AssetNegativeDestock=Permettre le déstockage des équipements dans l'OF même si la quantité est insuffisante
-AssetChildOfStatusFollowParentStatus=Lors d'un changement de status de l'OF parent, peupler ce dernier sur le statut des OF's enfants si non supérieur
-AssetConcatPDF=Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
-NotConcatQtyForNeeded=Dissocier les quantités des produits, nécessaires à la fabrication, pour une même référence
-AssetUseDestockagePartiel=Utiliser le destockage/stockage partiel. <br />&nbsp;&nbsp;- Les produits nécessaires à la fabrication ce déstocke lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". <br />&nbsp;&nbsp;- Les produits à fabriqué s'ajouterons en stock lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". 
-ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
-ofResultQty=%s (Qté à produire : %s / Qté utilisée : %s)
-OfShowQtytheorique=Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
-ofPrintTicket=Impression étiquette
-ofListProductNeeded=<strong>Liste OF ayant besoin du produit</strong>
-set_ABRICOT_WKHTMLTOPDF_CMD=Commande pour la génération PDF des étiquettes (WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/)
-OfNbTicketrPerPage=Valeur par défaut d'impression étiquette par page (-1 pour désactiver la fonctionnalité)
-ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté sur l'of : %s
-OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Vérifier qu'un entrepôt est saisie sur chaque ligne de l'OF sur l'action "Valider", si la configuration du changement de status peuple les OFs enfants alors la vérification ce fera aussi sur les enfants 
-OFUnit=Unité
-OFUnits=Unités
-OFSupplierLineName=Fournisseur "%s"
-OFSupplierLineMinQty=%d pièce(s) min
-OFSupplierLineComp=Fabrication interne
-OFSupplierLineStockRemoval=Sortie de stock
-OFSupplierLineSupOrder=Commande fournisseur
-OFValidate=Valider
-OFNomenclatureShort=Nomen.
-OFNomenclature=Nomenclature
-NomenclatureToSelect=Nomenclature à sélectionner
-Link=Lier
-DeleteLink=Suppresion du lien
-ValidateManufacturingOrder=Valider cet Ordre de Fabrication ?
-StartManufacturingOrder=Lancer cet Ordre de Fabrication ?
-FinishManufacturingOrder=Terminer cet Ordre de Fabrication ?
-ProductionInProgress=Production en cours
-Finish=Terminer
-Warehouse=Entrepôt
-NoWorkstation=Aucun poste de travail défini
-AddWorkstation=Ajouter un poste
-QuantityUsed=Quantité utilisée
-DeleteOF=Supprimer cet Ordre de Fabrication?
-AddingProduct=Ajout de Produit
-AddingWorkstation=Ajout d'un poste de travail
-OFChild=OF Enfants
-withouttitle=(sans titre)
-ModificationSaved=Modifications enregistrées
-ErrorOccurred=Une erreur s'est produite
-BtCancel=Annuler
-BtAdd=Ajouter
-OFMustBeDraftAndEditMode=Votre OF doit être au statut brouillon et devez être en modification pour mettre à jour les valeurs des produits nécessaires.
-QtyUpdated=Mise à jour des quantités enregistrées
-OneOFCreated=Un OF a été créé
-SeveralOFCreated=Des OF ont été créés
-OFIsNotDraftStatus=Cet OF n'est plus au statut brouillon
-OFSerialNumber=[%s] Numéro : %s, contenance actuelle : %s
-OFWaiting=En attente
-OFInProgress=En cours
-OFFinish=Terminée
-ofAllQtyIsNotEnough=[%s] - Quantité d'équipements insuffisante, veuillez vérifier vos produits nécessaires à la fabrication
-ofQtyLotIsNotEnough=Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement insuffisante pour la conception du ou des produits à créer
-titleOfToolTip=<u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
-OF_COEF_MINI_TU_1=Coefficient du Mini-TU 1 (exemple pour 9%% : reseigner 0.91)
-AllExceptClosed=Tous sauf terminé
+ConfirmChangeStateContentOptionActivationImpact = L'activation ce cette configuration va activer aussi la/les configurations suivantes :
+OFAsset = Ordre de fabrication
+OFAssetCreated = Ordre(s) de fabrication créé(s) avec succès
+CreateOFAsset = Créer un Ordre de Fabrication
+ListOFAsset = Liste des ordres de fabrication
+ListOFAssetNonCompliant = Liste des ordres de fabrication non conformes
+OFAssetDeleted = Ordre de fabrication %s supprimé
+createOFFile = Générer document papier
+WorkStation = Poste de travail
+workstation = poste de travail
+ListOrderProducts = Liste des produits de la commande
+AssetProductionOrder = Ordre de Fabrication
+AssetProductionOrderDraft = Brouillon
+AssetProductionOrderVALID = Validé
+AssetProductionOrderNEEDOFFER = Attente prix
+AssetProductionOrderONORDER = Attente fourniture
+AssetProductionOrderOPEN = En cours
+AssetProductionOrderCLOSE = Terminé
+AssetProductionOrderNONCOMPLIANT = Non conforme
+AssetNewProductionOrder = Nouvel ordre de Fabrication
+OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
+AssetAddNeededQtyZero = Ajouter les composants avec une quantité à 0
+ASSET_ADD_NEEDED_QTY_ZERO_HELP = Par défaut, lors de la création d’un OF, les quantités planifiées et utilisées des produits nécessaires à la fabrication sont pré-remplies par les quantités nécessaires. Si cette option est activée, les quantités planifiées et utilisées sont pré-remplies à 0. Cela est utile lors de l’utilisation du déstockage/stockage partiel.
+AssetNegativeDestock = Permettre le déstockage des équipements dans l'OF même si la quantité est insuffisante
+ASSET_NEGATIVE_DESTOCK_HELP = Cette option ne doit être utilisée que si vous utilisez le module “Equipement (AssetATM)” qui permet d’associer un numéro de lot/série pour la traçabilité de vos produits. Par défaut, les OF ne permettent pas de sélectionner un équipement qui n’a pas de stock comme produit nécessaire à la fabrication. Si cette option est activée, cela devient possible.
+AssetChildOfStatusFollowParentStatus = Les statuts des OFs enfants suivent le statut de l'OF parent.
+ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS_HELP = par défaut, lors d’un changement de statut d’un OF, ce statut n’est pas appliqué aux OFs enfants. Si cette option est activée, le statut de l’OF parent est appliqué aux OFs enfants. Cela n’est valable que pour les statuts descendants du “Brouillon” vers “Terminé” et non lors du retour en arrière sur les statuts.
+AssetConcatPDF = Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
+ASSET_CONCAT_PDF_HELP = Cette fonctionnalité ne s’applique que lorsque la configuration “Imprimer en PDF (nécessite la présence de libreoffice sur le serveur)” est activée. Une fois activée, lorsqu’un OF possède des OFs enfants, cette option permet sur un OF de télécharger tous les OFs (parents + enfants) en un seul fichier PDF. Cela n'est valable que pour l'impression en PDF.
+AssetConcatPDFConfirmChangeStateContent
+NotConcatQtyForNeeded = Dissocier les quantités des produits, nécessaires à la fabrication, pour une même référence
+AssetUseDestockagePartiel = Utiliser le destockage/stockage partiel.
+OF_USE_DESTOCKAGE_PARTIEL_HELP = <strong>Si option active : </strong><br/>Les produits nécessaires à la fabrication se déstockent lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". <br /><br />Les produits à fabriquer s'ajouteront en stock lorsque la "Quantité produite" est mise à jour sur un OF à l'état "Production en cours". <br /><br /><em>Cette option est intéressante combinée avec la configuration "Ajouter les composants avec une quantité à 0". </em><br/><br/><strong>Par défaut, la gestion des stocks s’effectue de la manière suivante :</strong><br/>- Pour les produits nécessaires à la fabrication, si la quantité utilisée est nulle, ils se déstockent de la quantité nécessaire lors du passage de l’OF au statut “Terminé”, si la quantité utilisée n'est pas nulle, ils se déstockent de cette quantité<br/>- Le stock des produits à créer s’incrémente de la quantité à créer lors du passage de l’OF au statut “Terminé”.Lorsque cette option est activée, la gestion des stocks s’effectue de la manière suivante :<br/>- Les produits nécessaires à la fabrication se déstockent lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours"<br/>- Les produits à fabriquer s'ajouteront en stock lorsque la "Quantité produite" est mise à jour sur un OF à l'état "Production en cours"
 
-#LOT
-ListAssetLot=Liste des lots d'équipement
-AssetLotDeleted=Lot supprimé
-AssetInLot=Equipements du lot
-OFAssetLotEmpty=Aucun lot saisie pour le produit : %s (%s)
-OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
+ParamLinkedToOFTagsPrints = Configuration en lien avec la gestion des étiquettes
+ofLabelQtyTheoriqueMoinsOf = Stock théorique - quantité OF
+ofResultQty = %s (Qté à produire : %s / Qté utilisée : %s)
+OfShowQtytheorique = Déprécié : Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
+OF_SHOW_QTY_THEORIQUE_MOINS_OF_HELP = Déprécié depuis Dolibarr version 3.8. Permettait l’ajout d’un champ supplémentaire de “Stock théorique OF” prenant en compte les produits à déstocker/créer qui se trouvent dans les OFs en attente de fabrication.
+ofPrintTicket = Impression étiquette
+ofListProductNeeded = <strong>Liste OF ayant besoin du produit</strong>
+ABRICOT_WKHTMLTOPDF_CMD = Commande pour la génération PDF des étiquettes
+ABRICOT_WKHTMLTOPDF_CMD_DESC = WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/
+ABRICOT_WKHTMLTOPDF_CMD_HELP = Cette option permet de définir un nombre d’étiquette à imprimer par page lors de la génération via le bouton “Impression étiquette” des listes d’OFs. Si aucune valeur n’est renseignée, la valeur par défaut est 0. Si vous renseignez “-1”, la colonne du nombre d’étiquettes et le bouton d'impression ne seront pas affichés.
+OfNbTicketrPerPage = Valeur par défaut d'impression étiquette par page (-1 pour désactiver la fonctionnalité)
+OF_NB_TICKET_PER_PAGE_HELP = Cette option permet de définir un nombre d’étiquette à imprimer par page lors de la génération via le bouton “Impression étiquette” des listes d’OFs.<br/><br/>Si aucune valeur n’est renseignée, la valeur par défaut est 0. Si vous renseignez “-1”, la colonne du nombre d’étiquettes et le bouton d'impression ne seront pas affichés.
+ofError_fk_entrepot_missing = Erreur : une ou plusieurs lignes non pas d'entrepôt affecté sur l'of : %s
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE = Vérifier qu'un entrepôt est saisie sur chaque ligne de l'OF sur l'action "Valider", si la configuration du changement de statut peuple les OFs enfants alors la vérification se fera aussi sur les enfants
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE_HELP = Cette option ne s’applique que lorsque la configuration “Permet de définir manuellement les entrepôts à utiliser pour le stockage/déstockage des équipements sur chaque OF” est activée. Une fois activée, vous ne pourrez pas valider un OF si un des produits (nécessaires ou à créer) n’a pas d’entrepôt défini sur sa ligne dans l’OF. Cette vérification s’applique également aux OFs enfants si l’option de suivi des statuts est activée.
+OFUnit = Unité
+OFUnits = Unités
+OFSupplierLineName = Fournisseur "%s"
+OFSupplierLineMinQty = %d pièce(s) min
+OFSupplierLineComp = Fabrication interne
+OFSupplierLineStockRemoval = Sortie de stock
+OFSupplierLineSupOrder = Commande fournisseur
+OFValidate = Valider
+OFNomenclatureShort = Nomen
+OFNomenclature = Nomenclature
+NomenclatureToSelect = Nomenclature à sélectionner
+Link = Lier
+DeleteLink = Suppresion du lien
+ValidateManufacturingOrder = Valider cet Ordre de Fabrication ?
+StartManufacturingOrder = Lancer cet Ordre de Fabrication ?
+FinishManufacturingOrder = Terminer cet Ordre de Fabrication ?
+ProductionInProgress = Production en cours
+Finish = Terminer
+Warehouse = Entrepôt
+NoWorkstation = Aucun poste de travail défini
+AddWorkstation = Ajouter un poste
+QuantityUsed = Quantité utilisée
+DeleteOF = Supprimer cet Ordre de Fabrication?
+AddingProduct = Ajout de Produit
+AddingWorkstation = Ajout d'un poste de travail
+OFChild = OF Enfants
+withouttitle = (sans titre)
+ModificationSaved = Modifications enregistrées
+ErrorOccurred = Une erreur s'est produite
+BtCancel = Annuler
+BtAdd = Ajouter
+OFMustBeDraftAndEditMode = Votre OF doit être au statut brouillon et devez être en modification pour mettre à jour les valeurs des produits nécessaires.
+QtyUpdated = Mise à jour des quantités enregistrées
+OneOFCreated = Un OF a été créé
+SeveralOFCreated = Des OF ont été créés
+OFIsNotDraftStatus = Cet OF n'est plus au statut brouillon
+OFSerialNumber = [%s] Numéro : %s, contenance actuelle : %s
+OFWaiting = En attente
+OFInProgress = En cours
+OFFinish = Terminée
+ofAllQtyIsNotEnough = [%s] - Quantité d'équipements insuffisante, veuillez vérifier vos produits nécessaires à la fabrication
+ofQtyLotIsNotEnough = Lot [%s] - <a href="#%s">%s</a> : quantité d'équipement insuffisante pour la conception du ou des produits à créer
+titleOfToolTip = <u>Afficher ordre de fabrication</u><br /><b>Réf.:</b> %s
+OF_COEF_MINI_TU_1 = Coefficient du Mini-TU 1 (exemple pour 9%% : reseigner 0.91)
+AllExceptClosed = Tous sauf terminé
+OF_MAX_EXECUTION_SEARCH_PLANIF = Plafond de recherche de planification pour la tâche à créer (en jours)
+OF_MAX_EXECUTION_SEARCH_PLANIF_HELP = <em>Cette configuration nécessite l'activation de la configuration ci-dessus.</em><br/><br/>Au-delà de ce nombre de jours, si aucun créneau disponible n'est trouvé pour ce poste de travail, la tâche n'est pas créée.<br/><br/><strong>Attention ! </strong>Un nombre trop grand de jours peut entrainer des temps de traitement lors de la validations d'OF extrêmement long.
+
+#LOT 
+ListAssetLot = Liste des lots d'équipement
+AssetLotDeleted = Lot supprimé
+AssetInLot = Equipements du lot
+OFAssetLotEmpty = Aucun lot saisie pour le produit : %s (%s)
+OFAssetCmdFournNotFinish = Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
 
 
-# POSTE DE TRAVAIL
-AssetWorkstation=Poste de travail
-AssetNewWorkstation=Nouveau poste de travail
-AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
-set_OF_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste depuis une nomenclature produit
-AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
+# POSTE DE TRAVAIL 
+AssetWorkstation = Poste de travail
+AssetNewWorkstation = Nouveau poste de travail
+AssetAuthorizeAddWorkstationTime0OnOF = Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
+set_OF_COEF_WS = Coefficient multiplicateur de temps lors de l'ajout d'un poste depuis une nomenclature produit
+AssetCreateProjectTaskOnValidation = Créer les tâches projets dès la validation et non pas qu'au lancement en production
 
-# TYPES D'EQUIPEMENT
-AssetType=Types d'équipement
-AssetNewType=Nouveau type d'équipement
-AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
-AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
+# TYPES D'EQUIPEMENT 
+AssetType = Types d'équipement
+AssetNewType = Nouveau type d'équipement
+AssetDescCumulate = La notion de cumulable agit sur la sortie de stock des équipements.
+AssetDescPerishable = Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
 
 #Contrôle
 AssetControl=Contrôle
@@ -158,18 +175,29 @@ AssetEmptyControlMultiple=Aucune valeur à afficher
 AssetCreateControlMultiple=Créer une valeur
 
 #Configuration
+ParamLinkedToOFOthers = Configurations diverses
+ParamLinkedToOFStocks = Configuration en lien avec la gestion du stock
+OptionForNumberingTemplate = Configuration de la numérotation des Ordres de fabrication
+ParamLinkedToOFChildren = Configuration en lien avec les OF enfants
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
 DefaultWarehouseIdToMake=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits à fabriquer)
 DefaultWarehouseIdNeeded=Entrepôt par défaut de gestion du stock pour Ordre de Fabrication et Equipement (produits nécessaires)
 UseDefinedWarehouse=Permet de définir des entrepôts par défaut pour le stockage/destockage des équipements
 ParametersWarehouse=Entrepôts (si aucune option n'est utilisée, le comportement du stockage/destockage prendra l'entrepôt défini sur chaque équipement)
-CreateAssetChildrenOF=Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
+CreateAssetChildrenOF = Autoriser la création des OF enfants pour les produits hors stock nécessaires à la fabrication
+CreateAssetChildrenOFHelp = Par défaut, si le stock d’un produit nécessaire à la fabrication n’est pas suffisant aucun OF enfant n’est créé. Si cette option est activée, les produits nécessaires à la fabrication dont le stock est insuffisant créeront des OF enfants.
 CreateAssetChildrenOFOnVirtualStock=Déclencher la création d'OF enfant sur stock théorique négatif (si non, le stock réel est pris en compte)
+CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK_HELP = Par défaut, si le stock théorique d’un produit nécessaire à la fabrication n’est pas suffisant aucun OF enfant n’est créé. Si cette option est activée, les produits nécessaires à la fabrication dont le stock théorique est insuffisant créeront des OF enfants.
 CreateAssetChildrenOFWithComposant=Restreindre la création des OF enfants aux produits à fabriquer ayant des composants et pas de stock
+CreateAssetChildrenOFWithComposantConfirmChangeState = Confirmation
+CreateAssetChildrenOFWithComposantConfirmChangeStateContent = Cette configuration activera également la configuration
+CREATE_CHILDREN_OF_COMPOSANT_HELP = Si l’une des configurations permettant la création d’OFs enfants est activée (ci-dessus), l’activation de cette option permet de ne les créer que pour les sous-produits n’ayant pas de stock physique et qui contiennent eux-mêmes des sous-produits.
 UsetAssetProductionAttributs=Utiliser les champs de production
 CreteAssetOFOnOrderValidation=Créer automatiquement les Ordre de Fabrication lors de la validation d'une commande
 DeleteAssetOFOnOrderCancel=Supprimer automatiquement les Ordres de Fabrication lors de l'annulation d'une commande
 UseBatchNumberInOf=Utiliser la gestion des lots dans OF
+USE_LOT_IN_OF_DESC=Cette option est la même que celle de la configuration du module Equipement, l'activer / désactiver le fait également sur la conf du module équipement...
+USE_LOT_IN_OF_HELP=Cette option ne doit être utilisée que si vous utilisez le module “Equipement (AssetATM)” qui permet d’associer un numéro de lot/série pour la traçabilité de vos produits. <br/><br/>Par défaut, les OF ne gèrent pas cette notion de traçabilité des produits (utilisés ou fabriqués). <br/><br/>Cette option vous permet de gérer cette notion dans OF en indiquant le numéro de lot/série de vos produits nécessaires à la fabrication. <br/>Elle permet également d'associer un numéro de lot/série pour les produits fabriqués. La liste des lots est ensuite disponible dans le manu GPAO >> Equipement >> Liste des lots.
 AllBatchNumberAreMandatory=Lot obligatoire sur tous les éléments de l'OF
 AssetDefinedUserByWorkstation=Permettre l'association d'un ou plusieurs utilisateurs d'être assigné à un poste de travail sur un OF
 AssetUseWorkstationByNeededInOF=Permettre la ventilation des produits de composition par poste de travail sur un OF
@@ -184,7 +212,7 @@ CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", 
 CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement"=> "Liste des Lots"=> "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
 
 AssetOFConfirmChangeStateTitle=Désactiver la création d'OF enfants
-AssetOFConfirmChangeState=Si vous désactivez cette fonctionnalitée, les paramètres liés à la création/suppression des OF seront eux aussi désactivés
+AssetOFConfirmChangeState=La desactivation de cette option, désactive les configurations suivantes :
 AssetMsgSaveTask=Tâche enregistrée
 AssetErrSaveTask=Erreur lors de l'enregistrement
 AssetMsgDeleteTask=Tâche supprimée
@@ -206,6 +234,7 @@ products=produit(s)
 
 # Etiquettes
 CHOOSE_CUSTOM_LABEL=Choisir un type d'étiquettes personalisable
+DEFAULT_ETIQUETTES_HELP = Permet de définir le template utilisé pour la génération des étiquettes. Les modèles selectionnable sont ceux situés dans le répertoire “htdocs/custom/of/exempleTemplate”. Si vous choisissez le modèle “etiquette_custom.html”, des options supplémentaires de configuration des étiquettes s’offrent à vous pour ajuster les marges, les largeurs, les hauteurs, etc.
 DEFINE_MARGIN_TOP=Définir la marge du haut de page (en px)
 DEFINE_MARGIN_LEFT=Définir la marge de gauche de la colonne de gauche (en px)
 DEFINE_WIDTH_DIV=Définir la largeur de chaque étiquette (en pourcents) 
@@ -215,6 +244,7 @@ DEFINE_HEIGHT_DIV=Définir la hauteur de chaque étiquette (en mm)
 
 OF_CONCAT_WS_ON_ADD=Concatener les temps des postes de charges
 MinimalViewForChilOF=Vue minimale pour les OFs enfants
+OF_MINIMAL_VIEW_CHILD_OF_HELP = Par défaut, lors de la création d’OF enfants, ceux-ci sont affichés dans leur intégralité sur la même page que l’OF parent. <br/><br/>Si cette option est activée, une liste des OFs enfants apparaîtra en bas de page de l’OF parent. Cette liste proposera des liens cliquables vers les OFs enfants correspondant.
 
 DateLaunch=Date de lancement prévisionnelle
 DateBesoin=Date du besoin
@@ -222,8 +252,8 @@ DateBesoin=Date du besoin
 ofSetup=Configuration 
 QtyUsed=Quantité utilisée
 
-
-
+ActualOFREfConf = Masque de numérotation actuel
+NextOfRef = Prochaine référence
 
 
 OfNumber=Numéro
@@ -313,8 +343,11 @@ UseByOF=Utilisation via Ordre de Fabrication %s
 CreateByOF=Création via Ordre de Fabrication %s
 DeletedByOF=Suppression via Ordre de Fabrication %s
 
+ParamLinkedToOFPrints = Configuration en lien avec la gestion des impressions
 OF_USE_APPRO_DELAY_FOR_TASK_DELAY=Utiliser le délai d'approvisionnement du produit lié au poste pour délayer la tâche
-OF_PRINT_IN_PDF=Imprimer en PDF (nécessite la présence de libreoffice sur le serveur)
+OF_PRINT_IN_PDF = Imprimer les OFs en PDF
+OF_PRINT_IN_PDF_NEED = Nécessite la présence de LibreOffice sur le serveur
+OF_PRINT_IN_PDF_HELP = Par défaut, un bouton “Imprimer” sur les OF permet de les télécharger en format ODT. Si cette option est activée et que LibreOffice est installé sur votre serveur, ce bouton vous permet de les télécharger en PDF.
 SearchIntoOf=Ordres de fabrication
 
 listOFAmountsHistory=Historique des montants d'encours de production
@@ -327,13 +360,17 @@ OF_SHOW_WS_IN_LIST=Afficher les postes de charge dans la liste des OFs
 Workstations=Postes de charge
 
 
-OF_SHOW_LINE_ORDER_EXTRAFIELD=Afficher les extrafields de la ligne de commande
-OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les extrafields à ces clefs
-OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les extrafields de la commande dans les tâches liées si existant
+OF_SHOW_LINE_ORDER_EXTRAFIELD = Afficher les "champs complémentaires" de la ligne de commande pour les produits à créer dans les OFs
+OF_SHOW_LINE_ORDER_EXTRAFIELD_HELP = Cette option vous permet de voir apparaître les "champs complémentaires" renseignés sur les lignes de produit d’une commande client sous le libellé du produit à créer dans l’OF issu de cette commande client. Vous devez donc avoir créé un OF depuis une commande client et que les lignes de cette commande possèdent des "champs complémentaires".
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Limiter les "champs complémentaires" à ces clefs
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM_HELP = Si la fonctionnalité précédente est activée, vous avez accès à cette option supplémentaire qui vous permet de n’afficher que les "champs complémentaires" correspondant aux clés souhaitées. Ces clés sont défini lors de la création des attributs supplémentaires dans la configuration du module “Commande client”. Vous pouvez séparer ces "champs complémentaires" par des virgules sans espaces.
+OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Copier les "champs complémentaires" de la commande dans les tâches liées si existant
 
 EndDate=Date de fin	
 OF_MASK=Masque de numérotation des OFs
-OF_SHOW_ORDER_LINE_PRICE=Afficher une colonne contenant le prix de la ligne de commande utilisée pour créer l'OF
+ParamLinkedToOrders = Configuration en lien avec les devis / commandes
+OF_SHOW_ORDER_LINE_PRICE = Afficher une colonne contenant le prix de la ligne de commande utilisée pour créer l'OF
+OF_SHOW_ORDER_LINE_PRICE_HELP = Cette option permet d’ajouter une colonne intitulée “Prix de la ligne” dans les listes des OFs (menu GPAO ou onglet OF d'une commande client).
 OrderLinePrice=Prix de la ligne
 CannotLoadThisOrderAreYouInTheGoodEntity=Impossible de charger la commande. Etes-vous sur la bonne entité de travail ?
 ErrorOFFromAnotherEntity=OF créé dans une autre entité
@@ -351,7 +388,9 @@ OF_MANAGE_NON_COMPLIANT=Gestion des non-conformes
 Compliant = Quantité conforme
 NonCompliant = Quantité non conforme
 
+ParamLinkedToOFGPAO = Configuration en lien avec la gestion de production
 OF_RANK_PRIOR_BY_LAUNCHING_DATE=Priorisation des OFs en fonction de la date de lancement
+OF_RANK_PRIOR_BY_LAUNCHING_DATE_HELP = Par défaut, dans la liste des OFs, les OFs sont triés par date de création. Si cette option est activée, les OFs seront triés par date de lancement (fiche OF) qui correspond à la date de début (liste des OFs).<br/><br/>Cette fonctionnalité ajoute un bouton “Mettre à jour les rangs de priorisation” ainsi qu’une colonne “Rang” sur la liste des OFs et sur les fiches OF.
 MissingLaunchingDateForRank=Date de lancement manquante pour gérer les rangs
 CumulateProjectTask=Cumuler le temps des tâches si c'est le même poste de travail (dépend de la configuration "%s")
 OF_WORKSTATION_NON_COMPLIANT= Postes de travail utilisés pour la gestion des non-conformes
@@ -384,3 +423,4 @@ OF_DISPLAY_OF_ON_COMMANDLINES=Afficher les of liés sur les lignes de commandes 
 OF_USE_REFLINENUMBER=Utiliser les numéros de lignes de référence
 OF_USE_REFLINENUMBER_help=Ils permettent de lier, à titre indicatif, une ligne de commande, devis ou facture à un élément externe numéroté, par exemple une ligne de tableur.
 RefLineNumber=Ligne de référence
+OF_product_in_of=Produit présent dans un ou plusieurs OF

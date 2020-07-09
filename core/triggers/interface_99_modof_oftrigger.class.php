@@ -113,7 +113,19 @@ class Interfaceoftrigger
      */
     public function run_trigger($action, $object, $user, $langs, $conf)
     {
-    	if($action === 'RELATED_ADD_LINK' && $object->type_related_object == 'ordre_fabrication') {
+        if ($action === 'PRODUCT_DELETE')
+        {
+            if (!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', 1);
+            dol_include_once('/of/config.php');
+            dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+            $TOfId = TAssetOF::productInOf($this->db, $object->id);
+            if (!empty($TOfId))
+            {
+                $this->error = 'OF_product_in_of';
+                return -1;
+            }
+        }
+    	elseif($action === 'RELATED_ADD_LINK' && $object->type_related_object == 'ordre_fabrication') {
 
     		global $conf;
 

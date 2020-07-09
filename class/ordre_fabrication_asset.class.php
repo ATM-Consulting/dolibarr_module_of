@@ -102,6 +102,35 @@ class TAssetOF extends TObjetStd{
 		$this->entity = $conf->entity;
 	}
 
+    /**
+     * @param DoliDB $db        Object db connector
+     * @param int $fk_product   id product to test
+     * @return array
+     */
+	public static function productInOf($db, $fk_product)
+    {
+        $TOfId = array();
+        $sql = 'SELECT DISTINCT o.rowid FROM '.MAIN_DB_PREFIX.'assetOf o';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'assetOf_line ol ON (o.rowid = ol.fk_assetOf)';
+        $sql.= ' WHERE ol.fk_product = '.intval($fk_product);
+
+        $resql = $db->query($sql);
+        if ($resql)
+        {
+            while ($obj = $db->fetch_object($resql))
+            {
+                $TOfId[$obj->rowid] = $obj->rowid;
+            }
+        }
+        else
+        {
+            dol_print_error($db);
+        }
+
+        return $TOfId;
+    }
+
+
 	function set_current_cost_for_to_make($compo_planned_cost= false) {
 
 		$this->set_temps_fabrication(true);
@@ -152,7 +181,7 @@ class TAssetOF extends TObjetStd{
 	function loadByProductCategory(&$db, $categ, $fk_soc, $status) {
 
 		//On récupère l'of ayant des produits ayant pour catégorie la même catégorie et étant brouillon
-        $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of 
+        $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of
                 LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofline ON (of.rowid = ofline.fk_assetOf AND ofline.type='TO_MAKE')
                 LEFT JOIN ".MAIN_DB_PREFIX."categorie_product cat ON (ofline.fk_product = cat.fk_product)
                 WHERE cat.fk_categorie = $categ->id
@@ -563,11 +592,20 @@ class TAssetOF extends TObjetStd{
 
 	function getNomUrl($picto=0) {
 		global $langs;
-		$label = $langs->trans('titleOfToolTip', $this->numero);
-		return '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
-				.($picto ? img_picto('','object_list.png','',0).' ' : '')
-				.$this->numero
-				.'</a>';
+
+		$label = $langs->trans('titleOfToolTip', $this->numero)
+            .'<br>'
+            .$langs->trans($this->getLibStatus())
+            .'<br>';
+
+		if(!empty($this->date_besoin)) $label .= date('d/m/Y', $this->date_besoin);
+
+		$str =  '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
+                .($picto ? img_picto('','object_list.png','',0).' ' : '')
+                .$this->numero
+                .'</a>';
+
+		return $str;
 	}
 
 	/**
@@ -1262,7 +1300,7 @@ class TAssetOF extends TObjetStd{
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
 			else $stock =$product->stock_reel;
 		}
-		
+
 		// MAIN_MAX_DECIMALS_STOCK
 		return price2num($stock, 'MS');
 	}
@@ -1815,7 +1853,7 @@ class TAssetOF extends TObjetStd{
 	}
 
 	function createOfAndCommandesFourn(&$PDOdb) {
-		global $db, $user;
+		global $db, $user, $conf;
 
 		dol_include_once("fourn/class/fournisseur.commande.class.php");
 
@@ -1842,7 +1880,8 @@ class TAssetOF extends TObjetStd{
 					if($ofLigne->fk_product_fournisseur_price > 0) { // Fournisseur externe
 
 						// On récupère la ligne prix fournisseur correspondante
-						$sql = "SELECT rowid, fk_soc, fk_product, price, compose_fourni, quantity, ref_fourn, tva_tx";
+						$sql = "SELECT rowid, fk_soc, fk_product, price, quantity, ref_fourn, tva_tx";
+						if (!empty($conf->assetatm->enabled)) $sql.= ', compose_fourni';
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price";
 						$sql.= " WHERE rowid = ".$ofLigne->fk_product_fournisseur_price;
 						$resql = $db->query($sql);
@@ -2493,7 +2532,7 @@ class TAssetOFLine extends TObjetStd{
 
             }
             else{
-				
+
 				$nb_asset = count($TAsset); $i=0;
                 foreach($TAsset as $asset)
                 {
@@ -2501,7 +2540,7 @@ class TAssetOFLine extends TObjetStd{
 					if($mouvement == 'destockage')  {
 						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
 							$qty_asset_to_stock=$asset->contenancereel_value;
-							
+
 							if($i+1 == $nb_asset) {
 								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
 							}
@@ -2515,7 +2554,7 @@ class TAssetOFLine extends TObjetStd{
 						}
 					}
 					else {
-						
+
 						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
 							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
 							if($i+1 == $nb_asset) {
@@ -2525,9 +2564,9 @@ class TAssetOFLine extends TObjetStd{
 						else {
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
-						
-					}	
-					
+
+					}
+
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
 					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
@@ -2536,11 +2575,11 @@ class TAssetOFLine extends TObjetStd{
 							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
 					$qty_to_stock_rest-= $qty_asset_to_stock;
-					
+
 					$i++;
 
 					if($qty_to_stock_rest<=0)break;
-					
+
 
                 }
 
@@ -2557,9 +2596,9 @@ class TAssetOFLine extends TObjetStd{
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
-		
+
 		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
-		
+
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
@@ -2895,7 +2934,7 @@ class TAssetOFLine extends TObjetStd{
 			{
 				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
 			}
-			
+
             $contenance_max = $assetType->contenance_value;
             $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
@@ -3144,8 +3183,11 @@ class TAssetOFLine extends TObjetStd{
 	}
 
 	function loadFournisseurPrice(&$PDOdb) {
-		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity, pfp.compose_fourni,s.nom as 'name'
-		FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
+	    global $conf;
+
+		$sql = "SELECT  pfp.rowid,  pfp.fk_soc,  pfp.price,  pfp.quantity,s.nom as 'name'";
+        if (!empty($conf->assetatm->enabled)) $sql.= ', pfp.compose_fourni';
+		$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price pfp LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (pfp.fk_soc=s.rowid)
 		WHERE fk_product = ".(int)$this->fk_product;
 
 		$PDOdb->Execute($sql);
@@ -3650,7 +3692,11 @@ class TAssetWorkstationOF extends TObjetStd{
                 else $date_current_search = strtotime('+1 day', $date_current_search);
 
                 $i++;
-                if (!empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) break; // sécurité, permet de plafonner la planification sur x jours
+                if (!empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF){
+					break; // sécurité, permet de plafonner la planification sur x jours
+				}elseif (empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > 60){
+					break; // sécurité, si pas de configuration plafone sur 60 jours
+				}
             }
 
             // TODO voir si on met pas 23:59:59 (quand la demi journée sera gérée, pour le moment je met par défaut à 12:00:00)
