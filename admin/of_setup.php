@@ -289,6 +289,10 @@ $liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
 $input = $form->selectarray('DEFAULT_ETIQUETTES', $liste, $conf->global->DEFAULT_ETIQUETTES);
 setup_print_input_form_part('DEFAULT_ETIQUETTES', $langs->trans('CHOOSE_CUSTOM_LABEL'), '', array(), $input, $tooltip);
 
+$input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
+setup_print_input_form_part('ABRICOT_WKHTMLTOPDF_CMD', false, 'ABRICOT_WKHTMLTOPDF_CMD_DESC', array(), $input);
+
+
 print '<tbody class="default-etiquette-sub-conf" data-target="2" style="display: '.($conf->global->DEFAULT_ETIQUETTES!=2?'none':'').'" >';
 if($conf->global->DEFAULT_ETIQUETTES == 2){
 
@@ -343,9 +347,6 @@ if(!empty($conf->workstation->enabled)){
 	setup_print_input_form_part('OF_WORKSTATION_NON_COMPLIANT', false, '', array(), $input);
 }
 
-$tooltip=$langs->trans("ABRICOT_WKHTMLTOPDF_CMD_HELP");
-$input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
-setup_print_input_form_part('ABRICOT_WKHTMLTOPDF_CMD', false, 'ABRICOT_WKHTMLTOPDF_CMD_DESC', array(), $input, $tooltip);
 
 
 // ********************
