@@ -62,8 +62,6 @@ class ofbox extends ModeleBoxes
 
         $this->max = $max;
 
-        //include_once DOL_DOCUMENT_ROOT . "/of/class/of.class.php";
-
         $text = $langs->trans("MyBoxDescription", $max);
         $this->info_box_head = array(
             'text' => $text,
