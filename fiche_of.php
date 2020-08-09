@@ -827,6 +827,10 @@ function _fiche_ligne(&$form, &$of, $type){
 			$product->fetch_optionals();
         }
 
+        // Si pas d'entrepôt encore selectionné, on préselectionne l'entrepôt par défaut du produit
+        if(empty($TAssetOFLine->fk_entrepot) && !empty($product->fk_default_warehouse)) {
+        	$TAssetOFLine->fk_entrepot = $product->fk_default_warehouse;
+        }
 
 		$conditionnement = $TAssetOFLine->conditionnement;
 
