@@ -836,6 +836,7 @@
 				if ($('#assetChildContener div.OFMaster').length <= 0) $('#assetChildContener').css('display', 'none');
 
 				$("#"+idLine).remove();
+				refreshTab($('.OFContent').attr('rel'), 'edit');
 			});
 		}
 
