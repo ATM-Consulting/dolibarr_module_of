@@ -12,16 +12,21 @@
 	<body>
 		<div id="body">
 			<div id="[TInfoEtiquette.float]" class="pagebreak" >
-				<p style="font-size:12px;line-height: 1"><b><span style="font-size: 15px">[langs.transnoentitiesnoconv(NumCMD)] : [TInfoEtiquette.refCliCmd;block=div;strconv=no]</span></b></p>
-				<p style="font-size:12px;line-height: 1"><b>[langs.transnoentitiesnoconv(Ref)] : [TInfoEtiquette.refProd;block=div;strconv=no]</b></p>
-				<p style="font-size:12px;line-height: 1"><b>[langs.transnoentitiesnoconv(Desc)] : [TInfoEtiquette.label;block=div;strconv=no]</b></p>
-				<p style="font-size:12px;line-height: 1"><b>[langs.transnoentitiesnoconv(Quantity)] : [TInfoEtiquette.qty_to_make;block=div;strconv=no]</b></p>
+                <p><b><span class="bigger">[langs.transnoentitiesnoconv(NumCMD)] : [TInfoEtiquette.refCliCmd;block=div;strconv=no]</span></b></p>
+				<p><b>[langs.transnoentitiesnoconv(Ref)] : [TInfoEtiquette.refProd;block=div;strconv=no]</b></p>
+				<p><b>[langs.transnoentitiesnoconv(Desc)] : [TInfoEtiquette.label;block=div;strconv=no]</b></p>
+				<p><b>[langs.transnoentitiesnoconv(Quantity)] : [TInfoEtiquette.qty_to_make;block=div;strconv=no]</b></p>
 				[onshow; block=begin; when [display_note]=='1']
 				<p style="font-size:12px;line-height: 1"><b>[TInfoEtiquette.note_private; strconv=no]</b></p>
 				[onshow; block=end]
 			</div>
 		</div>
 		<style type="text/css">
+            p .bigger{ font-size: 16px; }
+            p{
+                font-size: 14px;
+                line-height: 1;
+            }
 			#body{
 				position:relative;
 				top: [margin_top]px;
