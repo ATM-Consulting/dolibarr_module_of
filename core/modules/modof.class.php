@@ -211,7 +211,7 @@ class modof extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
 
@@ -226,7 +226,7 @@ class modof extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Générer les documents';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
 
 		$r++;
