@@ -563,9 +563,8 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			,'nb_hour_preparation' => utf8_decode($v->nb_hour_prepare)
 			,'nb_heures_prevues' => utf8_decode($v->nb_hour)
 			,'note_private' => utf8_decode($v->note_private)
+			,'barcode' => ($conf->barcode->enabled) ? getBarCode($code) : ''
 		);
-
-		if ($conf->barcode->enabled) $TWorkstations['barcode'] = getBarCode($code);
 
 		if (!empty($conf->global->ASSET_DEFINED_USER_BY_WORKSTATION))
 		{
@@ -619,7 +618,6 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 	if(defined('MAIN_INFO_SOCIETE_LOGO')){
 	    $logo = DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO;
 	}
-
 
 	$file_path = $TBS->render($locationTemplate
 		,array(
@@ -836,6 +834,10 @@ function _fiche_ligne(&$form, &$of, $type){
 			$product->fetch_optionals();
         }
 
+        // Si pas d'entrepôt encore selectionné, on préselectionne l'entrepôt par défaut du produit
+        if(!empty($conf->global->ASSET_MANUAL_WAREHOUSE) && empty($TAssetOFLine->fk_entrepot) && !empty($product->fk_default_warehouse)) {
+        	$TAssetOFLine->fk_entrepot = $product->fk_default_warehouse;
+        }
 
 		$conditionnement = $TAssetOFLine->conditionnement;
 
@@ -1362,7 +1364,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
 				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
 
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client=1',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client IN (1,3)',1) : (($client->id) ? $client->getNomUrl(1) : '')
 				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
 
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)

@@ -837,6 +837,7 @@
 				if ($('#assetChildContener div.OFMaster').length <= 0) $('#assetChildContener').css('display', 'none');
 
 				$("#"+idLine).remove();
+				refreshTab($('.OFContent').attr('rel'), 'edit');
 			});
 		}
 
@@ -859,8 +860,9 @@
 				if ($(btnadd).attr('statut') == 'DRAFT') {
 					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
 
+
 					$.ajax({
-						url: "script/interface.php?get=updateQtyMaking&id=[assetOf.id]&idLine="+idLine+"&qty="+qty+"&type=json"
+						url: "script/interface.php?get=updateQtyMaking&id="+id_assetOf+"&idLine="+idLine+"&qty="+qty+"&type=json"
 						,dataType: 'json'
 					}).done(function(result){
 
