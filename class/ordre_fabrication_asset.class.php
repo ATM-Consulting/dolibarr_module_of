@@ -374,7 +374,15 @@ class TAssetOF extends TObjetStd{
 
         // TODO faire la gestion des erreurs
         /** @var TAssetWorkstationOf $workstationOf */
-        $TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+
+		if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT))
+		{
+			$TAssetWorkstationOFReverse = $this->TAssetWorkstationOF;
+		}
+		else{
+			$TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+		}
+
         foreach ($TAssetWorkstationOFReverse as $workstationOf)
         {
             if (!isset($workstationOf->projectTask) && !empty($workstationOf->fk_project_task))

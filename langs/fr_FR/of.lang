@@ -39,7 +39,7 @@ NoAsset = Il n'y a aucun Équipement
 Asset_DefaultCompose_fourni = Valeur par defaut de "Composé fourni" (Prix d'achat fournisseur)
 
 # ORDRE DE FABRICATION
-ConfirmChangeStateContentOptionActivationImpact = L'activation ce cette configuration va activer aussi la/les configurations suivantes :
+ConfirmChangeStateContentOptionActivationImpact = L'activation ce cette configuration va forcer l'activation de la/les configuration(s) suivante(s):
 OFAsset = Ordre de fabrication
 OFAssetCreated = Ordre(s) de fabrication créé(s) avec succès
 CreateOFAsset = Créer un Ordre de Fabrication
@@ -212,7 +212,7 @@ CreateAssetFromProductErrorBadMask = Si la valeur par défaut est "ErrorBadMask"
 CreateAssetFromProductNumLot = Ce champ correspond au numéro de lot créé dans le menu "Equipement"=> "Liste des Lots"=> "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
 
 AssetOFConfirmChangeStateTitle = Désactiver la création d'OF enfants
-AssetOFConfirmChangeState = La desactivation de cette option, désactive les configurations suivantes :
+AssetOFConfirmChangeState = La desactivation de cette option force la désactivation des configurations suivantes :
 AssetMsgSaveTask = Tâche enregistrée
 AssetErrSaveTask = Erreur lors de l'enregistrement
 AssetMsgDeleteTask = Tâche supprimée
@@ -224,6 +224,7 @@ AssetErrDeleteControlValue = Erreur lors de la suppression
 AssetListWorkstation = Liste des postes de travails
 UseManualWarehouse = Permet de définir manuellement les entrepôts à utiliser pour le stockage/destockage des équipements sur chaque OF.
 UseProjectTaskHierarchique = Créer les tâches de manière hierarchique
+ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT = Inverser la hierarchie lors de la création des tâches.
 
 NewWorkStation = Nouveau poste de travail
 moduleWorkstationNeeded = Module Poste de travail requis
