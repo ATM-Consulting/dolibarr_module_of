@@ -59,7 +59,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module of";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.14.2';
+		$this->version = '1.14.3';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -98,6 +98,7 @@ class modof extends DolibarrModules
 				'ordercard',
 				'propalcard',
 				'invoicecard',
+				'expeditioncard',
 				'orderlist',
 				'propallist',
 				'invoicelist',
@@ -504,7 +505,7 @@ class modof extends DolibarrModules
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
         $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
-		foreach (array('commandedet', 'propaldet', 'facturedet') as $elementtype) {
+		foreach (array('commandedet', 'propaldet', 'facturedet', 'expeditiondet') as $elementtype) {
 			$res = $extrafields->addExtraField(
 				'reflinenumber',
 				'RefLineNumber',
