@@ -490,11 +490,12 @@ class Actionsof
 				in_array('ordercard', $TContext)
 				|| in_array('invoicecard', $TContext)
 				|| in_array('propalcard', $TContext)
+				|| in_array('expeditioncard', $TContext)
 			)
 		)
 		{
 			dol_include_once('/of/lib/of.lib.php');
-
+			if ($conf->subtotal->enabled && !class_exists('TSubtotal')) dol_include_once('/subtotal/class/subtotal.class.php');
 			$jsonObjectData =array(
 				'lines' => array_map(
 					function ($l) {
