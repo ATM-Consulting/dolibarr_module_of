@@ -505,7 +505,7 @@ class modof extends DolibarrModules
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
         $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
-		foreach (array('commandedet', 'propaldet', 'facturedet') as $elementtype) {
+		foreach (array('commandedet', 'propaldet', 'facturedet', 'expeditiondet') as $elementtype) {
 			$res = $extrafields->addExtraField(
 				'reflinenumber',
 				'RefLineNumber',
