@@ -426,13 +426,31 @@ print '<td align="center" width="300">';
 print ajax_constantonoff('ASSET_CUMULATE_PROJECT_TASK');
 print '</td></tr>';
 
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("UseProjectTaskHierarchique").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="300">';
-print ajax_constantonoff('ASSET_TASK_HIERARCHIQUE_BY_RANK');
-print '</td></tr>';
+
+$ajaxConstantOnOffInput = array(
+	'alert' => array(
+		'del' => array(
+			'content'=>$langs->transnoentities('AssetOFConfirmChangeState')
+				."<br/>- ".$langs->transnoentities('ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT'),
+			'title'=>$langs->transnoentities('UseProjectTaskHierarchique')
+		)
+	),
+	'del' => array('ASSET_TASK_HIERARCHIQUE_BY_RANK' => 1)
+);
+
+setup_print_on_off('ASSET_TASK_HIERARCHIQUE_BY_RANK', $langs->trans("UseProjectTaskHierarchique"), '', false, 300, false, $ajaxConstantOnOffInput);
+
+$ajaxConstantOnOffInput = array(
+	'alert' => array(
+		'set' => array(
+			'content'=>$langs->transnoentities('ConfirmChangeStateContentOptionActivationImpact')
+				."<br/>+ ".$langs->transnoentities('UseProjectTaskHierarchique'),
+			'title'=>$langs->transnoentities('ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT')
+		)
+	),
+	'set' => array('ASSET_TASK_HIERARCHIQUE_BY_RANK' => 1)
+);
+setup_print_on_off('ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT', false, '', false, 300, false, $ajaxConstantOnOffInput);
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';

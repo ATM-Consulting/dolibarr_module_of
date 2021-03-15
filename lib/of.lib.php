@@ -206,7 +206,14 @@
 				$project->fetch($selected);
 
 				//return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
-				return $project->getNomUrl(1).' - '.dol_trunc($project->title,$maxlength);
+
+				$out .= $project->getNomUrl(1).' '.$project->getLibStatut(3);
+				$projectTitle = dol_trunc($project->title,$maxlength);
+				if(!empty($projectTitle) && !ctype_space($projectTitle)){
+					$out .= ' - '.dol_trunc($project->title,$maxlength);
+				}
+
+				return $out;
 			}
 			else
 			{
