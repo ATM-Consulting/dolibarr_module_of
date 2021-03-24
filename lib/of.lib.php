@@ -1096,6 +1096,11 @@ function getOFForLine($line)
 	{
 		if ($db->num_rows($resql))
 		{
+			if(!class_exists('TPDOdb')) { // fix fatal error
+				if(!defined('INC_FROM_DOLIBARR')){ define('INC_FROM_DOLIBARR', 1); } // Normalement si on est là sans cette class c'est vraiment qu'il ne s'agit
+				require_once __DIR__ . "/../config.php";
+			}
+
 			$pdo = new TPDOdb;
 			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 

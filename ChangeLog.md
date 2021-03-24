@@ -3,7 +3,19 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- FIX : Supplier order reception status applied for OF
+    
+    Anomalie constatée si la configuration OF suivante est activée : "L'ordre de fabrication lié manuellement à une commande fournisseur suit son statut".
+    Anomalie qui apparaît lorsque l'on choisit un fournisseur pour un produit à créer d'un OF.
+  
+    Comportement constaté :
+    La réception complète de la commande fournisseur fait passer l'OF à son statut suivant uniquement. Cela fonctionne donc correctement si l'OF est au statut "Prod en cours" à ce moment là, il passe bien au statut "Terminé". Par contre si il est "Validé" il passe en "Production en cours" et ne se clôture pas. Cela amène ensuite l'incrémentation du stock en double (lors de la réception commande fournisseur et lors de la clôture de l'OF).
+    Cette anomalie a été évoqué dans le ticket 10982
 
+    Nouveau comportement :
+    Le statut de l'OF passe au statut "Terminé" lors de la réception complète de la commande fournisseur associée et cela quelque soit le statut de l'OF à ce moment là, sauf si l'OF possède d'autres produits à créer qui ne dépendent pas d'une commande fournisseur.
+
+- FIX : Not loaded TBOdb
 
 ## Version 1.15
 
