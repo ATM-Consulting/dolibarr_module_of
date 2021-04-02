@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 1.15
 
+- FIX : translation QtyToMake [2021-04-02]
 - NEW : Option to revert of task creation hierarchy order [2021-02-09]
 - FIX : OF card project display [2021-02-18]
 
