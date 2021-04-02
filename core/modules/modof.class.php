@@ -98,6 +98,7 @@ class modof extends DolibarrModules
 				'ordercard',
 				'propalcard',
 				'invoicecard',
+				'expeditioncard',
 				'orderlist',
 				'propallist',
 				'invoicelist',
