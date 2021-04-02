@@ -212,7 +212,7 @@ class modof extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
 
@@ -227,7 +227,7 @@ class modof extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Générer les documents';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
 
 		$r++;
@@ -504,7 +504,7 @@ class modof extends DolibarrModules
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
         $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
 
-		foreach (array('commandedet', 'propaldet', 'facturedet') as $elementtype) {
+		foreach (array('commandedet', 'propaldet', 'facturedet', 'expeditiondet') as $elementtype) {
 			$res = $extrafields->addExtraField(
 				'reflinenumber',
 				'RefLineNumber',
