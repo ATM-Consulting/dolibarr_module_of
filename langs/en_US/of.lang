@@ -64,7 +64,6 @@ ofResultQty=%s (Qty to be produced: %s / Qty used: %s)
 OfShowQtytheorique=Show theoretical stock - Production order stock on the stock tab of a product
 ofPrintTicket=Label printing
 ofListProductNeeded=<strong>List of Production orders needing this product</strong>
-set_ABRICOT_WKHTMLTOPDF_CMD=Order for the PDF generation of labels (WkHTMLtoPDF must be installed on the server http://wkhtmltopdf.org/)
 OfNbTicketrPerPage=Default print label value per page (-1 to disable functionality)
 ofError_fk_entrepot_missing=Error: One or more warehouse lines not affected on: %s
 OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Check that a warehouse is entered on each Production order line on the action "Validate", if the configuration of the change of status people the children Production orders then the check will also do on the children
@@ -188,7 +187,7 @@ AssetErrSaveControlValue=Error Saving
 AssetMsgDeleteControlValue=Deleted value
 AssetErrDeleteControlValue=Error while deleting
 AssetListWorkstation=List of workstations
-UseManualWarehouse=Allows to define manually the warehouses to be used for the storage / destocking of the asset on each Production order
+UseManualWarehouse=Enables you to manually define warehouses to be used for the storage / stock withdrawal of the asset on each Production order
 UseProjectTaskHierarchique=Create tasks hierarchically
 
 NewWorkStation=New workstation
@@ -384,3 +383,50 @@ OrderLinkedFiles=Files and documents attached to %s order
 ProductLinkedFiles=Attached files and documents for product %s
 OF_REAL_HOUR_CAN_BE_EMPTY=Actual hours may be empty
 OF_DISPLAY_OF_ON_COMMANDLINES=Display linked POs on sales order lines
+
+
+
+
+
+AbricotNeedUpdate = You are using an outdated version of module “Abricot”. Please upgrade it to the latest version for this module to work properly. 
+ConfirmChangeStateContentOptionActivationImpact = If you enable this option, the following option(s) will also be enabled:
+ASSET_ADD_NEEDED_QTY_ZERO_HELP = By default, when a MO is created, planned and used quantities for products required by manufacturing are pre-filled with the necessary quantities. When you enable this option, the planned and used quantities are pre-filled with 0. This can be useful if you use partial stock entry/withdrawal.
+ASSET_NEGATIVE_DESTOCK_HELP = This option can only be used if you use AssetATM, which enables you to assign lot/serial numbers for product traceability. By default, you cannot define an asset as a “product used” for manufacturing if this asset has no stock available. When this option is enabled, this becomes possible.
+ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS_HELP = By default, when the status of a MO changes, this status is not applied to child MOs. When this option is enabled, the status of parent MOs is applied to child MOs. This only applies for "forward" status changes (Draft towards Done), not when you go back to a previous status.
+ASSET_CONCAT_PDF_HELP = This only applies if the option “Print as PDF (requires LibreOffice on the server)” is enabled. When this option is enabled, if a MO has child MOs, you can download all MOs (parents + children) as a single PDF file. This only applies for PDF printing.
+OF_USE_DESTOCKAGE_PARTIEL_HELP = <strong>When this option is enabled: </strong><br />Products to be manufactured will be added to the stock when the “Produced quantity” is updated on a MO whose status is “Production in progress”. <br /><br /><em>It can be interesting to combine this option with the option called “Add components with 0 quantity”. </em><br/><br/><strong>By default, stock management works as follows:</strong><br/>- For products required for manufacturing, if there is no predefined “quantity used”, the required quantity is withdrawn from the stock when the MO is “Done”; if the “quantity used” is non-zero, then this quantity is used as the withdrawn quantity<br/>- The stock of products being manufactured increases by the “quantity to create” when the MO's status is “Done”. When this option is enabled, stock management is as follows:<br/>- Products required for manufacturing are withdrawn from stock when the “quantity used” is updated on a MO whose status is “Production in progress”<br/>- The stock of the products to be manufactured is increased when the “quantity produced” is updated on a MO whose status is “Production in progress”.
+ParamLinkedToOFTagsPrints = Settings related to the management of labels
+OF_SHOW_QTY_THEORIQUE_MOINS_OF_HELP = Deprecated since Dolibarr v3.8. This added a new field “MO virtual stock”, taking into account the planned withdrawal from stock or manufacturing of products according to pending MOs.
+ABRICOT_WKHTMLTOPDF_CMD = Command for generating labels (PDF)
+ABRICOT_WKHTMLTOPDF_CMD_DESC = WkHTMLtoPDF must be installed on the server (http://wkhtmltopdf.org)
+OF_NB_TICKET_PER_PAGE_HELP = This option enables you to define how many labels will be printed on each page when using the button “Print labels” on MO lists.<br/><br/>If no value is set, the default will be 0. If you set it to "-1", the label count column and the print button will not be displayed.
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE_HELP = This option only applies if the option “{{l:UseManualWarehouse}}. When this option is enabled, you will no longer be able to validate a MO if one of the products (either required or to be manufactured) has no set warehouse on its MO line. This check also applies to child MOs if status tracking is enabled.
+OF_MAX_EXECUTION_SEARCH_PLANIF = Maximum number of days in which Dolibarr will try to schedule the task being created
+OF_MAX_EXECUTION_SEARCH_PLANIF_HELP = <em>This option requires enabling the above option.</em><br/><br/>If no available time slot is found after this number of days for this workstation, the task will not be created.<br/><br/><strong>Beware!</strong> Increasing the number of days also increases the processing time when you validate a MO, and this can make this process extremely unresponsive if you set this value too high.
+ParamLinkedToOFOthers = Misc settings
+ParamLinkedToOFStocks = Settings related to stock management
+OptionForNumberingTemplate = Settings related to the numbering of manufacturing orders
+ParamLinkedToOFChildren = Settings related to child MOs
+CreateAssetChildrenOFHelp = By default, if there is not enough stock of a product for manufacturing, no child MO will be created. When this option is enabled, products required for manufacturing with insufficient stock will create child MOs.
+CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK_HELP = Par défaut, si le stock théorique d’un produit nécessaire à la fabrication n’est pas suffisant aucun OF enfant n’est créé. Si cette option est activée, les produits nécessaires à la fabrication dont le stock théorique est insuffisant créeront des OF enfants.
+CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK_HELP = By default, when the theoretical stock 
+CreateAssetChildrenOFWithComposantConfirmChangeState = Confirmation
+CreateAssetChildrenOFWithComposantConfirmChangeStateContent = This option will also enable the following option:
+CREATE_CHILDREN_OF_COMPOSANT_HELP = If any of the options that allow creating child MOs is enabled (see above), enable this option if you want to restrict child MO creation only to subproducts having no actual stock and containing subproducts themselves.
+USE_LOT_IN_OF_DESC = This option is also displayed in the settings of the AssetATM module. This is the same option: if you enable/disable it here, it will also be reflected in the settings of AssetATM.
+USE_LOT_IN_OF_HELP = Only use this option if you use the module “AssetATM”, which enables you to make your products traceable by assigning them lot/serial numbers. <br/><br/>By default, there is no such traceability in manufacturing orders (whether for products used or products manufactured). <br/><br/>This option enables you choose lot/serial numbers of products used in the manufacturing process. <br/>It also enables you to assign lot/serial numbers to the manufactured products. Once this is done, you can view the list of lots in CAPM >> AssetATM >> List of lots.
+ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT = Reverse task hierarchy when tasks are created.
+DEFAULT_ETIQUETTES_HELP = Enables you to choose the template to be used for generating labels. You can choose from templates located in “htdocs/custom/of/exempleTemplate”. If you choose “etiquette_custom.html”, more configuration options for labels are available to adjust margins, width, height, etc.
+OF_MINIMAL_VIEW_CHILD_OF_HELP = By default, when child MOs are created, they are displayed entirely on the same page as the parent MO. <br/><br/>When this option is enabled, a list of child MOs with clickable links will be displayed at the bottom of the parent MO view.
+ActualOFREfConf = Current numbering mask
+NextOfRef = Next ref.
+ParamLinkedToOFPrints = Settings related to printing management
+OF_PRINT_IN_PDF_NEED = Requires LibreOffice to be installed on the server
+OF_PRINT_IN_PDF_HELP = By default, a “Print” button on MOs enables you to download them as ODT files. When this option is enabled and LibreOffice is installed on your server, this button enables you to download them directly as PDF.
+OF_SHOW_LINE_ORDER_EXTRAFIELD_HELP = With this option, on a manufacturing order, under the label of the product to be manufactured, you will see the extrafields of the product items of the customer order the MO originates from. This only applies if the MO was created from a customer order and the customer order has items with extrafields.
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM_HELP = If the above option is enabled, you can access this additional option. When enabled, it shows only extrafields whose code has been selected here. These codes are set when you create the extrafields in the settings of the “Customer orders” module. The codes must be comma-separated, without any spaces inbetween.
+ParamLinkedToOrders = Settings related to proposals / orders
+OF_SHOW_ORDER_LINE_PRICE_HELP = This option adds a new column (“line price”) in the MO list (CAPM menu or MO tab of a customer order).
+ParamLinkedToOFGPAO = Settings related to production management
+OF_RANK_PRIOR_BY_LAUNCHING_DATE_HELP = By default, in the MO list, MOs are ordered by creation date. When this option is enabled, MOs are sorted by start date (MO card), which is the start date in the MO list.<br/><br/>This adds a new button (“Update priorities”) and a new column (“Rank”) on the MO list and on MO cards.
+OF_product_in_of = Product found in one or more MOs
