@@ -47,7 +47,9 @@ $reshook = $hookmanager->executeHooks('doActions', $parameters, $assetOf, $actio
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 // Get parameters
-if (empty($reshook)) _action();
+if (empty($reshook)){
+	_action();
+}
 
 // Protection if external user
 if ($user->societe_id > 0)
@@ -268,59 +270,95 @@ function _action() {
 
 			if (GETPOSTISSET('model'))
             {
-                $assetOf->modelpdf = GETPOST('model');
+            	// Save last template used to generate document
+                $assetOf->modelpdf = GETPOST('model', 'alpha');
                 $assetOf->save($PDOdb);
             }
 
-			if(empty($conf->global->OF_PRINT_IN_PDF)) {
-				generateODTOF($PDOdb, $assetOf, false);
+			$length = strlen($assetOf->modelpdf);
+			$isOdtModel = !($length > 0)  ||  substr($assetOf->modelpdf, -$length) === '.odt';
+			// Le cas particulier des odt à un traitement avec le moteur TBS sinon on passe sur les PDF plus standard
+			if($isOdtModel){
 
-			}
-			else {
+				// TODO : intégrer le code legacy de generateODTOF dans ->generateDocument
 
-				$TOFToGenerate = array($assetOf->rowid);
-
-				if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
-	//			var_dump($TOFToGenerate);exit;
-				foreach($TOFToGenerate as $id_of) {
-
-					$assetOf=new TAssetOF;
-					$assetOf->load($PDOdb, $id_of, false);
-					//echo $id_of;
-					$TRes[] = generateODTOF($PDOdb, $assetOf);
-					//echo '...ok<br />';
+				if(empty($conf->global->OF_PRINT_IN_PDF)) {
+					generateODTOF($PDOdb, $assetOf, false);
 				}
+				else {
 
-				$TFilePath = get_tab_file_path($TRes);
-			//	var_dump($TFilePath);exit;
-				if($conf->global->ASSET_CONCAT_PDF) {
-					ob_start();
-					$pdf=pdf_getInstance();
-					if (class_exists('TCPDF'))
-					{
-						$pdf->setPrintHeader(false);
-						$pdf->setPrintFooter(false);
+					$TOFToGenerate = array($assetOf->rowid);
+
+					if($conf->global->ASSET_CONCAT_PDF) $assetOf->getListeOFEnfants($PDOdb, $TOFToGenerate, $assetOf->rowid);
+		//			var_dump($TOFToGenerate);exit;
+					foreach($TOFToGenerate as $id_of) {
+
+						$assetOf=new TAssetOF;
+						$assetOf->load($PDOdb, $id_of, false);
+						//echo $id_of;
+						$TRes[] = generateODTOF($PDOdb, $assetOf);
+						//echo '...ok<br />';
 					}
-					$pdf->SetFont(pdf_getPDFFont($langs));
 
-					if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
-					//$pdf->SetCompression(false);
-
-					$pagecount = concatPDFOF($pdf, $TFilePath);
-
-					if ($pagecount)
-					{
-						$pdf->Output($TFilePath[0],'F');
-						if (! empty($conf->global->MAIN_UMASK))
+					$TFilePath = get_tab_file_path($TRes);
+				//	var_dump($TFilePath);exit;
+					if($conf->global->ASSET_CONCAT_PDF) {
+						ob_start();
+						$pdf=pdf_getInstance();
+						if (class_exists('TCPDF'))
 						{
-							@chmod($file, octdec($conf->global->MAIN_UMASK));
+							$pdf->setPrintHeader(false);
+							$pdf->setPrintFooter(false);
 						}
+						$pdf->SetFont(pdf_getPDFFont($langs));
+
+						if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
+						//$pdf->SetCompression(false);
+
+						$pagecount = concatPDFOF($pdf, $TFilePath);
+
+						if ($pagecount)
+						{
+							$pdf->Output($TFilePath[0],'F');
+							if (! empty($conf->global->MAIN_UMASK))
+							{
+								@chmod($file, octdec($conf->global->MAIN_UMASK));
+							}
+						}
+						ob_clean();
 					}
-					ob_clean();
+
+					header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
+				}
+			}
+			else{
+
+				$outputlangs = $langs;
+				$newlang='';
+
+				if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang=GETPOST('lang_id', 'aZ09');
+				if ($conf->global->MAIN_MULTILANGS && empty($newlang) && isset($assetOf->thirdparty->default_lang)) $newlang=$assetOf->thirdparty->default_lang;  // for proposal, order, invoice, ...
+				if ($conf->global->MAIN_MULTILANGS && empty($newlang) && isset($assetOf->default_lang)) $newlang=$assetOf->default_lang;                  // for thirdparty
+				if (! empty($newlang))
+				{
+					$outputlangs = new Translate("", $conf);
+					$outputlangs->setDefaultLang($newlang);
 				}
 
-				header("Location: ".DOL_URL_ROOT."/document.php?modulepart=of&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
+				// To be sure vars is defined
+				if (empty($hidedetails)) $hidedetails=0;
+				if (empty($hidedesc)) $hidedesc=0;
+				if (empty($hideref)) $hideref=0;
+				if (empty($moreparams)) $moreparams=null;
+
+				$result= $assetOf->generateDocument($assetOf->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+				if ($result <= 0)
+				{
+					setEventMessages($assetOf->error, $assetOf->errors, 'errors');
+					$action='';
+				}
 			}
+
 
 			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'#builddoc');
 			exit;
@@ -1448,15 +1486,15 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		/*
 		 * Documents generes
 		 */
-		$filename = dol_sanitizeFileName($assetOf->ref);
-//		$filename = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-		$filedir = $conf->of->multidir_output[$assetOf->entity] . "/" . $filename;
+
+		 // Documents
+		$objref = dol_sanitizeFileName($assetOf->ref);
+		$relativepath = $objref . '/' . $objref . '.pdf';
+		$filedir = $conf->of->multidir_output[$assetOf->entity]  . '/' . $objref;
 		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $assetOf->id;
-
-		$genallowed = $usercanread;
-		$delallowed = $usercancreate;
-
-		print $formfile->showdocuments('of', $filename, $filedir, $urlsource, $genallowed, $delallowed, $assetOf->modelpdf, 1, 0, 0, 28, 0, '', 0, '', $client->default_lang, '', $assetOf);
+		$genallowed = $usercanread;	// If you can read, you can build the PDF to read content
+		$delallowed = $usercancreate;	// If you can create/edit, you can remove a file on card
+		print $formfile->showdocuments('of:of', $objref, $filedir, $urlsource, $genallowed, $delallowed, $assetOf->modelpdf, 1, 0, 0, 28, 0, '', '', '', $client->default_lang, '', $assetOf);
 
 // TODO uncomment to show linked objects
 //		// Show links to link elements

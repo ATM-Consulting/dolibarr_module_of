@@ -13,6 +13,8 @@ OFActions = Actions
 ParametersWorkstation = Paramètres Poste de travail
 ParametersWorkflow = Paramètres Workflow
 
+OfPDFModules = Modèles PDF pour les Ordres de fabrication
+
 Card = Fiche
 AbricotNeedUpdate = Le module abricot doit être mis à jour
 

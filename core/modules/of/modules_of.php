@@ -28,17 +28,29 @@ class ModelePDFOf extends CommonDocGenerator
      */
     static function liste_modeles($db, $maxfilenamelength = 0)
     {
-        $liste = array(
+		global $conf;
+
+		$type = 'of';
+
+		$list = array(
             'templateOF.odt' => 'Standard'
         );
 
         foreach (glob(DOL_DATA_ROOT.'/of/template/*.odt') as $filepath)
         {
             $file = str_replace(DOL_DATA_ROOT.'/of/template/', '', $filepath);
-            if ($file !== 'templateOF.odt') $liste[$file] = $file;
+            if ($file !== 'templateOF.odt') $list[$file] = $file;
         }
 
-        return $liste;
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+		$listStd = getListOfModels($db, $type, $maxfilenamelength);
+		if(!empty($listStd) && is_array($listStd)){
+			foreach ($listStd as $key => $val ){
+				$list[$key] = $val;
+			}
+		}
+
+        return $list;
     }
 }
 

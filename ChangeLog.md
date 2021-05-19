@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- NEW : Add Standard Dolibarr Documents models support *2021-05-19* - 1.17.0
+
 - FIX : Supplier order reception status applied for OF
     
     Anomalie constatée si la configuration OF suivante est activée : "L'ordre de fabrication lié manuellement à une commande fournisseur suit son statut".
