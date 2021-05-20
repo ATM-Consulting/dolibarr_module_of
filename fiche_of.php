@@ -46,15 +46,17 @@ $parameters = array('of' => $assetOf, 'id' => $id);
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $assetOf, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
+
+
+// Protection if external user
+if ($user->societe_id > 0 || $user->socid > 0)
+{
+	//accessforbidden();
+}
+
 // Get parameters
 if (empty($reshook)){
 	_action();
-}
-
-// Protection if external user
-if ($user->societe_id > 0)
-{
-	//accessforbidden();
 }
 
 function _action() {
@@ -275,8 +277,9 @@ function _action() {
                 $assetOf->save($PDOdb);
             }
 
-			$length = strlen($assetOf->modelpdf);
-			$isOdtModel = !($length > 0)  ||  substr($assetOf->modelpdf, -$length) === '.odt';
+			$odtExt = '.odt';
+			$length = strlen($odtExt);
+			$isOdtModel = !($length > 0)  ||  substr($assetOf->modelpdf, -$length) === $odtExt;
 			// Le cas particulier des odt à un traitement avec le moteur TBS sinon on passe sur les PDF plus standard
 			if($isOdtModel){
 
