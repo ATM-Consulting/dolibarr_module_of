@@ -268,9 +268,13 @@ class Actionsof
 		$objectDocCompatible =array('commande', 'facture', 'shipping', 'propal');
 		if (in_array($parameters['object']->element, $objectDocCompatible)){
 			$def['status'] = true;
+
+			if(!empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC)){
+				$pdfDoc->cols['desc']['border-left'] = true; // add left line separator
+			}
 		}
 
-		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',1);
+		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC));
 		return 0;
 	}
 
@@ -497,6 +501,9 @@ class Actionsof
 			dol_include_once('/of/lib/of.lib.php');
 			if ($conf->subtotal->enabled && !class_exists('TSubtotal')) dol_include_once('/subtotal/class/subtotal.class.php');
 			$jsonObjectData =array(
+				'conf' => array(
+					'OF_REF_LINE_NUMBER_BEFORE_DESC' => !empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC)
+				),
 				'lines' => array_map(
 					function ($l) {
 						return array(
@@ -525,7 +532,10 @@ class Actionsof
 						$colSpanBase = 1; // nombre de colonnes ajoutées
 						if($( this ).hasClass("liste_titre")) {
 							// PARTIE TITRE
-							$('<td align="center" class="colreflinenumber">' + jsonObjectData.trans['RefLineNumber'] + '</td>').insertAfter($( this ).find("td.linecoldescription"));
+							let colToAdd = $('<td align="center" class="colreflinenumber">' + jsonObjectData.trans['RefLineNumber'] + '</td>');
+							let colTargeted = $( this ).find("td.linecoldescription");
+							if(jsonObjectData.conf.OF_REF_LINE_NUMBER_BEFORE_DESC){ colToAdd.insertBefore(colTargeted);
+							}else{ colToAdd.insertAfter(colTargeted); }
 						} else if($( this ).data("product_type") === 9) {
 							$( this ).find("td[colspan]:first").attr('colspan', parseInt($( this ).find("td[colspan]:first").attr('colspan')) + 1);
 						} else {
@@ -536,7 +546,13 @@ class Actionsof
 							}
 
 							// New columns
-							$('<td align="center" class="colreflinenumber' + nobottom + '"></td>').insertAfter($( this ).find("td.linecoldescription"));
+							let colToAdd = $('<td align="center" class="colreflinenumber' + nobottom + '"></td>');
+							let colTargeted = $( this ).find("td.linecoldescription");
+							if(jsonObjectData.conf.OF_REF_LINE_NUMBER_BEFORE_DESC){
+								colToAdd.insertBefore(colTargeted);
+							}else{
+								colToAdd.insertAfter(colTargeted);
+							}
 
 							if($( this ).hasClass("liste_titre_create")){
 								$( this ).find("td.linecoledit").attr('colspan', parseInt($( this ).find("td.linecoledit").attr('colspan')) + $colSpanBase);

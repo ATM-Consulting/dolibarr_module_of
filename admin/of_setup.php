@@ -354,6 +354,7 @@ setup_print_title('ParamLinkedToOFOthers');
 
     // T1107 : l’extrafield numéro de ligne de référence sur commandedet doit être rendu invisible si on désactive la conf (d’où le <script>)
     setup_print_on_off('OF_USE_REFLINENUMBER', $langs->trans('OF_USE_REFLINENUMBER'), $langs->trans('OF_USE_REFLINENUMBER_help'));
+    setup_print_on_off('OF_REF_LINE_NUMBER_BEFORE_DESC');
     ?><script>
     (function() {
         let setRefLineNumberExtrafieldVisibility = function(visibility) {
