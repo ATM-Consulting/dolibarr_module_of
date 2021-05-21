@@ -2430,7 +2430,7 @@ class TAssetOF extends TObjetStd{
 	 */
 	protected function commonGenerateDocument($modelspath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams = null)
 	{
-		global $conf, $langs, $user;
+		global $conf, $langs, $user, $db;
 
 		$srctemplatepath='';
 
@@ -2476,7 +2476,7 @@ class TAssetOF extends TObjetStd{
 
 			require_once $file;
 
-			$obj = new $classname($this->db);
+			$obj = new $classname($db);
 
 			// If generator is ODT, we must have srctemplatepath defined, if not we set it.
 			if ($obj->type == 'odt' && empty($srctemplatepath))
@@ -2552,7 +2552,7 @@ class TAssetOF extends TObjetStd{
 			else
 			{
 				$outputlangs->charset_output=$sav_charset_output;
-				dol_print_error($this->db, "Error generating document for ".__CLASS__.". Error: ".$obj->error, $obj->errors);
+				dol_print_error($db, "Error generating document for ".__CLASS__.". Error: ".$obj->error, $obj->errors);
 				return -1;
 			}
 		}
