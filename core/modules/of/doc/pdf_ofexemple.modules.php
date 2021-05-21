@@ -301,7 +301,7 @@ class pdf_ofexemple extends ModelePDFOf
 	 *  Show top header of page.
 	 *
 	 *  @param	TCPDF		$pdf     		Object PDF
-	 *  @param  TAsset		$object     	Object to show
+	 *  @param  TAssetOF		$object     	Object to show
 	 *  @param  int	    	$showaddress    0=no, 1=yes
 	 *  @param  Translate	$outputlangs	Object lang for output
 	 *  @param	string		$titlekey		Translation key to show as title of document
@@ -391,7 +391,7 @@ class pdf_ofexemple extends ModelePDFOf
 	 *   	Show footer of page. Need this->emetteur object
 	 *
 	 *   	@param	TCPDF		$pdf     			PDF
-	 * 		@param	TAsset		$object				Object to show
+	 * 		@param	TAssetOF		$object				Object to show
 	 *      @param	Translate	$outputlangs		Object lang for output
 	 *      @param	int			$hidefreetext		1=Hide free text
 	 *      @return	int								Return height of bottom margin including footer text
@@ -408,7 +408,7 @@ class pdf_ofexemple extends ModelePDFOf
 	/**
 	 *   	Define Array Column Field
 	 *
-	 *   	@param	TAsset			$object
+	 *   	@param	TAssetOF			$object
 	 *   	@param	outputlangs		$outputlangs    langs
 	 *      @param	int			   $hidedetails		Do not show line details
 	 *      @param	int			   $hidedesc		Do not show desc
