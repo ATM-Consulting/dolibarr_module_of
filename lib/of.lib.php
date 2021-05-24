@@ -32,6 +32,10 @@
 	    $head[$h][1] = $langs->trans("Parameters");
 	    $head[$h][2] = 'settings';
 	    $h++;
+	    $head[$h][0] = dol_buildpath("/of/admin/of_models.php", 1);
+	    $head[$h][1] = $langs->trans("Models");
+	    $head[$h][2] = 'models';
+	    $h++;
 	    $head[$h][0] = dol_buildpath("/of/admin/of_about.php", 1);
 	    $head[$h][1] = $langs->trans("About");
 	    $head[$h][2] = 'about';

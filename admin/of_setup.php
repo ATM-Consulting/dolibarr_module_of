@@ -115,30 +115,6 @@ if (preg_match('/del_(.*)/',$action,$reg))
 			}
 		}
 
-		if(isset($_FILES['template']) && !empty($_FILES['template']['tmp_name']))
-		{
-			$src=$_FILES['template']['tmp_name'];
-			$dirodt=DOL_DATA_ROOT.'/of/template/';
-			$dest=$dirodt.'/'.$_FILES['template']['name'];
-
-			if (file_exists($src))
-			{
-				require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-				dol_mkdir($dirodt);
-				$result=dol_copy($src,$dest,0,1);
-				if ($result < 0)
-				{
-					$error++;
-					$langs->load("errors");
-					setEventMessage($langs->trans('ErrorFailToCopyFile',$src,$dest));
-				}
-				else
-				{
-					dolibarr_set_const($db, 'TEMPLATE_OF', $_FILES['template']['name'], 'chaine', 0, '', $conf->entity);
-				}
-			}
-		}
-
 		if (!$error) setEventMessage($langs->trans("SetupSaved"));
 	}
 /*
@@ -378,6 +354,7 @@ setup_print_title('ParamLinkedToOFOthers');
 
     // T1107 : l’extrafield numéro de ligne de référence sur commandedet doit être rendu invisible si on désactive la conf (d’où le <script>)
     setup_print_on_off('OF_USE_REFLINENUMBER', $langs->trans('OF_USE_REFLINENUMBER'), $langs->trans('OF_USE_REFLINENUMBER_help'));
+    setup_print_on_off('OF_REF_LINE_NUMBER_BEFORE_DESC');
     ?><script>
     (function() {
         let setRefLineNumberExtrafieldVisibility = function(visibility) {
@@ -698,25 +675,6 @@ function showParameters(&$form) {
 			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
 				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr>
-			<tr class="liste_titre">
-				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>
-			</tr>
-			<tr class="pair" >
-				<td><?php echo $langs->trans('Template') ?></td><td>
-					<input type="file" name="template" />
-					<?php
-						if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
-						else $template = "templateOF.odt";
-
-						$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
-
-						if (!file_exists($locationTemplate)) $url = dol_buildpath('/of/exempleTemplate/'.$template, 1);
-						else $url = dol_buildpath('document.php', 1).'?modulepart=of&file=/template/'.$template;
-
-					 echo ' - <a href="'.$url.'">'.$langs->trans('Download').'</a> '.$template;
-				 ?></td>
-			</tr>
-
 
 		</table>
 

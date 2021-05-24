@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- NEW : Option to add RefLineNumber before line "desc" col in PDF and card *2021-05-20* - 1.18.0
+- NEW : Add Standard Dolibarr Documents models support *2021-05-19* - 1.17.0
+
 - FIX : Supplier order reception status applied for OF
     
     Anomalie constatée si la configuration OF suivante est activée : "L'ordre de fabrication lié manuellement à une commande fournisseur suit son statut".
