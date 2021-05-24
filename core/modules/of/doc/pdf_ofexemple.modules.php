@@ -197,6 +197,22 @@ class pdf_ofexemple extends ModelePDFOf
 
 		if (file_exists($filedir))
 		{
+			$object->order = false;
+			if(!empty($object->fk_commande)) {
+				dol_include_once('/commande/class/commande.class.php');
+				$object->order = new Commande($db);
+				if($object->order->fetch($object->fk_commande) <= 0){
+					$object->order = false;
+				}
+			}
+
+			if ($object->fk_soc) {
+				require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+				$object->thirdparty = new Societe($this->db);
+				if ($object->thirdparty->fetch($object->fk_soc) <= 0) { $object->thirdparty = false; }
+			}
+
+
 			// Add pdfgeneration hook
 			if (! is_object($hookmanager))
 			{
