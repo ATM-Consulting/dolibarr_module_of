@@ -209,7 +209,7 @@ class Interfaceoftrigger
 
 		}
 		else if($action === 'TASK_MODIFY') {
-		    if(!empty($conf->workstation->enabled) && !empty($conf->of->enabled) ) {
+		    if(!empty($conf->workstationatm->enabled) && !empty($conf->of->enabled) ) {
 
 		        if( !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) ) {
                     if (!isset($conf->tassetof))$conf->tassetof = new \stdClass(); // for warning
@@ -234,7 +234,7 @@ class Interfaceoftrigger
 		{
 		    global $db;
 
-		    if(!empty($conf->workstation->enabled) && !empty($conf->of->enabled))
+		    if(!empty($conf->workstationatm->enabled) && !empty($conf->of->enabled))
 		    {
  		        $sql = "UPDATE ".MAIN_DB_PREFIX."asset_workstation_of SET fk_project_task = 0 WHERE fk_project_task = " . $object->id;
  		        $res = $db->query($sql);
@@ -245,7 +245,7 @@ class Interfaceoftrigger
 
 		}
 		elseif($action==='TASK_TIMESPENT_CREATE') {
-			if(!empty($conf->workstation->enabled)) {
+			if(!empty($conf->workstationatm->enabled)) {
 				define('INC_FROM_DOLIBARR',true);
 		    	dol_include_once('/of/config.php');
 				dol_include_once('/of/class/ordre_fabrication_asset.class.php');
