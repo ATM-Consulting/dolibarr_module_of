@@ -14,7 +14,7 @@
 	dol_include_once("/core/lib/company.lib.php");
 
 	$langs->load('of@of');
-	$langs->load('workstation@workstation');
+	$langs->load('workstationatm@workstationatm');
 	$langs->load('stocks');
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
