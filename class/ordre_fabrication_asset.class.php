@@ -2419,7 +2419,7 @@ class TAssetOF extends TObjetStd{
 	 * Common function for all objects extending CommonObject for generating documents
 	 *
 	 * @param 	string 		$modelspath 	Relative folder where generators are placed
-	 * @param 	string 		$modele 		Generator to use. Caller must set it to obj->modelpdf or GETPOST('modelpdf') for example.
+	 * @param 	string 		$modele 		Generator to use. Caller must set it to obj->modelpdf or GETPOST('modelpdf', 'none') for example.
 	 * @param 	Translate 	$outputlangs 	Output language to use
 	 * @param 	int 		$hidedetails 	1 to hide details. 0 by default
 	 * @param 	int 		$hidedesc 		1 to hide product description. 0 by default
@@ -3614,7 +3614,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function createTask(&$PDOdb, &$db, &$conf, &$user, TAssetOF &$OF)
 	{
 		//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
-		if (!$user->id)	$user->id = GETPOST('user_id');
+		if (!$user->id)	$user->id = GETPOST('user_id', 'none');
 
 		$ws = new TAssetWorkstation;
 		$ws->load($PDOdb, $this->fk_asset_workstation);
@@ -3693,7 +3693,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 	function updateTask(&$PDOdb, &$db, &$conf, &$user, &$OF, $date_start_search = null, $TExcludeTaskId = array())
 	{
-		if (!$user->id)	$user->id = GETPOST('user_id');
+		if (!$user->id)	$user->id = GETPOST('user_id', 'none');
 
 		global $conf;
 
@@ -3935,7 +3935,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 
-		if (!$user->id)	$user->id = GETPOST('user_id');
+		if (!$user->id)	$user->id = GETPOST('user_id', 'none');
 
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
@@ -4124,7 +4124,7 @@ class TAssetWorkstationOF extends TObjetStd{
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
 
-			if (!$user->id) $user->id = GETPOST('user_id');
+			if (!$user->id) $user->id = GETPOST('user_id', 'none');
 
 			$projectTask = new Task($db);
 			if($projectTask->fetch($this->fk_project_task) > 0) {
