@@ -21,9 +21,9 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 $langs->loadLangs(array('other', 'products'));
 
 $id = GETPOST('id', 'int');
-$ref = GETPOST('ref', 'alpha');
-$action = GETPOST('action', 'alpha');
-$confirm = GETPOST('confirm', 'alpha');
+$ref = GETPOST('ref', 'none');
+$action = GETPOST('action', 'none');
+$confirm = GETPOST('confirm', 'none');
 
 // Security check
 $fieldvalue = (!empty($id) ? $id : (!empty($ref) ? $ref : ''));
@@ -33,8 +33,8 @@ $fieldtype = (!empty($ref) ? 'ref' : 'rowid');
 $hookmanager->initHooks(array('ofdocuments'));
 
 // Get parameters
-$sortfield = GETPOST("sortfield", 'alpha');
-$sortorder = GETPOST("sortorder", 'alpha');
+$sortfield = GETPOST("sortfield", 'none');
+$sortorder = GETPOST("sortorder", 'none');
 $page = GETPOST("page", 'int');
 if(empty($page) || $page == -1) {
     $page = 0;

@@ -1,4 +1,6 @@
 <?php
+if (!defined("NOCSRFCHECK")) define('NOCSRFCHECK', 1);
+if (!defined("NOTOKENRENEWAL")) define('NOTOKENRENEWAL', 1);
 
 define('INC_FROM_CRON_SCRIPT', true);
 @set_time_limit(0);
@@ -18,28 +20,28 @@ traite_get($PDOdb, $get);
 function traite_get(&$PDOdb, $case) {
 	switch (strtolower($case)) {
         case 'autocomplete':
-            __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product'),GETPOST('type_product')));
+            __out(_autocomplete($PDOdb,GETPOST('fieldcode', 'none'),GETPOST('term', 'none'),GETPOST('fk_product', 'none'),GETPOST('type_product', 'none')));
             break;
         case 'autocomplete-serial':
-            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number'), GETPOST('fk_product')));
+            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number', 'none'), GETPOST('fk_product', 'none')));
             break;
 		case 'addofproduct':
-			__out(_addofproduct($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
+			__out(_addofproduct($PDOdb,GETPOST('id_assetOf', 'none'),GETPOST('fk_product', 'none'),GETPOST('type', 'none'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
 			break;
 		case 'deletelineof':
-			__out(_deletelineof($PDOdb,GETPOST('idLine'),GETPOST('type')), 'json');
+			__out(_deletelineof($PDOdb,GETPOST('idLine', 'none'),GETPOST('type', 'none')), 'json');
 			break;
 		case 'updateqtymaking':
-			__out((int)_updateQtyMaking($PDOdb,GETPOST('id'),GETPOST('idLine'),GETPOST('qty')),GETPOST('type'));
+			__out((int)_updateQtyMaking($PDOdb,GETPOST('id', 'none'),GETPOST('idLine', 'none'),GETPOST('qty', 'none')),GETPOST('type', 'none'));
 			break;
 		case 'addofworkstation':
-			__out(_addofworkstation($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_asset_workstation')));
+			__out(_addofworkstation($PDOdb,GETPOST('id_assetOf', 'none'),GETPOST('fk_asset_workstation', 'none')));
 			break;
 		case 'deleteofworkstation':
-			__out(_deleteofworkstation($PDOdb,GETPOST('id_assetOf'), GETPOST('fk_asset_workstation_of') ));
+			__out(_deleteofworkstation($PDOdb,GETPOST('id_assetOf', 'none'), GETPOST('fk_asset_workstation_of', 'none') ));
 			break;
 		case 'measuringunits':
-			__out(_measuringUnits(GETPOST('type'), GETPOST('name')), 'json');
+			__out(_measuringUnits(GETPOST('type', 'none'), GETPOST('name', 'none')), 'json');
 			break;
 		case 'getofchildid':
 			$Tid = array();
@@ -61,15 +63,15 @@ function traite_get(&$PDOdb, $case) {
 			break;
 
 		case 'getnomenclatures':
-			__out(_getNomenclatures($PDOdb, GETPOST('fk_product')), 'json');
+			__out(_getNomenclatures($PDOdb, GETPOST('fk_product', 'none')), 'json');
 			break;
 		case 'validernomenclature':
-			__out(_validerNomenclature($PDOdb, GETPOST('id_assetOF'), GETPOST('fk_product'), GETPOST('fk_of_line'), GETPOST('fk_nomenclature'), GETPOST('qty')));
+			__out(_validerNomenclature($PDOdb, GETPOST('id_assetOF', 'none'), GETPOST('fk_product', 'none'), GETPOST('fk_of_line', 'none'), GETPOST('fk_nomenclature', 'none'), GETPOST('qty', 'none')));
 			break;
 
         case 'getlinkedof':
 
-            __out(_getLinkedOf($PDOdb,GETPOST('fk_task')), 'json');
+            __out(_getLinkedOf($PDOdb,GETPOST('fk_task', 'none')), 'json');
             break;
 	}
 }

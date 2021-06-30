@@ -94,7 +94,7 @@ class Actionsof
 		// --> Maintenant Géré grâce à la constante INDEPENDANT_SUBPRODUCT_STOCK que j'ai rajoutée sur notre Dolibarr
 		if ($parameters['currentcontext'] === 'ordersuppliercard') {
 
-			if (GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes') {
+			if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes') {
 
 				$time_livraison = $object->date_livraison;
 
@@ -177,7 +177,7 @@ class Actionsof
 						} // if (! empty($TProduct))
 					} // if ($obj = $db->fetch_object($res)) { } else { }
 				} // if ($res)
-			} // if (GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes')
+			} // if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes')
 		} // if ($parameters['currentcontext'] === 'ordersuppliercard')
 
 		return 0;
@@ -346,7 +346,7 @@ class Actionsof
 
 			$product = new Product($db);
 			$fk_product = GETPOST('id', 'int');
-			$ref_product = GETPOST('ref', 'alpha');
+			$ref_product = GETPOST('ref', 'none');
 			$f = $product->fetch($fk_product, $ref_product);
 
 			if ($f > 0)

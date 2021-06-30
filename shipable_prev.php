@@ -19,31 +19,31 @@ if(empty($conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD) || empty
     accessforbidden($langs->trans('FillReportConf'));
 }
 
-$search_company=GETPOST('search_company','alpha');
-$search_cmd=GETPOST('search_cmd','alpha');
-$search_alert_line=GETPOST('search_alert_line');
-$search_no_date=GETPOST('search_no_date');
-$search_non_compliant=GETPOST('search_non_compliant');
+$search_company=GETPOST('search_company', 'none');
+$search_cmd=GETPOST('search_cmd', 'none');
+$search_alert_line=GETPOST('search_alert_line', 'none');
+$search_no_date=GETPOST('search_no_date', 'none');
+$search_non_compliant=GETPOST('search_non_compliant', 'none');
 
-$search_prod=GETPOST('search_prod','alpha');
-$search_of=GETPOST('search_of','alpha');
-$search_delivery_start=GETPOST("search_delivery_start");
-$search_delivery_end=GETPOST("search_delivery_end");
+$search_prod=GETPOST('search_prod', 'none');
+$search_of=GETPOST('search_of', 'none');
+$search_delivery_start=GETPOST("search_delivery_start", 'none');
+$search_delivery_end=GETPOST("search_delivery_end", 'none');
 $search_delivery_startday=GETPOST("search_delivery_startday","int");
 $search_delivery_startmonth=GETPOST("search_delivery_startmonth","int");
 $search_delivery_startyear=GETPOST("search_delivery_startyear","int");
 $search_delivery_endday=GETPOST("search_delivery_endday","int");
 $search_delivery_endmonth=GETPOST("search_delivery_endmonth","int");
 $search_delivery_endyear=GETPOST("search_delivery_endyear","int");
-$search_qty=GETPOST("search_qty");
-$viewstatut=GETPOST('viewstatut');
+$search_qty=GETPOST("search_qty", 'none');
+$viewstatut=GETPOST('viewstatut', 'none');
 
 
 
 
 $limit = GETPOST('limit', 'int') ? GETPOST('limit', 'int') : $conf->liste_limit;
-$sortfield = GETPOST("sortfield", 'alpha');
-$sortorder = GETPOST("sortorder", 'alpha');
+$sortfield = GETPOST("sortfield", 'none');
+$sortorder = GETPOST("sortorder", 'none');
 $page = GETPOST("page", 'int');
 
 if(empty($page) || $page == -1 || !empty($search_btn) || !empty($search_remove_btn) || (empty($toselect) && $massaction === '0')) {
@@ -57,7 +57,7 @@ if(!$sortorder) $sortorder = 'DESC';
 
 
 // Purge search criteria
-if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) // All tests are required to be compatible with all browsers
+if (GETPOST('button_removefilter_x', 'none') || GETPOST('button_removefilter.x', 'none') || GETPOST('button_removefilter', 'none')) // All tests are required to be compatible with all browsers
 {
     $search_delivery_start=null;
     $search_delivery_end=null;
@@ -90,9 +90,9 @@ $langs->load('deliveries');
 /*
  * On récupère toutes les lignes de commandes non livrées, ni annulées, et s'il y en a un, l'of lié pour pouvoir faire le traitement (lignes non filtrées)
  */
-$sqlOrder = "SELECT DISTINCT cd.rowid as rowid, 
-            c.ref as ref, 
-            aol.fk_assetOf, aol.rowid as fk_assetOfLine, 
+$sqlOrder = "SELECT DISTINCT cd.rowid as rowid,
+            c.ref as ref,
+            aol.fk_assetOf, aol.rowid as fk_assetOfLine,
             cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." as date_livraison,
              SUM(ed.qty) as qty_exped, 'commande' as element,
              prod.ref as ref_prod,
@@ -105,7 +105,7 @@ $sqlOrder = "SELECT DISTINCT cd.rowid as rowid,
              aol.qty as of_line_qty,
              aol.qty_used as of_line_qty_used,
              aol.qty_non_compliant as of_line_qty_non_compliant
-             
+
              FROM " . MAIN_DB_PREFIX . "commandedet as cd";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande as c ON (cd.fk_commande = c.rowid)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet_extrafields as cde ON (cde.fk_object = cd.rowid)";
@@ -126,7 +126,7 @@ $sqlPropal = "SELECT DISTINCT pd.rowid as rowid
             , p.ref as ref
             ,'' as fk_assetOf, '' as fk_assetOfLine
             , pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." as date_livraison
-            , NULL as qty_exped 
+            , NULL as qty_exped
             , 'propal' as element
             ,prod.ref as ref_prod
             ,s.nom as societe_nom
@@ -145,8 +145,8 @@ $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as pe ON (pe.
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_source = p.rowid AND ee.sourcetype='propal' AND ee.targettype='commande')";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = pd.fk_product)";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = p.fk_soc)";
-$sqlPropalWhere .= " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal::STATUS_SIGNED.") 
-                    AND prod.fk_product_type=0 
+$sqlPropalWhere .= " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal::STATUS_SIGNED.")
+                    AND prod.fk_product_type=0
                     AND prod.rowid IS NOT NULL
                     AND pe.of_check_prev = 1
                     AND ee.fk_target IS NULL ";
