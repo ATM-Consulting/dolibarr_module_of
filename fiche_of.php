@@ -33,9 +33,9 @@ $hookmanager->initHooks(array('ofcard'));
 $PDOdb=new TPDOdb;
 $assetOf=new TAssetOF;
 
-$quicksave= GETPOST('quicksave');
+$quicksave= GETPOST('quicksave', 'none');
 $id = GETPOST('id', 'int');
-$action = GETPOST('action');
+$action = GETPOST('action', 'none');
 if (!empty($id))
 {
 	$assetOf->load($PDOdb, $id);
@@ -93,7 +93,7 @@ function _action() {
 
 		case 'quick-save':
 			$assetOf=new TAssetOF;
-			$assetOf->load($PDOdb, GETPOST('id'), false);
+			$assetOf->load($PDOdb, GETPOST('id', 'none'), false);
 			$assetOf->set_values($_REQUEST);
 
 			$assetOf->save($PDOdb);
@@ -176,7 +176,7 @@ function _action() {
 		case 'valider':
 			$error = 0;
 			$assetOf=new TAssetOF;
-            $id = GETPOST('id');
+            $id = GETPOST('id', 'none');
             if(empty($id)) exit('Where is Waldo ?');
 
 			$assetOf->load($PDOdb, $id);
@@ -206,7 +206,7 @@ function _action() {
 
 		case 'reload_pmp':
 			$assetOf=new TAssetOF;
-			$id = GETPOST('id');
+			$id = GETPOST('id', 'none');
 			if(empty($id)) exit('Where is Waldo ?');
 
 			$assetOf->load($PDOdb, $id);
@@ -222,7 +222,7 @@ function _action() {
 
 		case 'lancer':
 			$assetOf=new TAssetOF;
-            $id = GETPOST('id');
+            $id = GETPOST('id', 'none');
             if(empty($id)) exit('Where is Waldo ?');
 
 			$assetOf->load($PDOdb,$id);
@@ -273,7 +273,7 @@ function _action() {
 			if (GETPOSTISSET('model'))
             {
             	// Save last template used to generate document
-                $assetOf->modelpdf = GETPOST('model', 'alpha');
+                $assetOf->modelpdf = GETPOST('model', 'none');
                 $assetOf->save($PDOdb);
             }
 
@@ -376,7 +376,7 @@ function _action() {
 			$assetOf->load($PDOdb, $id_of, false);
 
 			$langs->load("other");
-			$filetodelete=GETPOST('file', 'alpha');
+			$filetodelete=GETPOST('file', 'none');
 			$upload_dir = $conf->of->dir_output;
 			$file =	$upload_dir	. '/' .	$filetodelete;
 			$ret=dol_delete_file($file, 0, 0, 0);
@@ -450,7 +450,7 @@ function _action() {
 			$assetOf=new TAssetOF;
 			$id = GETPOST('id', 'int');
 			if($id>0) $res = $assetOf->load($PDOdb, $id, false);
-			else if(GETPOST('ref')!='') $res = $assetOf->loadBy($PDOdb, GETPOST('ref'), 'numero', false);
+			else if(GETPOST('ref', 'none')!='') $res = $assetOf->loadBy($PDOdb, GETPOST('ref', 'none'), 'numero', false);
 
 			if($res){
 				_fiche($PDOdb, $assetOf, 'view');
@@ -636,7 +636,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		$template = TEMPLATE_OF;
 	}
 	else{
-	    if (GETPOSTISSET('model')) $template = GETPOST('model');
+	    if (GETPOSTISSET('model')) $template = GETPOST('model', 'none');
 		else if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
 		else $template = "templateOF.odt";
 		//$template = "templateOF.doc";
