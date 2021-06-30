@@ -41,7 +41,7 @@ if (! $user->admin) {
 }
 
 // Parameters
-$action = GETPOST('action', 'alpha');
+$action = GETPOST('action', 'none');
 
 /**
  * @param $visibility
@@ -57,8 +57,8 @@ function set_reflinenumber_extrafield_visibility($visibility) {
 }
 
 function handle_ajax_query() {
-    $code = GETPOST('code', 'alpha');
-    $val = GETPOST('val', 'alpha');
+    $code = GETPOST('code', 'none');
+    $val = GETPOST('val', 'none');
     if (set_reflinenumber_extrafield_visibility(intval($val))) {
         return 'success';
     } else {
@@ -75,7 +75,7 @@ if ($action=='ajax') { echo handle_ajax_query(); exit; }
 if (preg_match('/set_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
-	$val = GETPOST($code);
+	$val = GETPOST($code, 'none');
 	if(is_array($val))$val= implode(',', $val);
 
 	if (dolibarr_set_const($db, $code, $val, 'chaine', 0, '', $conf->entity) > 0)
