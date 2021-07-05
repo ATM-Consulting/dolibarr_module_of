@@ -288,13 +288,13 @@ class Interfaceoftrigger
 
 				$PDOdb=new TPDOdb();
 
-				$resql =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.(int)GETPOST('id') );
+				$resql =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.(int)GETPOST('id', 'none') );
 				$res = $db->fetch_object($resql);
 				if($res->fk_statut == 5) { // La livraison est totale
 					//On cherche l'OF lié
 					$resql = $db->query("SELECT fk_source
 											FROM ".MAIN_DB_PREFIX."element_element
-											WHERE fk_target = ".(int)GETPOST('id')."
+											WHERE fk_target = ".(int)GETPOST('id', 'none')."
 												AND sourcetype = 'ordre_fabrication'
 												AND targettype = 'order_supplier'");
 
@@ -368,7 +368,7 @@ class Interfaceoftrigger
 
 							// Vérification des autres commandes
 							foreach($TidSupplierOrder as $fk_supplierorder) {
-								if($fk_supplierorder == (int)GETPOST('id') ) continue;
+								if($fk_supplierorder == (int)GETPOST('id', 'none') ) continue;
 
 								$resql2 =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.$fk_supplierorder );
                                 				$res2 = $db->fetch_object($resql2);
