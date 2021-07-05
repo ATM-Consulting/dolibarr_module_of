@@ -59,7 +59,8 @@ function set_reflinenumber_extrafield_visibility($visibility) {
 function handle_ajax_query() {
     $code = GETPOST('code', 'none');
     $val = GETPOST('val', 'none');
-    if (set_reflinenumber_extrafield_visibility(intval($val))) {
+
+    if ($code == 'OF_USE_REFLINENUMBER' && set_reflinenumber_extrafield_visibility(intval($val))) {
         return 'success';
     } else {
         return 'failure';
