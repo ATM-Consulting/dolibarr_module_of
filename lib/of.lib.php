@@ -32,6 +32,10 @@
 	    $head[$h][1] = $langs->trans("Parameters");
 	    $head[$h][2] = 'settings';
 	    $h++;
+	    $head[$h][0] = dol_buildpath("/of/admin/of_models.php", 1);
+	    $head[$h][1] = $langs->trans("Models");
+	    $head[$h][2] = 'models';
+	    $h++;
 	    $head[$h][0] = dol_buildpath("/of/admin/of_about.php", 1);
 	    $head[$h][1] = $langs->trans("About");
 	    $head[$h][2] = 'about';
@@ -206,7 +210,14 @@
 				$project->fetch($selected);
 
 				//return dol_trunc($project->ref,18).' - '.dol_trunc($project->title,$maxlength);
-				return $project->getNomUrl(1).' - '.dol_trunc($project->title,$maxlength);
+
+				$out .= $project->getNomUrl(1).' '.$project->getLibStatut(3);
+				$projectTitle = dol_trunc($project->title,$maxlength);
+				if(!empty($projectTitle) && !ctype_space($projectTitle)){
+					$out .= ' - '.dol_trunc($project->title,$maxlength);
+				}
+
+				return $out;
 			}
 			else
 			{
@@ -1089,6 +1100,11 @@ function getOFForLine($line)
 	{
 		if ($db->num_rows($resql))
 		{
+			if(!class_exists('TPDOdb')) { // fix fatal error
+				if(!defined('INC_FROM_DOLIBARR')){ define('INC_FROM_DOLIBARR', 1); } // Normalement si on est là sans cette class c'est vraiment qu'il ne s'agit
+				require_once __DIR__ . "/../config.php";
+			}
+
 			$pdo = new TPDOdb;
 			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 

@@ -94,7 +94,7 @@ class Actionsof
 		// --> Maintenant Géré grâce à la constante INDEPENDANT_SUBPRODUCT_STOCK que j'ai rajoutée sur notre Dolibarr
 		if ($parameters['currentcontext'] === 'ordersuppliercard') {
 
-			if (GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes') {
+			if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes') {
 
 				$time_livraison = $object->date_livraison;
 
@@ -177,7 +177,7 @@ class Actionsof
 						} // if (! empty($TProduct))
 					} // if ($obj = $db->fetch_object($res)) { } else { }
 				} // if ($res)
-			} // if (GETPOST('action') === 'confirm_commande' && GETPOST('confirm') === 'yes')
+			} // if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes')
 		} // if ($parameters['currentcontext'] === 'ordersuppliercard')
 
 		return 0;
@@ -268,9 +268,13 @@ class Actionsof
 		$objectDocCompatible =array('commande', 'facture', 'shipping', 'propal');
 		if (in_array($parameters['object']->element, $objectDocCompatible)){
 			$def['status'] = true;
+
+			if(!empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC)){
+				$pdfDoc->cols['desc']['border-left'] = true; // add left line separator
+			}
 		}
 
-		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',1);
+		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC));
 		return 0;
 	}
 
@@ -342,7 +346,7 @@ class Actionsof
 
 			$product = new Product($db);
 			$fk_product = GETPOST('id', 'int');
-			$ref_product = GETPOST('ref', 'alpha');
+			$ref_product = GETPOST('ref', 'none');
 			$f = $product->fetch($fk_product, $ref_product);
 
 			if ($f > 0)
@@ -401,6 +405,7 @@ class Actionsof
 
             <?php
         }
+		return 0;
     }
 
 	private function _calcQtyOfProductInOf(&$db, &$conf, &$product)
@@ -496,6 +501,9 @@ class Actionsof
 			dol_include_once('/of/lib/of.lib.php');
 			if ($conf->subtotal->enabled && !class_exists('TSubtotal')) dol_include_once('/subtotal/class/subtotal.class.php');
 			$jsonObjectData =array(
+				'conf' => array(
+					'OF_REF_LINE_NUMBER_BEFORE_DESC' => !empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC)
+				),
 				'lines' => array_map(
 					function ($l) {
 						return array(
@@ -524,7 +532,10 @@ class Actionsof
 						$colSpanBase = 1; // nombre de colonnes ajoutées
 						if($( this ).hasClass("liste_titre")) {
 							// PARTIE TITRE
-							$('<td align="center" class="colreflinenumber">' + jsonObjectData.trans['RefLineNumber'] + '</td>').insertAfter($( this ).find("td.linecoldescription"));
+							let colToAdd = $('<td align="center" class="colreflinenumber">' + jsonObjectData.trans['RefLineNumber'] + '</td>');
+							let colTargeted = $( this ).find("td.linecoldescription");
+							if(jsonObjectData.conf.OF_REF_LINE_NUMBER_BEFORE_DESC){ colToAdd.insertBefore(colTargeted);
+							}else{ colToAdd.insertAfter(colTargeted); }
 						} else if($( this ).data("product_type") === 9) {
 							$( this ).find("td[colspan]:first").attr('colspan', parseInt($( this ).find("td[colspan]:first").attr('colspan')) + 1);
 						} else {
@@ -535,7 +546,13 @@ class Actionsof
 							}
 
 							// New columns
-							$('<td align="center" class="colreflinenumber' + nobottom + '"></td>').insertAfter($( this ).find("td.linecoldescription"));
+							let colToAdd = $('<td align="center" class="colreflinenumber' + nobottom + '"></td>');
+							let colTargeted = $( this ).find("td.linecoldescription");
+							if(jsonObjectData.conf.OF_REF_LINE_NUMBER_BEFORE_DESC){
+								colToAdd.insertBefore(colTargeted);
+							}else{
+								colToAdd.insertAfter(colTargeted);
+							}
 
 							if($( this ).hasClass("liste_titre_create")){
 								$( this ).find("td.linecoledit").attr('colspan', parseInt($( this ).find("td.linecoledit").attr('colspan')) + $colSpanBase);

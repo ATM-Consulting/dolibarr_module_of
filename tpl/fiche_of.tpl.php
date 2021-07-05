@@ -1,3 +1,4 @@
+<!-- START fiche_of.tpl -->
 <style type="text/css">
 	/* Nécessaire pour cacher les informations qui ne doivent pas être accessibles à la 1ere étape de création d'un OF :: C'est très sale */
 	[onshow;block=begin;when [assetOf.id]==0]
@@ -26,7 +27,7 @@
 				</tr>
 				[onshow;block=begin;when [assetOf.id]=0]
 				<tr><td>[view.langs.transnoentities(ProductToProduce)]</td><td>[assetOf.product_to_create;strconv=no;protect=no]</td></tr>
-				<tr><td>Quantité à produire</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
+				<tr><td>[view.langs.transnoentities(QtyToMake)]</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
 				[onshow;block=end]
 				<tr><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
 				<tr rel="fk_commande">
@@ -922,3 +923,4 @@
 			});
 		}
 </script>
+<!-- END fiche_of.tpl -->

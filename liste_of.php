@@ -37,7 +37,7 @@
                 _liste($PDOdb);
                 break;
             case 'setRank':
-                _setAllRank($PDOdb, GETPOST('of_rank'), GETPOST('old_of_rank'));
+                _setAllRank($PDOdb, GETPOST('of_rank', 'none'), GETPOST('old_of_rank', 'none'));
                 _liste($PDOdb);
                 break;
             case 'printTicket':
@@ -119,7 +119,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 
 				if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
 
-					$TAsset = GETPOST('TAsset');
+					$TAsset = GETPOST('TAsset', 'none');
 					if(!empty($TAsset[$fk_commandedet])) {
 						dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
@@ -195,7 +195,7 @@ function _liste(&$PDOdb)
 
 	$r = new TSSRenderControler($assetOf);
 
-	$mode = GETPOST('mode');
+	$mode = GETPOST('mode', 'none');
 
 	$sql="SELECT ";
 

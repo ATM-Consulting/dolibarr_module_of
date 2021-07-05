@@ -233,7 +233,7 @@ class Interfaceoftrigger
 		elseif($action === 'TASK_DELETE')
 		{
 		    global $db;
-		    
+
 		    if(!empty($conf->workstation->enabled) && !empty($conf->of->enabled))
 		    {
  		        $sql = "UPDATE ".MAIN_DB_PREFIX."asset_workstation_of SET fk_project_task = 0 WHERE fk_project_task = " . $object->id;
@@ -279,6 +279,8 @@ class Interfaceoftrigger
 		elseif($action === 'ORDERSUPPLIER_ADD_LIVRAISON' || $action==='ORDER_SUPPLIER_RECEIVE') {
 			global $db, $conf;
 
+			/**  @var CommandeFournisseur $object */
+
 			if(!empty($conf->of->enabled)) {
 				define('INC_FROM_DOLIBARR',true);
 		    	dol_include_once('/of/config.php');
@@ -286,15 +288,32 @@ class Interfaceoftrigger
 
 				$PDOdb=new TPDOdb();
 
-				$resql =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.(int)GETPOST('id') );
+				$resql =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.(int)GETPOST('id', 'none') );
 				$res = $db->fetch_object($resql);
 				if($res->fk_statut == 5) { // La livraison est totale
 					//On cherche l'OF lié
 					$resql = $db->query("SELECT fk_source
 											FROM ".MAIN_DB_PREFIX."element_element
-											WHERE fk_target = ".(int)GETPOST('id')."
+											WHERE fk_target = ".(int)GETPOST('id', 'none')."
 												AND sourcetype = 'ordre_fabrication'
 												AND targettype = 'order_supplier'");
+
+					// Creation d'un résumé des quantités des produits liées à la commande fournisseur
+					$TOrderLinesSummary = array();
+					if(!empty($object->lines)){
+						foreach ($object->lines as $line){
+							if(!empty($line->fk_product)){
+								if(!isset($TOrderLinesSummary[$line->fk_product] )){
+									// utilisation d'un object au cas où plus tard if faudrait rajouter des choses
+									$TOrderLinesSummary[$line->fk_product] = new stdClass();
+									$TOrderLinesSummary[$line->fk_product]->qty = 0;
+									$TOrderLinesSummary[$line->fk_product]->fk_product = $line->fk_product;
+								}
+
+								$TOrderLinesSummary[$line->fk_product]->qty+= $line->qty;
+							}
+						}
+					}
 
 					while($res = $db->fetch_object($resql)) {
 
@@ -309,21 +328,21 @@ class Interfaceoftrigger
 										foreach($of->TAssetWorkstationOF as &$wsof) {
 
 										    if($ws->id == $wsof->fk_asset_workstation && $wsof->fk_project_task>0) {
-										        
+
 										        if ($wsof->nb_days_before_beginning>0) {
 
     												$wsof->nb_days_before_beginning = 0;
     												$wsof->save($PDOdb);
     										    }
-    										    
+
     										    if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
 
     										        dol_include_once('/projet/class/task.class.php');
-    										        
+
     										        foreach($object->lines as &$line) {
 
     										            if($line->fk_product == $ofLine->fk_product && ($wsof->type == 'STT' || empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT)) ) {
-    										                
+
     										                $projectTask = new Task($db);
     										                $projectTask->fetch($wsof->fk_project_task);
     										                $projectTask->progress = 100;
@@ -347,8 +366,9 @@ class Interfaceoftrigger
 
 							$TidSupplierOrder = $of->getElementElement($PDOdb);
 
+							// Vérification des autres commandes
 							foreach($TidSupplierOrder as $fk_supplierorder) {
-								if($fk_supplierorder == (int)GETPOST('id') ) continue;
+								if($fk_supplierorder == (int)GETPOST('id', 'none') ) continue;
 
 								$resql2 =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.$fk_supplierorder );
                                 				$res2 = $db->fetch_object($resql2);
@@ -364,14 +384,50 @@ class Interfaceoftrigger
 											$wsof->nb_days_before_beginning = 0;
 										}
 									}
-									$of->setStatus($PDOdb, 'OPEN');
 
+									// Le statut de l'OF passe au statut "Terminé" lors de la réception complète de la commande fournisseur associée
+									// et cela quelque soit le statut de l'OF à ce moment là (sauf si l'OF possède d'autres produits à créer qui ne dépendent pas d'une commande fournisseur).
+									// verification si la commande fournisseur fourni l'ensemble des produits restant à produire
+									$TOrderLinesSummaryClone = $TOrderLinesSummary;
+									$setStatusTo = 'CLOSE';
+									if(empty($of->TAssetOFLine)){
+										foreach ($of->TAssetOFLine as $assetOFLine){
+											// Normalement on n'est pas censé avoir plusieurs lignes d'OF pour un même fk_product mais au cas où on va partir de l'hypothèse que oui.
+
+											$stillToBeProduced = $assetOFLine->needed_qty - $assetOFLine->qty; // le restant à produire
+
+											if($assetOFLine->type == 'TO_MAKE' // seulement les lignes de type a Produire
+												&& !empty($assetOFLine->fk_product) // au cas ou
+												&& $stillToBeProduced > 0 // seulement les lignes qui restent à produire
+											)
+											{
+												if(!isset($TOrderLinesSummaryClone[$assetOFLine->fk_product])){
+													// Vu que q'un produit reste à produire mais que je ne le trouve pas dans la commande fournisseur alors
+													// l'OF c'est que possède d'autres produits à créer qui ne dépendent pas de cette commande fournisseur
+													$setStatusTo = 'OPEN';
+													break;
+												}
+												else{
+													// déduction du restant à produire sur la commande fournisseur
+													$TOrderLinesSummaryClone[$assetOFLine->fk_product]->qty-= $stillToBeProduced;
+
+													if($TOrderLinesSummaryClone[$assetOFLine->fk_product]->qty <= 0){
+														// Apres reception de la commande il restera encore des produits à produire donc
+														// l'OF possède d'autres produits à créer qui ne dépendent pas de cette commande fournisseur
+														$setStatusTo = 'OPEN';
+														break;
+													}
+												}
+											}
+										}
+									}
+
+									$of->setStatus($PDOdb, $setStatusTo);
 								}
 								else{
 									$of->closeOF($PDOdb);//TODO étrange de fermer l'OF systématiquement, rajouter sur option je pense
 									setEventMessage($langs->trans('OFAttachedClosedAutomatically', '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$id_of, 2).'">'.$of->numero.'</a>'));
 								}
-
 							}
 
 						}
@@ -393,33 +449,33 @@ class Interfaceoftrigger
 
         return 0;
     }
-    
+
     private function _maj_task_date(&$object)
     {
         global $db, $conf;
-        
+
         dol_include_once('/projet/class/task.class.php');
-        
+
         if(!empty($conf->of->enabled) && !empty($object->date_livraison)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
             dol_include_once('/of/class/ordre_fabrication_asset.class.php');
-            
+
             $PDOdb=new TPDOdb();
-            
+
             $resql = $db->query("SELECT fk_source
 									FROM ".MAIN_DB_PREFIX."element_element
 									WHERE fk_target = ".$object->id."
 									AND sourcetype = 'ordre_fabrication'
 									AND targettype = 'order_supplier'");
-            
+
             while($res = $db->fetch_object($resql)) {
-                
+
                 $id_of = (int)$res->fk_source;
                 if($id_of > 0) {
                     $of = new TAssetOF;
                     $of->load($PDOdb, $id_of);
-                    
+
                     if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
 
                         $TOfParent = $of->getListeOfParents($PDOdb, 'object', true);
@@ -464,7 +520,7 @@ class Interfaceoftrigger
                                         // TODO il faudrait recalculer aussi les dates des autres tâches non concerné par la commande fournisseur car il est possible qu'il y ai un impact
                                         // Attention ceci doit ce faire en dehors des boucles ici, car il est nécessaire d'impacter toutes les tâches concernées
 //                                    }
-                                    
+
                                 }
                             }
                         }
@@ -493,7 +549,7 @@ class Interfaceoftrigger
 
 
                     }
-                    
+
                 }
             }
         }

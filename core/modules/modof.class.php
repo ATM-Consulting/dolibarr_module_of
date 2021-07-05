@@ -46,20 +46,21 @@ class modof extends DolibarrModules
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->editor_name = 'ATM-Consulting';
+		$this->editor_name = 'ATM Consulting';
+		$this->editor_url = 'https://www.atm-consulting.fr';
 		$this->numero = 104161; // 104000 to 104999 for ATM CONSULTING
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'of';
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "GPAO";
+		$this->family = "ATM Consulting - GPAO";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
-		$this->description = "Description of module of";
+		$this->description = "Ordres de fabrication: management of manufacturing orders";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.14.4';
+		$this->version = '1.18.2';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -104,6 +105,7 @@ class modof extends DolibarrModules
 				'invoicelist',
 				'pdfgeneration'
 			),
+			'models' => 1,
 			'dir' => array('output' => 'of')
 		);
 
@@ -213,7 +215,7 @@ class modof extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
 
@@ -228,7 +230,7 @@ class modof extends DolibarrModules
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
 		$this->rights[$r][1] = 'Générer les documents';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
 
 		$r++;

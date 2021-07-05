@@ -374,7 +374,15 @@ class TAssetOF extends TObjetStd{
 
         // TODO faire la gestion des erreurs
         /** @var TAssetWorkstationOf $workstationOf */
-        $TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+
+		if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT))
+		{
+			$TAssetWorkstationOFReverse = $this->TAssetWorkstationOF;
+		}
+		else{
+			$TAssetWorkstationOFReverse = array_reverse($this->TAssetWorkstationOF);
+		}
+
         foreach ($TAssetWorkstationOFReverse as $workstationOf)
         {
             if (!isset($workstationOf->projectTask) && !empty($workstationOf->fk_project_task))
@@ -592,11 +600,20 @@ class TAssetOF extends TObjetStd{
 
 	function getNomUrl($picto=0) {
 		global $langs;
-		$label = $langs->trans('titleOfToolTip', $this->numero);
-		return '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
-				.($picto ? img_picto('','object_list.png','',0).' ' : '')
-				.$this->numero
-				.'</a>';
+
+		$label = $langs->trans('titleOfToolTip', $this->numero)
+            .'<br>'
+            .$langs->trans($this->getLibStatus())
+            .'<br>';
+
+		if(!empty($this->date_besoin)) $label .= date('d/m/Y', $this->date_besoin);
+
+		$str =  '<a class="classfortooltip" title="'.dol_escape_htmltag($label, 1).'" href="'.dol_buildpath('/of/fiche_of.php?id='.$this->getId().'"', 2).'>'
+                .($picto ? img_picto('','object_list.png','',0).' ' : '')
+                .$this->numero
+                .'</a>';
+
+		return $str;
 	}
 
 	/**
@@ -2361,6 +2378,191 @@ class TAssetOF extends TObjetStd{
 
         return $date_start_search;
     }
+
+
+	/**
+	 *  Create a document onto disk according to template module.
+	 *
+	 * 	@param	    string		$modele			Force model to use ('' to not force)
+	 * 	@param		Translate	$outputlangs	Object langs to use for output
+	 *  @param      int			$hidedetails    Hide details of lines
+	 *  @param      int			$hidedesc       Hide description
+	 *  @param      int			$hideref        Hide ref
+	 *  @param   null|array  $moreparams     Array to provide more information
+	 * 	@return     int         				0 if KO, 1 if OK
+	 */
+	public function generateDocument($modele, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
+	{
+		global $conf,$langs;
+
+		$langs->load("of@of");
+
+		if (! dol_strlen($modele)) {
+
+			$modele = 'templateOF.odt';
+
+			if ($this->modelpdf) {
+				$modele = $this->modelpdf;
+			} elseif (! empty($conf->global->OF_ADDON_PDF)) {
+				$modele = $conf->global->OF_ADDON_PDF;
+			}
+		}
+
+		$modelpath = "core/modules/of/doc/";
+
+		return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+	}
+
+
+	/**
+	 * copier de dolibarr car le TObject ne le gère pas
+	 * Common function for all objects extending CommonObject for generating documents
+	 *
+	 * @param 	string 		$modelspath 	Relative folder where generators are placed
+	 * @param 	string 		$modele 		Generator to use. Caller must set it to obj->modelpdf or GETPOST('modelpdf', 'none') for example.
+	 * @param 	Translate 	$outputlangs 	Output language to use
+	 * @param 	int 		$hidedetails 	1 to hide details. 0 by default
+	 * @param 	int 		$hidedesc 		1 to hide product description. 0 by default
+	 * @param 	int 		$hideref 		1 to hide product reference. 0 by default
+	 * @param   null|array  $moreparams     Array to provide more information
+	 * @return 	int 						>0 if OK, <0 if KO
+	 * @see	addFileIntoDatabaseIndex()
+	 */
+	protected function commonGenerateDocument($modelspath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams = null)
+	{
+		global $conf, $langs, $user, $db;
+
+		$srctemplatepath='';
+
+		// Increase limit for PDF build
+		$err=error_reporting();
+		error_reporting(0);
+		@set_time_limit(120);
+		error_reporting($err);
+
+		// If selected model is a filename template (then $modele="modelname" or "modelname:filename")
+		$tmp=explode(':', $modele, 2);
+		if (! empty($tmp[1]))
+		{
+			$modele=$tmp[0];
+			$srctemplatepath=$tmp[1];
+		}
+
+		// Search template files
+		$file=''; $classname=''; $filefound=0;
+		$dirmodels=array('/');
+		if (is_array($conf->modules_parts['models'])) $dirmodels=array_merge($dirmodels, $conf->modules_parts['models']);
+		foreach($dirmodels as $reldir)
+		{
+			foreach(array('doc','pdf') as $prefix)
+			{
+				$file = $prefix."_".$modele.".modules.php";
+				// On verifie l'emplacement du modele
+				$file=dol_buildpath($reldir.$modelspath.$file, 0);
+				if (file_exists($file))
+				{
+					$filefound=1;
+					$classname=$prefix.'_'.$modele;
+					break;
+				}
+			}
+			if ($filefound) break;
+		}
+
+		// If generator was found
+		if ($filefound)
+		{
+			global $db;  // Required to solve a conception default in commonstickergenerator.class.php making an include of code using $db
+
+			require_once $file;
+
+			$obj = new $classname($db);
+
+			// If generator is ODT, we must have srctemplatepath defined, if not we set it.
+			if ($obj->type == 'odt' && empty($srctemplatepath))
+			{
+				$varfortemplatedir=$obj->scandir;
+				if ($varfortemplatedir && ! empty($conf->global->$varfortemplatedir))
+				{
+					$dirtoscan=$conf->global->$varfortemplatedir;
+
+					$listoffiles=array();
+
+					// Now we add first model found in directories scanned
+					$listofdir=explode(',', $dirtoscan);
+					foreach($listofdir as $key => $tmpdir)
+					{
+						$tmpdir=trim($tmpdir);
+						$tmpdir=preg_replace('/DOL_DATA_ROOT/', DOL_DATA_ROOT, $tmpdir);
+						if (! $tmpdir) { unset($listofdir[$key]); continue; }
+						if (is_dir($tmpdir))
+						{
+							$tmpfiles=dol_dir_list($tmpdir, 'files', 0, '\.od(s|t)$', '', 'name', SORT_ASC, 0);
+							if (count($tmpfiles)) $listoffiles=array_merge($listoffiles, $tmpfiles);
+						}
+					}
+
+					if (count($listoffiles))
+					{
+						foreach($listoffiles as $record)
+						{
+							$srctemplatepath=$record['fullname'];
+							break;
+						}
+					}
+				}
+
+				if (empty($srctemplatepath))
+				{
+					$this->error='ErrorGenerationAskedForOdtTemplateWithSrcFileNotDefined';
+					return -1;
+				}
+			}
+
+			if ($obj->type == 'odt' && ! empty($srctemplatepath))
+			{
+				if (! dol_is_file($srctemplatepath))
+				{
+					$this->error='ErrorGenerationAskedForOdtTemplateWithSrcFileNotFound';
+					return -1;
+				}
+			}
+
+			// We save charset_output to restore it because write_file can change it if needed for
+			// output format that does not support UTF8.
+			$sav_charset_output=$outputlangs->charset_output;
+
+			$resultwritefile = $obj->write_file($this, $outputlangs, $srctemplatepath, $hidedetails, $hidedesc, $hideref, $moreparams);
+
+			// After call of write_file $obj->result['fullpath'] is set with generated file. It will be used to update the ECM database index.
+
+			if ($resultwritefile > 0)
+			{
+				$outputlangs->charset_output=$sav_charset_output;
+
+				// We delete old preview
+				require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+				dol_delete_preview($this);
+
+				// Success in building document. We build meta file.
+				dol_meta_create($this);
+
+				return 1;
+			}
+			else
+			{
+				$outputlangs->charset_output=$sav_charset_output;
+				dol_print_error($db, "Error generating document for ".__CLASS__.". Error: ".$obj->error, $obj->errors);
+				return -1;
+			}
+		}
+		else
+		{
+			$this->error=$langs->trans("Error")." ".$langs->trans("ErrorFileDoesNotExists", $file);
+			dol_print_error('', $this->error);
+			return -1;
+		}
+	}
 }
 
 class TAssetOFLine extends TObjetStd{
@@ -3413,7 +3615,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	function createTask(&$PDOdb, &$db, &$conf, &$user, TAssetOF &$OF)
 	{
 		//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
-		if (!$user->id)	$user->id = GETPOST('user_id');
+		if (!$user->id)	$user->id = GETPOST('user_id', 'none');
 
 		$ws = new TAssetWorkstation;
 		$ws->load($PDOdb, $this->fk_asset_workstation);
@@ -3492,7 +3694,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 	function updateTask(&$PDOdb, &$db, &$conf, &$user, &$OF, $date_start_search = null, $TExcludeTaskId = array())
 	{
-		if (!$user->id)	$user->id = GETPOST('user_id');
+		if (!$user->id)	$user->id = GETPOST('user_id', 'none');
 
 		global $conf;
 
@@ -3684,7 +3886,11 @@ class TAssetWorkstationOF extends TObjetStd{
                 else $date_current_search = strtotime('+1 day', $date_current_search);
 
                 $i++;
-                if (!empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) break; // sécurité, permet de plafonner la planification sur x jours
+                if (!empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF){
+					break; // sécurité, permet de plafonner la planification sur x jours
+				}elseif (empty($conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF) && $i > 60){
+					break; // sécurité, si pas de configuration plafone sur 60 jours
+				}
             }
 
             // TODO voir si on met pas 23:59:59 (quand la demi journée sera gérée, pour le moment je met par défaut à 12:00:00)
@@ -3730,7 +3936,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 		require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 
-		if (!$user->id)	$user->id = GETPOST('user_id');
+		if (!$user->id)	$user->id = GETPOST('user_id', 'none');
 
 		$projectTask = new Task($db);
 		$projectTask->fetch($this->fk_project_task);
@@ -3919,7 +4125,7 @@ class TAssetWorkstationOF extends TObjetStd{
 			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
 
-			if (!$user->id) $user->id = GETPOST('user_id');
+			if (!$user->id) $user->id = GETPOST('user_id', 'none');
 
 			$projectTask = new Task($db);
 			if($projectTask->fetch($this->fk_project_task) > 0) {
