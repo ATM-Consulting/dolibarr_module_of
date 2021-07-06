@@ -3350,6 +3350,7 @@ class TAssetOFLine extends TObjetStd{
 	{
 		global $conf,$langs;
 		$qty_make = $this->qty_used - $this->qty_stock;
+		if (empty($this->lot_number)) $this->lot_number = $of->ref;
 
 		$res = $this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number, $this->fk_entrepot);
 		//TODO si pas d'équipement défini, pas de mouvement de stock ! à corriger
