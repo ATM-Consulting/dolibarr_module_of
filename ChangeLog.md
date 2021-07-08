@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- FIX : Default extrafield reflinenumber visibility  *05/07/2021* - 2.0.2
+- FIX : Redirect error with asset ATM select  *05/07/2021* - 2.0.1
+- NEW : Compatibility with Workstation ATM for Dolibarr v14 *28/06/2021* - 2.0.0  
+  **requires WorkstationAtm 2.0**
 
 ## Version 1.18
 
