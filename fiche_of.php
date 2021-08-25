@@ -866,6 +866,26 @@ function _fiche_ligne(&$form, &$of, $type){
 
     $PDOdb=new TPDOdb;
 	$TRes = array();
+	//On réordonne les lignes par ordre alphabétique de la catégorie
+	if(!empty($conf->global->OF_DISPLAY_PRODUCT_CATEGORIES)) {
+	    include_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
+	    $langs->load('categories');
+        foreach($of->TAssetOFLine  as $k=>&$TAssetOFLine) {
+            $cat = new Categorie($db);
+            $TCateg = $cat->containing($TAssetOFLine->fk_product,'product');
+            if(!empty($TCateg)) {
+                usort($TCateg, function($a, $b) {return strcmp($a->label, $b->label);});
+                $TAssetOFLine->categLabel = '';
+                foreach($TCateg as $categ) {
+                   $color = $categ->color ? ' style="background: #'.$categ->color.';"' : ' style="background: #aaa"';
+                   $TAssetOFLine->categLabel .= '<span class="noborderoncategories" '.$color.'>'.$categ->getNomUrl(1).'</span><br>';
+                }
+                $TAssetOFLine->categ = $TCateg;
+            }
+        }
+	    usort($of->TAssetOFLine, function($a, $b) {return strcmp($a->categ[0]->label, $b->categ[0]->label);});
+	}
+
 	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
 	    /** @var TAssetOFLine $TAssetOFLine */
 		$product = &$TAssetOFLine->product;
@@ -925,9 +945,9 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 		            ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
+		            ,'categLabel'=>$TAssetOFLine->categLabel
 
 			);
-
 			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'NEEDED');
@@ -1461,6 +1481,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 			,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
+			,'defined_show_categorie'=>(int) $conf->global->OF_DISPLAY_PRODUCT_CATEGORIES
 			,'hasChildren' => (int) !empty($Tid)
 			,'user_id'=>$user->id
 			,'workstation_module_activate'=>(int) $conf->workstationatm->enabled
