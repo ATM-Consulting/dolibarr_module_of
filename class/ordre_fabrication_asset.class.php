@@ -2102,6 +2102,8 @@ class TAssetOF extends TObjetStd{
 
 		$nb_to_make = 0;
 
+
+//		return $this->TAssetOFLine;
 		if(!empty($this->TAssetOFLine) && empty($coef)) {
 
 			foreach ($this->TAssetOFLine as &$line) {
@@ -2147,6 +2149,92 @@ class TAssetOF extends TObjetStd{
 
 						}
 
+					}
+
+				}
+
+			}
+
+			if(!empty($this->TAssetWorkstationOF)) {
+
+				foreach ($this->TAssetWorkstationOF as &$ws) {
+
+					$ws->nb_hour*=$coef;
+					$ws->nb_hour_prepare*=$coef;
+
+					$ws->save($PDOdb);
+				}
+
+			}
+
+		}
+
+		return $res;
+
+	}
+	public function updateUsedNonCompliantLineQty(&$PDOdb, $idLine,$qty_used, $qty_non_compliant, $coef = 0) {
+
+		$res = false;
+
+		$nb_to_make = 0;
+
+		/*TODO : LE CHIFFRE NON CONFORME N'EST PAS GARDE + GERER LES CAS ENFANTS  + FACTORISER */
+		if(!empty($this->TAssetOFLine) && empty($coef) && (!empty($qty_non_compliant) || !empty($qty_used))) {
+
+
+			foreach ($this->TAssetOFLine as &$line) {
+
+
+				if($line->type === 'TO_MAKE' && $idLine === $line->getId() && $line->qty>0) {
+
+
+					$coef = ($qty_used + $qty_non_compliant) / $line->qty;
+
+					$res = true;
+
+					$nb_to_make++;
+
+				}
+			}
+		}
+		else if(!empty($coef)) {
+			$nb_to_make = 1;
+			$res = true;
+		}
+		if($res && $nb_to_make == 1) { // On applique le coef que s'il y a 1 seul produit à fabriquer
+
+			if(!empty($this->TAssetOFLine)) {
+
+				foreach ($this->TAssetOFLine as &$line) {
+					if($line->type === 'NEEDED') {
+
+						//	var_dump('$line', $line->qty);
+						$line->qty_used = $line->qty * $coef;
+
+//						$line->qty_used *= $coef;
+
+						$res = $line->saveQty($PDOdb);
+
+						$TOF = array();
+						$this->getOFEnfantWithProductToMake($PDOdb, $TOF, $line->fk_product, 0, false);
+						if (!empty($TOF)) {
+
+							foreach ($TOF as &$data) {
+
+								$of = new TAssetOF;
+								if ($of->load($PDOdb, $data['id_assetOf'])) {
+									//						var_dump('OFCHILD', $of->getId());
+									if (!$of->updateUsedNonCompliantLineQty($PDOdb, 0, 0, $coef)) $res = false;
+
+								}
+
+							}
+
+						}
+					} else {
+						$line->qty_used = $qty_used;
+						$line->qty_non_compliant = $qty_non_compliant;
+						$res = $line->saveQty($PDOdb);
 					}
 
 				}
@@ -3408,7 +3496,7 @@ class TAssetOFLine extends TObjetStd{
 
 	function saveQty(TPDOdb &$PDOdb) {
 
-		$PDOdb->dbupdate($this->get_table(), array( 'qty'=>$this->qty, 'qty_needed'=>$this->qty_needed, 'rowid'=>$this->getId()),array('rowid'));
+		$PDOdb->dbupdate($this->get_table(), array( 'qty'=>$this->qty, 'qty_needed'=>$this->qty_needed, 'qty_used'=>$this->qty_used, 'rowid'=>$this->getId()),array('rowid'));
 
 
 	}

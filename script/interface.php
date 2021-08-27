@@ -271,7 +271,7 @@ function _updateQtyMaking(&$PDOdb, $fk_of,$idLine,$action,$qty, $qty_used, $qty_
 	$of->load($PDOdb, $fk_of);
 
 	if($action == 'updateqty') $res =  $of->updateToMakeLineQty($PDOdb, $idLine,$qty);
-	elseif ($action == 'updateqty_usernocompliant') $res =  $of->updateUsedNonCompliantLineQty($PDOdb, $idLine,$qty);
+	elseif ($action == 'updateqty_usernocompliant') $res =  $of->updateUsedNonCompliantLineQty($PDOdb, $idLine,$qty_used, $qty_non_compliant);
 
 	return $res;
 

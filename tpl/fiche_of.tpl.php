@@ -873,7 +873,6 @@
 
 			[onshow;block=begin;when [view.mode]!='view']
 
-			console.log($(btnadd).attr('statut'));
 				if ($(btnadd).attr('statut') == 'DRAFT' || $(btnadd).attr('statut') == 'OPEN') {
 					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
 					qty_used = $(btnadd).closest('tr').find("input[id*='qty_used']").val();
@@ -890,7 +889,6 @@
 						,dataType: 'json'
 					}).done(function(result){
 
-						console.log(result);
 						if(result) {
 							 $.jnotify("[view.langs.transnoentities(QtyUpdated)]", "ok");
 						}
