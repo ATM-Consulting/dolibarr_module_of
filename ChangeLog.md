@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 - NEW Gestion des catégories produits *24/08/2021* - 2.1
+- NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2
 
 ## Version 2.0 - *08/07/2021*
 
