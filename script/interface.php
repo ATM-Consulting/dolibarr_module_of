@@ -32,7 +32,7 @@ function traite_get(&$PDOdb, $case) {
 			__out(_deletelineof($PDOdb,GETPOST('idLine', 'none'),GETPOST('type', 'none')), 'json');
 			break;
 		case 'updateqtymaking':
-			__out(_updateQtyMaking($PDOdb,GETPOST('id', 'none'),GETPOST('idLine', 'none'),GETPOST('action', 'none'),GETPOST('qty', 'none'), GETPOST('qty_used', 'none'), GETPOST('qty_non_compliant', 'none')),GETPOST('type', 'none'));
+			__out(_updateQtyMaking($PDOdb,GETPOST('id', 'none'),GETPOST('idLine', 'none'),GETPOST('action', 'none'),GETPOST('qty', 'none'), GETPOST('qty_used', 'none'), GETPOST('qty_non_compliant', 'int')),GETPOST('type', 'none'));
 			break;
 		case 'addofworkstation':
 			__out(_addofworkstation($PDOdb,GETPOST('id_assetOf', 'none'),GETPOST('fk_asset_workstation', 'none')));
