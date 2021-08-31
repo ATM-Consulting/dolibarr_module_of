@@ -154,10 +154,10 @@ class TAssetOF extends TObjetStd{
 
 	}
 
-	function load(&$db, $id, $loadChild = true) {
-		global $conf;
+	function load(&$PDOdb, $id, $loadChild = true) {
+		global $conf, $langs, $db;
 
-		$res = parent::load($db,$id,true);
+		$res = parent::load($PDOdb,$id,true);
 
 		$this->ref = $this->numero; //for dolibarr compatibility
 
@@ -171,6 +171,25 @@ class TAssetOF extends TObjetStd{
         	    $ws->of_status = $this->status;
 	            $ws->of_fk_project = $this->fk_project;
         	}
+
+        if(! empty($conf->global->OF_DISPLAY_PRODUCT_CATEGORIES)) {
+            include_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
+            $langs->load('categories');
+            foreach($this->TAssetOFLine as $k => &$TAssetOFLine) {
+                $cat = new Categorie($db);
+                $TCateg = $cat->containing($TAssetOFLine->fk_product, 'product');
+                if(! empty($TCateg)) {
+                    usort($TCateg, function($a, $b) { return strcmp($a->label, $b->label); });
+                    $TAssetOFLine->categLabel = '';
+                    foreach($TCateg as $categ) {
+                        $color = $categ->color ? ' style="background: #'.$categ->color.';"' : ' style="background: #aaa"';
+                        $TAssetOFLine->categLabel .= '<span class="noborderoncategories" '.$color.'>'.$categ->getNomUrl(1).'</span><br>';
+                    }
+                    $TAssetOFLine->categ = $TCateg;
+                }
+            }
+            usort($this->TAssetOFLine, function($a, $b) { return strcmp($a->categ[0]->label, $b->categ[0]->label); });
+        }
 
 		usort($this->TAssetWorkstationOF, array($this,'sortWorkStationByRank'));
 
@@ -2211,11 +2230,11 @@ class TAssetOF extends TObjetStd{
 					if($line->type === 'NEEDED') {
 
 						//	var_dump('$line', $line->qty);
-						$line->qty_used = $line->qty * $coef;
+						$line->qty_used = $line->qty_needed * $coef;
 
 //						$line->qty_used *= $coef;
 
-						$res = $line->saveQty($PDOdb);
+						$line->saveQty($PDOdb);
 
 						$TOF = array();
 						$this->getOFEnfantWithProductToMake($PDOdb, $TOF, $line->fk_product, 0, false);
@@ -2233,7 +2252,7 @@ class TAssetOF extends TObjetStd{
 							}
 
 						}
-					} else {
+					} else if(!empty($line->qty)) {
                         if(!empty($child)) {
                             $line->qty_used = $line->qty * $coef_compliant;
                             $line->qty_non_compliant = $line->qty * $coef_non_compliant;
@@ -2241,7 +2260,7 @@ class TAssetOF extends TObjetStd{
                             $line->qty_used = $qty_used;
                             $line->qty_non_compliant = $qty_non_compliant;
                         }
-						$res = $line->saveQty($PDOdb);
+						$line->saveQty($PDOdb);
 					}
 
 				}
@@ -2261,7 +2280,6 @@ class TAssetOF extends TObjetStd{
 			}
 
 		}
-
 		return $res;
 
 	}

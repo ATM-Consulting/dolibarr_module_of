@@ -867,24 +867,7 @@ function _fiche_ligne(&$form, &$of, $type){
     $PDOdb=new TPDOdb;
 	$TRes = array();
 	//On réordonne les lignes par ordre alphabétique de la catégorie
-	if(!empty($conf->global->OF_DISPLAY_PRODUCT_CATEGORIES)) {
-	    include_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
-	    $langs->load('categories');
-        foreach($of->TAssetOFLine  as $k=>&$TAssetOFLine) {
-            $cat = new Categorie($db);
-            $TCateg = $cat->containing($TAssetOFLine->fk_product,'product');
-            if(!empty($TCateg)) {
-                usort($TCateg, function($a, $b) {return strcmp($a->label, $b->label);});
-                $TAssetOFLine->categLabel = '';
-                foreach($TCateg as $categ) {
-                   $color = $categ->color ? ' style="background: #'.$categ->color.';"' : ' style="background: #aaa"';
-                   $TAssetOFLine->categLabel .= '<span class="noborderoncategories" '.$color.'>'.$categ->getNomUrl(1).'</span><br>';
-                }
-                $TAssetOFLine->categ = $TCateg;
-            }
-        }
-	    usort($of->TAssetOFLine, function($a, $b) {return strcmp($a->categ[0]->label, $b->categ[0]->label);});
-	}
+
 
 	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
 	    /** @var TAssetOFLine $TAssetOFLine */
