@@ -867,24 +867,7 @@ function _fiche_ligne(&$form, &$of, $type){
     $PDOdb=new TPDOdb;
 	$TRes = array();
 	//On réordonne les lignes par ordre alphabétique de la catégorie
-	if(!empty($conf->global->OF_DISPLAY_PRODUCT_CATEGORIES)) {
-	    include_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
-	    $langs->load('categories');
-        foreach($of->TAssetOFLine  as $k=>&$TAssetOFLine) {
-            $cat = new Categorie($db);
-            $TCateg = $cat->containing($TAssetOFLine->fk_product,'product');
-            if(!empty($TCateg)) {
-                usort($TCateg, function($a, $b) {return strcmp($a->label, $b->label);});
-                $TAssetOFLine->categLabel = '';
-                foreach($TCateg as $categ) {
-                   $color = $categ->color ? ' style="background: #'.$categ->color.';"' : ' style="background: #aaa"';
-                   $TAssetOFLine->categLabel .= '<span class="noborderoncategories" '.$color.'>'.$categ->getNomUrl(1).'</span><br>';
-                }
-                $TAssetOFLine->categ = $TCateg;
-            }
-        }
-	    usort($of->TAssetOFLine, function($a, $b) {return strcmp($a->categ[0]->label, $b->categ[0]->label);});
-	}
+
 
 	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
 	    /** @var TAssetOFLine $TAssetOFLine */
@@ -1068,7 +1051,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'TO_MAKE')
 			        ,'nomenclature'=>$nomenclature
-				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
+				,'addneeded'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || $of->status == 'OPEN')) ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,10,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
 				,'qty_non_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_non_compliant]', $TAssetOFLine->qty_non_compliant,  5,5,'','') : $TAssetOFLine->qty_non_compliant)

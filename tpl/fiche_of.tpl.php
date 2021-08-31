@@ -872,12 +872,20 @@
 			[onshow;block=end]
 
 			[onshow;block=begin;when [view.mode]!='view']
-				if ($(btnadd).attr('statut') == 'DRAFT') {
-					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
 
+				if ($(btnadd).attr('statut') == 'DRAFT' || $(btnadd).attr('statut') == 'OPEN') {
+					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
+					qty_used = $(btnadd).closest('tr').find("input[id*='qty_used']").val();
+					qty_non_compliant = $(btnadd).closest('tr').find("input[id*='qty_non_compliant']").val();
+
+					if ($(btnadd).attr('statut') == 'DRAFT') {
+						action = 'updateqty';
+					} else {
+						action = 'updateqty_usernocompliant';
+					}
 
 					$.ajax({
-						url: "script/interface.php?get=updateQtyMaking&id="+id_assetOf+"&idLine="+idLine+"&qty="+qty+"&type=json"
+						url: "script/interface.php?get=updateQtyMaking&id="+id_assetOf+"&idLine="+idLine+"&action="+action+"&qty="+qty+"&qty_used="+qty_used+"&qty_non_compliant="+qty_non_compliant+"&type=json"
 						,dataType: 'json'
 					}).done(function(result){
 
