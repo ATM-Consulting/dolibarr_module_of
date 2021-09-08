@@ -392,25 +392,28 @@ function _action() {
 			exit;
 
 		case 'addAssetLink':
+
 			$assetOf=new TAssetOF;
             $assetOf->load($PDOdb, __get('id', 0, 'int'));
 
-			$idLine = __get('idLine', 0, 'int');
-			$idAsset = __get('idAsset', 0, 'int');
+			$TIdAssets = GETPOST('AssetLinkList');
+			$idLine = GETPOST('idLine');
 
-			if ($idLine && $idAsset)
+			if ($idLine && $TIdAssets)
 			{
 				$find = false;
-				foreach ($assetOf->TAssetOFLine as $TAssetOFLine)
-				{
-					if ($TAssetOFLine->getId() == $idLine)
+				foreach($TIdAssets as $key=>$idAsset){
+					foreach ($assetOf->TAssetOFLine as $TAssetOFLine)
 					{
-						$find = true;
+						if ($TAssetOFLine->getId() == $idLine)
+						{
+							$find = true;
 
-						$asset = new TAsset;
-						$asset->load($PDOdb, $idAsset);
-						$TAssetOFLine->addAssetLink($asset);
-						break;
+							$asset = new TAsset;
+							$asset->load($PDOdb, $idAsset);
+							$TAssetOFLine->addAssetLink($asset);
+							break;
+						}
 					}
 				}
 
@@ -1112,11 +1115,23 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
     {
     	$url = dol_buildpath('/of/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 1);
+
+
+		$formtwo = new Form($db);
+		$r.= '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+		$r.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+		$r.= '<input type="hidden" name="action" value="addAssetLink">';
+		$r.= '<input type="hidden" name="idLine" value="'.$assetOFLine->getId().'">';
+		$r.= $formtwo->multiselectarray('AssetLinkList', array('70'=>'test','71'=>71), '', '', '', '', '', 300);
+		$r.='<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+		$r.='</form>';
+
+
 		// Pour le moment au limite au besoin, la création reste en dure, à voir
-		$r.='<span class="fa fa-search" style="color: #aaaaaa"></span>' // Haaaaaa could also be used for heavy metal cover name !
-			.$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 20,255,'placeholder="'.$langs->trans('AddAnAssetATM').'" title="'.$langs->trans('AddAnAssetATM').'" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
-			.'<a style="display:none;" id="add-asset-from-autocomplete-'.$assetOFLine->getId().'" class="add-asset-from-autocomplete" href="" base-href="'.$url.'">'.img_right($langs->trans('Link')).'</a>'
-			.'<br/>';
+//		$r.='<span class="fa fa-search" style="color: #aaaaaa"></span>' // Haaaaaa could also be used for heavy metal cover name !
+//			.$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 20,255,'placeholder="'.$langs->trans('AddAnAssetATM').'" title="'.$langs->trans('AddAnAssetATM').'" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
+//			.'<a style="display:none;" id="add-asset-from-autocomplete-'.$assetOFLine->getId().'" class="add-asset-from-autocomplete" href="" base-href="'.$url.'">'.img_right($langs->trans('Link')).'</a>'
+//			.'<br/>';
     }
     foreach($TAsset as &$asset)
     {
