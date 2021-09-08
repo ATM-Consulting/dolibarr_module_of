@@ -396,8 +396,8 @@ function _action() {
 			$assetOf=new TAssetOF;
             $assetOf->load($PDOdb, __get('id', 0, 'int'));
 
-			$TIdAssets = GETPOST('AssetLinkList');
-			$idLine = GETPOST('idLine');
+			$TIdAssets = GETPOST('AssetLinkList');		//équipements sélectionnés
+			$idLine = GETPOST('idLine');		//ligne of
 
 			if ($idLine && $TIdAssets)
 			{
@@ -1113,10 +1113,15 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 
     if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
     {
+
     	$url = dol_buildpath('/of/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 1);
 
+		/*ON AFFICHE LE MULTISELECT DES EQUIPEMENTS*/
+
+		//équipements qu'on ne peut plus sélectionner
 		$TAssetToExclude = array();
 
+		//on cherche les équipements déjà liés à la ligne de l'of
 		$sql = "SELECT fk_source, fk_target";
 		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
 		$sql.= " WHERE sourcetype ='TAssetOFLine' AND fk_source =".$assetOFLine->getId();
@@ -1124,14 +1129,14 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 		$resql = $PDOdb->execute($sql);
 
 		if($resql){
-
-
 			while ($PDOdb->Get_line()){
 				$TAssetToExclude[] = $PDOdb->Get_field('fk_target');
 			}
 
 		}
 
+
+		//on cherches tous les équipements du produit de la ligne de l'of
 		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
    	 	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 		if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
@@ -1141,6 +1146,8 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 
 		$resql = $PDOdb->execute($sql);
 
+
+		//on affiche le multiselect
 		if($resql){
 
 			$TAssetsOFLine = array();
@@ -1167,14 +1174,8 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 			}
 
 		}
-
-
-		// Pour le moment au limite au besoin, la création reste en dure, à voir
-//		$r.='<span class="fa fa-search" style="color: #aaaaaa"></span>' // Haaaaaa could also be used for heavy metal cover name !
-//			.$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 20,255,'placeholder="'.$langs->trans('AddAnAssetATM').'" title="'.$langs->trans('AddAnAssetATM').'" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
-//			.'<a style="display:none;" id="add-asset-from-autocomplete-'.$assetOFLine->getId().'" class="add-asset-from-autocomplete" href="" base-href="'.$url.'">'.img_right($langs->trans('Link')).'</a>'
-//			.'<br/>';
     }
+
     foreach($TAsset as &$asset)
     {
         $r .= "<br />".$asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && $asset->dluo < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');
