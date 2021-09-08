@@ -1115,14 +1115,28 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
     {
     	$url = dol_buildpath('/of/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 1);
 
+		$TAssetToExclude = array();
+
+		$sql = "SELECT fk_source, fk_target";
+		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+		$sql.= " WHERE sourcetype ='TAssetOFLine' AND fk_source =".$assetOFLine->getId();
+
+		$resql = $PDOdb->execute($sql);
+
+		if($resql){
+
+
+			while ($PDOdb->Get_line()){
+				$TAssetToExclude[] = $PDOdb->Get_field('fk_target');
+			}
+
+		}
+
 		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
    	 	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
-
 		if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
-
     	if ($assetOFLine->fk_product > 0) $sql .= ' AND fk_product = '.(int) $assetOFLine->fk_product.' ';
     	if (!empty($assetOFLine->lot_number)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$assetOFLine->lot_number.'%').' ';
-
 		$sql .= 'ORDER BY a.serial_number';
 
 		$resql = $PDOdb->execute($sql);
@@ -1134,19 +1148,23 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 			while ($PDOdb->Get_line()){
 					$serial = $PDOdb->Get_field('serial_number');
 					$contenancereel_value = $PDOdb->Get_field('contenancereel_value');
-					if(!empty($contenancereel_value)){
-						$TAssetsOFLine[$PDOdb->Get_field('rowid')] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
+					$rowid = $PDOdb->Get_field('rowid');
+
+					if(!empty($contenancereel_value) && !in_array($rowid, $TAssetToExclude)){
+						$TAssetsOFLine[$rowid] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
 					}
 			}
 
-			$formAddAsset = new Form($db);
-			$r.= '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-			$r.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			$r.= '<input type="hidden" name="action" value="addAssetLink">';
-			$r.= '<input type="hidden" name="idLine" value="'.$assetOFLine->getId().'">';
-			$r.= $formAddAsset->multiselectarray('AssetLinkList', $TAssetsOFLine, '', '', '', '', '', '', '', '', $langs->transnoentities('AddAnAssetATM'), 2);
-			$r.='<input type="submit" class="button button-save" style="min-width:5px" value="'.$langs->trans("+").'">';
-			$r.='</form>';
+			if(!empty($TAssetsOFLine)){
+				$formAddAsset = new Form($db);
+				$r.= '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+				$r.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+				$r.= '<input type="hidden" name="action" value="addAssetLink">';
+				$r.= '<input type="hidden" name="idLine" value="'.$assetOFLine->getId().'">';
+				$r.= $formAddAsset->multiselectarray('AssetLinkList', $TAssetsOFLine, '', '', '', '', '', '', '', '', $langs->transnoentities('AddAnAssetATM'), 2);
+				$r.='<input type="submit" class="button button-save" style="min-width:5px" value="'.$langs->trans("+").'">';
+				$r.='</form>';
+			}
 
 		}
 
