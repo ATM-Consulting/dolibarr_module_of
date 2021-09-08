@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+- NEW Sélection des équipements pour les composants d'un OF : mise en place d'un multisect  *08/09/2021* - 2.3
 - NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2
 - NEW Gestion des catégories produits *24/08/2021* - 2.1
 
