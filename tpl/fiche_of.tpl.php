@@ -773,6 +773,7 @@
 			[onshow;block=begin;when [view.use_lot_in_of]==1]
 				$(".TAssetOFLineLot").each(function(){
 					var fk_product = $(this).attr('fk_product');
+					var idline = $(this).attr('fk-asset-of-line');
 					var type = $(this).attr('type_product');
 					$(this).autocomplete({
 						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product+"&type_product="+type,
@@ -784,7 +785,21 @@
 							,minLength: 1
 							,select: function(event, ui) {
 								var value = ui.item.value;
-							}
+								var res = value.match(/^\[[0-9]*\]/g);
+
+								if (res.length){
+									res = res[0].substr(1, res[0].length-2);
+								} else {
+									res = 0;
+								}
+
+								if(res > 0) {
+									let $btnAssetFromAutoComplete = $(this).parent().children('a.add-asset-from-autocomplete');
+									var href = $btnAssetFromAutoComplete.attr('base-href');
+									$btnAssetFromAutoComplete.attr('href', href+res)
+									$btnAssetFromAutoComplete.show();
+									window.location.replace(href + res + "#" + idline);
+								}							}
 						});
 					});
 				})

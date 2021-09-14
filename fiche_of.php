@@ -913,10 +913,16 @@ function _fiche_ligne(&$form, &$of, $type){
 			$label.= ' - '.$langs->trans("StockTheo") . ' : ' . ($stock_theo>0 ? $stock_theo : '<span style="color:red;font-weight:bold;">'.$stock_theo.'</span>');
 			$label.= _fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED');
 
+			$LotNumbers = "";
+			$TAsset = $TAssetOFLine->getAssetLinked($PDOdb);
+			foreach ($TAsset as $asset){
+				if(!empty($asset->lot_number)) $LotNumbers.= "<br>".$asset->lot_number;
+			}
+
 			$TLine = array(
 					'id'=>$TAssetOFLine->getId()
 					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') : $TAssetOFLine->lot_number
+					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') . $LotNumbers : $TAssetOFLine->lot_number . $LotNumbers
 					,'libelle'=>$label
 			        ,'cost'=>(empty($user->rights->of->of->price) ? '' : price(price2num($TAssetOFLine->compo_planned_cost,'MT'),0,'',1,-1,-1,$conf->currency).$conditionnement_label)
     			    ,'qty_needed'=>$TAssetOFLine->qty_needed
