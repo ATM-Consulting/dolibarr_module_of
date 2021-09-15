@@ -383,7 +383,9 @@
 					[onshow;block=begin;when [view.show_cost]=='1']
 						<a onclick="if(!confirm('[view.langs.transnoentities(ReloadPriceFourn)]')) return false;" class="butActionDelete warning" href="[assetOf.url]?id=[assetOf.id]&action=reload_pmp">[view.langs.transnoentities(ReloadPrice)]</a>
 					[onshow;block=end]
-
+					[onshow;block=begin;when [stocktransfer.enable]==1]
+					&nbsp; &nbsp; <a href="[stocktransfer.url]?action=create" class="butAction">[view.langs.transnoentities(StockTransfer)]</a>
+					[onshow;block=end]
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
 							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[view.langs.transnoentities(Delete)]</a>

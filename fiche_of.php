@@ -1474,6 +1474,10 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
 			,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
 		)
+		,'stocktransfer'=>array(
+			'enable' => (int)(!empty($conf->stocktransfer->enabled))
+			,'url'=>dol_buildpath('/stocktransfer/stocktransfer_card.php', 1)
+		)
 		,'rights'=>array(
 			'show_ws_time'=>$user->rights->of->of->show_ws_time
 		)
