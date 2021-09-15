@@ -404,7 +404,60 @@ class Actionsof
             </script>
 
             <?php
-        }
+        } elseif($parameters['currentcontext'] === 'stocktransfercard'){
+
+			global $db, $langs;
+
+			if (!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', 1);
+			dol_include_once('of/config.php');
+			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+
+			$id_of = GETPOST('id_of', 'int');
+//
+			if($id_of) {
+
+				$PDOdb = new TPDOdb;
+
+				$of = new TAssetOF($db);
+				$res = $of->load($PDOdb, $id_of);
+
+				if ($res) {
+
+					$sql = "SELECT fk_assetOF, fk_product, fk_entrepot FROM llx_assetOf_line as aol";
+					$sql = " LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = aol.fk_product)";
+					$sql.= " WHERE fk_assetOF='".$id_of."'";
+
+//					print($sql); exit;
+
+
+					$l=new TListviewTBS('listeoftotransfer');
+
+					$listViewConfig =array(
+						'limit'=>array()
+					,'orderBy'=>array()
+					,'subQuery'=>array()
+					,'link'=>array(
+						'fk_product'=>'<a href="'.dol_buildpath('/product/card.php?id=@fk_product@', 1).'">'.img_picto('','object_list.png','',0).' @val@</a>'
+						)
+					,'translate'=>array()
+					,'hide'=>array()
+					,'type'=>array()
+					,'liste'=>array()
+					,'title'=>array(
+							'fk_product'=>$langs->trans('OfNumber')
+							,'fk_entrepot'=>$langs->trans('Priority')
+						)
+					,'eval'=>array()
+					);
+
+					echo $l->render($PDOdb, $sql, $listViewConfig);
+//					$line = new TAssetOFLine($db);
+//					$line->load($PDOdb, $id_of);
+
+				}
+
+			}
+		}
 		return 0;
     }
 
