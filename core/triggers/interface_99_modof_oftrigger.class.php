@@ -457,7 +457,6 @@ class Interfaceoftrigger
 
 			if(!empty($TAssetOFLine)) {
 
-
 				foreach ($TAssetOFLine as $id_product => $TValues) {
 
 					$prod = new Product($db);
@@ -476,9 +475,6 @@ class Interfaceoftrigger
 						$line->create($user);
 
 						$object->fetchLines();
-					} else {
-						$TErrors[] = $langs->trans('ProductNotExist');
-						$error++;
 					}
 
 				}
