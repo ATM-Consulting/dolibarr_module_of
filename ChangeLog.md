@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 - NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2
 - NEW Gestion des catégories produits *24/08/2021* - 2.1
 
+## Version 2.2 - *14/09/2021*
+- FIX : Ajout du numéro de numéro de lot correspondant au numéro de série dans la colonne 'Lot' des produits nécessaires à la fabrication *14/09/2021* - 2.2.1
+
 ## Version 2.0 - *08/07/2021*
 
 **IMPORTANT : Requires WorkstationAtm 2.0**
