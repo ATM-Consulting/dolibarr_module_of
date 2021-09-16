@@ -178,9 +178,21 @@ class Actionsof
 					} // if ($obj = $db->fetch_object($res)) { } else { }
 				} // if ($res)
 			} // if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes')
-		} // if ($parameters['currentcontext'] === 'ordersuppliercard')
+		} elseif($parameters['currentcontext'] === 'stocktransfercard'){
 
-		return 0;
+			//si l'origine du transfert de stock est un of et que l'entrepôt de destination est vite, alors on affiche une erreur
+			if($action == 'add' && !empty(GETPOST('TAssetOFLine', 'array')) ){
+				if(GETPOST('fk_warehouse_destination') <= 0){
+					setEventMessage('WarehouseTargetEmpty', 'errors');
+					header("Location: ".$_SERVER["PHP_SELF"]."?action=create&id_of=".$_POST['id_of']);
+					exit;
+				}
+			}
+
+		}
+
+	return 0;
+
 	}
 
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
@@ -406,6 +418,8 @@ class Actionsof
             <?php
         } elseif($parameters['currentcontext'] === 'stocktransfercard'){
 
+			//on ajoute le tableau qui liste les produits nécessaires si ce transfert de stock est créé à partir d'un of d'origine
+
 			global $db, $langs;
 
 			if (!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', 1);
@@ -413,7 +427,7 @@ class Actionsof
 			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
 			$id_of = GETPOST('id_of', 'int');
-//
+
 			if($id_of) {
 
 				$PDOdb = new TPDOdb;
@@ -422,7 +436,6 @@ class Actionsof
 
 				$formProduct = new FormProduct($db);
 				$form = new TFormCore($db);
-
 
 				if ($res) {
 					print '<table class="noborder" width="100%" id="productlist">';
@@ -436,18 +449,19 @@ class Actionsof
 
 					foreach($of->TAssetOFLine as $k=>$line){
 
-						if($line->type == "TO_MAKE") continue;
+						if($line->type == "TO_MAKE") continue;		//si c'est le produit de l'OF à créer on n'en tient pas compte pour le transfert de stock
 
 						$product = new Product($db);
 						$product->fetch($line->fk_product);
 						$stock_theo = TAssetOF::getProductStock($product->id,0,true,true);
 
 						print '<tr>';
+						print '<input type="hidden" name = "id_of" value = "'.$id_of.'"/>';
 						print '<td class = "center">'.$product->label.'</td>';
 						print '<td class = "center">'.$stock_theo.'</td>';
 						print '<td class = "center">'.$product->stock_reel.'</td>';
 						print '<td class = "center" id="assetOFLine_qty">'. $form->texte('', 'TAssetOFLine['.$line->fk_product.'][qty]', $line->qty, 5,50).'</td>';
-						print '<td class = "center" id="assetOFLine_warehouse">'.$formProduct->selectWarehouses($line->fk_entrepot, 'TAssetOFLine['.$line->fk_product.'][fk_entrepot]', '', 0, 0, $line->fk_product).'</td>';
+						print '<td class = "center" id="assetOFLine_warehouse">'.$formProduct->selectWarehouses($line->fk_entrepot, 'TAssetOFLine['.$line->fk_product.'][fk_warehouse_source]', '', 0, 0, $line->fk_product).'</td>';
 						print '</tr>';
 
 					}

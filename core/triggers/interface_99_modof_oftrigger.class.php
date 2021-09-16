@@ -448,45 +448,40 @@ class Interfaceoftrigger
 		}  elseif ($action === 'STOCKTRANSFER_CREATE')
 		{
 
+			//lors de la création d'un transfert de stock, lorsque celui ci est créé depuis un OF, on ajoute automatiquement les lignes
 			global $db;
 
 			$TAssetOFLine = GETPOST('TAssetOFLine');
+			$error = 0;
+			$Terrors = array();
 
-			foreach($TAssetOFLine as $id_product=>$TValues){
+			if(!empty($TAssetOFLine)) {
 
 
-				$prod = new Product($db);
-				$prod->fetch($id_product);
-//				if ($prod->hasbatch())
-//				{
-//					if (empty($batch))
-//					{
-//						$error++;
-//						$langs->load("errors");
-//						setEventMessages($langs->trans("ErrorTryToMakeMoveOnProductRequiringBatchData", $prod->ref), null, 'errors');
-//					}
-//				} else {
-//					if(!empty($batch)) {
-//						$error++;
-//						setEventMessages($langs->trans('StockTransferNoBatchForProduct', $prod->getNomUrl()), '', 'errors');
-//					}
-//				}
+				foreach ($TAssetOFLine as $id_product => $TValues) {
 
-				$line = new StockTransferLine($db);
-				$line->fk_stocktransfer = $object->id;
-				$line->qty = $TValues['qty'];
-				$line->fk_warehouse_source = $TValues['fk_entrepot'];
-				$line->fk_warehouse_destination = GETPOST('fk_warehouse_destination');
-				$line->fk_product = $id_product;
-				$line->pmp = $prod->pmp;
+					$prod = new Product($db);
+					$res = $prod->fetch($id_product);
 
-				$line->rang = count($object->lines) + 1;
-				$res = $line->create($user);
+					if($res) {
+						$line = new StockTransferLine($db);
+						$line->fk_stocktransfer = $object->id;
+						$line->qty = $TValues['qty'];
+						$line->fk_warehouse_source = $TValues['fk_warehouse_source'];
+						$line->fk_warehouse_destination = GETPOST('fk_warehouse_destination');
+						$line->fk_product = $id_product;
+						$line->pmp = $prod->pmp;
 
-//				var_dump($res); exit;
-				$object->fetchLines();
-//				$line->batch = $batch;
+						$line->rang = count($object->lines) + 1;
+						$line->create($user);
 
+						$object->fetchLines();
+					} else {
+						$TErrors[] = $langs->trans('ProductNotExist');
+						$error++;
+					}
+
+				}
 			}
 		}
 
