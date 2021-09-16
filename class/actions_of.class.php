@@ -438,13 +438,14 @@ class Actionsof
 				$form = new TFormCore($db);
 
 				if ($res) {
-					print '<table class="noborder" width="100%" id="productlist">';
-					print '<tr>';
-					print '<th>'.$langs->trans('Product').'</th>';
-					print '<th>'.$langs->trans('VirtualStock').'</th>';
-					print '<th>'.$langs->trans('RealStock').'</th>';
-					print '<th>'.$langs->trans('Qty').'</th>';
-					print '<th>'.$langs->trans('Warehouse').'</th>';
+					print '<div class="div-table-responsive">';
+					print '<table class="liste"  id="productlist">';
+					print '<tr class="liste_titre">';
+					print '<th class = "center">'.$langs->trans('Product').'</th>';
+					print '<th class = "center">'.$langs->trans('VirtualStock').'</th>';
+					print '<th class = "center">'.$langs->trans('RealStock').'</th>';
+					print '<th class = "center">'.$langs->trans('Qty').'</th>';
+					print '<th class = "center">'.$langs->trans('Warehouse').'</th>';
 					print '</tr>';
 
 					foreach($of->TAssetOFLine as $k=>$line){
@@ -467,13 +468,15 @@ class Actionsof
 					}
 
 					print '</table>';
+					print '</div>';
+
 
 				}
 
 				?>
 				<script type="text/javascript">
 
-					$("#productlist").insertAfter(".tabBar table");
+					$("#productlist").insertAfter("div .tabBarWithBottom");
 					$("#field_fk_warehouse_source").hide();
 
 				</script>
