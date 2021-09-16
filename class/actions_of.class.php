@@ -417,46 +417,52 @@ class Actionsof
 			if($id_of) {
 
 				$PDOdb = new TPDOdb;
-
 				$of = new TAssetOF($db);
 				$res = $of->load($PDOdb, $id_of);
 
+				$formProduct = new FormProduct($db);
+				$form = new TFormCore($db);
+
 				if ($res) {
+					print '<table class="noborder" width="100%" id="productlist">';
+					print '<tr>';
+					print '<th>'.$langs->trans('Product').'</th>';
+					print '<th>'.$langs->trans('VirtualStock').'</th>';
+					print '<th>'.$langs->trans('RealStock').'</th>';
+					print '<th>'.$langs->trans('Qty').'</th>';
+					print '<th>'.$langs->trans('Warehouse').'</th>';
+					print '</tr>';
 
-					$sql = "SELECT fk_assetOF, fk_product, fk_entrepot FROM llx_assetOf_line as aol";
-					$sql = " LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = aol.fk_product)";
-					$sql.= " WHERE fk_assetOF='".$id_of."'";
+					foreach($of->TAssetOFLine as $k=>$line){
 
-//					print($sql); exit;
+						$product = new Product($db);
+						$product->fetch($line->fk_product);
+						$stock_theo = TAssetOF::getProductStock($product->id,0,true,true);
 
+						print '<tr>';
+						print '<td class = "center">'.$product->label.'</td>';
+						print '<td class = "center">'.$stock_theo.'</td>';
+						print '<td class = "center">'.$product->stock_reel.'</td>';
+						print '<td class = "center" id="assetOFLine_qty">'. $form->texte('', 'TAssetOFLine['.$line->fk_product.'][qty]', $line->qty, 5,50).'</td>';
+						print '<td class = "center" id="assetOFLine_warehouse">'.$formProduct->selectWarehouses($line->fk_entrepot, 'TAssetOFLine['.$line->fk_product.'][fk_entrepot]', '', 0, 0, $line->fk_product).'</td>';
+						print '</tr>';
 
-					$l=new TListviewTBS('listeoftotransfer');
+					}
 
-					$listViewConfig =array(
-						'limit'=>array()
-					,'orderBy'=>array()
-					,'subQuery'=>array()
-					,'link'=>array(
-						'fk_product'=>'<a href="'.dol_buildpath('/product/card.php?id=@fk_product@', 1).'">'.img_picto('','object_list.png','',0).' @val@</a>'
-						)
-					,'translate'=>array()
-					,'hide'=>array()
-					,'type'=>array()
-					,'liste'=>array()
-					,'title'=>array(
-							'fk_product'=>$langs->trans('OfNumber')
-							,'fk_entrepot'=>$langs->trans('Priority')
-						)
-					,'eval'=>array()
-					);
-
-					echo $l->render($PDOdb, $sql, $listViewConfig);
-//					$line = new TAssetOFLine($db);
-//					$line->load($PDOdb, $id_of);
+					print '</table>';
 
 				}
 
 			}
+
+			?>
+			<script type="text/javascript">
+
+				$("#productlist").insertAfter(".tabBar table");
+				$("#field_fk_warehouse_source").hide();
+			</script>
+
+			<?php
 		}
 		return 0;
     }
