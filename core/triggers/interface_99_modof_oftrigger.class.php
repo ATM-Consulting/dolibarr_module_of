@@ -445,6 +445,49 @@ class Interfaceoftrigger
 		elseif ($action == 'ORDER_SUPPLIER_MODIFY')
 		{
 		    $this->_maj_task_date($object);
+		}  elseif ($action === 'STOCKTRANSFER_CREATE')
+		{
+
+			global $db;
+
+			$TAssetOFLine = GETPOST('TAssetOFLine');
+
+			foreach($TAssetOFLine as $id_product=>$TValues){
+
+
+				$prod = new Product($db);
+				$prod->fetch($id_product);
+//				if ($prod->hasbatch())
+//				{
+//					if (empty($batch))
+//					{
+//						$error++;
+//						$langs->load("errors");
+//						setEventMessages($langs->trans("ErrorTryToMakeMoveOnProductRequiringBatchData", $prod->ref), null, 'errors');
+//					}
+//				} else {
+//					if(!empty($batch)) {
+//						$error++;
+//						setEventMessages($langs->trans('StockTransferNoBatchForProduct', $prod->getNomUrl()), '', 'errors');
+//					}
+//				}
+
+				$line = new StockTransferLine($db);
+				$line->fk_stocktransfer = $object->id;
+				$line->qty = $TValues['qty'];
+				$line->fk_warehouse_source = $TValues['fk_entrepot'];
+				$line->fk_warehouse_destination = GETPOST('fk_warehouse_destination');
+				$line->fk_product = $id_product;
+				$line->pmp = $prod->pmp;
+
+				$line->rang = count($object->lines) + 1;
+				$res = $line->create($user);
+
+//				var_dump($res); exit;
+				$object->fetchLines();
+//				$line->batch = $batch;
+
+			}
 		}
 
         return 0;

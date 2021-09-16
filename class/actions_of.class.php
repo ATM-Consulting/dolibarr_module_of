@@ -427,6 +427,7 @@ class Actionsof
 					print '<table class="noborder" width="100%" id="productlist">';
 					print '<tr>';
 					print '<th>'.$langs->trans('Product').'</th>';
+//					print '<th>'.$langs->trans('Lot').'</th>';
 					print '<th>'.$langs->trans('VirtualStock').'</th>';
 					print '<th>'.$langs->trans('RealStock').'</th>';
 					print '<th>'.$langs->trans('Qty').'</th>';
@@ -434,6 +435,8 @@ class Actionsof
 					print '</tr>';
 
 					foreach($of->TAssetOFLine as $k=>$line){
+
+						if($line->type == "TO_MAKE") continue;
 
 						$product = new Product($db);
 						$product->fetch($line->fk_product);
@@ -453,16 +456,16 @@ class Actionsof
 
 				}
 
+				?>
+				<script type="text/javascript">
+
+					$("#productlist").insertAfter(".tabBar table");
+					$("#field_fk_warehouse_source").hide();
+				</script>
+
+				<?php
 			}
 
-			?>
-			<script type="text/javascript">
-
-				$("#productlist").insertAfter(".tabBar table");
-				$("#field_fk_warehouse_source").hide();
-			</script>
-
-			<?php
 		}
 		return 0;
     }
