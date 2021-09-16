@@ -451,9 +451,7 @@ class Interfaceoftrigger
 			//lors de la création d'un transfert de stock, lorsque celui ci est créé depuis un OF, on ajoute automatiquement les lignes
 			global $db;
 
-			$TAssetOFLine = GETPOST('TAssetOFLine');
-			$error = 0;
-			$Terrors = array();
+			$TAssetOFLine = GETPOST('TAssetOFLine', 'array');
 
 			if(!empty($TAssetOFLine)) {
 
@@ -467,7 +465,7 @@ class Interfaceoftrigger
 						$line->fk_stocktransfer = $object->id;
 						$line->qty = $TValues['qty'];
 						$line->fk_warehouse_source = $TValues['fk_warehouse_source'];
-						$line->fk_warehouse_destination = GETPOST('fk_warehouse_destination');
+						$line->fk_warehouse_destination = GETPOST('fk_warehouse_destination', 'int');
 						$line->fk_product = $id_product;
 						$line->pmp = $prod->pmp;
 
