@@ -433,3 +433,4 @@ OF_product_in_of = Product found in one or more MOs
 
 
 StockTransfer = Stock transfer
+WarehouseTargetEmpty = Empty target warehouse

@@ -432,3 +432,4 @@ OF_REF_LINE_NUMBER_BEFORE_DESC = Afficher si possible la colonne de numéros de 
 AddAnAssetATM = Ajouter un équipement
 
 StockTransfer= Transfert de stock
+WarehouseTargetEmpty = Entrepôt de destination vide
