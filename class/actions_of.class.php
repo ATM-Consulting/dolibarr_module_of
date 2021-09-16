@@ -182,7 +182,7 @@ class Actionsof
 
 			//si l'origine du transfert de stock est un of et que l'entrepôt de destination est vite, alors on affiche une erreur
 			if($action == 'add' && !empty(GETPOST('TAssetOFLine', 'array')) ){
-				if(GETPOST('fk_warehouse_destination') <= 0){
+				if(GETPOST('fk_warehouse_destination', 'int') <= 0){
 					setEventMessage('WarehouseTargetEmpty', 'errors');
 					$action = 'create';
 				}
@@ -428,7 +428,7 @@ class Actionsof
 			$id_of = GETPOST('id_of', 'int');
 			$TAssetOFLine_saved = GETPOST('TAssetOFLine', 'array');
 
-			if($id_of) {
+			if($id_of > 0) {
 
 				$PDOdb = new TPDOdb;
 				$of = new TAssetOF($db);
@@ -448,23 +448,26 @@ class Actionsof
 					print '<th class = "center">'.$langs->trans('Warehouse').'</th>';
 					print '</tr>';
 
-					foreach($of->TAssetOFLine as $k=>$line){
+					if(!empty($of->TAssetOFLine)) {
 
-						if($line->type == "TO_MAKE") continue;		//si c'est le produit de l'OF à créer on n'en tient pas compte pour le transfert de stock
+						foreach ($of->TAssetOFLine as $k => $line) {
 
-						$product = new Product($db);
-						$product->fetch($line->fk_product);
-						$stock_theo = TAssetOF::getProductStock($product->id,0,true,true);
+							if ($line->type == "TO_MAKE") continue;        //si c'est le produit de l'OF à créer on n'en tient pas compte pour le transfert de stock
 
-						print '<tr>';
-						print '<input type="hidden" name = "id_of" value = "'.$id_of.'"/>';
-						print '<td class = "center">'.$product->label.'</td>';
-						print '<td class = "center">'.$stock_theo.'</td>';
-						print '<td class = "center">'.$product->stock_reel.'</td>';
-						print '<td class = "center" id="assetOFLine_qty">'. $form->texte('', 'TAssetOFLine['.$line->fk_product.'][qty]', !empty($TAssetOFLine_saved[$line->fk_product]['qty']) ? $TAssetOFLine_saved[$line->fk_product]['qty'] : $line->qty, 5,50).'</td>';
-						print '<td class = "center" id="assetOFLine_warehouse">'.$formProduct->selectWarehouses(!empty($TAssetOFLine_saved[$line->fk_product]['fk_warehouse_source']) ? $TAssetOFLine_saved[$line->fk_product]['fk_warehouse_source'] : $line->fk_entrepot, 'TAssetOFLine['.$line->fk_product.'][fk_warehouse_source]', '', 0, 0, $line->fk_product).'</td>';
-						print '</tr>';
+							$product = new Product($db);
+							$product->fetch($line->fk_product);
+							$stock_theo = TAssetOF::getProductStock($product->id, 0, true, true);
 
+							print '<tr>';
+							print '<input type="hidden" name = "id_of" value = "' . $id_of . '"/>';
+							print '<td class = "center">' . $product->label . '</td>';
+							print '<td class = "center">' . $stock_theo . '</td>';
+							print '<td class = "center">' . $product->stock_reel . '</td>';
+							print '<td class = "center" id="assetOFLine_qty">' . $form->texte('', 'TAssetOFLine[' . $line->fk_product . '][qty]', !empty($TAssetOFLine_saved[$line->fk_product]['qty']) ? $TAssetOFLine_saved[$line->fk_product]['qty'] : $line->qty, 5, 50) . '</td>';
+							print '<td class = "center" id="assetOFLine_warehouse">' . $formProduct->selectWarehouses(!empty($TAssetOFLine_saved[$line->fk_product]['fk_warehouse_source']) ? $TAssetOFLine_saved[$line->fk_product]['fk_warehouse_source'] : $line->fk_entrepot, 'TAssetOFLine[' . $line->fk_product . '][fk_warehouse_source]', '', 0, 0, $line->fk_product) . '</td>';
+							print '</tr>';
+
+						}
 					}
 
 					print '</table>';
