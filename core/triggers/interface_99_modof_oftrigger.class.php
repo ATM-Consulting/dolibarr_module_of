@@ -445,6 +445,38 @@ class Interfaceoftrigger
 		elseif ($action == 'ORDER_SUPPLIER_MODIFY')
 		{
 		    $this->_maj_task_date($object);
+		}  elseif ($action === 'STOCKTRANSFER_CREATE')
+		{
+
+			//lors de la création d'un transfert de stock, lorsque celui ci est créé depuis un OF, on ajoute automatiquement les lignes
+			global $db;
+
+			$TAssetOFLine = GETPOST('TAssetOFLine', 'array');
+
+			if(!empty($TAssetOFLine)) {
+
+				foreach ($TAssetOFLine as $id_product => $TValues) {
+
+					$prod = new Product($db);
+					$res = $prod->fetch($id_product);
+
+					if($res) {
+						$line = new StockTransferLine($db);
+						$line->fk_stocktransfer = $object->id;
+						$line->qty = $TValues['qty'];
+						$line->fk_warehouse_source = $TValues['fk_warehouse_source'];
+						$line->fk_warehouse_destination = GETPOST('fk_warehouse_destination', 'int');
+						$line->fk_product = $id_product;
+						$line->pmp = $prod->pmp;
+
+						$line->rang = count($object->lines) + 1;
+						$line->create($user);
+
+						$object->fetchLines();
+					}
+
+				}
+			}
 		}
 
         return 0;

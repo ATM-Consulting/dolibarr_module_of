@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+- NEW Bouton Transfert de stock depuis un OF *16/09/2021* - 2.3
 - NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2
 - NEW Gestion des catégories produits *24/08/2021* - 2.1
 
