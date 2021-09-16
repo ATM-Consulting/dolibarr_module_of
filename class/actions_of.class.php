@@ -423,11 +423,11 @@ class Actionsof
 				$formProduct = new FormProduct($db);
 				$form = new TFormCore($db);
 
+
 				if ($res) {
 					print '<table class="noborder" width="100%" id="productlist">';
 					print '<tr>';
 					print '<th>'.$langs->trans('Product').'</th>';
-//					print '<th>'.$langs->trans('Lot').'</th>';
 					print '<th>'.$langs->trans('VirtualStock').'</th>';
 					print '<th>'.$langs->trans('RealStock').'</th>';
 					print '<th>'.$langs->trans('Qty').'</th>';

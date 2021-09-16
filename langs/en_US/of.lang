@@ -430,3 +430,6 @@ OF_SHOW_ORDER_LINE_PRICE_HELP = This option adds a new column (“line price”)
 ParamLinkedToOFGPAO = Settings related to production management
 OF_RANK_PRIOR_BY_LAUNCHING_DATE_HELP = By default, in the MO list, MOs are ordered by creation date. When this option is enabled, MOs are sorted by start date (MO card), which is the start date in the MO list.<br/><br/>This adds a new button (“Update priorities”) and a new column (“Rank”) on the MO list and on MO cards.
 OF_product_in_of = Product found in one or more MOs
+
+
+StockTransfer = Stock transfer

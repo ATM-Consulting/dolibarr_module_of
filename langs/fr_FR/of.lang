@@ -430,3 +430,5 @@ RefLineNumber=Ligne de référence
 OF_product_in_of=Produit présent dans un ou plusieurs OF
 OF_REF_LINE_NUMBER_BEFORE_DESC = Afficher si possible la colonne de numéros de lignes de référence avant la description (PDF et fiches)
 AddAnAssetATM = Ajouter un équipement
+
+StockTransfer= Transfert de stock
