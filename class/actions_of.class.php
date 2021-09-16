@@ -184,8 +184,7 @@ class Actionsof
 			if($action == 'add' && !empty(GETPOST('TAssetOFLine', 'array')) ){
 				if(GETPOST('fk_warehouse_destination') <= 0){
 					setEventMessage('WarehouseTargetEmpty', 'errors');
-					header("Location: ".$_SERVER["PHP_SELF"]."?action=create&id_of=".$_POST['id_of']);
-					exit;
+					$action = 'create';
 				}
 			}
 
@@ -427,6 +426,7 @@ class Actionsof
 			dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
 			$id_of = GETPOST('id_of', 'int');
+			$TAssetOFLine_saved = GETPOST('TAssetOFLine', 'array');
 
 			if($id_of) {
 
@@ -460,8 +460,8 @@ class Actionsof
 						print '<td class = "center">'.$product->label.'</td>';
 						print '<td class = "center">'.$stock_theo.'</td>';
 						print '<td class = "center">'.$product->stock_reel.'</td>';
-						print '<td class = "center" id="assetOFLine_qty">'. $form->texte('', 'TAssetOFLine['.$line->fk_product.'][qty]', $line->qty, 5,50).'</td>';
-						print '<td class = "center" id="assetOFLine_warehouse">'.$formProduct->selectWarehouses($line->fk_entrepot, 'TAssetOFLine['.$line->fk_product.'][fk_warehouse_source]', '', 0, 0, $line->fk_product).'</td>';
+						print '<td class = "center" id="assetOFLine_qty">'. $form->texte('', 'TAssetOFLine['.$line->fk_product.'][qty]', !empty($TAssetOFLine_saved[$line->fk_product]['qty']) ? $TAssetOFLine_saved[$line->fk_product]['qty'] : $line->qty, 5,50).'</td>';
+						print '<td class = "center" id="assetOFLine_warehouse">'.$formProduct->selectWarehouses(!empty($TAssetOFLine_saved[$line->fk_product]['fk_warehouse_source']) ? $TAssetOFLine_saved[$line->fk_product]['fk_warehouse_source'] : $line->fk_entrepot, 'TAssetOFLine['.$line->fk_product.'][fk_warehouse_source]', '', 0, 0, $line->fk_product).'</td>';
 						print '</tr>';
 
 					}
@@ -475,6 +475,7 @@ class Actionsof
 
 					$("#productlist").insertAfter(".tabBar table");
 					$("#field_fk_warehouse_source").hide();
+
 				</script>
 
 				<?php
