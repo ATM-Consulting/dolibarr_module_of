@@ -102,6 +102,51 @@ function _action() {
 
 		case 'create':
 		case 'save':
+
+
+			/*Ajouter un équipement aux composants de l'OF*/
+
+			$assetOf=new TAssetOF;
+			$assetOf->load($PDOdb, __get('id', 0, 'int'));
+
+			//on récupère le post des multiselect et pour chacun de ces multiselect on traite composant par composant pour lier les équipements
+			foreach($_POST as $key=>$value){
+
+				if(stristr($key, 'AssetLinkList')){
+
+					$explodestring = explode('_', $key);		//le chiffre donnée dans la clé du $_POST après "AssetLinkList" est le numéro de la ligne de l'of concernée
+					$idLine = $explodestring[1];
+					$TIdAssets = $_POST[$key];
+
+					if ($idLine){
+
+						$find = false;
+						foreach($TIdAssets as $key=>$idAsset){
+
+							foreach ($assetOf->TAssetOFLine as $TAssetOFLine)
+							{
+								if ($TAssetOFLine->getId() == $idLine)
+								{
+									$find = true;
+
+									$asset = new TAsset;
+									$asset->load($PDOdb, $idAsset);
+									$TAssetOFLine->addAssetLink($asset);
+									break;
+								}
+							}
+						}
+
+						if (!$find) setEventMessage($langs->trans('error_of_on_id_asset'), 'errors');
+					}
+					else
+					{
+						setEventMessage($langs->trans('error_of_wrong_id_asset'), 'errors');
+					}
+				}
+
+			}
+
 			$assetOf=new TAssetOF;
 			if(!empty($_REQUEST['id'])) {
 				$assetOf->load($PDOdb, $_REQUEST['id'], false);
@@ -390,40 +435,6 @@ function _action() {
 
 			header('Location: '.$urltoredirect);
 			exit;
-
-		case 'addAssetLink':
-			$assetOf=new TAssetOF;
-            $assetOf->load($PDOdb, __get('id', 0, 'int'));
-
-			$idLine = __get('idLine', 0, 'int');
-			$idAsset = __get('idAsset', 0, 'int');
-
-			if ($idLine && $idAsset)
-			{
-				$find = false;
-				foreach ($assetOf->TAssetOFLine as $TAssetOFLine)
-				{
-					if ($TAssetOFLine->getId() == $idLine)
-					{
-						$find = true;
-
-						$asset = new TAsset;
-						$asset->load($PDOdb, $idAsset);
-						$TAssetOFLine->addAssetLink($asset);
-						break;
-					}
-				}
-
-				if (!$find) setEventMessage($langs->trans('error_of_on_id_asset'), 'errors');
-			}
-			else
-			{
-				setEventMessage($langs->trans('error_of_wrong_id_asset'), 'errors');
-			}
-
-           _fiche($PDOdb, $assetOf, 'edit');
-
-			break;
 
         case 'deleteAssetLink':
             $assetOf=new TAssetOF;
@@ -924,7 +935,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			$TLine = array(
 					'id'=>$TAssetOFLine->getId()
 					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') . $lotNumbers : $TAssetOFLine->lot_number . $lotNumbers
+					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', '', 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') . $lotNumbers : $TAssetOFLine->lot_number . $lotNumbers
 					,'libelle'=>$label
 			        ,'cost'=>(empty($user->rights->of->of->price) ? '' : price(price2num($TAssetOFLine->compo_planned_cost,'MT'),0,'',1,-1,-1,$conf->currency).$conditionnement_label)
     			    ,'qty_needed'=>$TAssetOFLine->qty_needed
@@ -1114,18 +1125,66 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 
     $TAsset = $assetOFLine->getAssetLinked($PDOdb);
 
-
     $r='<div class="fiche-ligne-asset-block" >';
 
     if($of->status=='DRAFT' && $form->type_aff == 'edit' && $type=='NEEDED')
     {
+
     	$url = dol_buildpath('/of/fiche_of.php?id='.$of->getId().'&idLine='.$assetOFLine->getId().'&action=addAssetLink&idAsset=', 1);
-		// Pour le moment au limite au besoin, la création reste en dure, à voir
-		$r.='<span class="fa fa-search" style="color: #aaaaaa"></span>' // Haaaaaa could also be used for heavy metal cover name !
-			.$form->texte('', 'TAssetOFLine['.$assetOFLine->getId().'][new_asset]', '', 20,255,'placeholder="'.$langs->trans('AddAnAssetATM').'" title="'.$langs->trans('AddAnAssetATM').'" fk_product="'.$assetOFLine->fk_product.'" rel="add-asset" fk-asset-of-line="'.$assetOFLine->getId().'" ')
-			.'<a style="display:none;" id="add-asset-from-autocomplete-'.$assetOFLine->getId().'" class="add-asset-from-autocomplete" href="" base-href="'.$url.'">'.img_right($langs->trans('Link')).'</a>'
-			.'<br/>';
+
+		/*ON AFFICHE LE MULTISELECT DES EQUIPEMENTS*/
+
+		//équipements qu'on ne peut plus sélectionner
+		$TAssetToExclude = array();
+		$TAssetsOFLine = array();
+
+
+		//on cherche les équipements déjà liés à la ligne de l'of
+		$sql = "SELECT fk_source, fk_target";
+		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+		$sql.= " WHERE sourcetype ='TAssetOFLine' AND fk_source =".$assetOFLine->getId();
+
+		$resql = $PDOdb->execute($sql);
+
+		if($resql){
+			while ($PDOdb->Get_line()){
+				$TAssetToExclude[] = $PDOdb->Get_field('fk_target');
+			}
+
+		}
+
+
+		//on cherche tous les équipements du produit de la ligne de l'of
+		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
+   	 	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
+		if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
+    	if ($assetOFLine->fk_product > 0) $sql .= ' AND fk_product = '.(int) $assetOFLine->fk_product.' ';
+    	if (!empty($assetOFLine->lot_number)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$assetOFLine->lot_number.'%').' ';
+		$sql .= 'ORDER BY a.serial_number';
+
+		$resql = $PDOdb->execute($sql);
+
+
+		//on affiche le multiselect
+		if($resql){
+
+			while ($PDOdb->Get_line()){
+					$serial = $PDOdb->Get_field('serial_number');
+					$contenancereel_value = $PDOdb->Get_field('contenancereel_value');
+					$rowid = $PDOdb->Get_field('rowid');
+
+					if($contenancereel_value && !in_array($rowid, $TAssetToExclude)){
+						$TAssetsOFLine[$rowid] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
+					}
+			}
+
+			$formAddAsset = new Form($db);
+			$r.= img_picto($langs->trans('AddAnAssetATM'), 'help');
+			$r.= $formAddAsset->multiselectarray('AssetLinkList_'.$assetOFLine->getId(), $TAssetsOFLine, '', '', '', '', '', '', 'style="min-width:80%;"', '');
+
+		}
     }
+
     foreach($TAsset as &$asset)
     {
         $r .= "<br />".$asset->getNomUrl(1, 1, 2).((!empty($asset->dluo) && $asset->dluo < time())?img_warning($langs->trans('Asset_DLUO_outdated')):'');

@@ -22,9 +22,9 @@ function traite_get(&$PDOdb, $case) {
         case 'autocomplete':
             __out(_autocomplete($PDOdb,GETPOST('fieldcode', 'none'),GETPOST('term', 'none'),GETPOST('fk_product', 'none'),GETPOST('type_product', 'none')));
             break;
-        case 'autocomplete-serial':
-            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number', 'none'), GETPOST('fk_product', 'none')));
-            break;
+		case 'autocomplete-serial':
+			__out(_autocompleteSerial($PDOdb,GETPOST('lot_number', 'none'), GETPOST('fk_product', 'none')), 'json');
+			break;
 		case 'addofproduct':
 			__out(_addofproduct($PDOdb,GETPOST('id_assetOf', 'none'),GETPOST('fk_product', 'none'),GETPOST('type', 'none'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
 			break;
@@ -171,36 +171,40 @@ function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of)
 }
 
 function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
-    global $conf,$langs;
+	global $conf,$langs;
+
 
 	$langs->load('of@of');
 
-    //$sql = 'SELECT DISTINCT(a.serial_number) ';
-    $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
-    $sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
+	//$sql = 'SELECT DISTINCT(a.serial_number) ';
+	$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
+	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 
 	if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
 
-    if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
-    if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
+	if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
+	if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
 
-    $sql .= 'ORDER BY a.serial_number';
-    //  print $sql;
-    $PDOdb->Execute($sql);
-    while ($PDOdb->Get_line())
-    {
-    	$serial = $PDOdb->Get_field('serial_number');
+	$sql .= 'ORDER BY a.serial_number';
+
+	//  print $sql;
+	$PDOdb->Execute($sql);
+	while ($PDOdb->Get_line())
+	{
+		$serial = $PDOdb->Get_field('serial_number');
 
 		/* Merci de conserver les crochets autour de l'ID et de le laisser en début de chaine
 		 * je m'en sert pour matcher côté js pour retrouver facilement l'ID dans la chaîne pour le lien d'ajout
 		 */
-        $TResult[] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $PDOdb->Get_field('contenancereel_value'));
-    }
+		$TResult[$PDOdb->Get_field('rowid')] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $PDOdb->Get_field('contenancereel_value'));
 
-    $PDOdb->close();
-    return $TResult;
+	}
+
+	$PDOdb->close();
+	return $TResult;
 
 }
+
 //Autocomplete sur les différents champs d'une ressource
 function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED')
 {
