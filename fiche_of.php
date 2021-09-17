@@ -935,7 +935,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			$TLine = array(
 					'id'=>$TAssetOFLine->getId()
 					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
-					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', $TAssetOFLine->lot_number, 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') . $lotNumbers : $TAssetOFLine->lot_number . $lotNumbers
+					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', '', 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') . $lotNumbers : $TAssetOFLine->lot_number . $lotNumbers
 					,'libelle'=>$label
 			        ,'cost'=>(empty($user->rights->of->of->price) ? '' : price(price2num($TAssetOFLine->compo_planned_cost,'MT'),0,'',1,-1,-1,$conf->currency).$conditionnement_label)
     			    ,'qty_needed'=>$TAssetOFLine->qty_needed
@@ -1178,11 +1178,9 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 					}
 			}
 
-			if(!empty($TAssetsOFLine)){
-				$formAddAsset = new Form($db);
-				$r.= img_picto($langs->trans('AddAnAssetATM'), 'help');
-				$r.= $formAddAsset->multiselectarray('AssetLinkList_'.$assetOFLine->getId(), $TAssetsOFLine, '', '', '', '', '', '', '', '');
-			}
+			$formAddAsset = new Form($db);
+			$r.= img_picto($langs->trans('AddAnAssetATM'), 'help');
+			$r.= $formAddAsset->multiselectarray('AssetLinkList_'.$assetOFLine->getId(), $TAssetsOFLine, '', '', '', '', '', '', 'style="min-width:80%;"', '');
 
 		}
     }

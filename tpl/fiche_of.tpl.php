@@ -788,37 +788,15 @@
 					$.ajax({
 						url: "script/interface.php?get=autocomplete-serial&lot_number="+lot_number+"&fk_product="+fk_product
 						,  dataType : 'json'
+
 					}).done(function(result){
-console.log(result);
-						$.each(result.split(","), function(i,e){
 
-							inputTarget.val(values.split(','));
+						inputTarget.empty(); // remove old options
+						$.each(result, function(key,value) {
+							inputTarget.append($("<option></option>")
+								.attr("value", key).text(value));
 						});
-
 					});
-
-					// $(inputTarget).autocomplete({
-					// 	source: "script/interface.php?get=autocomplete-serial&json=1&fk_product=" + fk_product + "&lot_number=" + $('input[rel=lot-' + $(inputTarget).attr('fk-asset-of-line') + ']').val()
-					// 	, minLength: 1
-					// 	, select: function (event, ui) {
-					// 		var value = ui.item.value;
-					// 		var res = value.match(/^\[[0-9]*\]/g);
-					//
-					// 		if (res.length) {
-					// 			res = res[0].substr(1, res[0].length - 2);
-					// 		} else {
-					// 			res = 0;
-					// 		}
-					//
-					// 		if (res > 0) {
-					// 			let $btnAssetFromAutoComplete = $(this).parent().children('a.add-asset-from-autocomplete');
-					// 			var href = $btnAssetFromAutoComplete.attr('base-href');
-					// 			$btnAssetFromAutoComplete.attr('href', href + res)
-					// 			$btnAssetFromAutoComplete.show();
-					// 			window.location.replace(href + res + "#" + idline);
-					// 		}
-					// 	}
-					// });
 				});
 			})
 

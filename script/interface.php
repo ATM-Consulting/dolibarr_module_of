@@ -24,6 +24,7 @@ function traite_get(&$PDOdb, $case) {
             break;
 		case 'autocomplete-serial':
 			__out(_autocompleteSerial($PDOdb,GETPOST('lot_number', 'none'), GETPOST('fk_product', 'none')), 'json');
+			break;
 		case 'addofproduct':
 			__out(_addofproduct($PDOdb,GETPOST('id_assetOf', 'none'),GETPOST('fk_product', 'none'),GETPOST('type', 'none'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
 			break;
@@ -192,12 +193,11 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
 	{
 		$serial = $PDOdb->Get_field('serial_number');
 
-		return $serial;
-
 		/* Merci de conserver les crochets autour de l'ID et de le laisser en début de chaine
 		 * je m'en sert pour matcher côté js pour retrouver facilement l'ID dans la chaîne pour le lien d'ajout
 		 */
-		$TResult[] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $PDOdb->Get_field('contenancereel_value'));
+		$TResult[$PDOdb->Get_field('rowid')] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $PDOdb->Get_field('contenancereel_value'));
+
 	}
 
 	$PDOdb->close();
