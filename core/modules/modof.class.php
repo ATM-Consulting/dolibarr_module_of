@@ -103,7 +103,8 @@ class modof extends DolibarrModules
 				'orderlist',
 				'propallist',
 				'invoicelist',
-				'pdfgeneration'
+				'pdfgeneration',
+				'stocktransfercard'
 			),
 			'models' => 1,
 			'dir' => array('output' => 'of')

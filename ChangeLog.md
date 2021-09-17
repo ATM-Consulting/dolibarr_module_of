@@ -2,9 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
-- NEW Sélection des équipements pour les composants d'un OF : mise en place d'un multisect  *08/09/2021* - 2.3
+- NEW Sélection des équipements pour les composants d'un OF : mise en place d'un multisect  *08/09/2021* - 2.4
+- NEW Bouton Transfert de stock depuis un OF *16/09/2021* - 2.3
 - NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2
 - NEW Gestion des catégories produits *24/08/2021* - 2.1
+
+## Version 2.2 - *14/09/2021*
+- FIX : Ajout du numéro de numéro de lot correspondant au numéro de série dans la colonne 'Lot' des produits nécessaires à la fabrication *14/09/2021* - 2.2.1
 
 ## Version 2.0 - *08/07/2021*
 

@@ -383,7 +383,9 @@
 					[onshow;block=begin;when [view.show_cost]=='1']
 						<a onclick="if(!confirm('[view.langs.transnoentities(ReloadPriceFourn)]')) return false;" class="butActionDelete warning" href="[assetOf.url]?id=[assetOf.id]&action=reload_pmp">[view.langs.transnoentities(ReloadPrice)]</a>
 					[onshow;block=end]
-
+					[onshow;block=begin;when [stocktransfer.enable]==1]
+					&nbsp; &nbsp; <a href="[stocktransfer.url]?action=create&id_of=[assetOf.id]" class="butAction">[view.langs.transnoentities(StockTransfer)]</a>
+					[onshow;block=end]
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
 							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[view.langs.transnoentities(Delete)]</a>
@@ -771,23 +773,39 @@
 			}
 
 			[onshow;block=begin;when [view.use_lot_in_of]==1]
-				$(".TAssetOFLineLot").each(function(){
-					var fk_product = $(this).attr('fk_product');
-					var type = $(this).attr('type_product');
-					$(this).autocomplete({
-						source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product="+fk_product+"&type_product="+type,
-						minLength : 1
-					}).change(function() {
-						var inputTarget = $(this).parent().next().find('input[rel=add-asset]');
-						$(inputTarget).autocomplete({
-							source: "script/interface.php?get=autocomplete-serial&json=1&fk_product="+fk_product+"&lot_number="+$('input[rel=lot-'+$(inputTarget).attr('fk-asset-of-line')+']').val()
-							,minLength: 1
-							,select: function(event, ui) {
-								var value = ui.item.value;
+			$(".TAssetOFLineLot").each(function () {
+				var fk_product = $(this).attr('fk_product');
+				var idline = $(this).attr('fk-asset-of-line');
+				var type = $(this).attr('type_product');
+				$(this).autocomplete({
+					source: "script/interface.php?get=autocomplete&json=1&fieldcode=lot_number&fk_product=" + fk_product + "&type_product=" + type,
+					minLength: 1
+				}).change(function () {
+					var inputTarget = $(this).parent().next().find('input[rel=add-asset]');
+					$(inputTarget).autocomplete({
+						source: "script/interface.php?get=autocomplete-serial&json=1&fk_product=" + fk_product + "&lot_number=" + $('input[rel=lot-' + $(inputTarget).attr('fk-asset-of-line') + ']').val()
+						, minLength: 1
+						, select: function (event, ui) {
+							var value = ui.item.value;
+							var res = value.match(/^\[[0-9]*\]/g);
+
+							if (res.length) {
+								res = res[0].substr(1, res[0].length - 2);
+							} else {
+								res = 0;
 							}
-						});
+
+							if (res > 0) {
+								let $btnAssetFromAutoComplete = $(this).parent().children('a.add-asset-from-autocomplete');
+								var href = $btnAssetFromAutoComplete.attr('base-href');
+								$btnAssetFromAutoComplete.attr('href', href + res)
+								$btnAssetFromAutoComplete.show();
+								window.location.replace(href + res + "#" + idline);
+							}
+						}
 					});
-				})
+				});
+			})
 
 
 			[onshow;block=end]
