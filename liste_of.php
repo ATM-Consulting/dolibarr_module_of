@@ -334,7 +334,7 @@ function _liste(&$PDOdb)
 	}
 
 	$PDOdb=new TPDOdb;
-	if ($conf->workstation->enabled && !class_exists('TWorkstation')) dol_include_once('workstation/class/workstation.class.php');
+	if ($conf->workstation->enabled && !class_exists('TWorkstation')) dol_include_once('workstationatm/class/workstation.class.php');
 	$TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
 
 	$TSearch=array();
