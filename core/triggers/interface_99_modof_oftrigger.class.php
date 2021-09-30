@@ -479,17 +479,21 @@ class Interfaceoftrigger
 				}
 			}
 
-            $PDOdb = new TPDOdb;
+            if (! empty($originOFId)) {
 
-            $of = new TAssetOF;
-            $res = $of->load($PDOdb, $originOFId);
-            $res ? $urlOF = $of->getNomUrl() : $urlOF = '';
+                $PDOdb = new TPDOdb;
+                $of = new TAssetOF;
 
-            $object->fetch_optionals();
-            $object->array_options['options_linked_of'] = $urlOF;
-            $object->array_options['options_fk_of'] = $originOFId;
-            $object->insertExtraFields();
+                $res = $of->load($PDOdb, $originOFId);
+                if ($res) {
+                    $urlOF = $of->getNomUrl();
 
+                    $object->fetch_optionals();
+                    $object->array_options['options_linked_of'] = $urlOF;
+                    $object->array_options['options_fk_of'] = $originOFId;
+                    $object->insertExtraFields();
+                }
+            }
 		}
         elseif ($action == 'ASSET_OF_DELETE')
         {
@@ -504,11 +508,14 @@ class Interfaceoftrigger
 
             if ($res) {
                 while ($obj = $db->fetch_object($res)) {
-                    $stockTransfer->fetch($obj->stocktransfer);
-                    $stockTransfer->fetch_optionals();
-                    $stockTransfer->array_options['options_linked_of'] = '';
+                    $resFetch = $stockTransfer->fetch($obj->stocktransfer);
+                    if ($resFetch > 0) {
+                        $stockTransfer->fetch_optionals();
+                        $stockTransfer->array_options['options_linked_of'] = '';
+                        $stockTransfer->array_options['options_fk_of'] = '';
 
-                    $stockTransfer->insertExtrafields();
+                        $stockTransfer->insertExtrafields();
+                    }
                 }
             }
         }
