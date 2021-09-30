@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 
 
+## Version 2.5
+
+- NEW Num lot dans multiselect equipement + suppression colonne lot dans consommé  *30/09/2021* - 2.5
+
 ## Version 2.4
 
 - NEW Sélection des équipements pour les composants d'un OF : mise en place d'un multisect  *08/09/2021* - 2.4
