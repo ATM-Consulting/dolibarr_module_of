@@ -452,6 +452,7 @@ class Interfaceoftrigger
 			global $db;
 
 			$TAssetOFLine = GETPOST('TAssetOFLine', 'array');
+            $originOFId = GETPOST('id_of', 'int');
 
 			if(!empty($TAssetOFLine)) {
 
@@ -477,7 +478,40 @@ class Interfaceoftrigger
 
 				}
 			}
+
+            $PDOdb = new TPDOdb;
+
+            $of = new TAssetOF;
+            $res = $of->load($PDOdb, $originOFId);
+            $res ? $urlOF = $of->getNomUrl() : $urlOF = '';
+
+            $object->fetch_optionals();
+            $object->array_options['options_linked_of'] = $urlOF;
+            $object->array_options['options_fk_of'] = $originOFId;
+            $object->insertExtraFields();
+
 		}
+        elseif ($action == 'ASSET_OF_DELETE')
+        {
+            dol_include_once('/stocktransfer/class/stocktransfer.class.php');
+            global $db;
+
+            $stockTransfer = new StockTransfer($db);
+
+            $sql = 'SELECT se.fk_object stocktransfer FROM '.MAIN_DB_PREFIX.'stocktransfer_stocktransfer_extrafields se ';
+            $sql.= 'WHERE se.fk_of = '.$object->id;
+            $res = $db->query($sql);
+
+            if ($res) {
+                while ($obj = $db->fetch_object($res)) {
+                    $stockTransfer->fetch($obj->stocktransfer);
+                    $stockTransfer->fetch_optionals();
+                    $stockTransfer->array_options['options_linked_of'] = '';
+
+                    $stockTransfer->insertExtrafields();
+                }
+            }
+        }
 
         return 0;
     }

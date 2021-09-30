@@ -507,6 +507,8 @@ class modof extends DolibarrModules
         $res = $extrafields->addExtraField('fk_of', 'Ordre de Fabrication', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('assetOf:numero:rowid'=>null))));
         $res = $extrafields->addExtraField('fk_product', 'Produit à fabriquer', 'sellist', 0, '', 'projet_task',0,0,'',serialize(array('options'=>array('product:label:rowid'=>null))));
         $res = $extrafields->addExtraField('of_check_prev', 'A prendre en compte pour le prévisionnel de production', 'boolean', 0, '', 'propal',0,0,'','');
+        $res = $extrafields->addExtraField('fk_of', 'ID de l\'OF lié', 'int', 0, 10, 'stocktransfer_stocktransfer', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '');
+        $res = $extrafields->addExtraField('linked_of', 'OF lié', 'html', 0, 2000, 'stocktransfer_stocktransfer', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 5, '');
 
 		foreach (array('commandedet', 'propaldet', 'facturedet', 'expeditiondet') as $elementtype) {
 			$res = $extrafields->addExtraField(
