@@ -3,9 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
-## Version 2.5
+## Version 2.6
 
-- NEW ajout d'un lien de l'OF lié au transfert de stock *29/09/2021* - 2.5
+- NEW ajout d'un lien de l'OF lié au transfert de stock *29/09/2021* - 2.6
 
 ## Version 2.5
 
