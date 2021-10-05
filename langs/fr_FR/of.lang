@@ -125,7 +125,7 @@ QtyUpdated = Mise à jour des quantités enregistrées
 OneOFCreated = Un OF a été créé
 SeveralOFCreated = Des OF ont été créés
 OFIsNotDraftStatus = Cet OF n'est plus au statut brouillon
-OFSerialNumber = [%s] Numéro : %s, contenance actuelle : %s
+OFSerialNumber = [%s] Lot : %s, Numéro : %s, contenance actuelle : %s
 OFWaiting = En attente
 OFInProgress = En cours
 OFFinish = Terminée
@@ -433,4 +433,5 @@ AddAnAssetATM = Ajouter un équipement
 
 StockTransfer= Transfert de stock
 WarehouseTargetEmpty = Entrepôt de destination vide
+empty=aucun
 ModifyAllWarehouses=Modifier tous les entrepôts

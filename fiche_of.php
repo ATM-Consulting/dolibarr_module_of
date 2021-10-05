@@ -1155,7 +1155,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 
 
 		//on cherche tous les équipements du produit de la ligne de l'of
-		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
+		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value, a.lot_number ';
    	 	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 		if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
     	if ($assetOFLine->fk_product > 0) $sql .= ' AND fk_product = '.(int) $assetOFLine->fk_product.' ';
@@ -1171,10 +1171,11 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 			while ($PDOdb->Get_line()){
 					$serial = $PDOdb->Get_field('serial_number');
 					$contenancereel_value = $PDOdb->Get_field('contenancereel_value');
+					$lot_number = $PDOdb->Get_field('lot_number');
 					$rowid = $PDOdb->Get_field('rowid');
 
 					if($contenancereel_value && !in_array($rowid, $TAssetToExclude)){
-						$TAssetsOFLine[$rowid] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
+						$TAssetsOFLine[$rowid] = $langs->transnoentities('OFSerialNumber', $rowid, ($lot_number ? $lot_number : $langs->trans('empty')), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
 					}
 			}
 
