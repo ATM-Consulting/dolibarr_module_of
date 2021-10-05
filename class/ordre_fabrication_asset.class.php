@@ -3668,6 +3668,92 @@ class TAssetOFLine extends TObjetStd{
 		}
 
 	}
+
+    /**
+     * @param TPDOdb $PDOdb
+     * @param float  $qty
+     * @param float  $qty_used
+     * @param float  $qty_non_compliant
+     */
+    function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant) {
+        $TNomen = new TNomenclature;
+        $TNomen->load($PDOdb, $this->fk_nomenclature);
+        //On calcul le coefficient à appliquer sur les quantités
+        /*
+         * $coef = ($qty_used + $qty_non_compliant) / $line->qty;
+					$coef_non_compliant =  $qty_non_compliant / $line->qty;
+					$coef_compliant = $qty_used / $line->qty;
+         */
+        if(!empty($TNomen->TNomenclatureDet)) {
+            foreach($TNomen->TNomenclatureDet as $nomenDet) {
+                $lineId = $this->getNeededIDByProduct($nomenDet->fk_product);
+                if(! empty($lineId)) {
+                    $neededLine = new TAssetOFLine;
+                    $neededLine->load($PDOdb, $lineId);
+                    //Calcul (on retire ce qu'il y avait avant pour recalculer ce qu'il faut pour la ligne)
+                    $theoricalQtyToUse = floatval($nomenDet->qty) * (floatval($qty) - floatval($this->qty));
+                    $qtyUsed = floatval($nomenDet->qty) * ((floatval($qty_used) + floatval($qty_non_compliant)) - (floatval($this->qty_used) + floatval($this->qty_non_compliant)));
+                    if(!empty($qty)) {
+                        $neededLine->qty += $theoricalQtyToUse;
+                        $neededLine->qty_needed += $theoricalQtyToUse;
+                    }
+                    if(!empty($qty_used) || !empty($qty_non_compliant)) $neededLine->qty_used = $qtyUsed;
+                    $neededLine->saveQty($PDOdb);
+                }
+            }
+        }
+
+        if(!empty($TNomen->TNomenclatureWorkstation)) {
+            foreach($TNomen->TNomenclatureWorkstation as $nomenWorkstation) {
+                $lineId = $this->getWorkstationOfIDByWorkstation($nomenWorkstation->fk_workstation);
+                if(! empty($lineId)) {
+                    $workstationLine = new TAssetWorkstationOF;
+                    $workstationLine->load($PDOdb, $lineId);
+                }
+            }
+        }
+
+        //to make enfant
+//             $line->qty_used = $line->qty * $coef_compliant;
+//                $line->qty_non_compliant = $line->qty * $coef_non_compliant;
+
+
+        if(!empty($qty)) $this->qty = $qty;
+        if(!empty($qty_used)) $this->qty_used = $qty_used;
+        if(!empty($qty_non_compliant)) $this->qty_non_compliant = $qty_non_compliant;
+        $this->saveQty($PDOdb);
+        return true;
+    }
+
+    /**
+     * @param int $fk_product
+     * @return int
+     */
+    function getNeededIDByProduct($fk_product) {
+        global $db;
+        $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf_line WHERE fk_product = '.$fk_product.' AND fk_assetOf = '.$this->fk_assetOf.' AND type = "NEEDED"';
+        $resql = $db->query($sql);
+        if($resql && $db->num_rows($resql) > 0) {
+            $obj = $db->fetch_object($resql);
+            return $obj->rowid;
+        }
+        else return 0;
+    }
+
+        /**
+     * @param int $fk_product
+     * @return int
+     */
+    function getWorkstationOfIDByWorkstation($fk_workstation) {
+        global $db;
+        $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_asset_workstation = '.$fk_workstation.' AND fk_assetOf = '.$this->fk_assetOf;
+        $resql = $db->query($sql);
+        if($resql && $db->num_rows($resql) > 0) {
+            $obj = $db->fetch_object($resql);
+            return $obj->rowid;
+        }
+        else return 0;
+    }
 }
 
 /*

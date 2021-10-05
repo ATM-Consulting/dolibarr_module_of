@@ -1471,7 +1471,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		,'TTomake'=>$TToMake
 		,'workstation'=>$TWorkstation
 	);
-
 	$TFields = array(
 		'assetOf'=>array(
 				'id'=> $assetOf->getId()
