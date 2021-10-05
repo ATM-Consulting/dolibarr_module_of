@@ -369,6 +369,12 @@
 						</td>
 					</tr>
 					<tr>
+						[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+						<td colspan="3" style="border-left: none;height:40px;text-align: right;">
+							[view.select_warehouses;strconv=no]
+							[view.select_warehouse_help;strconv=no]
+						</td>
+						[onshow;block=end]
 						<td colspan="4" style="border-left: none;height:40px;text-align: right;">
 							[onshow;block=begin;when [view.mode]!='view']
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">[view.langs.transnoentities(AddProduct)]</a>
@@ -802,6 +808,16 @@
 
 
 			[onshow;block=end]
+
+
+			//massaction : modification de tous les entrepôts des composants
+			[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+			$('#select_allneeded_fk_warehouse').change(function(e){
+				let newallwarehouse = $(this).val();
+				$(this).closest('tr').prev().find("table").find("select[name*='TAssetOFLine']").val(newallwarehouse);
+			});
+			[onshow;block=end]
+
 		}
 
 		function refreshTab(id, action) {
