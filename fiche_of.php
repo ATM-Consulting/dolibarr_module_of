@@ -1209,7 +1209,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	*
 	* Put here all code to build page
 	****************************************************/
-
 	if($assetOf->entity != $conf->entity) {
 	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
 
@@ -1472,6 +1471,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		,'workstation'=>$TWorkstation
 	);
 
+	$formProduct = new FormProduct($db);
+
 	$TFields = array(
 		'assetOf'=>array(
 				'id'=> $assetOf->getId()
@@ -1524,6 +1525,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
 			,'select_product'=>$select_product
 			,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
+			,'select_warehouses' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses('', 'select_allneeded_fk_warehouse', '', 0, 0, '') : ''
+			,'select_warehouse_help' =>  !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $doliform->textwithpicto('', $langs->transnoentities('ModifyAllWarehouses'), 1, 'help', '') : ''
 			//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
 			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 			,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
