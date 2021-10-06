@@ -272,14 +272,13 @@ function _updateQtyMaking(&$PDOdb, $fk_of,$idLine,$action,$qty, $qty_used, $qty_
 	dol_include_once('product/class/product.class.php');
     $assetOfLine = new TAssetOFLine;
     $assetOfLine->load($PDOdb, $idLine);
+    $of = new TAssetOF;
+    $of->load($PDOdb, $fk_of);
     if(empty($assetOfLine->fk_nomenclature)) {
-        $of = new TAssetOF;
-        $of->load($PDOdb, $fk_of);
-
         if($action == 'updateqty') $res = $of->updateToMakeLineQty($PDOdb, $idLine, $qty);
         else if($action == 'updateqty_usernocompliant') $res = $of->updateUsedNonCompliantLineQty($PDOdb, $idLine, $qty_used, $qty_non_compliant);
     } else {
-        $assetOfLine->updateNomenclatureToMakeQty($PDOdb, $qty, $qty_used, $qty_non_compliant);
+        $res = $assetOfLine->updateNomenclatureToMakeQty($PDOdb, $qty, $qty_used, $qty_non_compliant, $of);
     }
 	return $res;
 
