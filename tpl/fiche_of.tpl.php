@@ -362,13 +362,11 @@
 						</td>
 					</tr>
 					<tr>
-						[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
-						<td colspan="3" style="border-left: none;height:40px;text-align: right;">
-							[view.select_warehouses;strconv=no]
-							[view.select_warehouse_help;strconv=no]
-						</td>
-						[onshow;block=end]
 						<td colspan="4" style="border-left: none;height:40px;text-align: right;">
+							[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+								[view.select_warehouses;strconv=no]
+								[view.select_warehouse_help;strconv=no]
+							[onshow;block=end]
 							[onshow;block=begin;when [view.mode]!='view']
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">[view.langs.transnoentities(AddProduct)]</a>
 							[onshow;block=end]
