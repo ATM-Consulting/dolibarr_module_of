@@ -434,3 +434,4 @@ AddAnAssetATM = Ajouter un équipement
 StockTransfer= Transfert de stock
 WarehouseTargetEmpty = Entrepôt de destination vide
 empty=aucun
+ModifyAllWarehouses=Modifier tous les entrepôts des composants
