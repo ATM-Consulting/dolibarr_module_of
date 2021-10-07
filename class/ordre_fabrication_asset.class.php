@@ -268,6 +268,100 @@ class TAssetOF extends TObjetStd{
         return $TChildren;
     }
 
+    /**
+     * @param TPDOdb $PDOdb
+     * @param float  $qty
+     * @param float  $qty_used
+     * @param float  $qty_non_compliant
+     * @return bool
+     */
+    function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine) {
+        if(!empty($this->TAssetOFLine)) {
+            /**
+             * @var TAssetOFLine $assetOFLine
+             */
+            //On vide tous les needed et les workstations
+            foreach($this->TAssetOFLine as $assetOFLine) {
+                if($assetOFLine->type !== 'TO_MAKE') {
+                    $assetOFLine->qty = 0;
+                    $assetOFLine->qty_needed = 0;
+                    $assetOFLine->qty_used = 0;
+                    $assetOFLine->saveQty($PDOdb);
+                }
+            }
+            if(! empty($this->TAssetWorkstationOF)) {
+                foreach($this->TAssetWorkstationOF as $assetOFWorkstation) {
+                    $assetOFWorkstation->nb_hour = 0;
+                    $assetOFWorkstation->nb_hour_real = 0;
+                    $assetOFWorkstation->nb_hour_prepare = 0;
+                    $assetOFWorkstation->save($PDOdb);
+                }
+            }
+
+            //Calcul
+            foreach($this->TAssetOFLine as $assetOFLine) {
+                if($assetOFLine->type === 'TO_MAKE') { // On recalcul pour tous les "à fabriquer"
+                    if($idLine === $assetOFLine->getId()) {
+                        if(! empty($qty)) $assetOFLine->qty = $qty;
+                        if(! empty($qty_used)) $assetOFLine->qty_used = $qty_used;
+                        if(! empty($qty_non_compliant)) $assetOFLine->qty_non_compliant = $qty_non_compliant;
+                        $assetOFLine->saveQty($PDOdb);
+                    }
+                    //On récupère les nomenclatures associés
+                    $TNomen = new TNomenclature;
+                    $TNomen->load($PDOdb, $assetOFLine->fk_nomenclature);
+                    //Needed
+                    if(! empty($TNomen->TNomenclatureDet)) {
+                        foreach($TNomen->TNomenclatureDet as $nomenDet) { // Pour chaque composant on récupère la ligne d'of associée
+                            $lineId = $assetOFLine->getNeededIDByProduct($nomenDet->fk_product);
+                            if(! empty($lineId)) {
+                                $neededLine = new TAssetOFLine;
+                                $neededLine->load($PDOdb, $lineId);
+
+                                $neededLine->qty += $assetOFLine->qty * $nomenDet->qty;
+                                $neededLine->qty_needed += $assetOFLine->qty * $nomenDet->qty;
+                                $neededLine->qty_used += ($assetOFLine->qty_used + $assetOFLine->qty_non_compliant) * $nomenDet->qty;
+
+                                $neededLine->saveQty($PDOdb);
+
+                                // OF Enfant
+                                $TChildParam = $assetOFLine->getToMakeChildrenOFIdAndLineID($neededLine);
+                                if(! empty($TChildParam)) {
+                                    $childOF = new TAssetOF;
+                                    $childOF->load($PDOdb, $TChildParam['fk_OF']);
+
+                                    $qtyCompliant = $assetOFLine->qty_used * $nomenDet->qty;
+                                    $qtyNonCompliant = $assetOFLine->qty_non_compliant * $nomenDet->qty;
+
+                                    $childOF->updateNomenclatureToMakeQty($PDOdb, $neededLine->qty, $qtyCompliant, $qtyNonCompliant, $TChildParam['idLine']);
+                                }
+                            }
+                        }
+                    }
+                    //Workstation
+                    if(! empty($TNomen->TNomenclatureWorkstation)) {
+                        foreach($TNomen->TNomenclatureWorkstation as $nomenWorkstation) {
+                            $lineId = $assetOFLine->getWorkstationOfIDByWorkstation($nomenWorkstation->fk_workstation);
+                            if(! empty($lineId)) {
+                                $workstationLine = new TAssetWorkstationOF;
+                                $workstationLine->load($PDOdb, $lineId);
+
+                                $workstationLine->nb_hour += $assetOFLine->qty * $nomenWorkstation->nb_hour;
+                                $workstationLine->nb_hour_prepare += $assetOFLine->qty * $nomenWorkstation->nb_hour;
+                                $workstationLine->nb_hour_real += ($assetOFLine->qty_used + $assetOFLine->qty_non_compliant) * $nomenWorkstation->nb_hour;
+
+                                $workstationLine->save($PDOdb);
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        return true;
+    }
+
+
 	function validate(&$PDOdb) {
 
 		global $conf,$langs;
@@ -3669,96 +3763,20 @@ class TAssetOFLine extends TObjetStd{
 
 	}
 
-    /**
-     * @param TPDOdb $PDOdb
-     * @param float  $qty
-     * @param float  $qty_used
-     * @param float  $qty_non_compliant
-     * @return bool
-     */
-    function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant) {
-        $TNomen = new TNomenclature;
-        $TNomen->load($PDOdb, $this->fk_nomenclature);
-
-        if(!empty($TNomen->TNomenclatureDet)) {
-            foreach($TNomen->TNomenclatureDet as $nomenDet) {
-                $lineId = $this->getNeededIDByProduct($nomenDet->fk_product);
-                if(! empty($lineId)) {
-                    $neededLine = new TAssetOFLine;
-                    $neededLine->load($PDOdb, $lineId);
-
-                    //Calcul (on retire ce qu'il y avait avant pour recalculer ce qu'il faut pour la ligne)
-                    $theoricalQtyToUse = floatval($nomenDet->qty) * (floatval($qty) - floatval($this->qty));
-                    if(empty($this->qty_used) && empty($this->qty_non_compliant)) {
-                        $qtyUsed = floatval($nomenDet->qty) * ((floatval($qty_used) + floatval($qty_non_compliant)) - 1);
-                    }
-                    else {
-                        $qtyUsed = floatval($nomenDet->qty) * ((floatval($qty_used) + floatval($qty_non_compliant)) - (floatval($this->qty_used) + floatval($this->qty_non_compliant)));
-                    }
-
-                     // OF Enfant
-                    $lineIdChildren = $this->getToMakeChildrenId($neededLine);
-                    if(!empty($lineIdChildren)) {
-                        $childToMakeLine = new TAssetOFLine;
-                        $childToMakeLine->load($PDOdb, $lineIdChildren);
-                        $qtyCompliant = floatval($nomenDet->qty) * floatval($qty_used);
-                        $qtyNonCompliant = floatval($nomenDet->qty) * floatval($qty_non_compliant);
-                        $childToMakeLine->updateNomenclatureToMakeQty($PDOdb, $neededLine->qty + $theoricalQtyToUse, $qtyCompliant, $qtyNonCompliant);
-                    }
-
-                    if(!empty($qty)) {
-                        $neededLine->qty += $theoricalQtyToUse;
-                        $neededLine->qty_needed += $theoricalQtyToUse;
-                    }
-                    if(!empty($qty_used) || !empty($qty_non_compliant)) $neededLine->qty_used += $qtyUsed;
-
-
-                    $neededLine->saveQty($PDOdb);
-                }
-            }
-        }
-
-        if(!empty($TNomen->TNomenclatureWorkstation)) {
-            foreach($TNomen->TNomenclatureWorkstation as $nomenWorkstation) {
-                $lineId = $this->getWorkstationOfIDByWorkstation($nomenWorkstation->fk_workstation);
-                if(! empty($lineId)) {
-                    $workstationLine = new TAssetWorkstationOF;
-                    $workstationLine->load($PDOdb, $lineId);
-                    $theoricalNbHour = floatval($nomenWorkstation->nb_hour) * (floatval($qty) - floatval($this->qty));
-                    $theoricalNbHourPrepare = floatval($nomenWorkstation->nb_hour_prepare) * (floatval($qty) - floatval($this->qty));
-                    $nbHourDone = floatval($nomenWorkstation->nb_hour_manufacture) * ((floatval($qty_used) + floatval($qty_non_compliant)) - (floatval($this->qty_used) + floatval($this->qty_non_compliant)));
-
-                    if(!empty($qty)) {
-                        $workstationLine->nb_hour += $theoricalNbHour;
-                        $workstationLine->nb_hour_prepare += $theoricalNbHourPrepare;
-                    }
-                    if(!empty($qty_used) || !empty($qty_non_compliant)) $workstationLine->nb_hour_real += $nbHourDone;
-
-                    $workstationLine->save($PDOdb);
-                }
-            }
-        }
-        if(! empty($qty)) $this->qty = $qty;
-        if(! empty($qty_used)) $this->qty_used = $qty_used;
-        if(! empty($qty_non_compliant)) $this->qty_non_compliant = $qty_non_compliant;
-        $this->saveQty($PDOdb);
-
-        return true;
-    }
 
     /**
      * @param TAssetOFLine $neededLine
-     * @return int
+     * @return array
      */
-    function getToMakeChildrenId($neededLine) {
+    function getToMakeChildrenOFIdAndLineID($neededLine) {
         global $db;
-        $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf_line WHERE fk_product = '.$neededLine->fk_product.' AND fk_assetOf IN (SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf WHERE fk_assetOf_parent = '.$neededLine->fk_assetOf.') AND type = "TO_MAKE"';
+        $sql = 'SELECT fk_assetOf, rowid FROM '.MAIN_DB_PREFIX.'assetOf_line WHERE fk_product = '.$neededLine->fk_product.' AND fk_assetOf IN (SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf WHERE fk_assetOf_parent = '.$neededLine->fk_assetOf.') AND type = "TO_MAKE"';
         $resql = $db->query($sql);
         if($resql && $db->num_rows($resql) > 0) {
             $obj = $db->fetch_object($resql);
-            return $obj->rowid;
+            return array('idLine' => $obj->rowid, 'fk_OF' => $obj->fk_assetOf);
         }
-        else return 0;
+        else return array();
     }
     /**
      * @param int $fk_product
