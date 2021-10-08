@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.4
 
+- FIX: Fatal: TObjetStd not found *08/10/2021* - 2.4.1
 - NEW Sélection des équipements pour les composants d'un OF : mise en place d'un multisect  *08/09/2021* - 2.4
 - NEW Bouton Transfert de stock depuis un OF *16/09/2021* - 2.3
 
