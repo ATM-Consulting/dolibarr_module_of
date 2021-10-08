@@ -273,9 +273,11 @@ class TAssetOF extends TObjetStd{
      * @param float  $qty
      * @param float  $qty_used
      * @param float  $qty_non_compliant
+     * @param bool   $addToMake
+     * @param bool   $force_empty
      * @return bool
      */
-    function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine) {
+    function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine, $addToMake = false, $force_empty = false) {
         if(!empty($this->TAssetOFLine)) {
             /**
              * @var TAssetOFLine $assetOFLine
@@ -287,6 +289,12 @@ class TAssetOF extends TObjetStd{
                     $assetOFLine->qty_needed = 0;
                     $assetOFLine->qty_used = 0;
                     $assetOFLine->saveQty($PDOdb);
+                    $TChildParam = $assetOFLine->getToMakeChildrenOFIdAndLineID($assetOFLine);
+                    if(! empty($TChildParam)) {
+                        $childOF = new TAssetOF;
+                        $childOF->load($PDOdb, $TChildParam['fk_OF']);
+                        $childOF->updateNomenclatureToMakeQty($PDOdb, 0, 0, 0, $TChildParam['idLine'], false, true);
+                    }
                 }
             }
             if(! empty($this->TAssetWorkstationOF)) {
@@ -298,13 +306,20 @@ class TAssetOF extends TObjetStd{
                 }
             }
 
+
             //Calcul
             foreach($this->TAssetOFLine as $assetOFLine) {
                 if($assetOFLine->type === 'TO_MAKE') { // On recalcul pour tous les "à fabriquer"
                     if($idLine === $assetOFLine->getId()) {
-                        if(! empty($qty)) $assetOFLine->qty = $qty;
-                        if(! empty($qty_used)) $assetOFLine->qty_used = $qty_used;
-                        if(! empty($qty_non_compliant)) $assetOFLine->qty_non_compliant = $qty_non_compliant;
+
+                        if($addToMake) {
+                            $qty += $assetOFLine->qty;
+                            $qty_used += $assetOFLine->qty_used;
+                            $qty_non_compliant += $assetOFLine->qty_non_compliant;
+                        }
+                        if(! empty($qty) || $force_empty) $assetOFLine->qty = $qty;
+                        if(! empty($qty_used) || $force_empty) $assetOFLine->qty_used = $qty_used;
+                        if(! empty($qty_non_compliant) || $force_empty) $assetOFLine->qty_non_compliant = $qty_non_compliant;
                         $assetOFLine->saveQty($PDOdb);
                     }
                     //On récupère les nomenclatures associés
@@ -329,11 +344,9 @@ class TAssetOF extends TObjetStd{
                                 if(! empty($TChildParam)) {
                                     $childOF = new TAssetOF;
                                     $childOF->load($PDOdb, $TChildParam['fk_OF']);
-
                                     $qtyCompliant = $assetOFLine->qty_used * $nomenDet->qty;
                                     $qtyNonCompliant = $assetOFLine->qty_non_compliant * $nomenDet->qty;
-
-                                    $childOF->updateNomenclatureToMakeQty($PDOdb, $neededLine->qty, $qtyCompliant, $qtyNonCompliant, $TChildParam['idLine']);
+                                    $childOF->updateNomenclatureToMakeQty($PDOdb, $assetOFLine->qty * $nomenDet->qty, $qtyCompliant, $qtyNonCompliant, $TChildParam['idLine'], true);
                                 }
                             }
                         }
@@ -354,7 +367,6 @@ class TAssetOF extends TObjetStd{
                             }
                         }
                     }
-
                 }
             }
         }
