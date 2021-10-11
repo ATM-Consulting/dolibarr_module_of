@@ -2,7 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+## Version 2.8
 
+- NEW Gestion des calculs auto pour chaque ligne  *11/10/2021* - 2.8
 ## Version 2.7
 
 - NEW massaction edition des entrepôts de tous les composants d'un of  *05/10/2021* - 2.7
