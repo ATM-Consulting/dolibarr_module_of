@@ -1215,8 +1215,17 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 
-	//Ajout d'un produit TO_MAKE à l'OF
-	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0)
+    /**
+     * Ajout d'un produit TO_MAKE à l'OF
+     * @param TPDOdb $PDOdb
+     * @param int    $fk_product
+     * @param int    $quantite_to_make
+     * @param int    $fk_assetOf_line_parent
+     * @param int    $fk_nomenclature
+     * @param bool   $found
+     * @return bool
+     */
+	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0, $found = false)
 	{
 		global $conf;
 
@@ -1232,14 +1241,22 @@ class TAssetOF extends TObjetStd{
 				{
 					$TabSubProd = $this->getProductComposition($PDOdb,$prod->fk_product, $prod->qty);
 
-					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
+					if (((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)))
 					{
-						$this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
-
+						if(!$found) $this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
+                        else {
+                            $assetOFLine = new TAssetOFLine;
+                            $assetOFLine->load($PDOdb, $idLine);
+                            // OF Enfant
+                            $TChildParam = $assetOFLine->getToMakeChildrenOFIdAndLineID($assetOFLine);
+                            if(! empty($TChildParam)) {
+                                $childOF = new TAssetOF;
+                                $childOF->load($PDOdb, $TChildParam['fk_OF']);
+                                $childOF->updateNomenclatureToMakeQty($PDOdb, $assetOFLine->qty, 0, 0, $TChildParam['idLine']);
+                            }
+                        }
 					}
-
 				}
-
 			}
 		}
 
@@ -1448,63 +1465,77 @@ class TAssetOF extends TObjetStd{
 	function addLine(&$PDOdb, $fk_product, $type, $quantite=1,$fk_assetOf_line_parent=0, $lot_number='',$fk_nomenclature=0,$fk_commandedet=0, $note_private = '', $workstations='')
 	{
 		global $user,$langs,$conf,$db;
+        $found = false;
+        if(count($this->TAssetOFLine) > 1) {
+            foreach($this->TAssetOFLine as &$assetOFLine) {
 
-		$k = $this->addChild($PDOdb, 'TAssetOFLine');
-
-		$TAssetOFLine = &$this->TAssetOFLine[$k];
-
-		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
-		$TAssetOFLine->fk_product = $fk_product;
-		$TAssetOFLine->fk_asset = 0; //TODO remove ?
-		$TAssetOFLine->type = $type;
-		$TAssetOFLine->qty_needed = $quantite;
-		$TAssetOFLine->qty = (!empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
-		$TAssetOFLine->qty_used = (!empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
-		$TAssetOFLine->note_private = $note_private;
-
-		$TAssetOFLine->fk_commandedet = $fk_commandedet;
-
-        	$TAssetOFLine->fk_product_fournisseur_price = -2;
-
-		if (!empty($conf->nomenclature->enabled) && !$fk_nomenclature)
-		{
-			dol_include_once('/nomenclature/class/nomenclature.class.php');
-
-			$TNomen = array();
-
-			if($fk_commandedet > 0) {
-				$TNomen = TNomenclature::get($PDOdb,  $fk_commandedet, false, 'commande');
-			}
-
-			if(empty($TNomen)) $TNomen = TNomenclature::get($PDOdb,  $fk_product);
-			if(count($TNomen) == 1) {
-				$TAssetOFLine->fk_nomenclature = $TNomen[0]->getId();
-				$fk_nomenclature = $TAssetOFLine->fk_nomenclature ;
-			}
-		}
-		else{
-			$TAssetOFLine->fk_nomenclature = $fk_nomenclature;
-		}
+                if($assetOFLine->fk_product == $fk_product
+                    && ($fk_nomenclature == $assetOFLine->fk_nomenclature || $type == 'NEEDED')
+                    && $assetOFLine->type == $type) {
+                    $found = true;
+                    $TAssetOFLine = $assetOFLine; //TODO
+                    $TAssetOFLine->qty_needed += $quantite;
+                    $TAssetOFLine->qty += (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
+                    $TAssetOFLine->qty_used += (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
+                }
+            }
+        }
+        if(!$found) {
 
 
-		$TAssetOFLine->lot_number = $lot_number;
+            $k = $this->addChild($PDOdb, 'TAssetOFLine');
 
-        $TAssetOFLine->initConditionnement($PDOdb);
+            $TAssetOFLine = &$this->TAssetOFLine[$k];
 
-		if($fk_nomenclature>0) {
-			$TAssetOFLine->nomenclature_valide = true;
-		}
+            $TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
+            $TAssetOFLine->fk_product = $fk_product;
+            $TAssetOFLine->fk_asset = 0; //TODO remove ?
+            $TAssetOFLine->type = $type;
+            $TAssetOFLine->qty_needed = $quantite;
+            $TAssetOFLine->qty = (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
+            $TAssetOFLine->qty_used = (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
+            $TAssetOFLine->note_private = $note_private;
 
-		if ($type=='NEEDED') {
-			if($TAssetOFLine->fk_product>0) $TAssetOFLine->load_product();
+            $TAssetOFLine->fk_commandedet = $fk_commandedet;
 
-			if(!empty($workstations)) {
+            $TAssetOFLine->fk_product_fournisseur_price = -2;
 
-				$TAssetOFLine->set_workstations($PDOdb, explode(',', $workstations));
+            if(! empty($conf->nomenclature->enabled) && ! $fk_nomenclature) {
+                dol_include_once('/nomenclature/class/nomenclature.class.php');
 
-			}
+                $TNomen = array();
 
-		}
+                if($fk_commandedet > 0) {
+                    $TNomen = TNomenclature::get($PDOdb, $fk_commandedet, false, 'commande');
+                }
+
+                if(empty($TNomen)) $TNomen = TNomenclature::get($PDOdb, $fk_product);
+                if(count($TNomen) == 1) {
+                    $TAssetOFLine->fk_nomenclature = $TNomen[0]->getId();
+                    $fk_nomenclature = $TAssetOFLine->fk_nomenclature;
+                }
+            }
+            else {
+                $TAssetOFLine->fk_nomenclature = $fk_nomenclature;
+            }
+
+            $TAssetOFLine->lot_number = $lot_number;
+
+            $TAssetOFLine->initConditionnement($PDOdb);
+
+            if($fk_nomenclature > 0) {
+                $TAssetOFLine->nomenclature_valide = true;
+            }
+
+            if($type == 'NEEDED') {
+                if($TAssetOFLine->fk_product > 0) $TAssetOFLine->load_product();
+
+                if(! empty($workstations)) {
+
+                    $TAssetOFLine->set_workstations($PDOdb, explode(',', $workstations));
+                }
+            }
+        }
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
 		// Appel des triggers
@@ -1518,12 +1549,12 @@ class TAssetOF extends TObjetStd{
 
 		if($type=='TO_MAKE' && ( $fk_nomenclature>0 || empty($conf->nomenclature->enabled) ))
 		{
-			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$quantite);
-			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
+			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$quantite, $found);
+			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature, $found);
 			$this->set_current_cost_for_to_make();
 		}
 
-        if(!empty($conf->global->OF_KEEP_PRODUCT_DOCUMENTS) && !empty($fk_product)) {
+        if(!empty($conf->global->OF_KEEP_PRODUCT_DOCUMENTS) && !empty($fk_product) && !$found) {
             $prod = new Product($db);
             $prod->fetch($fk_product);
 
@@ -1606,71 +1637,69 @@ class TAssetOF extends TObjetStd{
 		}
 	}
 
-	/*
-	 * Fonction qui permet de mettre à jour les postes de travail liés à un produit
-	 * pour la création d'un OF depuis une fiche produit
-	 */
-	function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0, $qty_needed = 1)
-	{
-		global $conf;
+    /**
+     * Fonction qui permet de mettre à jour les postes de travail liés à un produit
+     * pour la création d'un OF depuis une fiche produit
+     *
+     * @param TPDOdb $PDOdb
+     * @param int    $fk_product
+     * @param int    $fk_nomenclature
+     * @param int    $qty_needed
+     * @param bool   $found
+     */
+    function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0, $qty_needed = 1, $found = false) {
+        global $conf;
 
-		if (!empty($conf->workstationatm->enabled))
-		{
-			if($conf->nomenclature->enabled) {
+        if(! empty($conf->workstationatm->enabled)) {
+            if($conf->nomenclature->enabled) {
 
-				if($fk_nomenclature>0) {
-					dol_include_once('/nomenclature/class/nomenclature.class.php');
+                if($fk_nomenclature > 0) {
+                    dol_include_once('/nomenclature/class/nomenclature.class.php');
 
-					$n=new TNomenclature;
-					if($n->load($PDOdb, $fk_nomenclature, true)) {
-						foreach($n->TNomenclatureWorkstation as &$nws) {
+                    $n = new TNomenclature;
+                    if($n->load($PDOdb, $fk_nomenclature, true)) {
+                        //on check si les workstations étaient pas déjà là
 
-							if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || !empty($conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF)) {
+                        foreach($n->TNomenclatureWorkstation as &$nws) {
+                            $foundWk = false;
+                            if($found) {
+                                foreach($this->TAssetWorkstationOF as &$wkOF) {
+                                    if($wkOF->fk_asset_workstation == $nws->fk_workstation) {
+                                        $wkOF->nb_hour += $nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference);
+                                        $wkOF->nb_hour_prepare += $nws->nb_hour_prepare;
+                                        $wkOF->nb_hour_real += $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference);
+                                        $wkOF->save($PDOdb);
+                                        $foundWk = true;
+                                    }
+                                }
+                            }
+                            if(! $foundWk) {
+                                if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || ! empty($conf->global->ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF)) {
 
-								$k = $this->addTAssetWorkstationOF($PDOdb
-										,$nws->fk_workstation
-										,$nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
-										,$nws->nb_hour_prepare
-										,$nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference)
-										,$nws->rang
-										,$nws->note_private
-										,$nws->nb_days_before_beginning
-										,$nws->nb_days_before_reapro
-								);
+                                    $k = $this->addTAssetWorkstationOF($PDOdb, $nws->fk_workstation, $nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference), $nws->nb_hour_prepare, $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference), $nws->rang, $nws->note_private, $nws->nb_days_before_beginning, $nws->nb_days_before_reapro);
 
-								$this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
+                                    $this->TAssetWorkstationOF[$k]->ws = $nws->workstation;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                $sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+                $sql .= " FROM ".MAIN_DB_PREFIX."workstation_product";
+                $sql .= " WHERE fk_product = ".$fk_product;
+                $PDOdb->Execute($sql);
 
-							}
+                while($res = $PDOdb->Get_line()) {
 
-						}
+                    $k = $this->addofworkstation($PDOdb, $nws->fk_workstation, $res->nb_hour);
 
-					}
-
-				}
-
-			}
-			else {
-				$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-				$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-				$sql.= " WHERE fk_product = ".$fk_product;
-				$PDOdb->Execute($sql);
-
-				while($res = $PDOdb->Get_line())
-				{
-
-					$k = $this->addofworkstation($PDOdb
-							,$nws->fk_workstation
-							,$res->nb_hour
-					);
-
-					$this->TAssetWorkstationOF[$k]->ws = $ws;
-				}
-
-			}
-
-		}
-
-	}
+                    $this->TAssetWorkstationOF[$k]->ws = $ws;
+                }
+            }
+        }
+    }
 
     function launchOF(&$PDOdb)
     {
