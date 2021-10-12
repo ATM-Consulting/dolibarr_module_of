@@ -1,5 +1,11 @@
 <?php
 
+if (!class_exists('TObjetStd'))
+{
+	define('INC_FROM_DOLIBARR', true);
+	require_once __DIR__ . '/../config.php';
+}
+
 class TAssetOF extends TObjetStd{
 /*
  * Ordre de fabrication d'équipement
@@ -4570,7 +4576,6 @@ class TAssetWorkstationOF extends TObjetStd{
 
 
 dol_include_once('/workstationatm/class/workstation.class.php');
-dol_include_once('/workstation/class/workstation.class.php');
 
 if (class_exists('TWorkstation')) {
 	class TAssetWorkstation extends TWorkstation {
