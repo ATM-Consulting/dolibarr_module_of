@@ -3,7 +3,7 @@
 if (!class_exists('TObjetStd'))
 {
 	define('INC_FROM_DOLIBARR', true);
-	require_once dirname(__FILE__) . '/../config.php';
+	require_once __DIR__ . '/../config.php';
 }
 
 class TAssetOF extends TObjetStd{
