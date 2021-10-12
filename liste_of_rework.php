@@ -63,7 +63,7 @@ $pageprev = $page - 1;
 $pagenext = $page + 1;
 
 if (!$sortfield) {
-    $sortfield = "e.ref";
+    $sortfield = "ofe.rowid";
 }
 if (!$sortorder) {
     $sortorder = "DESC";
@@ -87,6 +87,7 @@ $fieldstosearchall = array(
 
 $arrayfields = array(
     'ofe.numero'=>array('label'=>$langs->trans("OfNumber"), 'checked'=>1),
+    'ofel.qty'=>array('label'=>$langs->trans("NumberProductToMake"), 'checked'=>1),
     'ofe.fk_commande'=>array('label'=>$langs->trans("CustomerOrder"), 'checked'=>1),
     'ofe.ordre'=>array('label'=>$langs->trans("Rank"), 'checked'=>1),
     'ofe.date_lancement'=>array('label'=>$langs->trans("DateStart"), 'checked'=>1),
@@ -307,7 +308,7 @@ if ($search_company) {
     $sql .= natural_search('s.nom', $search_company);
 }
 if ($search_product) {
-    $sql .= natural_search('ofel.fk_product', $search_product);
+    $sql .= " AND (p.label LIKE '%".$search_product."%' OR p.ref LIKE '%".$search_product."%')";
 }
 if ($search_order != '') {
     $sql .= natural_search('ofe.fk_commande', $search_order);
@@ -343,10 +344,8 @@ if ($mode == 'supplier_order') {
 } else {
     $sql .= " GROUP BY ofe.rowid ";
 }
-if (! empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
-    $sql .= " ORDER BY ofe.date_lancement ASC, ofe.rank ASC, ofe.rowid DESC ";
-} else $sql .= " ORDER BY ofe.rowid DESC ";
 
+$sql .= $db->order($sortfield, $sortorder);
 
 $nbtotalofrecords = '';
 
@@ -537,8 +536,8 @@ if ($resql)
 
     if (! empty($arrayfields['ofe.numero']['checked']))  print_liste_field_titre('OfNumber', $_SERVER["PHP_SELF"], "ofe.numero", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['s.nom']['checked']))  print_liste_field_titre('Customer', $_SERVER["PHP_SELF"], "s.nom", "", $param, "", $sortfield, $sortorder);
-    if (! empty($arrayfields['ofel.qty']['checked']))  print_liste_field_titre('NumberProductToMake', $_SERVER["PHP_SELF"], "ofel.qty", "", $param, "", $sortfield, $sortorder);
-    if (! empty($arrayfields['p.label']['checked']))  print_liste_field_titre('Product', $_SERVER["PHP_SELF"], "ofel.fk_product", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofel.qty']['checked']))  print_liste_field_titre('NumberProductToMake', $_SERVER["PHP_SELF"], "nb_product_to_make", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['p.label']['checked']))  print_liste_field_titre('Product', $_SERVER["PHP_SELF"], "p.label", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.rank']['checked']))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.date_lancement']['checked']))  print_liste_field_titre('DateStart', $_SERVER["PHP_SELF"], "ofe.date_lancement", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.date_besoin']['checked']))  print_liste_field_titre('DateNeeded', $_SERVER["PHP_SELF"], "ofe.date_besoin", "", $param, "", $sortfield, $sortorder);
