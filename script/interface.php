@@ -32,7 +32,7 @@ function traite_get(&$PDOdb, $case) {
 			__out(_deletelineof($PDOdb,GETPOST('idLine', 'none'),GETPOST('type', 'none')), 'json');
 			break;
 		case 'updateqtymaking':
-			__out(_updateQtyMaking($PDOdb,GETPOST('id', 'none'),GETPOST('idLine', 'none'),GETPOST('action', 'none'),GETPOST('qty', 'none'), GETPOST('qty_used', 'none'), GETPOST('qty_non_compliant', 'int')),GETPOST('type', 'none'));
+			__out(_updateQtyMaking($PDOdb,GETPOST('id', 'none'),GETPOST('idLine', 'none'),GETPOST('action', 'none'),GETPOST('qty', 'int'), GETPOST('qty_used', 'int'), GETPOST('qty_non_compliant', 'int')),GETPOST('type', 'none'));
 			break;
 		case 'addofworkstation':
 			__out(_addofworkstation($PDOdb,GETPOST('id_assetOf', 'none'),GETPOST('fk_asset_workstation', 'none')));
@@ -270,15 +270,17 @@ function _updateQtyMaking(&$PDOdb, $fk_of,$idLine,$action,$qty, $qty_used, $qty_
 	global $db, $conf;
 
 	dol_include_once('product/class/product.class.php');
-
-	$of = new TAssetOF;
-	$of->load($PDOdb, $fk_of);
-
-	if($action == 'updateqty') $res =  $of->updateToMakeLineQty($PDOdb, $idLine,$qty);
-	elseif ($action == 'updateqty_usernocompliant') $res =  $of->updateUsedNonCompliantLineQty($PDOdb, $idLine,$qty_used, $qty_non_compliant);
-
+    $assetOfLine = new TAssetOFLine;
+    $assetOfLine->load($PDOdb, $idLine);
+    $of = new TAssetOF;
+    $of->load($PDOdb, $fk_of);
+    if(empty($assetOfLine->fk_nomenclature)) {
+        if($action == 'updateqty') $res = $of->updateToMakeLineQty($PDOdb, $idLine, $qty);
+        else if($action == 'updateqty_usernocompliant') $res = $of->updateUsedNonCompliantLineQty($PDOdb, $idLine, $qty_used, $qty_non_compliant);
+    } else {
+        $res = $of->updateNomenclatureToMakeQty($PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine);
+    }
 	return $res;
-
 }
 
 function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)

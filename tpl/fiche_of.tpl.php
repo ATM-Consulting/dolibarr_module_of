@@ -865,9 +865,9 @@
 			[onshow;block=begin;when [view.mode]!='view']
 
 				if ($(btnadd).attr('statut') == 'DRAFT' || $(btnadd).attr('statut') == 'OPEN') {
-					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
-					qty_used = $(btnadd).closest('tr').find("input[id*='qty_used']").val();
-					qty_non_compliant = $(btnadd).closest('tr').find("input[id*='qty_non_compliant']").val();
+					qty = $(btnadd).closest('tr').find("input[id*='[qty]']").val();
+					qty_used = $(btnadd).closest('tr').find("input[id*='[qty_used]']").val();
+					qty_non_compliant = $(btnadd).closest('tr').find("input[id*='[qty_non_compliant]']").val();
 
 					if ($(btnadd).attr('statut') == 'DRAFT') {
 						action = 'updateqty';
