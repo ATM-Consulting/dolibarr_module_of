@@ -11,6 +11,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/order.lib.php';
 require_once(__DIR__.'/class/ordre_fabrication_asset.class.php');
+require_once(__DIR__.'/class/oftools.class.php');
 
 if(!$user->rights->of->of->lire) accessforbidden();
 
@@ -19,13 +20,14 @@ $langs->load('workstationatm@workstationatm');
 $langs->load('stocks');
 
 $PDOdb = new TPDOdb;
+if ($conf->workstation->enabled && !class_exists('TWorkstation')) dol_include_once('workstation/class/workstation.class.php');
+$TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
 
 $action     = GETPOST('action', 'alpha');
 $toselect = GETPOST('toselect', 'array');
 $cancel     = GETPOST('cancel', 'alpha');
 $contextpage = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : 'easycommissionList';   // To manage different context of search
 $massaction = GETPOST('massaction', 'alpha');
-$search_ref_exp = GETPOST("search_ref_exp", 'alpha');
 
 // Load variable for pagination
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
@@ -36,11 +38,18 @@ $optioncss = GETPOST('optioncss', 'alpha');
 $now = dol_now();
 
 $mode = GETPOST('mode', 'none');
+$oldRank = GETPOST('old_of_rank', 'none');
+$newRank = GETPOST('of_rank', 'none');
 $fk_soc = GETPOST('fk_soc', 'int');
 $fk_product = GETPOST('fk_product', 'int');
 $fk_commande = GETPOST('fk_commande', 'int');
+$fk_projet = GETPOST('fk_projet', 'int');
+$search_company = GETPOST("search_company", 'alpha');
+$search_product = GETPOST("search_product", 'alpha');
+$search_order = GETPOST("search_order", 'alpha');
 $search_num_of = GETPOST("search_num_of", 'alpha');
 $search_status_of = GETPOST("search_status_of", 'alpha');
+$search_workstation = GETPOST("search_workstation", 'int');
 $search_date_lancement_start = dol_mktime(0, 0, 0, GETPOST('search_date_lancement_startmonth', 'int'), GETPOST('search_date_lancement_startday', 'int'), GETPOST('search_date_lancement_startyear', 'int'));
 $search_date_lancement_end = dol_mktime(23, 59, 59, GETPOST('search_date_lancement_endmonth', 'int'), GETPOST('search_date_lancement_endday', 'int'), GETPOST('search_date_lancement_endyear', 'int'));
 $search_date_besoin_start = dol_mktime(0, 0, 0, GETPOST('search_date_besoin_startmonth', 'int'), GETPOST('search_date_besoin_startday', 'int'), GETPOST('search_date_besoin_startyear', 'int'));
@@ -97,9 +106,6 @@ $arrayfields = array(
     'cd.total_ht'=>array('label'=>$langs->trans("OrderLinePrice"), 'checked'=>1)
 );
 
-// Extra fields
-include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
-
 /*
  * Actions
  */
@@ -116,7 +122,6 @@ if ($fk_product > 0) {
     $picto = ($product->type == 1 ? 'service' : 'product');
     dol_fiche_head($head, 'tabOF2', $titre, -1, $picto);
 } elseif ($fk_commande > 0) {
-    dol_include_once("/core/lib/order.lib.php");
 
     $commande = new Commande($db);
     $result = $commande->fetch($fk_commande);
@@ -139,14 +144,21 @@ if (empty($reshook))
 {
     // Selection of new fields
     include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+
+    $objectclass = "OFList";
+    $uploaddir = $conf->of->multidir_output; // define only because core/actions_massactions.inc.php want it
     include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
 
     // Purge search criteria
     if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha'))
     {
         $sall = "";
+        $search_company = "";
+        $search_product = "";
+        $search_order = "";
         $search_num_of = "";
         $search_status_of = "";
+        $search_workstation = "";
         $search_date_lancement_start = "";
         $search_date_lancement_end = "";
         $search_date_besoin_start = "";
@@ -155,24 +167,24 @@ if (empty($reshook))
         $search_date_fin_end = "";
     }
 
-    switch ($action)
-    {
-        case 'createOFCommande':
-            @set_time_limit(0);
-            _createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
-            _liste($PDOdb);
-            break;
-        case 'setRank':
-            _setAllRank($PDOdb, GETPOST('of_rank', 'none'), GETPOST('old_of_rank', 'none'));
-            _liste($PDOdb);
-            break;
-        case 'printTicket':
-            _printTicket($PDOdb);
-        default:
-            set_time_limit(0);
-            _liste($PDOdb);
-            break;
-    }
+//    switch ($action)
+//    {
+//        case 'createOFCommande':
+//            @set_time_limit(0);
+//            _createOFCommande($PDOdb, $_REQUEST['TProducts'], $_REQUEST['TQuantites'], $_REQUEST['fk_commande'], $_REQUEST['fk_soc'], isset($_REQUEST['subFormAlone']));
+//            _liste($PDOdb);
+//            break;
+//        case 'setRank':
+//            _setAllRank($PDOdb, GETPOST('of_rank', 'none'), GETPOST('old_of_rank', 'none'));
+//            _liste($PDOdb);
+//            break;
+//        case 'printTicket':
+//            _printTicket($PDOdb);
+//        default:
+//            set_time_limit(0);
+//            _liste($PDOdb);
+//            break;
+//    }
 }
 
 /*
@@ -184,21 +196,17 @@ $page_name = $langs->trans("ListOFAsset");
 
 $form = new Form($db);
 $formother = new FormOther($db);
-$formfile = new FormFile($db);
 $companystatic = new Societe($db);
-$formcompany = new FormCompany($db);
+$productstatic = new Product($db);
 $assetOf = new TAssetOF;
 
 llxHeader('', $title);
-
-// Subheader
-print load_fiche_titre($langs->trans($page_name));
 
 // Build and execute select
 $sql = "SELECT ";
 
 if ($mode == 'supplier_order') {
-    $sql .= " cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+    $sql .= " cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
         , ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user
@@ -207,7 +215,7 @@ if ($mode == 'supplier_order') {
 		, '' AS printTicket ";
     if (! empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql .= ', ofe.rank';
 } else {
-    $sql .= " ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+    $sql .= " ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre
         " . (empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation") . "
         , ofe.date_lancement
@@ -294,10 +302,20 @@ if ($fk_commande > 0) {
         } else $sql .= " AND ofe.fk_commande=" . $fk_commande . " AND ofe.fk_assetOf_parent = 0 ";
     } else $sql .= " AND ofe.fk_commande=" . $fk_commande . " AND ofe.fk_assetOf_parent = 0 ";
 }
+
+if ($search_company) {
+    $sql .= natural_search('s.nom', $search_company);
+}
+if ($search_product) {
+    $sql .= natural_search('ofel.fk_product', $search_product);
+}
+if ($search_order != '') {
+    $sql .= natural_search('ofe.fk_commande', $search_order);
+}
 if ($search_num_of) {
     $sql .= natural_search('ofe.numero', $search_num_of);
 }
-if ($search_status_of) {
+if ($search_status_of != '' && $search_status_of >= 0) {
     $sql .= natural_search('ofe.status', $search_status_of);
 }
 if ($search_date_lancement_start) {
@@ -386,6 +404,13 @@ if ($resql)
     // Filter on categories
     $moreforfilter = '';
 
+    $moreforfilter .= '<div class="divsearchfield">';
+    $tmptitle = $langs->trans('Workstations');
+    $moreforfilter .= img_picto($tmptitle, 'workstation');
+    $moreforfilter .= ' '.$langs->trans('Workstations');
+    $moreforfilter .= $form->selectarray('search_workstation', $TCacheWorkstation, $search_workstation, 1);
+    $moreforfilter .= '</div>';
+
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters);    // Note that $action and $object may have been modified by hook
     if (empty($reshook)) $moreforfilter .= $hookmanager->resPrint;
@@ -411,14 +436,90 @@ if ($resql)
     // Numero
     if (!empty($arrayfields['ofe.numero']['checked'])) {
         print '<td class="liste_titre">';
-        print '<input class="flat" size="6" type="text" name="search_num_of" value="'.$search_num_of.'">';
+        print '<input class="flat" size="6" type="text" name="search_num_of" value="'.dol_escape_htmltag($search_num_of).'">';
         print '</td>';
     }
-
-    if (! empty($arrayfields['ofe.numero']['checked']))	print '<td class="liste_titre" align="left"></td>';
-    if (! empty($arrayfields['det.total_ht']['checked'])) print '<td class="liste_titre" align="left"></td>';
-    if (! empty($arrayfields['det.remise_percent']['checked']))	print '<td class="liste_titre" align="left"></td>';
-    if (! empty($arrayfields['det.fk_product']['checked']))	print '<td class="liste_titre" align="left"></td>';
+    // Client
+    if (!empty($arrayfields['s.nom']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="8" type="text" name="search_company" value="'.dol_escape_htmltag($search_company).'">';
+        print '</td>';
+    }
+    // Nombre de produits à fabriquer
+    if (!empty($arrayfields['ofel.qty']['checked'])) {
+        print '<td class="liste_titre maxwidthonsmartphone center">';
+        print '</td>';
+    }
+    // Produit
+    if (!empty($arrayfields['p.label']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_product" value="'.dol_escape_htmltag($search_product).'">';
+        print '</td>';
+    }
+    // Rang
+    if (!empty($arrayfields['ofe.rank']['checked'])) {
+        print '<td class="liste_titre maxwidthonsmartphone center">';
+        print '</td>';
+    }
+    // Date début
+    if (!empty($arrayfields['ofe.date_lancement']['checked'])) {
+        print '<td class="liste_titre">';
+        print $langs->trans('From').' ';
+        print $form->selectDate($search_date_lancement_start ? $search_date_lancement_start : $search_date_lancement_start, 'search_date_lancement_start', 0, 0, 1);
+        print $langs->trans('to').' ';
+        print $form->selectDate($search_date_lancement_end ? $search_date_lancement_end : $search_date_lancement_end, 'search_date_lancement_end', 0, 0, 1);
+        print '</td>';
+    }
+    // Date du besoin
+    if (!empty($arrayfields['ofe.date_besoin']['checked'])) {
+        print '<td class="liste_titre">';
+        print $langs->trans('From').' ';
+        print $form->selectDate($search_date_besoin_start ? $search_date_besoin_start : $search_date_besoin_start, 'search_date_besoin_start', 0, 0, 1);
+        print $langs->trans('to').' ';
+        print $form->selectDate($search_date_besoin_end ? $search_date_besoin_end : $search_date_besoin_end, 'search_date_besoin_end', 0, 0, 1);
+        print '</td>';
+    }
+    // Date fin
+    if (!empty($arrayfields['ofe.date_end']['checked'])) {
+        print '<td class="liste_titre">';
+        print $langs->trans('From').' ';
+        print $form->selectDate($search_date_fin_start ? $search_date_fin_start : $search_date_fin_start, 'search_date_fin_start', 0, 0, 1);
+        print $langs->trans('to').' ';
+        print $form->selectDate($search_date_fin_end ? $search_date_fin_end : $search_date_fin_end, 'search_date_fin_end', 0, 0, 1);
+        print '</td>';
+    }
+    // Commande
+    if (!empty($arrayfields['ofe.fk_commande']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_order" value="'.dol_escape_htmltag($search_order).'">';
+        print '</td>';
+    }
+    // Projet
+    if (!empty($arrayfields['ofe.fk_project']['checked'])) {
+        print '<td class="liste_titre">';
+        print '</td>';
+    }
+    // Status
+    if (!empty($arrayfields['ofe.status']['checked'])) {
+        print '<td class="liste_titre maxwidthonsmartphone center">';
+        print $form->selectarray('search_status_of', $assetOf::$TStatus, $search_status_of, 1, 0, 0, '', 1);
+        print '</td>';
+    }
+    // Temps estimé de fabrication
+    if (!empty($arrayfields['ofe.temps_estime_fabrication']['checked'])) {
+        print '<td class="liste_titre">';
+        print '</td>';
+    }
+    // Coût prévu
+    if (!empty($arrayfields['ofe.total_estimated_cost']['checked'])) {
+        print '<td class="liste_titre">';
+        print '</td>';
+    }
+    // Coût réel
+    if (!empty($arrayfields['ofe.total_cost']['checked'])) {
+        print '<td class="liste_titre">';
+        print '</td>';
+    }
 
     // Fields from hook
     $parameters=array('arrayfields'=>$arrayfields);
@@ -433,23 +534,21 @@ if ($resql)
     print '</tr>';
 
     print '<tr class="liste_titre">';
-    if ( ! empty($search_sale)) {
-        print_liste_field_titre('EasyComSocAndCommercial', $_SERVER["PHP_SELF"], "fa.fk_soc", "", $param, "", $sortfield, $sortorder);
-        if (! empty($arrayfields['fa.ref']['checked']))  print_liste_field_titre($arrayfields['fa.ref']['label'], $_SERVER["PHP_SELF"], "fa.ref", "", $param, "", $sortfield, $sortorder);
-        if (! empty($arrayfields['det.fk_product']['checked']))  print_liste_field_titre($arrayfields['det.fk_product']['label'], $_SERVER["PHP_SELF"], "det.fk_product", "", $param, "", $sortfield, $sortorder);
-        if (! empty($arrayfields['det.total_ht']['checked']))  print_liste_field_titre($arrayfields['det.total_ht']['label'], $_SERVER["PHP_SELF"], "det.total_ht", "", $param, "align='right'", $sortfield, $sortorder);
-        if (! empty($arrayfields['det.remise_percent']['checked']))  print_liste_field_titre($arrayfields['det.remise_percent']['label'], $_SERVER["PHP_SELF"], "det.remise_percent", "", $param, "align='right'", $sortfield, $sortorder);
-        print_liste_field_titre('EasyCommissionTitle', '', '', '', '', "align='right'");
-    }
-    else {
-        print_liste_field_titre('EasyCommercial', $_SERVER["PHP_SELF"], "fa.fk_soc", "", $param, "", $sortfield, $sortorder);
-        if (! empty($arrayfields['fa.ref']['checked']))  print_liste_field_titre('', $_SERVER["PHP_SELF"], "", "", '', "", '', '');
-        if (! empty($arrayfields['det.fk_product']['checked']))  print_liste_field_titre('', $_SERVER["PHP_SELF"], "", "", "", "", "", "");
-        if (! empty($arrayfields['det.remise_percent']['checked']))  print_liste_field_titre("", $_SERVER["PHP_SELF"], "", "", "", "align='right'", "", "");
-        if (! empty($arrayfields['det.total_ht']['checked']))  print_liste_field_titre($arrayfields['det.total_ht']['label'], $_SERVER["PHP_SELF"], "det.total_ht", "", $param, "align='right'", $sortfield, $sortorder);
-        print_liste_field_titre('EasyCommissionTitle', '', '', '', '', "align='right'");
-    }
 
+    if (! empty($arrayfields['ofe.numero']['checked']))  print_liste_field_titre('OfNumber', $_SERVER["PHP_SELF"], "ofe.numero", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['s.nom']['checked']))  print_liste_field_titre('Customer', $_SERVER["PHP_SELF"], "s.nom", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofel.qty']['checked']))  print_liste_field_titre('NumberProductToMake', $_SERVER["PHP_SELF"], "ofel.qty", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['p.label']['checked']))  print_liste_field_titre('Product', $_SERVER["PHP_SELF"], "ofel.fk_product", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.rank']['checked']))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.date_lancement']['checked']))  print_liste_field_titre('DateStart', $_SERVER["PHP_SELF"], "ofe.date_lancement", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.date_besoin']['checked']))  print_liste_field_titre('DateNeeded', $_SERVER["PHP_SELF"], "ofe.date_besoin", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.date_end']['checked']))  print_liste_field_titre('DateEnd', $_SERVER["PHP_SELF"], "ofe.date_end", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.fk_commande']['checked']))  print_liste_field_titre('CustomerOrder', $_SERVER["PHP_SELF"], "ofe.fk_commande", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.fk_project']['checked']))  print_liste_field_titre('Project', $_SERVER["PHP_SELF"], "ofe.fk_project", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.status']['checked']))  print_liste_field_titre('Status', $_SERVER["PHP_SELF"], "ofe.status", "", $param, 'align="center"', $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.temps_estime_fabrication']['checked']))  print_liste_field_titre('EstimatedMakeTimeInHours', $_SERVER["PHP_SELF"], "ofe.temps_estime_fabrication", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.total_estimated_cost']['checked']))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.total_cost']['checked']))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
 
     // Hook fields
     $parameters=array('arrayfields'=>$arrayfields, 'param'=>$param, 'sortfield'=>$sortfield, 'sortorder'=>$sortorder);
@@ -462,111 +561,133 @@ if ($resql)
     $i = 0;
     $totalarray=array();
 
-    if (empty($search_sale)) {
-        // Affichage des lignes de totaux HT et Commissions par utilisateur
-        EasyCommissionTools::displayTotauxByCommercial($TUsersTotaux, $i, $arrayfields, $totalarray);
-    }
-    else {
-        // Affichage du détail des lignes de facture pour le commercial sélectionné
-        while($i < min($num, $limit)) {
-            $obj = $db->fetch_object($resql);
+    while($i < min($num, $limit)) {
+        $obj = $db->fetch_object($resql);
 
-            $TRes = EasyCommissionTools::calcul_com($obj, $TCom, $TUserCom);
+        print '<tr class="oddeven">';
 
-            print '<tr class="oddeven">';
-
-            // Societe
-            $soc = new Societe($db);
-            $soc->fetch($obj->srowid);
-            $user->fetch($obj->fk_user);
-
+        // Numero
+        if (!empty($arrayfields['ofe.numero']['checked'])) {
             print '<td class="tdoverflowmax200">';
-            print $soc->getNomUrl(1, '', '', 1, '');
-            print '</br>';
-            print $user->getNomUrl(1, '', '', 1);
+            print OFTools::get_format_link_of($obj->numero, $obj->rowid);
             print "</td>\n";
             if(! $i) $totalarray['nbfield']++;
-
-
-            // Fac REF
-            if(! empty($arrayfields['fa.ref']['checked'])) {
-                $facturestatic->id = $obj->facrowid;
-                $facturestatic->ref = $obj->facref;
-                $facturestatic->ref_client = $obj->ref_client;
-                $facturestatic->total_ht = $obj->total_ht;
-                $facturestatic->total_tva = $obj->total_vat;
-                $facturestatic->total_ttc = $obj->total_ttc;
-
-                print '<td class="tdoverflowmax200">';
-                print $facturestatic->getNomUrl(1);
-                print "</td>\n";
-                if(! $i) $totalarray['nbfield']++;
-            }
-
-            // Facdet product
-            if(! empty($arrayfields['det.fk_product']['checked'])) {
-                $productstatic->id = $obj->detproduct;
-                $productstatic->ref = $obj->productref;
-                $productstatic->label = $obj->productlabel;
-                $productstatic->status = $obj->productsell;
-                $productstatic->status_buy = $obj->productbuy;
-
-                print '<td class="tdoverflowmax200">';
-                print $productstatic->getNomUrl(1);
-                print "</td>\n";
-                if(! $i) $totalarray['nbfield']++;
-            }
-
-            // Facdet total HT
-            if(! empty($arrayfields['det.total_ht']['checked'])) {
-                print '<td class="tdoverflowmax200" align="right">';
-                print round($obj->total_ht, 2);
-                print "</td>\n";
-                if(! $i) $totalarray['nbfield']++;
-                if(! $i) $totalarray['pos'][$totalarray['nbfield']] = 'det.total_ht';
-                $totalarray['val']['det.total_ht'] += $obj->total_ht;
-            }
-
-            // Facdet remise
-            if(! empty($arrayfields['det.remise_percent']['checked'])) {
-                print '<td class="tdoverflowmax200" align="right">';
-                print $obj->remise_percent.'%';
-                print "</td>\n";
-                if(! $i) $totalarray['nbfield']++;
-            }
-
-            // Facdet Commercial Commission
-            print '<td class="tdoverflowmax200" align="right">';
-            if(! $TRes['missingInfo']) print price(round($TRes['commission'], 2));
-            else print $TRes['missingInfo'];
-
-            print "</td>\n";
-            if(! $i) $totalarray['nbfield']++;
-            if(! $i) $totalarray['pos'][$totalarray['nbfield']] = 'Commission';
-            $totalarray['val']['Commission'] += round($TRes['commission'], 2);
-
-            // Fields from hook
-            $parameters = ['arrayfields' => $arrayfields, 'obj' => $obj];
-            $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters);    // Note that $action and $object may have been modified by hook
-            print $hookmanager->resPrint;
-
-            // Action
-            print '<td class="nowrap" align="center">';
-            if($massactionbutton || $massaction)   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
-            {
-                $selected = 0;
-                if(in_array($obj->rowid, $arrayofselected)) $selected = 1;
-                print '<a href="'.$_SERVER["PHP_SELF"].'?action=updateRate&amp;id_rate='.$obj->rowid.'" class="like-link " style="margin-right:15px;important">'.img_picto('edit', 'edit').'</a>';
-                print '<a href="'.$_SERVER["PHP_SELF"].'?action=deleteRate&amp;id_rate='.$obj->rowid.'" class="like-link" style="margin-right:45px;important">'.img_picto('delete', 'delete').'</a>';
-                print '<input id="cb'.$obj->rowid.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->rowid.'"'.($selected ? ' checked="checked"' : '').'>';
-            }
-            print '</td>';
-
-            if(! $i) $totalarray['nbfield']++;
-
-            print "</tr>\n";
-            $i++;
         }
+        // Client
+        if (!empty($arrayfields['s.nom']['checked'])) {
+            print '<td class="tdoverflowmax200">';
+            print OFTools::get_format_libelle_societe($obj->fk_soc);
+            print "</td>\n";
+            if(! $i) $totalarray['nbfield']++;
+        }
+        // Nombre de produits à fabriquer
+        if (!empty($arrayfields['ofel.qty']['checked'])) {
+            print '<td class="tdoverflowmax200">';
+            print $obj->nb_product_to_make;
+            print "</td>\n";
+            if(! $i) $totalarray['nbfield']++;
+        }
+        // Produit
+        if (!empty($arrayfields['p.label']['checked'])) {
+            print '<td class="tdoverflowmax200">';
+            print OFTools::get_format_libelle_produit($obj->fk_product);
+            print "</td>\n";
+            if(! $i) $totalarray['nbfield']++;
+        }
+        // Rang
+        if (!empty($arrayfields['ofe.rank']['checked'])) {
+            print '<td class="tdoverflowmax200">';
+            print OFTools::get_number_input($obj->rowid, $obj->rank);
+            print "</td>\n";
+            if(! $i) $totalarray['nbfield']++;
+        }
+        // Date début
+        if (!empty($arrayfields['ofe.date_lancement']['checked'])) {
+            print '<td class="center nowrap">';
+            print dol_print_date($db->jdate($obj->date_lancement), 'day', 'tzuser');
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Date du besoin
+        if (!empty($arrayfields['ofe.date_besoin']['checked'])) {
+            print '<td class="center nowrap">';
+            print dol_print_date($db->jdate($obj->date_besoin), 'day', 'tzuser');
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Date fin
+        if (!empty($arrayfields['ofe.date_end']['checked'])) {
+            print '<td class="center nowrap">';
+            print dol_print_date($db->jdate($obj->date_end), 'day', 'tzuser');
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Commande
+        if (!empty($arrayfields['ofe.fk_commande']['checked'])) {
+            print '<td class="tdoverflowmax200">';
+            print OFTools::get_format_label_supplier_order($obj->supplierOrderId);
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Projet
+        if (!empty($arrayfields['ofe.fk_project']['checked'])) {
+            print '<td class="center nowrap">';
+            print OFTools::get_format_libelle_projet($obj->fk_project);
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Status
+        if (!empty($arrayfields['ofe.status']['checked'])) {
+            print '<td class="center nowrap">';
+            print TAssetOF::status($obj->status, true);
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Temps estimé de fabrication
+        if (!empty($arrayfields['ofe.temps_estime_fabrication']['checked'])) {
+            print '<td class="center nowrap">';
+            print round($obj->temps_estime_fabrication, 2);
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Coût prévu
+        if (!empty($arrayfields['ofe.total_estimated_cost']['checked'])) {
+            print '<td class="center nowrap">';
+            print round($obj->total_estimated_cost, 2);
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        // Coût réel
+        if (!empty($arrayfields['ofe.total_cost']['checked'])) {
+            print '<td class="center nowrap">';
+            print round($obj->total_cost, 2);
+            print '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+
+        // Extra fields
+        include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
+        // Fields from hook
+        $parameters = ['arrayfields' => $arrayfields, 'obj' => $obj];
+        $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters);    // Note that $action and $object may have been modified by hook
+        print $hookmanager->resPrint;
+
+        // Action
+        print '<td class="nowrap" align="center">';
+        if($massactionbutton || $massaction)   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
+        {
+            $selected = 0;
+            if(in_array($obj->rowid, $arrayofselected)) $selected = 1;
+            print '<a href="'.$_SERVER["PHP_SELF"].'?action=updateRate&amp;id_rate='.$obj->rowid.'" class="like-link " style="margin-right:15px;important">'.img_picto('edit', 'edit').'</a>';
+            print '<a href="'.$_SERVER["PHP_SELF"].'?action=deleteRate&amp;id_rate='.$obj->rowid.'" class="like-link" style="margin-right:45px;important">'.img_picto('delete', 'delete').'</a>';
+            print '<input id="cb'.$obj->rowid.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->rowid.'"'.($selected ? ' checked="checked"' : '').'>';
+        }
+        print '</td>';
+
+        if(! $i) $totalarray['nbfield']++;
+
+        print "</tr>\n";
+        $i++;
     }
 
 
@@ -579,185 +700,6 @@ if ($resql)
     print "</div>";
 
     print '</form>';
-}
-else {
-    dol_print_error($db);
-}
-
-
-llxFooter();
-$db->close();
-
-function _liste(&$PDOdb)
-{
-    global $langs, $db, $user, $conf, $TCacheWorkstation, $hookmanager;
-
-
-
-//    $r = new TSSRenderControler($assetOf);
-    
-    //.....
-//    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))$orderBy=array("date_lancement" => "ASC", "rank"=>"ASC",'rowid'=>'DESC');
-//    else $orderBy=array('rowid'=>'DESC');
-
-    $TMath=array();
-    $THide = array('rowid','fk_commandedet','fk_user','fk_product','fk_soc');
-    if($fk_commande>0)  $THide[] = 'fk_commande';
-
-    if ($conf->global->OF_NB_TICKET_PER_PAGE == -1) $THide[] = 'printTicket';
-
-    if(empty($user->rights->of->of->price)) {
-        $THide[] = 'total_cost';
-        $THide[] = 'total_estimated_cost';
-    }
-    else {
-
-        $TMath['total_estimated_cost']='sum';
-        $TMath['total_cost']='sum';
-        $TMath['temps_estime_fabrication']='sum';
-    }
-
-    $PDOdb=new TPDOdb;
-    if ($conf->workstation->enabled && !class_exists('TWorkstation')) dol_include_once('workstation/class/workstation.class.php');
-    $TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
-
-    $TSearch=array();
-    if($mode =='supplier_order') {
-        $THide[] = 'date_lancement';
-        $THide[] = 'nb_product_to_make';
-        //$THide[] = 'status';
-        $THide[] = 'ordre';
-    }
-    else{
-        $TSearch=array(
-            'numero'=>array('recherche'=>true, 'table'=>'ofe')
-        ,'date_lancement'=>array('recherche'=>'calendars', 'table'=>'ofe')
-        ,'date_besoin'=>array('recherche'=>'calendars', 'table'=>'ofe')
-        ,'status'=>array('recherche'=>TAssetOF::$TStatus, 'table'=>'ofe', 'to_translate' => true)
-        ,'date_end'=>array('recherche'=>'calendars','table'=>'ofe')
-        ,'fk_asset_workstation'=>array('recherche'=>$TCacheWorkstation, 'table'=>'wof')
-        );
-        $TStatus = TAssetOF::$TStatus;
-        unset($TStatus['CLOSE']);
-
-        $NOTCLOSED = "'".implode("','", array_keys($TStatus))."'";
-        $TSearch['status']['recherche'][$NOTCLOSED] = $langs->trans('AllExceptClosed');
-    }
-
-    if(!empty($fk_product)) $TMath['nb_product_to_make']='sum';
-
-    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) $TMath['order_line_price'] = 'sum';
-
-    $form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
-
-
-    $allExceptClose = false;
-    if($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status'] == $NOTCLOSED)
-    {
-        $allExceptClose = true;
-    }
-
-    echo $form->hidden('action', '');
-    if ($fk_commande > 0) echo $form->hidden('fk_commande', $fk_commande);
-    if(!empty($mode)) echo $form->hidden('mode', $mode);
-    if($fk_product > 0) echo $form->hidden('fk_product', $fk_product); // permet de garder le filtre produit quand on est sur l'onglet OF d'une fiche produit
-
-    if($mode =='supplier_order') $title = $langs->trans('AssetProductionSupplierOrder');
-    else if($mode =='non_compliant') $title = $langs->trans('ListOFAssetNonCompliant');
-    else $title = $langs->trans('ListOFAsset');
-
-    $listViewConfig = array(
-        'limit'=>array(
-            'nbLine'=>$conf->liste_limit
-        )
-    ,'orderBy'=>$orderBy
-    ,'subQuery'=>array()
-    ,'link'=>array(
-            'Utilisateur en charge'=>'<a href="'.dol_buildpath('/user/card.php?id=@fk_user@', 1).'">'.img_picto('','object_user.png','',0).' @val@</a>'
-        ,'printTicket'=>'<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket[@rowid@]" min="0" />'
-        )
-    ,'translate'=>array(
-            'ordre'=>TAssetOF::$TOrdre
-        )
-    ,'hide'=>$THide
-    ,'type'=>array(
-            'date_lancement'=>'date'
-        ,'date_besoin'=>'date'
-        ,'temps_estime_fabrication'=>'money'
-        ,'total_cost'=>'money'
-        ,'total_estimated_cost'=>'money'
-        ,'nb_product_to_make'=>'number'
-        ,'date_livraison'=>'date'
-        ,'date_end'=>'date'
-        ,'order_line_price'=>'money'
-        )
-    ,'math'=>$TMath
-    ,'liste'=>array(
-            'titre'=>$title
-        ,'image'=>img_picto('','title.png', '', 0)
-        ,'picto_precedent'=>img_picto('','back.png', '', 0)
-        ,'picto_suivant'=>img_picto('','next.png', '', 0)
-        ,'noheader'=> (int)isset($_REQUEST['fk_soc']) | (int)isset($_REQUEST['fk_product'])
-        ,'messageNothing'=>$langs->trans('noOfFound')
-        ,'picto_search'=>img_picto('','search.png', '', 0)
-        )
-    ,'title'=>array(
-            'numero'=>                   $langs->trans('OfNumber')
-        ,'fk_commande'=>             $langs->trans('CustomerOrder')
-        ,'ordre'=>                   $langs->trans('Rank')
-        ,'date_lancement'=>          $langs->trans('DateStart')
-        ,'date_besoin'=>             $langs->trans('DateNeeded')
-        ,'status'=>                  $langs->trans('Status')
-        ,'login'=>                   $langs->trans('UserAssign')
-        ,'product'=>                 $langs->trans('Product')
-        ,'client'=>                  $langs->trans('Customer')
-        ,'nb_product_to_make'=>      $langs->trans('NumberProductToMake')
-        ,'temps_estime_fabrication'=>$langs->trans('EstimatedMakeTimeInHours')
-        ,'total_cost'=>              $langs->trans('RealCost')
-        ,'total_estimated_cost'=>    $langs->trans('EstimatedCost')
-        ,'printTicket' =>            $langs->trans('PrintTicket')
-        ,'fk_project'=>              $langs->trans('Project')
-        ,'supplierOrderId'=>         $langs->trans('AssetProductionSupplierOrder')
-        ,'date_livraison'=>          $langs->trans('DeliveryDate')
-        ,'date_end'=>                $langs->trans('DateEnd')
-        ,'rank' =>                   $langs->trans('Rank')
-        ,'fk_asset_workstation'=>    $langs->trans('Workstations')
-        ,'order_line_price'=>        $langs->trans('OrderLinePrice')
-        )
-
-    ,'eval'=>array(
-            'ordre'=>'TAssetOF::ordre("@val@")'
-        ,'status'=>'TAssetOF::status("@val@", true)'
-        ,'product' => 'get_format_libelle_produit("@fk_product@")'
-        ,'fk_asset_workstation' => 'get_format_label_workstation("@fk_asset_workstation@")'
-        ,'client' => 'get_format_libelle_societe(@fk_soc@)'
-        ,'fk_commande'=>'get_format_libelle_commande("@fk_commande@","@fk_commandedet@","@fk_product@")'
-        ,'fk_project'=>'get_format_libelle_projet(@fk_project@)'
-        ,'numero'=>'get_format_link_of("@val@",@rowid@)'
-        ,'supplierOrderId'=>'get_format_label_supplier_order(@supplierOrderId@)'
-        ,'rank'=>'get_number_input("of_rank[@rowid@]",@rank@)'
-
-        )
-    ,'operator'=>array(
-            'fk_asset_workstation'=>'='
-        ,'status' => $allExceptClose ? 'IN' : "="
-        )
-    ,'search'=>$TSearch
-    );
-
-    // Change view from hooks
-    $parameters=array(
-        'listViewConfig' => $listViewConfig,
-        'listname' => 'OrderOFList'
-    );
-    $reshook=$hookmanager->executeHooks('listViewConfig',$parameters,$r);    // Note that $action and $object may have been modified by hook
-    if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
-    if ($reshook>0)
-    {
-        $listViewConfig = $hookmanager->resArray;
-    }
-
-    $r->liste($PDOdb, $sql, $listViewConfig);
 
     if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
         echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
@@ -766,15 +708,11 @@ function _liste(&$PDOdb)
         echo '<p align="right"><input id="bt_updateRank" class="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'setRank\');" type="submit" value="'.$langs->trans('UpdateRank').'"/></p>';
     }
 
-    $form->end();
-
     // On n'affiche pas le bouton de création d'OF si on est sur la liste OF depuis l'onglet "OF" de la fiche commande
     if($fk_commande>0)
     {
         $commande=new Commande($db);
         $commande->fetch($fk_commande);
-
-        $r2 = new TSSRenderControler($assetOf);
 
         $sql = "SELECT c.rowid as fk_commandedet, p.rowid as rowid, p.ref as refProd, p.label as nomProd, c.qty as qteCommandee, c.description, c.label as lineLabel, c.product_type";
         $sql.= " FROM ".MAIN_DB_PREFIX."commandedet c LEFT JOIN ".MAIN_DB_PREFIX."product p";
@@ -1070,38 +1008,11 @@ function _liste(&$PDOdb)
         echo '</div>';
 
     }
-
-    if($_REQUEST['TListTBS']['list_llx_assetOf']['search']['status'] == 'OPEN') {
-
-        dol_include_once('/of/class/of_amount.class.php');
-
-        $aa=new AssetOFAmounts($db);
-
-        $sql = "SELECT date, amount_estimated,amount_real FROM ".MAIN_DB_PREFIX.$aa->table_element;
-        $l=new Listview($db,'listOFAmountsHistory');
-
-        echo $l->render($sql, array(
-            'list'=>array(
-                'title'=>$langs->trans('listOFAmountsHistory')
-
-            )
-        ,'sortfield'=>'date'
-        ,'sortorder'=>'DESC'
-        ,'type'=>array(
-                'date'=>'date'
-            ,'amount_estimated'=>'number'
-            ,'amount_real'=>'number'
-            )
-        ,'title'=>array(
-                'date'=>$langs->trans('Date')
-            ,'amount_real'=>$langs->trans('RealCost')
-            ,'amount_estimated'=>$langs->trans('EstimatedCost')
-            )
-        ));
-    }
-
-    dol_fiche_end(-1);
-
-    $PDOdb->close();
-    llxFooter('');
 }
+else {
+    dol_print_error($db);
+}
+
+
+llxFooter();
+$db->close();
