@@ -1155,7 +1155,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 
 
 		//on cherche tous les équipements du produit de la ligne de l'of
-		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
+		$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value, a.lot_number ';
    	 	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 		if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
     	if ($assetOFLine->fk_product > 0) $sql .= ' AND fk_product = '.(int) $assetOFLine->fk_product.' ';
@@ -1171,10 +1171,11 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 			while ($PDOdb->Get_line()){
 					$serial = $PDOdb->Get_field('serial_number');
 					$contenancereel_value = $PDOdb->Get_field('contenancereel_value');
+					$lot_number = $PDOdb->Get_field('lot_number');
 					$rowid = $PDOdb->Get_field('rowid');
 
 					if($contenancereel_value && !in_array($rowid, $TAssetToExclude)){
-						$TAssetsOFLine[$rowid] = $langs->transnoentities('OFSerialNumber', $PDOdb->Get_field('rowid'), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
+						$TAssetsOFLine[$rowid] = $langs->transnoentities('OFSerialNumber', $rowid, ($lot_number ? $lot_number : $langs->trans('empty')), ($serial ? $serial : $langs->trans('empty')), $contenancereel_value);
 					}
 			}
 
@@ -1208,7 +1209,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	*
 	* Put here all code to build page
 	****************************************************/
-
 	if($assetOf->entity != $conf->entity) {
 	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
 
@@ -1471,6 +1471,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		,'workstation'=>$TWorkstation
 	);
 
+	$formProduct = new FormProduct($db);
+
 	$TFields = array(
 		'assetOf'=>array(
 				'id'=> $assetOf->getId()
@@ -1523,6 +1525,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
 			,'select_product'=>$select_product
 			,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
+			,'select_warehouses' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses('', 'select_allneeded_fk_warehouse', '', 0, 0, '') : ''
+			,'select_warehouse_help' =>  !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $doliform->textwithpicto('', $langs->transnoentities('ModifyAllWarehouses'), 1, 'help', '') : ''
 			//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
 			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
 			,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))

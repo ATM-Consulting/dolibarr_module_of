@@ -274,9 +274,6 @@
                                     [onshow;block=begin;when [view.defined_show_categorie]=='1']
 										<td width="20%">[view.langs.transnoentities(Categories)]</td>
 									[onshow;block=end]
-									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td width="20%">[view.langs.transnoentities(Lot)]</td>
-									[onshow;block=end]
 
 									<!--<td>Equipement</td>-->
 									<td>[view.langs.transnoentities(Products)]</td>
@@ -306,9 +303,7 @@
                                     [onshow;block=begin;when [view.defined_show_categorie]=='1']
 										<td width="20%">[TNeeded.categLabel;strconv=no]</td>
 									[onshow;block=end]
-									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td>[TNeeded.lot_number;strconv=no]</td>
-									[onshow;block=end]
+
 									<!--<td>Equipement</td>-->
 									<td class="col-01">[TNeeded.libelle;block=tr;strconv=no]<br />[TNeeded.note_private;strconv=no;]</td>
 
@@ -334,9 +329,7 @@
 
 								[onshow;block=begin;when [view.show_cost]=='1']
 								<tr style="background-color:#dedede;">
-									[onshow;block=begin;when [view.use_lot_in_of]=='1']
-										<td>&nbsp;</td>
-									[onshow;block=end]
+
                                     [onshow;block=begin;when [view.defined_show_categorie]=='1']
 										<td>&nbsp;</td>
 									[onshow;block=end]
@@ -370,6 +363,10 @@
 					</tr>
 					<tr>
 						<td colspan="4" style="border-left: none;height:40px;text-align: right;">
+							[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+								[view.select_warehouses;strconv=no]
+								[view.select_warehouse_help;strconv=no]
+							[onshow;block=end]
 							[onshow;block=begin;when [view.mode]!='view']
 								<a href="#" class="butAction btnaddproduct draftedit" id_assetOf="[assetOf.id]" rel="NEEDED">[view.langs.transnoentities(AddProduct)]</a>
 							[onshow;block=end]
@@ -802,6 +799,16 @@
 
 
 			[onshow;block=end]
+
+
+			//massaction : modification de tous les entrepôts des composants
+			[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
+			$('#select_allneeded_fk_warehouse').change(function(e){
+				let newallwarehouse = $(this).val();
+				$(this).closest('tr').prev().find("table").find("select[name*='TAssetOFLine']").val(newallwarehouse);
+			});
+			[onshow;block=end]
+
 		}
 
 		function refreshTab(id, action) {
