@@ -279,11 +279,12 @@ class TAssetOF extends TObjetStd{
      * @param float  $qty
      * @param float  $qty_used
      * @param float  $qty_non_compliant
+     * @param int    $idLine
      * @param bool   $addToMake
      * @param bool   $force_empty
      * @return bool
      */
-    function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine, $addToMake = false, $force_empty = false) {
+    public function updateNomenclatureToMakeQty(&$PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine, $addToMake = false, $force_empty = false) {
         if(!empty($this->TAssetOFLine)) {
             /**
              * @var TAssetOFLine $assetOFLine
@@ -3786,7 +3787,7 @@ class TAssetOFLine extends TObjetStd{
      * @param TAssetOFLine $neededLine
      * @return array
      */
-    function getToMakeChildrenOFIdAndLineID($neededLine) {
+    public function getToMakeChildrenOFIdAndLineID($neededLine) {
         global $db;
         $sql = 'SELECT fk_assetOf, rowid FROM '.MAIN_DB_PREFIX.'assetOf_line WHERE fk_product = '.$neededLine->fk_product.' AND fk_assetOf IN (SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf WHERE fk_assetOf_parent = '.$neededLine->fk_assetOf.') AND type = "TO_MAKE"';
         $resql = $db->query($sql);
@@ -3794,13 +3795,13 @@ class TAssetOFLine extends TObjetStd{
             $obj = $db->fetch_object($resql);
             return array('idLine' => $obj->rowid, 'fk_OF' => $obj->fk_assetOf);
         }
-        else return array();
+        return array();
     }
     /**
      * @param int $fk_product
      * @return int
      */
-    function getNeededIDByProduct($fk_product) {
+    public function getNeededIDByProduct($fk_product) {
         global $db;
         $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'assetOf_line WHERE fk_product = '.$fk_product.' AND fk_assetOf = '.$this->fk_assetOf.' AND type = "NEEDED"';
         $resql = $db->query($sql);
@@ -3808,14 +3809,14 @@ class TAssetOFLine extends TObjetStd{
             $obj = $db->fetch_object($resql);
             return $obj->rowid;
         }
-        else return 0;
+        return 0;
     }
 
         /**
      * @param int $fk_product
      * @return int
      */
-    function getWorkstationOfIDByWorkstation($fk_workstation) {
+    public function getWorkstationOfIDByWorkstation($fk_workstation) {
         global $db;
         $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'asset_workstation_of WHERE fk_asset_workstation = '.$fk_workstation.' AND fk_assetOf = '.$this->fk_assetOf;
         $resql = $db->query($sql);
@@ -3823,7 +3824,7 @@ class TAssetOFLine extends TObjetStd{
             $obj = $db->fetch_object($resql);
             return $obj->rowid;
         }
-        else return 0;
+        return 0;
     }
 }
 
