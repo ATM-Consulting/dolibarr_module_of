@@ -51,7 +51,7 @@ $search_product = GETPOST("search_product", 'alpha');
 $search_order = GETPOST("search_order", 'alpha');
 $search_num_of = GETPOST("search_num_of", 'alpha');
 $search_status_of = GETPOST("search_status_of", 'alpha');
-$search_workstation = GETPOST("search_workstation", 'int');
+$search_workstation = GETPOST("search_workstation", 'alpha');
 $search_date_lancement_start = dol_mktime(0, 0, 0, GETPOST('search_date_lancement_startmonth', 'int'), GETPOST('search_date_lancement_startday', 'int'), GETPOST('search_date_lancement_startyear', 'int'));
 $search_date_lancement_end = dol_mktime(23, 59, 59, GETPOST('search_date_lancement_endmonth', 'int'), GETPOST('search_date_lancement_endday', 'int'), GETPOST('search_date_lancement_endyear', 'int'));
 $search_date_besoin_start = dol_mktime(0, 0, 0, GETPOST('search_date_besoin_startmonth', 'int'), GETPOST('search_date_besoin_startday', 'int'), GETPOST('search_date_besoin_startyear', 'int'));
@@ -311,6 +311,9 @@ if ($search_num_of) {
 if ($search_status_of != '' && $search_status_of >= 0) {
     $sql .= natural_search('ofe.status', $search_status_of);
 }
+if ($search_workstation != '' && $search_workstation >= 0) {
+    $sql .= natural_search('wof.fk_asset_workstation', $search_workstation);
+}
 if ($search_date_lancement_start) {
     $sql .= " AND ofe.date_lancement >= '".$db->idate($search_date_lancement_start)."'";
 }
@@ -413,7 +416,7 @@ if ($resql)
     print '<div class="div-table-responsive">';
     print '<table class="tagtable liste'.($moreforfilter?" listwithfilterbefore":"").'">'."\n";
 
-    if ($conf->workstationatm->enabled && !class_exists('TWorkstation')) {
+    if ($conf->workstationatm->enabled) {
 
         $tmptitle = $langs->trans('Workstations');
         $workstationsUsed = img_picto($tmptitle, 'workstation');
@@ -488,6 +491,11 @@ if ($resql)
         print '<input class="flat" size="6" type="text" name="search_order" value="'.dol_escape_htmltag($search_order).'">';
         print '</td>';
     }
+    // Prix de la ligne
+    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)){
+        print '<td class="liste_titre">';
+        print '</td>';
+    }
     // Projet
     if (!empty($arrayfields['ofe.fk_project']['checked'])) {
         print '<td class="liste_titre">';
@@ -548,6 +556,7 @@ if ($resql)
     if (! empty($arrayfields['ofe.date_besoin']['checked']))  print_liste_field_titre('DateNeeded', $_SERVER["PHP_SELF"], "ofe.date_besoin", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.date_end']['checked']))  print_liste_field_titre('DateEnd', $_SERVER["PHP_SELF"], "ofe.date_end", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.fk_commande']['checked']))  print_liste_field_titre('CustomerOrder', $_SERVER["PHP_SELF"], "ofe.fk_commande", "", $param, "", $sortfield, $sortorder);
+    if (!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE))  print_liste_field_titre('OrderLinePrice', $_SERVER["PHP_SELF"], "order_line_price", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.fk_project']['checked']))  print_liste_field_titre('Project', $_SERVER["PHP_SELF"], "ofe.fk_project", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.status']['checked']))  print_liste_field_titre('Status', $_SERVER["PHP_SELF"], "ofe.status", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.temps_estime_fabrication']['checked']))  print_liste_field_titre('EstimatedMakeTimeInHours', $_SERVER["PHP_SELF"], "ofe.temps_estime_fabrication", "", $param, "", $sortfield, $sortorder);
@@ -634,6 +643,13 @@ if ($resql)
             print OFTools::get_format_libelle_commande($obj->fk_commande, $obj->fk_commande_det, $obj->fk_product);
             print '</td>';
             if (!$i) $totalarray['nbfield']++;
+        }
+        // Prix de la ligne
+        if (!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+            print '<td class="tdoverflowmax200">';
+            print round($obj->order_line_price, 2);
+            print "</td>\n";
+            if(! $i) $totalarray['nbfield']++;
         }
         // Projet
         if (!empty($arrayfields['ofe.fk_project']['checked'])) {
