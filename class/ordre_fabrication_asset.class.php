@@ -1225,7 +1225,7 @@ class TAssetOF extends TObjetStd{
      * @param bool   $found
      * @return bool
      */
-	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0, $found = false)
+	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0)
 	{
 		global $conf;
 
@@ -1243,18 +1243,7 @@ class TAssetOF extends TObjetStd{
 
 					if (((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)))
 					{
-						if(!$found) $this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
-                        else {
-                            $assetOFLine = new TAssetOFLine;
-                            $assetOFLine->load($PDOdb, $idLine);
-                            // OF Enfant
-                            $TChildParam = $assetOFLine->getToMakeChildrenOFIdAndLineID($assetOFLine);
-                            if(! empty($TChildParam)) {
-                                $childOF = new TAssetOF;
-                                $childOF->load($PDOdb, $TChildParam['fk_OF']);
-                                $childOF->updateNomenclatureToMakeQty($PDOdb, $assetOFLine->qty, 0, 0, $TChildParam['idLine']);
-                            }
-                        }
+                        $this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
 					}
 				}
 			}
@@ -1550,7 +1539,7 @@ class TAssetOF extends TObjetStd{
 		if($type=='TO_MAKE' && ( $fk_nomenclature>0 || empty($conf->nomenclature->enabled) ))
 		{
 			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature,$quantite, $found);
-			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature, $found);
+			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 			$this->set_current_cost_for_to_make();
 		}
 
@@ -1667,7 +1656,6 @@ class TAssetOF extends TObjetStd{
                                     if($wkOF->fk_asset_workstation == $nws->fk_workstation) {
                                         $wkOF->nb_hour += $nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference);
                                         $wkOF->nb_hour_prepare += $nws->nb_hour_prepare;
-                                        $wkOF->nb_hour_real += $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference);
                                         $wkOF->save($PDOdb);
                                         $foundWk = true;
                                     }
