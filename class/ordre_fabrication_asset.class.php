@@ -1466,7 +1466,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $user,$langs,$conf,$db;
         $found = false;
-        if(count($this->TAssetOFLine) > 1) {
+        if(count($this->TAssetOFLine) > 1 && !empty($conf->global->OF_REGROUP_LINE)) {
             foreach($this->TAssetOFLine as &$assetOFLine) {
 
                 if($assetOFLine->fk_product == $fk_product
