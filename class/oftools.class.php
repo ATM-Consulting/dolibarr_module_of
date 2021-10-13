@@ -242,7 +242,8 @@ class OFTools
         $fileName = date('YmdHis').'_ETIQUETTE';
 
         $TPrintTicket = GETPOST('printTicket', 'array');
-        $TInfoEtiquette = _genInfoEtiquette($db, $PDOdb, $TPrintTicket);
+        $TInfoEtiquette = self::_genInfoEtiquette($db, $PDOdb, $TPrintTicket);
+
         //var_dump($TInfoEtiquette);exit;
         @mkdir($dir, 0777, true);
 
@@ -284,7 +285,7 @@ class OFTools
         exit;
     }
 
-    static public function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
+    public function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
     {
         global $conf;
 
