@@ -1222,7 +1222,6 @@ class TAssetOF extends TObjetStd{
      * @param int    $quantite_to_make
      * @param int    $fk_assetOf_line_parent
      * @param int    $fk_nomenclature
-     * @param bool   $found
      * @return bool
      */
 	function addProductComposition(&$PDOdb, $fk_product, $quantite_to_make=1, $fk_assetOf_line_parent=0, $fk_nomenclature=0)
@@ -1241,7 +1240,7 @@ class TAssetOF extends TObjetStd{
 				{
 					$TabSubProd = $this->getProductComposition($PDOdb,$prod->fk_product, $prod->qty);
 
-					if (((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)))
+					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TabSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT))
 					{
                         $this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
 					}
@@ -1462,7 +1461,7 @@ class TAssetOF extends TObjetStd{
                     && ($fk_nomenclature == $assetOFLine->fk_nomenclature || $type == 'NEEDED')
                     && $assetOFLine->type == $type) {
                     $found = true;
-                    $TAssetOFLine = $assetOFLine; //TODO
+                    $TAssetOFLine = $assetOFLine;
                     $TAssetOFLine->qty_needed += $quantite;
                     $TAssetOFLine->qty += (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
                     $TAssetOFLine->qty_used += (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
