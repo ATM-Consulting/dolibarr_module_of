@@ -2,7 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+## Version 2.8
 
+- NEW Gestion des calculs auto pour chaque ligne  *11/10/2021* - 2.8
 ## Version 2.7
 
 - NEW massaction edition des entrepôts de tous les composants d'un of  *05/10/2021* - 2.7
@@ -17,14 +19,15 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.4
 
+- FIX: Fatal: TObjetStd not found *08/10/2021* - 2.4.1
 - NEW Sélection des équipements pour les composants d'un OF : mise en place d'un multisect  *08/09/2021* - 2.4
 - NEW Bouton Transfert de stock depuis un OF *16/09/2021* - 2.3
 
 ## Version 2.2 - *14/09/2021*
-
-- NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2
-- NEW Gestion des catégories produits *24/08/2021* - 2.1
+- FIX : includes utilisant `workstation` au lieu de `workstationatm` - *2021-09-23* - 2.2.2
 - FIX : Ajout du numéro de numéro de lot correspondant au numéro de série dans la colonne 'Lot' des produits nécessaires à la fabrication *14/09/2021* - 2.2.1
+- NEW Gestion des calculs automatiques conformes/non conformes *24/08/2021* - 2.2.0
+- NEW Gestion des catégories produits *24/08/2021* - 2.1
 
 ## Version 2.0 - *08/07/2021*
 

@@ -1209,6 +1209,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	*
 	* Put here all code to build page
 	****************************************************/
+
 	if($assetOf->entity != $conf->entity) {
 	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
 
