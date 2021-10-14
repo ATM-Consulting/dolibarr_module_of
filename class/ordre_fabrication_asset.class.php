@@ -1465,6 +1465,7 @@ class TAssetOF extends TObjetStd{
                     $TAssetOFLine->qty_needed += $quantite;
                     $TAssetOFLine->qty += (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED') ? 0 : $quantite;
                     $TAssetOFLine->qty_used += (! empty($conf->global->ASSET_ADD_NEEDED_QTY_ZERO) && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
+                    break;
                 }
             }
         }
