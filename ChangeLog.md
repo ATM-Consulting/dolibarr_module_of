@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+## Version 2.9
+
+- NEW Conf pour regrouper les lignes *13/10/2021* - 2.9
 ## Version 2.8
 
 - NEW Gestion des calculs auto pour chaque ligne  *11/10/2021* - 2.8
