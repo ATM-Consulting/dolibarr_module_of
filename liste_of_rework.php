@@ -20,7 +20,7 @@ $langs->load('workstationatm@workstationatm');
 $langs->load('stocks');
 
 $PDOdb = new TPDOdb;
-if ($conf->workstation->enabled && !class_exists('TWorkstation')) dol_include_once('workstation/class/workstation.class.php');
+if ($conf->workstationatm->enabled && !class_exists('TWorkstation')) dol_include_once('workstationatm/class/workstation.class.php');
 $TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
 
 $action     = GETPOST('action', 'alpha');
@@ -89,19 +89,16 @@ $fieldstosearchall = array(
 $arrayfields = array(
     'ofe.numero'=>array('label'=>$langs->trans("OfNumber"), 'checked'=>1),
     'ofel.qty'=>array('label'=>$langs->trans("NumberProductToMake"), 'checked'=>1),
-    'ofe.fk_commande'=>array('label'=>$langs->trans("CustomerOrder"), 'checked'=>1),
     'ofe.ordre'=>array('label'=>$langs->trans("Rank"), 'checked'=>1),
     'ofe.date_lancement'=>array('label'=>$langs->trans("DateStart"), 'checked'=>1),
     'ofe.date_besoin'=>array('label'=>$langs->trans("DateNeeded"), 'checked'=>1),
     'ofe.status'=>array('label'=>$langs->trans("Status"), 'checked'=>1),
     'p.label'=>array('label'=>$langs->trans("Product"), 'checked'=>1),
     's.nom'=>array('label'=>$langs->trans("Customer"), 'checked'=>1),
-    'ofe.temps_estime_fabrication'=>array('label'=>$langs->trans("EstimatedMakeTimeInHours"), 'checked'=>1),
-    'ofe.total_cost'=>array('label'=>$langs->trans("RealCost"), 'checked'=>1),
     'ofe.total_estimated_cost'=>array('label'=>$langs->trans("EstimatedCost"), 'checked'=>1),
     'ofe.fk_project'=>array('label'=>$langs->trans("Project"), 'checked'=>1),
     'ofe.date_end'=>array('label'=>$langs->trans("DateEnd"), 'checked'=>1),
-    'cd.total_ht'=>array('label'=>$langs->trans("OrderLinePrice"), 'checked'=>1)
+    'ofe.temps_estime_fabrication'=>array('label'=>$langs->trans("EstimatedMakeTimeInHours"), 'checked'=>1),
 );
 
 /*
@@ -198,7 +195,7 @@ if ($fk_product > 0) {
 $sql = "SELECT ";
 
 if ($mode == 'supplier_order') {
-    $sql .= " cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, co.ref as reforder, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+    $sql .= " cf.rowid as supplierOrderId,cf.date_livraison, ofe.rowid, GROUP_CONCAT(DISTINCT ofe.numero SEPARATOR ',') as numero, ofe.fk_soc, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
         , ofe.fk_commande,ofe.fk_project
 		, ofe.status, ofe.fk_user
@@ -207,7 +204,7 @@ if ($mode == 'supplier_order') {
 		, '' AS printTicket ";
     if (! empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql .= ', ofe.rank';
 } else {
-    $sql .= " ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, co.ref as reforder, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
+    $sql .= " ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre
         " . (empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation") . "
         , ofe.date_lancement
@@ -216,7 +213,7 @@ if ($mode == 'supplier_order') {
 
     if (! empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
         $sql .= ", GROUP_CONCAT(DISTINCT cd.fk_commande SEPARATOR ',') as fk_commande";
-    } else $sql .= ", ofe.fk_commande";
+    } else $sql .= ", ofe.fk_commande, co.ref";
 
     if (! empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
 
@@ -249,15 +246,14 @@ if ($mode == 'supplier_order') {
 		  LEFT JOIN " . MAIN_DB_PREFIX . "societe s ON (s.rowid = ofe.fk_soc)";
 } else {
     $sql .= " FROM " . MAIN_DB_PREFIX . "assetOf as ofe
-		  LEFT JOIN " . MAIN_DB_PREFIX . "assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
-            " . (empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : " LEFT JOIN " . MAIN_DB_PREFIX . "asset_workstation_of wof ON (wof.fk_assetOf=ofe.rowid) ") . "
+          LEFT JOIN " . MAIN_DB_PREFIX . "commande co ON (co.rowid = ofe.fk_commande)
+		  LEFT JOIN " . MAIN_DB_PREFIX . "assetOf_line ofel ON (ofel.fk_assetOf = ofe.rowid AND ofel.type = 'TO_MAKE')
+            " . (empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : " LEFT JOIN " . MAIN_DB_PREFIX . "asset_workstation_of wof ON (wof.fk_assetOf = ofe.rowid) ") . "
 		  LEFT JOIN " . MAIN_DB_PREFIX . "product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN " . MAIN_DB_PREFIX . "societe s ON (s.rowid = ofe.fk_soc)";
 
     if (! empty($conf->global->OF_SHOW_ORDER_LINE_PRICE) || ! empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
-
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande co ON (co.rowid=cd.fk_commande) ";
     }
     if ($mode == 'non_compliant') {
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'element_element eenc ON (ofe.rowid=eenc.fk_source AND eenc.sourcetype="tassetof" AND eenc.targettype="project_task" )';
@@ -340,7 +336,7 @@ if ($mode == 'supplier_order') {
     $sql .= " GROUP BY ofe.rowid ";
 }
 
-$sql .= $db->order($sortfield, $sortorder);
+if (! in_array($sortfield, array('refProd', 'nomProd'))) $sql .= $db->order($sortfield, $sortorder);
 
 $nbtotalofrecords = '';
 
@@ -368,6 +364,8 @@ if ($resql)
     $arrayofselected = is_array($toselect) ? $toselect : array();
 
     $param = '';
+    if (! empty($fk_product)) $param.= '&fk_product=' .$fk_product;
+    if (! empty($fk_commande)) $param.= '&fk_commande=' .$fk_commande;
     if (! empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $param .= '&contextpage=' . urlencode($contextpage);
     if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . urlencode($limit);
     if ($sall) $param .= "&sall=" . urlencode($sall);
@@ -486,7 +484,7 @@ if ($resql)
         print '</td>';
     }
     // Commande
-    if (!empty($arrayfields['ofe.fk_commande']['checked'])) {
+    if (empty($fk_commande)) {
         print '<td class="liste_titre">';
         print '<input class="flat" size="6" type="text" name="search_order" value="'.dol_escape_htmltag($search_order).'">';
         print '</td>';
@@ -513,20 +511,20 @@ if ($resql)
         print '</td>';
     }
     // Coût prévu
-    if (!empty($arrayfields['ofe.total_estimated_cost']['checked'])) {
+    if (!empty($user->rights->of->of->price)) {
         print '<td class="liste_titre">';
         print '</td>';
     }
     // Coût réel
-    if (!empty($arrayfields['ofe.total_cost']['checked'])) {
+    if (!empty($user->rights->of->of->price)) {
         print '<td class="liste_titre">';
         print '</td>';
     }
-
     // Impression étiquette
-    print '<td class="liste_titre">';
-    print '</td>';
-
+    if ($conf->global->OF_NB_TICKET_PER_PAGE != -1){
+        print '<td class="liste_titre">';
+        print '</td>';
+    }
     // Rang
     if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
         print '<td class="liste_titre">';
@@ -555,14 +553,14 @@ if ($resql)
     if (! empty($arrayfields['ofe.date_lancement']['checked']))  print_liste_field_titre('DateStart', $_SERVER["PHP_SELF"], "ofe.date_lancement", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.date_besoin']['checked']))  print_liste_field_titre('DateNeeded', $_SERVER["PHP_SELF"], "ofe.date_besoin", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.date_end']['checked']))  print_liste_field_titre('DateEnd', $_SERVER["PHP_SELF"], "ofe.date_end", "", $param, "", $sortfield, $sortorder);
-    if (! empty($arrayfields['ofe.fk_commande']['checked']))  print_liste_field_titre('CustomerOrder', $_SERVER["PHP_SELF"], "ofe.fk_commande", "", $param, "", $sortfield, $sortorder);
+    if (empty($fk_commande))  print_liste_field_titre('CustomerOrder', $_SERVER["PHP_SELF"], "ofe.fk_commande", "", $param, "", $sortfield, $sortorder);
     if (!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE))  print_liste_field_titre('OrderLinePrice', $_SERVER["PHP_SELF"], "order_line_price", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.fk_project']['checked']))  print_liste_field_titre('Project', $_SERVER["PHP_SELF"], "ofe.fk_project", "", $param, "", $sortfield, $sortorder);
-    if (! empty($arrayfields['ofe.status']['checked']))  print_liste_field_titre('Status', $_SERVER["PHP_SELF"], "ofe.status", "", $param, "", $sortfield, $sortorder);
+    if (! empty($arrayfields['ofe.status']['checked']))  print_liste_field_titre('Status', $_SERVER["PHP_SELF"], "ofe.status", "", $param, 'align="center"', $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.temps_estime_fabrication']['checked']))  print_liste_field_titre('EstimatedMakeTimeInHours', $_SERVER["PHP_SELF"], "ofe.temps_estime_fabrication", "", $param, "", $sortfield, $sortorder);
-    if (! empty($arrayfields['ofe.total_estimated_cost']['checked']))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
-    if (! empty($arrayfields['ofe.total_cost']['checked']))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
-    print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
+    if (! empty($user->rights->of->of->price))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
+    if (! empty($user->rights->of->of->price))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
+    if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
     if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
 
     // Hook fields
@@ -575,6 +573,12 @@ if ($resql)
 
     $i = 0;
     $totalarray=array();
+    $totalarray['nbfield'] = 0;
+    $totalarray['val'] = array();
+    $totalarray['val']['cd.total_ht'] = 0;
+    $totalarray['val']['ofe.temps_estime_fabrication'] = 0;
+    $totalarray['val']['ofe.total_estimated_cost'] = 0;
+    $totalarray['val']['ofe.total_cost'] = 0;
 
     while($i < min($num, $limit)) {
         $obj = $db->fetch_object($resql);
@@ -597,7 +601,7 @@ if ($resql)
         }
         // Nombre de produits à fabriquer
         if (!empty($arrayfields['ofel.qty']['checked'])) {
-            print '<td class="tdoverflowmax200">';
+            print '<td class="tdoverflowmax200 right">';
             print $obj->nb_product_to_make;
             print "</td>\n";
             if(! $i) $totalarray['nbfield']++;
@@ -638,7 +642,7 @@ if ($resql)
             if (!$i) $totalarray['nbfield']++;
         }
         // Commande
-        if (!empty($arrayfields['ofe.fk_commande']['checked'])) {
+        if (empty($fk_commande)) {
             print '<td class="tdoverflowmax200">';
             print OFTools::get_format_libelle_commande($obj->fk_commande, $obj->fk_commande_det, $obj->fk_product);
             print '</td>';
@@ -646,10 +650,12 @@ if ($resql)
         }
         // Prix de la ligne
         if (!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
-            print '<td class="tdoverflowmax200">';
+            print '<td class="tdoverflowmax200 right">';
             print round($obj->order_line_price, 2);
             print "</td>\n";
             if(! $i) $totalarray['nbfield']++;
+            if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'cd.total_ht';
+            $totalarray['val']['cd.total_ht'] += round($obj->order_line_price, 2);
         }
         // Projet
         if (!empty($arrayfields['ofe.fk_project']['checked'])) {
@@ -660,39 +666,45 @@ if ($resql)
         }
         // Status
         if (!empty($arrayfields['ofe.status']['checked'])) {
-            print '<td class="tdoverflowmax200">';
+            print '<td class="tdoverflowmax200 center">';
             print TAssetOF::status($obj->status, true);
             print '</td>';
             if (!$i) $totalarray['nbfield']++;
         }
         // Temps estimé de fabrication
         if (!empty($arrayfields['ofe.temps_estime_fabrication']['checked'])) {
-            print '<td class="tdoverflowmax200">';
+            print '<td class="tdoverflowmax200 right">';
             print round($obj->temps_estime_fabrication, 2);
             print '</td>';
             if (!$i) $totalarray['nbfield']++;
+            if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'ofe.temps_estime_fabrication';
+            $totalarray['val']['ofe.temps_estime_fabrication'] += round($obj->temps_estime_fabrication, 2);
         }
         // Coût prévu
-        if (!empty($arrayfields['ofe.total_estimated_cost']['checked'])) {
-            print '<td class="tdoverflowmax200">';
+        if (!empty($user->rights->of->of->price)) {
+            print '<td class="tdoverflowmax200 right">';
             print round($obj->total_estimated_cost, 2);
             print '</td>';
             if (!$i) $totalarray['nbfield']++;
+            if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'ofe.total_estimated_cost';
+            $totalarray['val']['ofe.total_estimated_cost'] += round($obj->total_estimated_cost, 2);
         }
         // Coût réel
-        if (!empty($arrayfields['ofe.total_cost']['checked'])) {
-            print '<td class="tdoverflowmax200">';
+        if (!empty($user->rights->of->of->price)) {
+            print '<td class="tdoverflowmax200 right">';
             print round($obj->total_cost, 2);
             print '</td>';
             if (!$i) $totalarray['nbfield']++;
+            if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'ofe.total_cost';
+            $totalarray['val']['ofe.total_cost'] += round($obj->total_cost, 2);
         }
-
         // Impression étiquette
-        print '<td class="tdoverflowmax200">';
-        print '<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket['.$obj->rowid.']" min="0" />';
-        print "</td>\n";
-        if(! $i) $totalarray['nbfield']++;
-
+        if ($conf->global->OF_NB_TICKET_PER_PAGE != -1){
+            print '<td class="tdoverflowmax200">';
+            print '<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket['.$obj->rowid.']" min="0" />';
+            print "</td>\n";
+            if(! $i) $totalarray['nbfield']++;
+        }
         // Rang
         if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
             print '<td class="tdoverflowmax200">';
@@ -754,7 +766,13 @@ if ($resql)
         $sql.= " FROM ".MAIN_DB_PREFIX."commandedet c LEFT JOIN ".MAIN_DB_PREFIX."product p";
         $sql.= " ON (c.fk_product = p.rowid)";
         $sql.= " WHERE c.product_type IN (0,9) AND  c.fk_commande = ".$fk_commande;
-        $sql.= " ORDER BY c.rang";
+
+        // Avoid collision between several SQL requests
+        if (strpos($sortfield, 'ofe.') === false
+            && strpos($sortfield, 's.') === false
+            && ! in_array($sortfield, array('nb_product_to_make', 'order_line_price', 'printTicket'))) {
+            $sql .= $db->order($sortfield, $sortorder);
+        }
 
         $resql = $db->query($sql);
         $num = $db->num_rows($resql);
@@ -773,12 +791,12 @@ if ($resql)
 
         print '<tr class="liste_titre">';
         print_liste_field_titre("#");
-        print_liste_field_titre($langs->trans("Ref"),"liste_of.php","ref","",$param,'',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans("Label"),"liste_of.php","label", "", $param,'align="left"',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of.php","", "", $param,'align="left"',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans('QtyAlreadyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans('QtyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans("Ref"),"liste_of_rework.php","refProd","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans("Label"),"liste_of_rework.php","nomProd", "", $param,'align="left"',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of_rework.php","", "", $param,'align="left"',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans('QtyAlreadyToMake'),"liste_of_rework.php","","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans('QtyToMake'),"liste_of_rework.php","","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of_rework.php","","",$param,'',$sortfield,$sortorder);
         print "</tr>\n";
         $var=1;
 
@@ -823,6 +841,7 @@ if ($resql)
                     $p_static->id = $prod->rowid;
                     print $p_static->getNomUrl(1);
                     print "</td>\n";
+
                     print '<td>';
                     print $prod->nomProd;
 
@@ -842,11 +861,12 @@ if ($resql)
                         }
 
                     }
-
                     print '</td>';
+
                     print '<td>';
                     print $p_static->stock_reel;
                     print '</td>';
+
                     $sqlOf = "SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
 						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf) WHERE ";
                     if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
@@ -859,8 +879,6 @@ if ($resql)
                     print "<td>";
                     print $qtyInOF;
                     print "</td>";
-
-
 
                     $qtyToMake = $prod->qteCommandee - $qtyInOF;
 
@@ -915,7 +933,7 @@ if ($resql)
     {
         if(!empty($fk_product))
         {
-            $sql = "SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(IF(ofel.qty>0,ofel.qty,ofel.qty_needed) ) as nb_product_needed, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
+            $sql = "SELECT ofe.rowid, ofe.numero, ofe.fk_soc, s.nom as client, SUM(IF(ofel.qty>0,ofel.qty,ofel.qty_needed) ) as nb_product_to_make, ofel.fk_product, p.label as product, ofe.ordre, ofe.date_lancement , ofe.date_besoin
             , ofe.status, ofe.fk_user, ofe.total_cost ";
 
             $sql.= " FROM ".MAIN_DB_PREFIX."assetOf as ofe
@@ -927,6 +945,11 @@ if ($resql)
 
             $sql.= " GROUP BY ofe.rowid ";
 
+            // Avoid collision between several SQL requests
+            if (! in_array($sortfield, array('printTicket'))){
+                $sql.= $db->order($sortfield, $sortorder);
+            }
+
             if($conf->global->ASSET_OF_LIST_BY_ROWID_DESC) $orderBy['ofe.rowid']='DESC';
             else $orderBy['ofe.date_cre']='DESC';
 
@@ -935,7 +958,7 @@ if ($resql)
             if(empty($user->rights->{ ATM_ASSET_NAME }->of->price)) $THide[] = 'total_cost';
             else $TMath['total_cost']='sum';
 
-            $TMath['nb_product_needed']='sum';
+            $TMath['nb_product_to_make']='sum';
 
             $resql = $db->query($sql);
             $num = $db->num_rows($resql);
@@ -947,14 +970,14 @@ if ($resql)
             print '<table class="noborder" width="100%">';
 
             print '<tr class="liste_titre">';
-            print_liste_field_titre($langs->trans("OfNumber"),"liste_of_rework.php","ofe.numero","",$param,'',$sortfield2,$sortorder2);
-            print_liste_field_titre($langs->trans("Customer"),"liste_of_rework.php","s.nom", "", "",'', $sortfield2, $sortorder2);
-            print_liste_field_titre($langs->trans("NumberProductToMake"),"liste_of_rework.php","nb_product_needed", "", $param,'align="left"',$sortfield2,$sortorder2);
-            print_liste_field_titre($langs->trans('Product'),"liste_of_rework.php","p.label","",$param,'',$sortfield2,$sortorder2);
-            print_liste_field_titre($langs->trans('Priority'),"liste_of_rework.php","ofe.ordre","",$param,'',$sortfield2,$sortorder2);
-            print_liste_field_titre($langs->trans('DateStart'),"liste_of_rework.php","ofe.date_lancement","",$param,'',$sortfield2,$sortorder2);
-            print_liste_field_titre($langs->trans('DateNeeded'),"liste_of_rework.php","ofe.date_besoin","",$param,'',$sortfield2,$sortorder2);
-            print_liste_field_titre($langs->trans('Status'),"liste_of_rework.php","ofe.status","",$param,'',$sortfield2,$sortorder2);
+            print_liste_field_titre($langs->trans("OfNumber"),"liste_of_rework.php","ofe.numero","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans("Customer"),"liste_of_rework.php","s.nom", "", $param,'', $sortfield, $sortorder);
+            print_liste_field_titre($langs->trans("NumberProductToMake"),"liste_of_rework.php","nb_product_to_make", "", $param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('Product'),"liste_of_rework.php","p.label","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('Priority'),"liste_of_rework.php","ofe.ordre","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('DateStart'),"liste_of_rework.php","ofe.date_lancement","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('DateNeeded'),"liste_of_rework.php","ofe.date_besoin","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('Status'),"liste_of_rework.php","ofe.status","",$param,'',$sortfield,$sortorder);
             print "</tr>\n";
             $var=1;
 
@@ -976,7 +999,7 @@ if ($resql)
                         print "</td>";
 
                         print "<td>";
-                        print $ofProductNeeded->nb_product_needed;
+                        print $ofProductNeeded->nb_product_to_make;
                         print "</td>";
 
                         print "<td>";
