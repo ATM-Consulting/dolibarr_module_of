@@ -3,8 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
-- NEW Refonte des listes OFs sur le modèle standard *14/10/2021* - 3.0
-## Version 3.0
+- NEW Refonte des listes OFs sur le modèle standard *14/10/2021* - 2.10
+## Version 2.10
 
 ## Version 2.9
 
