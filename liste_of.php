@@ -164,6 +164,7 @@ $page_name = $langs->trans("ListOFAsset");
 $form = new Form($db);
 $assetOf = new TAssetOF;
 
+// Add "All Except Closed OFs" option to status select
 $TStatus = $assetOf::$TStatus;
 unset($TStatus['CLOSE']);
 
@@ -362,6 +363,7 @@ else {
     header('Location: '.dol_buildpath('/of/fiche_of.php', 1).'?id='.$id);
     exit;
 }*/
+
 
 llxHeader('', $title);
 
