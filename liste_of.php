@@ -32,8 +32,6 @@ $massaction = GETPOST('massaction', 'alpha');
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'alpha');
 $sortorder = GETPOST('sortorder', 'alpha');
-$sortfield2 = GETPOST('sortfield2', 'alpha');
-$sortorder2 = GETPOST('sortorder2', 'alpha');
 $optioncss = GETPOST('optioncss', 'alpha');
 $now = dol_now();
 
@@ -80,11 +78,11 @@ $hookmanager->initHooks(array('listof'));
 
 // List of fields to search into when doing a "search in all"
 $fieldstosearchall = array(
-    'ofe.numero' => "OfNumber"
-, 'ofe.date_lancement' => "DateStart"
-, 'ofe.date_besoin' => "DateNeeded"
-, 'ofe.status' => "Status"
-, 'ofe.date_end' => "DateEnd"
+    'ofe.numero' => "OfNumber",
+    'ofe.date_lancement' => "DateStart",
+    'ofe.date_besoin' => "DateNeeded",
+    'ofe.status' => "Status",
+    'ofe.date_end' => "DateEnd"
 );
 
 $arrayfields = array(
@@ -124,19 +122,19 @@ if (empty($reshook))
     // Purge search criteria
     if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha'))
     {
-        $sall = "";
-        $search_company = "";
-        $search_product = "";
-        $search_order = "";
-        $search_num_of = "";
-        $search_status_of = "";
-        $search_workstation = "";
-        $search_date_lancement_start = "";
-        $search_date_lancement_end = "";
-        $search_date_besoin_start = "";
-        $search_date_besoin_end = "";
-        $search_date_fin_start = "";
-        $search_date_fin_end = "";
+        $sall = '';
+        $search_company = '';
+        $search_product = '';
+        $search_order = '';
+        $search_num_of = '';
+        $search_status_of = '';
+        $search_workstation = '';
+        $search_date_lancement_start = '';
+        $search_date_lancement_end = '';
+        $search_date_besoin_start = '';
+        $search_date_besoin_end = '';
+        $search_date_fin_start = '';
+        $search_date_fin_end = '';
     }
 
     switch ($action)
@@ -164,9 +162,6 @@ $title = $langs->trans("ListOFAsset");
 $page_name = $langs->trans("ListOFAsset");
 
 $form = new Form($db);
-$formother = new FormOther($db);
-$companystatic = new Societe($db);
-$productstatic = new Product($db);
 $assetOf = new TAssetOF;
 
 $TStatus = $assetOf::$TStatus;
@@ -216,7 +211,7 @@ if ($mode == 'supplier_order') {
 
 // Add fields from hooks
 $parameters = array(
-    'listname' => 'OFList',
+    'listname' => 'OrderOFList',
     'mode' => $mode
 );
 $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
@@ -253,7 +248,7 @@ $sql .= "  WHERE ofe.entity=" . $conf->entity;
 
 // Add where from hooks
 $parameters = array(
-    'listname' => 'OFList',
+    'listname' => 'OrderOFList',
     'mode' => $mode
 );
 $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
@@ -819,7 +814,7 @@ if ($resql)
 
         // Add fields from hooks
         $parameters = array(
-            'listname' => 'OrderOFList',
+            'listname' => 'fkCommandeOFList',
             'mode' => $mode
         );
         $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
@@ -833,7 +828,7 @@ if ($resql)
 
         // Add where from hooks
         $parameters = array(
-            'listname' => 'OrderOFList',
+            'listname' => 'fkCommandeOFList',
             'mode' => $mode
         );
         $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters, $object); // Note that $action and $object may have been modified by hook
@@ -1010,7 +1005,7 @@ if ($resql)
 
             // Add fields from hooks
             $parameters = array(
-                'listname' => 'ProductOFList',
+                'listname' => 'fkProductOFList',
                 'mode' => $mode
             );
             $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
@@ -1025,7 +1020,7 @@ if ($resql)
 
             // Add fields from hooks
             $parameters = array(
-                'listname' => 'ProductOFList',
+                'listname' => 'fkProductOFList',
                 'mode' => $mode
             );
             $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook

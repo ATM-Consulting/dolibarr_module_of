@@ -7,6 +7,14 @@
  */
 class OFTools
 {
+    /**
+     * @param $PDOdb
+     * @param $TProduct
+     * @param $TQuantites
+     * @param $fk_commande
+     * @param $fk_soc
+     * @param false $oneOF
+     */
     static public function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_soc, $oneOF = false)
     {
         global $db, $langs, $conf;
@@ -97,6 +105,10 @@ class OFTools
 
     }
 
+    /**
+     * @param null $workstations
+     * @return string
+     */
     static public function get_format_label_workstation($workstations=null) {
 
         global $db,$langs, $TCacheWorkstation;
@@ -120,6 +132,10 @@ class OFTools
 
     }
 
+    /**
+     * @param null $fk_product
+     * @return int|string
+     */
     static public function get_format_libelle_produit($fk_product = null)
     {
         global $db,$langs;
@@ -142,6 +158,11 @@ class OFTools
         }
     }
 
+    /**
+     * @param $numeros
+     * @param $id
+     * @return string
+     */
     static public function get_format_link_of($numeros,$id) {
 
         $TNumero = explode(',', $numeros);
@@ -158,6 +179,10 @@ class OFTools
         return implode(', ',$TReturn);
     }
 
+    /**
+     * @param $fk_soc
+     * @return string
+     */
     static public function get_format_libelle_societe($fk_soc)
     {
         global $db;
@@ -174,6 +199,10 @@ class OFTools
         return '';
     }
 
+    /**
+     * @param $fk
+     * @return mixed|string
+     */
     static public function get_format_label_supplier_order($fk){
         global $db;
 
@@ -187,6 +216,12 @@ class OFTools
         return '';
     }
 
+    /**
+     * @param $fk
+     * @param int $fk_commandedet
+     * @param string $fk_products
+     * @return int|string
+     */
     static public function get_format_libelle_commande($fk, $fk_commandedet=0, $fk_products='')
     {
         global $db,$langs,$conf;
@@ -219,6 +254,10 @@ class OFTools
         return '';
     }
 
+    /**
+     * @param $fk
+     * @return mixed|string
+     */
     static public function get_format_libelle_projet($fk) {
         global $db;
 
@@ -233,6 +272,9 @@ class OFTools
         return '';
     }
 
+    /**
+     * @param $PDOdb
+     */
     static public function _printTicket(&$PDOdb)
     {
         global $db,$conf,$langs;
@@ -285,6 +327,12 @@ class OFTools
         exit;
     }
 
+    /**
+     * @param $db
+     * @param $PDOdb
+     * @param $TPrintTicket
+     * @return array
+     */
     public function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
     {
         global $conf;
@@ -345,10 +393,20 @@ class OFTools
         return $TInfoEtiquette;
     }
 
+    /**
+     * @param $name
+     * @param $value
+     * @return string
+     */
     static public function get_number_input($name, $value) {
         return '<input type="number" name="'.$name.'" value="'.$value.'"/><input type="hidden" name="old_'.$name.'" value="'.$value.'"/>';
     }
 
+    /**
+     * @param $PDOdb
+     * @param $TNewRank
+     * @param $TOldRank
+     */
     static public function _setAllRank($PDOdb, $TNewRank, $TOldRank) {
         $TToUpdate= array();
 
