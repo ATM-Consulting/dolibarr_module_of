@@ -1120,12 +1120,11 @@ if ($resql)
         echo '<a id="bt_createOf" class="butAction" href="fiche_of.php?action=new'.((!empty($fk_product)) ? '&fk_product='.$fk_product : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
         if ($conf->nomenclature->enabled && !empty($fk_product))
         {
-            dol_include_once('/core/class/html.form.class.php');
+            require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
             dol_include_once('/' . ATM_ASSET_NAME . '/lib/asset.lib.php');
             dol_include_once('/nomenclature/class/nomenclature.class.php');
 
-            $doliForm = new Form($db);
-            echo $doliForm->selectarray('fk_nomenclature', TNomenclature::get($PDOdb, $fk_product, true));
+            echo Form::selectarray('fk_nomenclature', TNomenclature::get($PDOdb, $fk_product, true));
 
             echo '<script type="text/javascript">
 
