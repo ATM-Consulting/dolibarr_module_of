@@ -60,7 +60,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Ordres de fabrication: management of manufacturing orders";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '2.9.0';
+		$this->version = '3.0.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -304,7 +304,7 @@ class modof extends DolibarrModules
                     'titre'=>'AssetProductionOrderDraft',
                     'mainmenu'=>'of',
                     'leftmenu'=>'',
-                    'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=DRAFT',
+                    'url'=>'/of/liste_of.php?search_status_of=DRAFT',
                     'position'=>310+$r,
                     'enabled'=>'',           // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
                     'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -317,7 +317,7 @@ class modof extends DolibarrModules
                     'titre'=>'AssetProductionOrderNEEDOFFER',
                     'mainmenu'=>'of',
                     'leftmenu'=>'',
-                    'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=NEEDOFFER',
+                    'url'=>'/of/liste_of.php?search_status_of=NEEDOFFER',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
                     'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -330,7 +330,7 @@ class modof extends DolibarrModules
                     'titre'=>'AssetProductionOrderONORDER',
                     'mainmenu'=>'of',
                     'leftmenu'=>'AssetProdSOrder',
-                    'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=ONORDER',
+                    'url'=>'/of/liste_of.php?search_status_of=ONORDER',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
                     'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -358,7 +358,7 @@ class modof extends DolibarrModules
                     'titre'=>'AssetProductionOrderVALID',
                     'mainmenu'=>'of',
                     'leftmenu'=>'',
-                    'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=VALID',
+                    'url'=>'/of/liste_of.php?search_status_of=VALID',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
                     'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -371,7 +371,7 @@ class modof extends DolibarrModules
                     'titre'=>'AssetProductionOrderOPEN',
                     'mainmenu'=>'of',
                     'leftmenu'=>'',
-                    'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=OPEN',
+                    'url'=>'/of/liste_of.php?search_status_of=OPEN',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
                     'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
@@ -383,7 +383,7 @@ class modof extends DolibarrModules
                     'titre'=>'AssetProductionOrderCLOSE',
                     'mainmenu'=>'of',
                     'leftmenu'=>'',
-                    'url'=>'/of/liste_of.php?TListTBS[list_llx_assetOf][search][status]=CLOSE',
+                    'url'=>'/of/liste_of.php?search_status_of=CLOSE',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
                     'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
