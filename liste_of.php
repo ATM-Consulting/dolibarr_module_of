@@ -625,6 +625,7 @@ if ($resql)
     $totalarray['nbfield'] = 0;
     $totalarray['val'] = array();
     $totalarray['val']['cd.total_ht'] = 0;
+    $totalarray['val']['ofel.qty'] = 0;
     $totalarray['val']['ofe.temps_estime_fabrication'] = 0;
     $totalarray['val']['ofe.total_estimated_cost'] = 0;
     $totalarray['val']['ofe.total_cost'] = 0;
@@ -654,6 +655,10 @@ if ($resql)
             print $obj->nb_product_to_make;
             print "</td>\n";
             if(! $i) $totalarray['nbfield']++;
+            if (!empty($fk_product)) {
+                if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'ofel.qty';
+                $totalarray['val']['ofel.qty'] += $obj->nb_product_to_make;
+            }
         }
         // Produit
         if (!empty($arrayfields['p.label']['checked'])) {
@@ -859,12 +864,12 @@ if ($resql)
 
         print '<tr class="liste_titre">';
         print_liste_field_titre("#");
-        print_liste_field_titre($langs->trans("Ref"),"liste_of_rework.php","refProd","",$param,'',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans("Label"),"liste_of_rework.php","nomProd", "", $param,'align="left"',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of_rework.php","", "", $param,'align="left"',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans('QtyAlreadyToMake'),"liste_of_rework.php","","",$param,'',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans('QtyToMake'),"liste_of_rework.php","","",$param,'',$sortfield,$sortorder);
-        print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of_rework.php","","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans("Ref"),"liste_of.php","refProd","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans("Label"),"liste_of.php","nomProd", "", $param,'align="left"',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans("PhysicalStock"),"liste_of.php","", "", $param,'align="left"',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans('QtyAlreadyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans('QtyToMake'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
+        print_liste_field_titre($langs->trans('ProductToAddToOf'),"liste_of.php","","",$param,'',$sortfield,$sortorder);
         print "</tr>\n";
         $var=1;
 
@@ -1006,7 +1011,7 @@ if ($resql)
 
             // Add fields from hooks
             $parameters = array(
-                'listname' => 'fkProductOFList',
+                'listname' => 'OFListProductNeeded',
                 'mode' => $mode
             );
             $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
@@ -1021,7 +1026,7 @@ if ($resql)
 
             // Add fields from hooks
             $parameters = array(
-                'listname' => 'fkProductOFList',
+                'listname' => 'OFListProductNeeded',
                 'mode' => $mode
             );
             $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
@@ -1044,14 +1049,14 @@ if ($resql)
             print '<table class="noborder" width="100%">';
 
             print '<tr class="liste_titre">';
-            print_liste_field_titre($langs->trans("OfNumber"),"liste_of_rework.php","ofe.numero","",$param,'',$sortfield,$sortorder);
-            print_liste_field_titre($langs->trans("Customer"),"liste_of_rework.php","s.nom", "", $param,'', $sortfield, $sortorder);
-            print_liste_field_titre($langs->trans("NumberProductToMake"),"liste_of_rework.php","nb_product_to_make", "", $param,'',$sortfield,$sortorder);
-            print_liste_field_titre($langs->trans('Product'),"liste_of_rework.php","p.label","",$param,'',$sortfield,$sortorder);
-            print_liste_field_titre($langs->trans('Priority'),"liste_of_rework.php","ofe.ordre","",$param,'',$sortfield,$sortorder);
-            print_liste_field_titre($langs->trans('DateStart'),"liste_of_rework.php","ofe.date_lancement","",$param,'',$sortfield,$sortorder);
-            print_liste_field_titre($langs->trans('DateNeeded'),"liste_of_rework.php","ofe.date_besoin","",$param,'',$sortfield,$sortorder);
-            print_liste_field_titre($langs->trans('Status'),"liste_of_rework.php","ofe.status","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans("OfNumber"),"liste_of.php","ofe.numero","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans("Customer"),"liste_of.php","s.nom", "", $param,'', $sortfield, $sortorder);
+            print_liste_field_titre($langs->trans("NumberProductToMake"),"liste_of.php","nb_product_to_make", "", $param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('Product'),"liste_of.php","p.label","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('Priority'),"liste_of.php","ofe.ordre","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('DateStart'),"liste_of.php","ofe.date_lancement","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('DateNeeded'),"liste_of.php","ofe.date_besoin","",$param,'',$sortfield,$sortorder);
+            print_liste_field_titre($langs->trans('Status'),"liste_of.php","ofe.status","",$param,'',$sortfield,$sortorder);
             print "</tr>\n";
             $var=1;
 
