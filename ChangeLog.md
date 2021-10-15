@@ -3,20 +3,27 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
-- NEW Refonte des listes OFs sur le modèle standard *14/10/2021* - 2.10
+
 ## Version 2.10
+
+- NEW Refonte des listes OFs sur le modèle standard *14/10/2021* - 2.10  
+ Refonte des listes OFs (principale, depuis fiche produit onglet OF, depuis fiche commande onglet OF) sur le modèle standard.  
+ Ajout de filtres sur le client, le produit et la commande client.  
+ Ajout de la possibilité de rechercher par le numéro, le client et le produit dans la recherche globale.
 
 ## Version 2.9
 
 - NEW Conf pour regrouper les lignes *13/10/2021* - 2.9
+
 ## Version 2.8
 
 - NEW Gestion des calculs auto pour chaque ligne  *11/10/2021* - 2.8
+
 ## Version 2.7
 
 - NEW massaction edition des entrepôts de tous les composants d'un of  *05/10/2021* - 2.7
-- 
-- ## Version 2.6
+
+## Version 2.6
 
 - NEW ajout d'un lien de l'OF lié au transfert de stock *29/09/2021* - 2.6
 
