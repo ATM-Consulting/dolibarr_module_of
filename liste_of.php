@@ -147,6 +147,7 @@ if (empty($reshook))
             break;
         case 'printTicket':
             OFTools::_printTicket($PDOdb);
+            break;
         default:
             set_time_limit(0);
             break;
