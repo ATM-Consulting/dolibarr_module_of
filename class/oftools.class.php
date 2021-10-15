@@ -333,7 +333,7 @@ class OFTools
      * @param $TPrintTicket
      * @return array
      */
-    public function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
+    static public function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
     {
         global $conf;
 
