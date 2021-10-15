@@ -8,12 +8,12 @@
 class OFTools
 {
     /**
-     * @param $PDOdb
-     * @param $TProduct
-     * @param $TQuantites
-     * @param $fk_commande
-     * @param $fk_soc
-     * @param false $oneOF
+     * @param TPDOdb $PDOdb
+     * @param array $TProduct
+     * @param array $TQuantites
+     * @param int $fk_commande
+     * @param int $fk_soc
+     * @param bool $oneOF
      */
     static public function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_soc, $oneOF = false)
     {
@@ -106,7 +106,7 @@ class OFTools
     }
 
     /**
-     * @param null $workstations
+     * @param string $workstations
      * @return string
      */
     static public function get_format_label_workstation($workstations=null) {
@@ -133,7 +133,7 @@ class OFTools
     }
 
     /**
-     * @param null $fk_product
+     * @param int $fk_product
      * @return int|string
      */
     static public function get_format_libelle_produit($fk_product = null)
@@ -159,8 +159,8 @@ class OFTools
     }
 
     /**
-     * @param $numeros
-     * @param $id
+     * @param string $numeros
+     * @param int $id
      * @return string
      */
     static public function get_format_link_of($numeros,$id) {
@@ -180,7 +180,7 @@ class OFTools
     }
 
     /**
-     * @param $fk_soc
+     * @param int $fk_soc
      * @return string
      */
     static public function get_format_libelle_societe($fk_soc)
@@ -200,7 +200,7 @@ class OFTools
     }
 
     /**
-     * @param $fk
+     * @param int $fk
      * @return mixed|string
      */
     static public function get_format_label_supplier_order($fk){
@@ -217,7 +217,7 @@ class OFTools
     }
 
     /**
-     * @param $fk
+     * @param int $fk
      * @param int $fk_commandedet
      * @param string $fk_products
      * @return int|string
@@ -255,7 +255,7 @@ class OFTools
     }
 
     /**
-     * @param $fk
+     * @param int $fk
      * @return mixed|string
      */
     static public function get_format_libelle_projet($fk) {
@@ -273,7 +273,7 @@ class OFTools
     }
 
     /**
-     * @param $PDOdb
+     * @param TPDOdb $PDOdb
      */
     static public function _printTicket(&$PDOdb)
     {
@@ -328,9 +328,9 @@ class OFTools
     }
 
     /**
-     * @param $db
-     * @param $PDOdb
-     * @param $TPrintTicket
+     * @param DoliDB $db
+     * @param TPDOdb $PDOdb
+     * @param aray $TPrintTicket
      * @return array
      */
     static public function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
@@ -394,8 +394,8 @@ class OFTools
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param int $value
      * @return string
      */
     static public function get_number_input($name, $value) {
@@ -403,9 +403,9 @@ class OFTools
     }
 
     /**
-     * @param $PDOdb
-     * @param $TNewRank
-     * @param $TOldRank
+     * @param TPDOdb $PDOdb
+     * @param string $TNewRank
+     * @param string $TOldRank
      */
     static public function _setAllRank($PDOdb, $TNewRank, $TOldRank) {
         $TToUpdate= array();

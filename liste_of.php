@@ -36,6 +36,7 @@ $optioncss = GETPOST('optioncss', 'alpha');
 $now = dol_now();
 
 $mode = GETPOST('mode', 'alpha');
+$sall = GETPOST('sall', 'alpha');
 $oldRank = GETPOST('old_of_rank', 'alpha');
 $newRank = GETPOST('of_rank', 'alpha');
 $fk_soc = GETPOST('fk_soc', 'int');
@@ -79,10 +80,8 @@ $hookmanager->initHooks(array('listof'));
 // List of fields to search into when doing a "search in all"
 $fieldstosearchall = array(
     'ofe.numero' => "OfNumber",
-    'ofe.date_lancement' => "DateStart",
-    'ofe.date_besoin' => "DateNeeded",
-    'ofe.status' => "Status",
-    'ofe.date_end' => "DateEnd"
+    's.nom' => "Customer",
+    'p.label' => "Product",
 );
 
 $arrayfields = array(
@@ -243,8 +242,6 @@ if ($mode == 'supplier_order') {
     }
 }
 
-if ($sall) $sql .= natural_search(array_keys($fieldstosearchall), $sall);
-
 $sql .= "  WHERE ofe.entity=" . $conf->entity;
 
 // Add where from hooks
@@ -272,6 +269,8 @@ if ($fk_commande > 0) {
         } else $sql .= " AND ofe.fk_commande=" . $fk_commande . " AND ofe.fk_assetOf_parent = 0 ";
     } else $sql .= " AND ofe.fk_commande=" . $fk_commande . " AND ofe.fk_assetOf_parent = 0 ";
 }
+
+if ($sall) $sql .= natural_search(array_keys($fieldstosearchall), $sall);
 
 if ($search_company) {
     $sql .= natural_search('s.nom', $search_company);

@@ -71,7 +71,7 @@ class Actionsof
 						'img'=>'object_list'
 						, 'label'=>$langs->trans("SearchIntoOf", $search_boxvalue)
 						, 'text'=>img_picto('','object_list').' '.$langs->trans("SearchIntoOf", $search_boxvalue)
-						, 'url'=>dol_buildpath('/of/liste_of.php',1).'?TListTBS[list_llx_assetOf][search][numero]='.urlencode($search_boxvalue)
+						, 'url'=>dol_buildpath('/of/liste_of.php',1)
                         , 'position' => (isset($conf->global->OF_POSITION_SEARCH_ENTRY)) ? $conf->global->OF_POSITION_SEARCH_ENTRY : 50
 				);
 
