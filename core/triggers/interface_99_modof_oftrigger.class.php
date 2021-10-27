@@ -290,6 +290,7 @@ class Interfaceoftrigger
 
 				$resql =$db->query('SELECT fk_statut FROM '.MAIN_DB_PREFIX.'commande_fournisseur WHERE rowid = '.(int)GETPOST('id', 'none') );
 				$res = $db->fetch_object($resql);
+
 				if($res->fk_statut == 5) { // La livraison est totale
 					//On cherche l'OF lié
 					$resql = $db->query("SELECT fk_source
@@ -314,6 +315,7 @@ class Interfaceoftrigger
 							}
 						}
 					}
+
 
 					while($res = $db->fetch_object($resql)) {
 
@@ -390,7 +392,8 @@ class Interfaceoftrigger
 									// verification si la commande fournisseur fourni l'ensemble des produits restant à produire
 									$TOrderLinesSummaryClone = $TOrderLinesSummary;
 									$setStatusTo = 'CLOSE';
-									if(empty($of->TAssetOFLine)){
+
+									if(!empty($of->TAssetOFLine)){
 										foreach ($of->TAssetOFLine as $assetOFLine){
 											// Normalement on n'est pas censé avoir plusieurs lignes d'OF pour un même fk_product mais au cas où on va partir de l'hypothèse que oui.
 
@@ -401,6 +404,8 @@ class Interfaceoftrigger
 												&& $stillToBeProduced > 0 // seulement les lignes qui restent à produire
 											)
 											{
+
+
 												if(!isset($TOrderLinesSummaryClone[$assetOFLine->fk_product])){
 													// Vu que q'un produit reste à produire mais que je ne le trouve pas dans la commande fournisseur alors
 													// l'OF c'est que possède d'autres produits à créer qui ne dépendent pas de cette commande fournisseur
@@ -419,10 +424,13 @@ class Interfaceoftrigger
 													}
 												}
 											}
+
+
 										}
 									}
 
 									$of->setStatus($PDOdb, $setStatusTo);
+
 								}
 								else{
 									$of->closeOF($PDOdb);//TODO étrange de fermer l'OF systématiquement, rajouter sur option je pense
