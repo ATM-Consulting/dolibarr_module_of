@@ -9,6 +9,11 @@ dol_include_once('/of/lib/of.lib.php');
 dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
+if ($conf->nomenclature->enabled) {
+     dol_include_once('/nomenclature/class/nomenclature.class.php');
+}
+
+
 $PDOdb=new TPDOdb;
 
 $langs->load('of@of');
