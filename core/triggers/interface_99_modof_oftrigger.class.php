@@ -505,24 +505,27 @@ class Interfaceoftrigger
 		}
         elseif ($action == 'ASSET_OF_DELETE')
         {
-            dol_include_once('/stocktransfer/class/stocktransfer.class.php');
-            global $db;
+            if ($conf->stocktransfer->enabled) {
 
-            $stockTransfer = new StockTransfer($db);
+                dol_include_once('/stocktransfer/class/stocktransfer.class.php');
+                global $db;
 
-            $sql = 'SELECT se.fk_object stocktransfer FROM '.MAIN_DB_PREFIX.'stocktransfer_stocktransfer_extrafields se ';
-            $sql.= 'WHERE se.fk_of = '.$object->id;
-            $res = $db->query($sql);
+                $stockTransfer = new StockTransfer($db);
 
-            if ($res) {
-                while ($obj = $db->fetch_object($res)) {
-                    $resFetch = $stockTransfer->fetch($obj->stocktransfer);
-                    if ($resFetch > 0) {
-                        $stockTransfer->fetch_optionals();
-                        $stockTransfer->array_options['options_linked_of'] = '';
-                        $stockTransfer->array_options['options_fk_of'] = '';
+                $sql = 'SELECT se.fk_object stocktransfer FROM '.MAIN_DB_PREFIX.'stocktransfer_stocktransfer_extrafields se ';
+                $sql.= 'WHERE se.fk_of = '.$object->id;
+                $res = $db->query($sql);
 
-                        $stockTransfer->insertExtrafields();
+                if ($res) {
+                    while ($obj = $db->fetch_object($res)) {
+                        $resFetch = $stockTransfer->fetch($obj->stocktransfer);
+                        if ($resFetch > 0) {
+                            $stockTransfer->fetch_optionals();
+                            $stockTransfer->array_options['options_linked_of'] = '';
+                            $stockTransfer->array_options['options_fk_of'] = '';
+
+                            $stockTransfer->insertExtrafields();
+                        }
                     }
                 }
             }
