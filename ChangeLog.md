@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.10
 
+- FIX lot_number targeting value for ODT *16/11/2021* - 2.10.1
 - NEW Refonte des listes OFs sur le modèle standard *14/10/2021* - 2.10  
  Refonte des listes OFs (principale, depuis fiche produit onglet OF, depuis fiche commande onglet OF) sur le modèle standard.  
  Ajout de filtres sur le client, le produit et la commande client.  
