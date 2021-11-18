@@ -377,6 +377,8 @@ class TAssetOF extends TObjetStd{
                 $this->calculTaskDates(); // calcul des dates pour respecter l'enchainement des dates
             }
 
+			$this->generateDocument('', $langs);
+
 			return 1;
 		}
 
@@ -2508,7 +2510,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $conf,$langs;
 
-		$langs->load("of@of");
+		$outputlangs->load("of@of");
 
 		if (! dol_strlen($modele)) {
 
