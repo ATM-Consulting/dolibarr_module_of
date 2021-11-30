@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 ## UNRELEASED
 
 
+## Version 2.11
+NEW : Gestion du stock théorique *21/11/2021* - 2.11.0
+
 ## Version 2.10
 
 - FIX lot_number targeting for lignesToMake ODT *21/11/2021* - 2.10.2

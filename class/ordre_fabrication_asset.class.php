@@ -203,6 +203,28 @@ class TAssetOF extends TObjetStd{
 		return $res;
 	}
 
+    /**
+     * @param int $fk_product
+     * @return int
+     */
+    public static function getQtyForProduct($fk_product, $type='NEEDED') {
+        global $db, $conf;
+        $TStatut = '"DRAFT","CLOSE"';
+        if(! empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $TStatut .= ',"OPEN"';
+        $sql = 'SELECT SUM(aol.qty';
+        if(! empty($conf->global->OF_MANAGE_NON_COMPLIANT)) $sql .= '+aol.qty_non_compliant';
+        $sql .= '  ) as qty 
+                FROM '.MAIN_DB_PREFIX.'assetOf_line aol 
+                INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
+                WHERE aol.fk_product='.$fk_product.' AND ao.status NOT IN ('.$TStatut.') AND aol.type="'.$type.'"';
+        $resql = $db->query($sql);
+        if(!empty($resql)) {
+            $obj = $db->fetch_object($resql);
+            return $obj->qty;
+        }
+        return 0;
+    }
+
 	function loadByProductCategory(&$db, $categ, $fk_soc, $status) {
 
 		//On récupère l'of ayant des produits ayant pour catégorie la même catégorie et étant brouillon

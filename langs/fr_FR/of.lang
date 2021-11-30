@@ -437,3 +437,4 @@ StockTransfer= Transfert de stock
 WarehouseTargetEmpty = Entrepôt de destination vide
 empty=aucun
 ModifyAllWarehouses=Modifier tous les entrepôts des composants
+VirtualStockOf=Quantité de produit qui vont prochainement être consommés dans les Ordres de fabrications : %s </br> Quantité de produit qui vont prochainement être produits dans les Ordres de fabrications : %s
