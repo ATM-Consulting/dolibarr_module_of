@@ -497,6 +497,23 @@ class Actionsof
 		return _calcQtyOfProductInOf($db, $conf, $product);
 	}
 
+    /**
+     * Overloading the loadvirtualstock function
+     *
+     * @param array()         $parameters     Hook metadatas (context, etc...)
+     * @param CommonObject $object      The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param string       $action      Current action (if set). Generally create or edit or null
+     * @param HookManager  $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function loadvirtualstock(&$parameters, &$object, &$action, $hookmanager) {
+        dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+        $qtyNeeded = TAssetOF::getQtyForProduct($parameters['id']);
+        $object->stock_theorique -= $qtyNeeded;
+        $qtyToMake = TAssetOF::getQtyForProduct($parameters['id'], 'TO_MAKE');
+        $object->stock_theorique += $qtyToMake;
+    }
+
 	/*
 		 * Overloading the addMoreActionsButtons function
 		 *
@@ -572,6 +589,24 @@ class Actionsof
 			</script>
 			<?php
 		}
+
+    if(in_array('stockproductcard', $TContext)) {
+        dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+        $langs->load('of@of');
+
+        $qtyNeeded = TAssetOF::getQtyForProduct($object->id);
+        $qtyToMake = TAssetOF::getQtyForProduct($object->id, 'TO_MAKE');
+        $textOfVirtualStock = $langs->trans('VirtualStockOf', floatval($qtyNeeded), floatval($qtyToMake));
+        ?>
+        <script type="application/javascript">
+            $(document).ready(function () {
+                let tooltip = $('td:contains("<?php echo $langs->trans('VirtualStock');?>")').next('td').find('.classfortooltip');
+                tooltip.attr('title', tooltip.attr('title')+'<br/><?php echo $textOfVirtualStock;?>');
+            });
+            </script>
+        <?php
+    }
+
 		if (!empty($conf->global->OF_USE_REFLINENUMBER)
 			&& (
 				in_array('ordercard', $TContext)

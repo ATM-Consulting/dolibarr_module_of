@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file.
 ## UNRELEASED
 
 
+## Version 2.12
+- NEW : Ordre des composants dans OF en fonction de la ref produit + Affichage référence lors de transfert de stock *30/11/2021* - 2.12.0
+
 ## Version 2.11
-- NEW : Ordre des composants dans OF en fonction de la ref produit + Affichage référence lors de transfert de stock *30/11/2021* - 2.11.0
+NEW : Gestion du stock théorique *21/11/2021* - 2.11.0
 
 ## Version 2.10
 
