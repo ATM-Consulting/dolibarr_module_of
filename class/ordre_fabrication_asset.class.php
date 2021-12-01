@@ -204,7 +204,9 @@ class TAssetOF extends TObjetStd{
 	}
 
     /**
-     * @param int $fk_product
+     * Function to get virtual stock for product
+     * @param int    $fk_product
+     * @param string $type
      * @return int
      */
     public static function getQtyForProduct($fk_product, $type='NEEDED') {
