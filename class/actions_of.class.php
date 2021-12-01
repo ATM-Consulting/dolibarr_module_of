@@ -460,7 +460,7 @@ class Actionsof
 
 							print '<tr>';
 							print '<input type="hidden" name = "id_of" value = "' . $id_of . '"/>';
-							print '<td class = "center">' . $product->label . '</td>';
+							print '<td class = "center">' . $product->getNomUrl(1) . ' - '.$product->label.'</td>';
 							print '<td class = "center">' . $stock_theo . '</td>';
 							print '<td class = "center">' . $product->stock_reel . '</td>';
 							print '<td class = "center" id="assetOFLine_qty">' . $form->texte('', 'TAssetOFLine[' . $line->fk_product . '][qty]', !empty($TAssetOFLine_saved[$line->fk_product]['qty']) ? $TAssetOFLine_saved[$line->fk_product]['qty'] : $line->qty, 5, 50) . '</td>';
