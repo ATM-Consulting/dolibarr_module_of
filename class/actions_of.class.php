@@ -180,8 +180,14 @@ class Actionsof
 			} // if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes')
 		} elseif($parameters['currentcontext'] === 'stocktransfercard'){
 
+
 			//si l'origine du transfert de stock est un of et que l'entrepôt de destination est vite, alors on affiche une erreur
+
 			if($action == 'add' && !empty(GETPOST('TAssetOFLine', 'array')) ){
+                if(! empty(GETPOST('cancel'))) {
+                        header('Location: '.dol_buildpath('/of/fiche_of.php', 1).'?id='.GETPOST('id_of','int'));
+                        exit;
+                }
 				if(GETPOST('fk_warehouse_destination', 'int') <= 0){
 					setEventMessage('WarehouseTargetEmpty', 'errors');
 					$action = 'create';

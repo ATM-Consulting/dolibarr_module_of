@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 
 ## Version 2.12
+- FIX : Button cancel sur stock transfert non fonctionnel depuis OF *30/11/2021* - 2.12.1
 - NEW : Ordre des composants dans OF en fonction de la ref produit + Affichage référence lors de transfert de stock *30/11/2021* - 2.12.0
 
 ## Version 2.11
