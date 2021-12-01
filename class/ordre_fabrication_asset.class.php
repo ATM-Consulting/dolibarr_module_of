@@ -194,7 +194,10 @@ class TAssetOF extends TObjetStd{
                     $TAssetOFLine->categ = $TCateg;
                 }
             }
-            usort($this->TAssetOFLine, function($a, $b) { return strcmp($a->categ[0]->label, $b->categ[0]->label); });
+            usort($this->TAssetOFLine, function($a, $b) {
+                if($a->categ[0]->label == $b->categ[0]->label) return strcmp($a->product->ref, $b->product->ref);
+                else return strcmp($a->categ[0]->label, $b->categ[0]->label);
+            });
         }
 
 		usort($this->TAssetWorkstationOF, array($this,'sortWorkStationByRank'));
