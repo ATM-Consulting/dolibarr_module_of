@@ -184,7 +184,7 @@ class Actionsof
 			//si l'origine du transfert de stock est un of et que l'entrepôt de destination est vite, alors on affiche une erreur
 
 			if($action == 'add' && !empty(GETPOST('TAssetOFLine', 'array')) ){
-                if(! empty(GETPOST('cancel'))) {
+                if(! empty(GETPOST('cancel', 'alphanohtml'))) {
                         header('Location: '.dol_buildpath('/of/fiche_of.php', 1).'?id='.GETPOST('id_of','int'));
                         exit;
                 }
