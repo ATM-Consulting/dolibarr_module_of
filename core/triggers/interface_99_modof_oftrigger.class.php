@@ -469,7 +469,7 @@ class Interfaceoftrigger
 					$prod = new Product($db);
 					$res = $prod->fetch($id_product);
 
-					if($res) {
+					if($res  && $TValues['qty']  > 0) {
 						$line = new StockTransferLine($db);
 						$line->fk_stocktransfer = $object->id;
 						$line->qty = $TValues['qty'];
