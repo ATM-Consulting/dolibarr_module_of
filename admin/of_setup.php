@@ -59,7 +59,8 @@ function set_reflinenumber_extrafield_visibility($visibility) {
 function handle_ajax_query() {
     $code = GETPOST('code', 'none');
     $val = GETPOST('val', 'none');
-    if (set_reflinenumber_extrafield_visibility(intval($val))) {
+
+    if ($code == 'OF_USE_REFLINENUMBER' && set_reflinenumber_extrafield_visibility(intval($val))) {
         return 'success';
     } else {
         return 'failure';
@@ -318,7 +319,7 @@ setup_print_title('ParamLinkedToOFGPAO');
 setup_print_on_off('OF_RANK_PRIOR_BY_LAUNCHING_DATE');
 setup_print_on_off('OF_MANAGE_NON_COMPLIANT');
 
-if(!empty($conf->workstation->enabled)){
+if(!empty($conf->workstationatm->enabled)){
 	$input = $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT),0, 0, '', 0, 300);
 	setup_print_input_form_part('OF_WORKSTATION_NON_COMPLIANT', false, '', array(), $input);
 }

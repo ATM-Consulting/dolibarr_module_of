@@ -14,7 +14,7 @@
 	dol_include_once("/core/lib/company.lib.php");
 
 	$langs->load('of@of');
-	$langs->load('workstation@workstation');
+	$langs->load('workstationatm@workstationatm');
 	$langs->load('stocks');
 	$PDOdb = new TPDOdb;
 	$action = __get('action');
@@ -334,6 +334,7 @@ function _liste(&$PDOdb)
 	}
 
 	$PDOdb=new TPDOdb;
+	if ($conf->workstation->enabled && !class_exists('TWorkstation')) dol_include_once('workstation/class/workstation.class.php');
 	$TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
 
 	$TSearch=array();

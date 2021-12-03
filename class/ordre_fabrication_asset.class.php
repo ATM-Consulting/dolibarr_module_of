@@ -1495,7 +1495,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $conf;
 
-		if (!empty($conf->workstation->enabled))
+		if (!empty($conf->workstationatm->enabled))
 		{
 			if($conf->nomenclature->enabled) {
 
@@ -3821,7 +3821,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
         $date_start_search = strtotime('midnight', $date_start_search);
 
-        if (!empty($conf->workstation->enabled))
+        if (!empty($conf->workstationatm->enabled))
         {
             // TODO mériterait un peu d'otpimisation en passant en param le timestamp de la date de fin de la tâche parente directement plutôt que de le fetcher ici
 //            if ($projectTask->fk_task_parent > 0)
@@ -4311,6 +4311,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 
 
+dol_include_once('/workstationatm/class/workstation.class.php');
 dol_include_once('/workstation/class/workstation.class.php');
 
 if (class_exists('TWorkstation')) {

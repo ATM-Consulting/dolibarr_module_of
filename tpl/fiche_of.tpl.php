@@ -303,25 +303,25 @@
 										<td>[TNeeded.lot_number;strconv=no]</td>
 									[onshow;block=end]
 									<!--<td>Equipement</td>-->
-									<td>[TNeeded.libelle;block=tr;strconv=no]<br />[TNeeded.note_private;strconv=no;]</td>
+									<td class="col-01">[TNeeded.libelle;block=tr;strconv=no]<br />[TNeeded.note_private;strconv=no;]</td>
 
-									<td>[TNeeded.cost]</td>
-									<td>[TNeeded.qty_needed]</td>
-									<td class="qty_planned" data-qty='[TNeeded.qty_planned]'>[TNeeded.qty;strconv=no]</td>
+									<td class="col-02">[TNeeded.cost]</td>
+									<td class="col-03">[TNeeded.qty_needed]</td>
+									<td class="qty_planned col-04" data-qty='[TNeeded.qty_planned]'>[TNeeded.qty;strconv=no]</td>
 									[onshow;block=begin;when [view.mode]=='edit']
-									<td>
+									<td class="col-05">
 									&nbsp;
 									</td>
 									[onshow;block=end]
-									<td class="nodraft qty_used">[TNeeded.qty_used;strconv=no]</td>
+									<td class="nodraft qty_used col-06">[TNeeded.qty_used;strconv=no]</td>
 									<!-- <td class="draft">[TNeeded.qty_toadd]</td> -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
-										<td width="20%">[TNeeded.workstations;strconv=no]</td>
+										<td  class="col-07" width="20%">[TNeeded.workstations;strconv=no]</td>
 									[onshow;block=end]
 									[onshow;block=begin;when [view.defined_manual_wharehouse]=='1']
-										<td width="20%">[TNeeded.fk_entrepot;strconv=no]</td>
+										<td class="col-08" width="20%">[TNeeded.fk_entrepot;strconv=no]</td>
 									[onshow;block=end]
-									<td align='center' class="draftedit">[TNeeded.delete;strconv=no]</td>
+									<td align='center' class="draftedit col-01">[TNeeded.delete;strconv=no]</td>
 
 								</tr>
 
@@ -796,8 +796,13 @@
 								res = 0;
 							}
 
-							var href = $(this).parent().children('a').attr('base-href');
-							$(this).parent().children('a').attr('href', href+res)
+							if(res > 0) {
+								let $btnAssetFromAutoComplete = $(this).parent().children('a.add-asset-from-autocomplete');
+								var href = $btnAssetFromAutoComplete.attr('base-href');
+								$btnAssetFromAutoComplete.attr('href', href+res)
+								$btnAssetFromAutoComplete.show();
+								window.location.replace(href + res + "#" + idline);
+							}
 						}
                     });
                 })

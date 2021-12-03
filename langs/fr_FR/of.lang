@@ -428,3 +428,4 @@ OF_USE_REFLINENUMBER_help=Ils permettent de lier, à titre indicatif, une ligne 
 RefLineNumber=Ligne de référence
 OF_product_in_of=Produit présent dans un ou plusieurs OF
 OF_REF_LINE_NUMBER_BEFORE_DESC = Afficher si possible la colonne de numéros de lignes de référence avant la description (PDF et fiches)
+AddAnAssetATM = Ajouter un équipement
