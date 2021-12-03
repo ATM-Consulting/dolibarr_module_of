@@ -358,7 +358,7 @@ class TAssetOF extends TObjetStd{
                 $this->calculTaskDates(); // calcul des dates pour respecter l'enchainement des dates
             }
 
-			if($conf->global->OF_FORCE_GENERATE_PDF_ON_VALID) {
+			if(!empty($conf->global->OF_FORCE_GENERATE_PDF_ON_VALID)) {
 				// cette conf ne fonctionne qu'avec les models compatibles standard Dolibarr
 				// elle fait planter les génération en TBS odt car fonctionne avec un vieux sytème tout pérave
 				$this->generateDocument('', $langs);
