@@ -271,9 +271,13 @@
 							<!-- NEEDED -->
 							<table width="100%" class="border needed">
 								<tr style="background-color:#dedede;">
+                                    [onshow;block=begin;when [view.defined_show_categorie]=='1']
+										<td width="20%">[view.langs.transnoentities(Categories)]</td>
+									[onshow;block=end]
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td width="20%">[view.langs.transnoentities(Lot)]</td>
 									[onshow;block=end]
+
 									<!--<td>Equipement</td>-->
 									<td>[view.langs.transnoentities(Products)]</td>
 
@@ -299,6 +303,9 @@
 
 								</tr>
 								<tr id="[TNeeded.id]">
+                                    [onshow;block=begin;when [view.defined_show_categorie]=='1']
+										<td width="20%">[TNeeded.categLabel;strconv=no]</td>
+									[onshow;block=end]
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
 										<td>[TNeeded.lot_number;strconv=no]</td>
 									[onshow;block=end]
@@ -328,6 +335,9 @@
 								[onshow;block=begin;when [view.show_cost]=='1']
 								<tr style="background-color:#dedede;">
 									[onshow;block=begin;when [view.use_lot_in_of]=='1']
+										<td>&nbsp;</td>
+									[onshow;block=end]
+                                    [onshow;block=begin;when [view.defined_show_categorie]=='1']
 										<td>&nbsp;</td>
 									[onshow;block=end]
 
@@ -862,12 +872,20 @@
 			[onshow;block=end]
 
 			[onshow;block=begin;when [view.mode]!='view']
-				if ($(btnadd).attr('statut') == 'DRAFT') {
-					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
 
+				if ($(btnadd).attr('statut') == 'DRAFT' || $(btnadd).attr('statut') == 'OPEN') {
+					qty = $(btnadd).closest('tr').find("input[id*='qty']").val();
+					qty_used = $(btnadd).closest('tr').find("input[id*='qty_used']").val();
+					qty_non_compliant = $(btnadd).closest('tr').find("input[id*='qty_non_compliant']").val();
+
+					if ($(btnadd).attr('statut') == 'DRAFT') {
+						action = 'updateqty';
+					} else {
+						action = 'updateqty_usernocompliant';
+					}
 
 					$.ajax({
-						url: "script/interface.php?get=updateQtyMaking&id="+id_assetOf+"&idLine="+idLine+"&qty="+qty+"&type=json"
+						url: "script/interface.php?get=updateQtyMaking&id="+id_assetOf+"&idLine="+idLine+"&action="+action+"&qty="+qty+"&qty_used="+qty_used+"&qty_non_compliant="+qty_non_compliant+"&type=json"
 						,dataType: 'json'
 					}).done(function(result){
 

@@ -866,6 +866,9 @@ function _fiche_ligne(&$form, &$of, $type){
 
     $PDOdb=new TPDOdb;
 	$TRes = array();
+	//On réordonne les lignes par ordre alphabétique de la catégorie
+
+
 	foreach($of->TAssetOFLine as $k=>&$TAssetOFLine){
 	    /** @var TAssetOFLine $TAssetOFLine */
 		$product = &$TAssetOFLine->product;
@@ -925,9 +928,9 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 		            ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
+		            ,'categLabel'=>$TAssetOFLine->categLabel
 
 			);
-
 			mergeObjectAttr($product, $TLine);
 			$action = $form->type_aff;
 			$parameter=array('of'=>&$of, 'line'=>&$TLine,'type'=>'NEEDED');
@@ -1048,7 +1051,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'libelle'=>$product->getNomUrl(1).' '.$product->label.' - '.$langs->trans("Stock")." : "
 				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'TO_MAKE')
 			        ,'nomenclature'=>$nomenclature
-				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
+				,'addneeded'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || $of->status == 'OPEN')) ? '<a href="#null" statut="'.$of->status.'" onclick="updateQtyNeededForMaking('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto($langs->trans('UpdateNeededQty'), 'object_technic.png').'</a>' : ''
 				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,10,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
 				,'qty_used'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_used.$conditionnement_label
 				,'qty_non_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_non_compliant]', $TAssetOFLine->qty_non_compliant,  5,5,'','') : $TAssetOFLine->qty_non_compliant)
@@ -1461,6 +1464,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
 			,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
 			,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
+			,'defined_show_categorie'=>(int) $conf->global->OF_DISPLAY_PRODUCT_CATEGORIES
 			,'hasChildren' => (int) !empty($Tid)
 			,'user_id'=>$user->id
 			,'workstation_module_activate'=>(int) $conf->workstationatm->enabled
