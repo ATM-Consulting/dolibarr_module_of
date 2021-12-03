@@ -945,7 +945,7 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 					,'workstations'=> $conf->workstationatm->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
-					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
+					,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 1, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 		            ,'note_private'=>(($of->status=='DRAFT') ? $form->zonetexte('', 'TAssetOFLine['.$k.'][note_private]', $TAssetOFLine->note_private, 50,1) : $TAssetOFLine->note_private)
 		            ,'categLabel'=>$TAssetOFLine->categLabel
 
@@ -1076,7 +1076,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				,'qty_non_compliant'=>((($of->status=='OPEN' || $of->status == 'CLOSE')) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_non_compliant]', $TAssetOFLine->qty_non_compliant,  5,5,'','') : $TAssetOFLine->qty_non_compliant)
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
-				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
+				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($of->status == 'DRAFT' || $of->status == 'VALID' || $of->status == 'NEEDOFFER' || $of->status == 'ONORDER' || $of->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 1, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
 			    ,'extrafields'=>(empty($conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD) ? '' : _get_line_order_extrafields($TAssetOFLine->fk_commandedet))
 			);
             if ($conf->global->OF_USE_REFLINENUMBER) {
@@ -1526,7 +1526,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
 			,'select_product'=>$select_product
 			,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
-			,'select_warehouses' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses('', 'select_allneeded_fk_warehouse', '', 0, 0, '') : ''
+			,'select_warehouses' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses('', 'select_allneeded_fk_warehouse', '', 1, 0, '') : ''
 			,'select_warehouse_help' =>  !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $doliform->textwithpicto('', $langs->transnoentities('ModifyAllWarehouses'), 1, 'help', '') : ''
 			//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
 			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
