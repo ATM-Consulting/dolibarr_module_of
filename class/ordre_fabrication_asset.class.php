@@ -1561,6 +1561,12 @@ class TAssetOF extends TObjetStd{
                 }
             }
         }
+
+        if(! empty($conf->global->ASSET_MANUAL_WAREHOUSE)) {
+            if($TAssetOFLine->fk_product > 0 && empty($TAssetOFLine->product)) $TAssetOFLine->load_product();
+            if(! empty($TAssetOFLine->product->fk_default_warehouse)) $TAssetOFLine->fk_entrepot = $TAssetOFLine->product->fk_default_warehouse;
+        }
+
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
 		// Appel des triggers
