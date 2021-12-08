@@ -154,6 +154,15 @@ class TAssetOF extends TObjetStd{
 
 	}
 
+	/**
+	 * Function Load. Load an object with id
+	 *
+	 * @param TPDOdb	$db			Object PDO database
+	 * @param int		$id			Contain rowid of object
+	 * @param bool	$loadChild	true = load childs; false = Only load object
+	 *
+	 * @return bool	            true = OK; false = KO
+	 */
 	function load(&$db, $id, $loadChild = true) {
 		global $conf;
 
@@ -1335,6 +1344,7 @@ class TAssetOF extends TObjetStd{
 		$TAssetOFLine = &$this->TAssetOFLine[$k];
 
 		$TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
+		$TAssetOFLine->fk_assetOf = $this->getId();
 		$TAssetOFLine->fk_product = $fk_product;
 		$TAssetOFLine->fk_asset = 0; //TODO remove ?
 		$TAssetOFLine->type = $type;
@@ -2575,6 +2585,12 @@ class TAssetOFLine extends TObjetStd{
 /*
  * Ligne d'Ordre de fabrication d'équipement
  * */
+
+	/**
+	 * @var Product $product
+	 */
+	public $product = null;
+
 
 	function __construct() {
 	    global $conf;
