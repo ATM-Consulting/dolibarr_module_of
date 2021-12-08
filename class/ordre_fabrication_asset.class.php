@@ -227,9 +227,9 @@ class TAssetOF extends TObjetStd{
         if(! empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $TStatut .= ',"OPEN"';
         $sql = 'SELECT SUM(aol.qty';
         if(! empty($conf->global->OF_MANAGE_NON_COMPLIANT)) $sql .= '+aol.qty_non_compliant';
-        $sql .= '  ) as qty 
-                FROM '.MAIN_DB_PREFIX.'assetOf_line aol 
-                INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
+        $sql .= '  ) as qty
+                FROM '.MAIN_DB_PREFIX.'assetOf_line aol
+                INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
                 WHERE aol.fk_product='.$fk_product.' AND ao.status NOT IN ('.$TStatut.') AND aol.type="'.$type.'"';
         $resql = $db->query($sql);
         if(!empty($resql)) {
@@ -1527,6 +1527,7 @@ class TAssetOF extends TObjetStd{
             $TAssetOFLine = &$this->TAssetOFLine[$k];
 
             $TAssetOFLine->fk_assetOf_line_parent = $fk_assetOf_line_parent;
+			$TAssetOFLine->fk_assetOf = $this->getId();
             $TAssetOFLine->fk_product = $fk_product;
             $TAssetOFLine->fk_asset = 0; //TODO remove ?
             $TAssetOFLine->type = $type;
