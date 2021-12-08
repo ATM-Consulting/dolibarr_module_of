@@ -160,6 +160,15 @@ class TAssetOF extends TObjetStd{
 
 	}
 
+	/**
+	 * Function Load. Load an object with id
+	 *
+	 * @param TPDOdb	$PDOdb			Object PDO database
+	 * @param int		$id			Contain rowid of object
+	 * @param bool	$loadChild	true = load childs; false = Only load object
+	 *
+	 * @return bool	            true = OK; false = KO
+	 */
 	function load(&$PDOdb, $id, $loadChild = true) {
 		global $conf, $langs, $db;
 
