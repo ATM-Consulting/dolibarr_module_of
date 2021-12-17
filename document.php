@@ -53,6 +53,7 @@ if($id > 0 || !empty($ref)) {
     $upload_dir = $conf->of->multidir_output[$object->entity] . '/' . get_exdir(0, 0, 0, 0, $object, 'tassetof') . dol_sanitizeFileName($object->ref);
 }
 $modulepart = 'of';
+$permissiontoadd = $user->rights->of->of->write;
 
 /*
  * Actions
@@ -112,6 +113,7 @@ if($object->id) {
     dol_fiche_end();
 
     $permission = $user->rights->of->of->write;
+    $permtoedit = $user->rights->of->of->write;
     $permtoedit = $user->rights->of->of->write;
     $param = '&id=' . $object->id;
     include_once DOL_DOCUMENT_ROOT . '/core/tpl/document_actions_post_headers.tpl.php';

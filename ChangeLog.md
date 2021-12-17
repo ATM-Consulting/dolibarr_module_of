@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 
 ## Version 2.12
+- FIX : Compatibilité V15 - Onglet fichiers joints *17/12/2021* - 2.12.4
 - FIX : Ajout du choix d'entrepot vide DA021060 + Ajout  de la préselection en fonction de l'entrepot par  défaut produit *02/12/2021* - 2.12.3
 - FIX : Ne  pas créer les lignes à 0 de qté *02/12/2021* - 2.12.2
 - FIX : Button cancel sur stock transfert non fonctionnel depuis OF *30/11/2021* - 2.12.1
