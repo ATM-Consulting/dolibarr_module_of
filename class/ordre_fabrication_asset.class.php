@@ -223,8 +223,9 @@ class TAssetOF extends TObjetStd{
      */
     public static function getQtyForProduct($fk_product, $type='NEEDED') {
         global $db, $conf;
-        $TStatut = '"DRAFT","CLOSE"';
+        $TStatut = '"CLOSE"';
         if(! empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $TStatut .= ',"OPEN"';
+        if(empty($conf->global->OF_DRAFT_IN_VIRTUAL_STOCK)) $TStatut .= ',"DRAFT"';
         $sql = 'SELECT SUM(aol.qty';
         if(! empty($conf->global->OF_MANAGE_NON_COMPLIANT)) $sql .= '+aol.qty_non_compliant';
         $sql .= '  ) as qty
@@ -1481,8 +1482,6 @@ class TAssetOF extends TObjetStd{
 
 		if($use_virtual) {
 			$stock = $product->stock_theorique;
-			list($total_qty_tomake, $total_qty_needed) = self::qtyFromOF($product->id, $include_draft_of);
-			$stock = $product->stock_theorique + $total_qty_tomake - $total_qty_needed;
 		}
 		else {
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
