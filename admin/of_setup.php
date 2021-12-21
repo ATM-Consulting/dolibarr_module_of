@@ -228,6 +228,7 @@ setup_print_on_off('ASSET_ADD_NEEDED_QTY_ZERO', $langs->trans("AssetAddNeededQty
 setup_print_on_off('ASSET_NEGATIVE_DESTOCK', $langs->trans("AssetNegativeDestock"));
 setup_print_on_off('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');
 setup_print_on_off('OF_USE_DESTOCKAGE_PARTIEL', $langs->trans("AssetUseDestockagePartiel"));
+setup_print_on_off('OF_DRAFT_IN_VIRTUAL_STOCK');
 
 // Deprecated
 setup_print_on_off('OF_SHOW_QTY_THEORIQUE_MOINS_OF', '<em>'.$langs->trans("OfShowQtytheorique").'</em>');

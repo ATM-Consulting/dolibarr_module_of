@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+- NEW : Configuration permettant de tenir compte des ofs brouillon dans le stock théorique + quelques fix liés au stock théorique *17/12/2021* - 2.13.0
 
 
 ## Version 2.12
