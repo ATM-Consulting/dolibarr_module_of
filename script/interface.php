@@ -283,7 +283,7 @@ function _updateQtyMaking(&$PDOdb, $fk_of,$idLine,$action,$qty, $qty_used, $qty_
         if($action == 'updateqty') $res = $of->updateToMakeLineQty($PDOdb, $idLine, $qty);
         else if($action == 'updateqty_usernocompliant') $res = $of->updateUsedNonCompliantLineQty($PDOdb, $idLine, $qty_used, $qty_non_compliant);
     } else {
-        $res = $of->updateNomenclatureToMakeQty($PDOdb, $qty, $qty_used, $qty_non_compliant, $idLine);
+        $res = $of->updateNomenclatureToMakeQty($PDOdb, floatval($qty), floatval($qty_used), floatval($qty_non_compliant), $idLine, false, true);
     }
 	return $res;
 }
