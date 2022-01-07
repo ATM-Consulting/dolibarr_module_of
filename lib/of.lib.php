@@ -1124,3 +1124,83 @@ function getOFForLine($line)
 
 	return $TOF;
 }
+
+function getVirtualStockTextPicto($product){
+	global $langs, $db, $conf;
+
+	$product->load_stock('novirtual');
+
+	$found = 0;
+	$helpondiff = '<strong>'.$langs->trans("StockDiffPhysicTeoric").':</strong><br>';
+	// Number of customer orders running
+	if (!empty($conf->commande->enabled)) {
+		if ($found) {
+			$helpondiff .= '<br>';
+		} else {
+			$found = 1;
+		}
+		$helpondiff .= $langs->trans("ProductQtyInCustomersOrdersRunning").': '.$product->stats_commande['qty'];
+		$result = $product->load_stats_commande(0, '0', 1);
+		if ($result < 0) {
+			dol_print_error($db, $product->error);
+		}
+		$helpondiff .= ' ('.$langs->trans("ProductQtyInDraft").': '.$product->stats_commande['qty'].')';
+	}
+
+	// Number of product from customer order already sent (partial shipping)
+	if (!empty($conf->expedition->enabled)) {
+		require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+		$filterShipmentStatus = '';
+		if (!empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT)) {
+			$filterShipmentStatus = Expedition::STATUS_VALIDATED.','.Expedition::STATUS_CLOSED;
+		} elseif (!empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT_CLOSE)) {
+			$filterShipmentStatus = Expedition::STATUS_CLOSED;
+		}
+		if ($found) {
+			$helpondiff .= '<br>';
+		} else {
+			$found = 1;
+		}
+		$result = $product->load_stats_sending(0, '2', 1, $filterShipmentStatus);
+		$helpondiff .= $langs->trans("ProductQtyInShipmentAlreadySent").': '.$product->stats_expedition['qty'];
+	}
+
+	// Number of supplier order running
+	if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD)) || !empty($conf->supplier_order->enabled) || !empty($conf->supplier_invoice->enabled)) {
+		if ($found) {
+			$helpondiff .= '<br>';
+		} else {
+			$found = 1;
+		}
+		$result = $product->load_stats_commande_fournisseur(0, '3,4', 1);
+		$helpondiff .= $langs->trans("ProductQtyInSuppliersOrdersRunning").': '.$product->stats_commande_fournisseur['qty'];
+		$result = $product->load_stats_commande_fournisseur(0, '0,1,2', 1);
+		if ($result < 0) {
+			dol_print_error($db, $product->error);
+		}
+		$helpondiff .= ' ('.$langs->trans("ProductQtyInDraftOrWaitingApproved").': '.$product->stats_commande_fournisseur['qty'].')';
+	}
+
+	// Number of product from supplier order already received (partial receipt)
+	if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD)) || !empty($conf->supplier_order->enabled) || !empty($conf->supplier_invoice->enabled)) {
+		if ($found) {
+			$helpondiff .= '<br>';
+		} else {
+			$found = 1;
+		}
+		$helpondiff .= $langs->trans("ProductQtyInSuppliersShipmentAlreadyRecevied").': '.$product->stats_reception['qty'];
+	}
+
+	// Number of product in production
+	if (!empty($conf->mrp->enabled)) {
+		if ($found) {
+			$helpondiff .= '<br>';
+		} else {
+			$found = 1;
+		}
+		$helpondiff .= $langs->trans("ProductQtyToConsumeByMO").': '.$product->stats_mrptoconsume['qty'].'<br>';
+		$helpondiff .= $langs->trans("ProductQtyToProduceByMO").': '.$product->stats_mrptoproduce['qty'];
+	}
+
+	return $helpondiff;
+}

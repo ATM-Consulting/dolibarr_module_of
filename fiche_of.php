@@ -874,6 +874,7 @@ function _fiche_ligne(&$form, &$of, $type){
 	global $db, $conf, $langs,$hookmanager,$user;
 //TODO rules guys ! To Facto ! AA
 	$formProduct = new FormProduct($db);
+	$form2 = new Form($db);
 
     $PDOdb=new TPDOdb;
 	$TRes = array();
@@ -921,7 +922,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 			$label = $product->getNomUrl(1).' '.$product->label;
 			$label.= ' - '.$langs->trans("Stock") . ' : ' . ($stock_needed>0 ? $stock_needed : '<span style="color:red;font-weight:bold;">'.$stock_needed.'</span>');
-			$label.= ' - '.$langs->trans("StockTheo") . ' : ' . ($stock_theo>0 ? $stock_theo : '<span style="color:red;font-weight:bold;">'.$stock_theo.'</span>');
+			$label.= ' - '.$langs->trans("StockTheo") . ' : ' . $form2->textwithpicto(($stock_theo>0 ? $stock_theo : '<span style="color:red;font-weight:bold;">'.$stock_theo.'</span>'), getVirtualStockTextPicto($product));;
 			$label.= _fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, 'NEEDED');
 
 			$lotNumbers = "";
