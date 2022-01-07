@@ -1125,9 +1125,20 @@ function getOFForLine($line)
 	return $TOF;
 }
 
+/**
+ * Retourne le message d'explication du stock virtuel en fonction du produit passé en paramètre
+ *
+ * @param object $product
+ */
 function getVirtualStockTextPicto($product){
 	global $langs, $db, $conf;
 
+	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+
+	$langs->load('of@of');
+	$langs->load('products');
+	$langs->load('sendings');
+	$langs->load('stocks');
 	$product->load_stock('novirtual');
 
 	$found = 0;
@@ -1201,6 +1212,10 @@ function getVirtualStockTextPicto($product){
 		$helpondiff .= $langs->trans("ProductQtyToConsumeByMO").': '.$product->stats_mrptoconsume['qty'].'<br>';
 		$helpondiff .= $langs->trans("ProductQtyToProduceByMO").': '.$product->stats_mrptoproduce['qty'];
 	}
+
+	$qtyNeeded = TAssetOF::getQtyForProduct($product->id);
+	$qtyToMake = TAssetOF::getQtyForProduct($product->id, 'TO_MAKE');
+	$helpondiff .= $langs->trans('VirtualStockOf', floatval($qtyNeeded), floatval($qtyToMake));
 
 	return $helpondiff;
 }
