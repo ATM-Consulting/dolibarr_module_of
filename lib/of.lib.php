@@ -1129,17 +1129,26 @@ function getOFForLine($line)
  * Retourne le message d'explication du stock virtuel en fonction du produit passé en paramètre
  *
  * @param object $product
+ *
+ * @return string, -1 if KO
  */
 function getVirtualStockTextPicto($product){
 	global $langs, $db, $conf;
 
 	dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+
+
+	if(empty($product)) return -1;
 
 	$langs->load('of@of');
 	$langs->load('products');
 	$langs->load('sendings');
 	$langs->load('stocks');
-	$product->load_stock('novirtual');
+
+	$error = 0;
+
+	$product->load_stock();
 
 	$found = 0;
 	$helpondiff = '<strong>'.$langs->trans("StockDiffPhysicTeoric").':</strong><br>';
@@ -1152,9 +1161,7 @@ function getVirtualStockTextPicto($product){
 		}
 		$helpondiff .= $langs->trans("ProductQtyInCustomersOrdersRunning").': '.$product->stats_commande['qty'];
 		$result = $product->load_stats_commande(0, '0', 1);
-		if ($result < 0) {
-			dol_print_error($db, $product->error);
-		}
+		if($result < 0) $error++;
 		$helpondiff .= ' ('.$langs->trans("ProductQtyInDraft").': '.$product->stats_commande['qty'].')';
 	}
 
@@ -1173,6 +1180,7 @@ function getVirtualStockTextPicto($product){
 			$found = 1;
 		}
 		$result = $product->load_stats_sending(0, '2', 1, $filterShipmentStatus);
+		if($result < 0) $error++;
 		$helpondiff .= $langs->trans("ProductQtyInShipmentAlreadySent").': '.$product->stats_expedition['qty'];
 	}
 
@@ -1186,9 +1194,7 @@ function getVirtualStockTextPicto($product){
 		$result = $product->load_stats_commande_fournisseur(0, '3,4', 1);
 		$helpondiff .= $langs->trans("ProductQtyInSuppliersOrdersRunning").': '.$product->stats_commande_fournisseur['qty'];
 		$result = $product->load_stats_commande_fournisseur(0, '0,1,2', 1);
-		if ($result < 0) {
-			dol_print_error($db, $product->error);
-		}
+		if($result < 0) $error++;
 		$helpondiff .= ' ('.$langs->trans("ProductQtyInDraftOrWaitingApproved").': '.$product->stats_commande_fournisseur['qty'].')';
 	}
 
@@ -1213,9 +1219,10 @@ function getVirtualStockTextPicto($product){
 		$helpondiff .= $langs->trans("ProductQtyToProduceByMO").': '.$product->stats_mrptoproduce['qty'];
 	}
 
+	$helpondiff .= '<br>';
 	$qtyNeeded = TAssetOF::getQtyForProduct($product->id);
 	$qtyToMake = TAssetOF::getQtyForProduct($product->id, 'TO_MAKE');
 	$helpondiff .= $langs->trans('VirtualStockOf', floatval($qtyNeeded), floatval($qtyToMake));
 
-	return $helpondiff;
+	return (!$error) ? $helpondiff : -1;
 }
