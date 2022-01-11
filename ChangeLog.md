@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
+- NEW : Suppression du bouton modifier en vue de la refonte de la fiche OF *07/01/2022* - 3.0.0
 
 ## Version 2.13
 - FIX : The click on the gear with a ToMake qty of zero now decreases the quantities of the needed products *05/01/2022* - 2.13.1
