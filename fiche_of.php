@@ -16,12 +16,15 @@ dol_include_once('/product/class/html.formproduct.class.php');
 dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
+dol_include_once('/core/class/html.formfile.class.php');
 
 dol_include_once('/quality/class/quality.class.php');
 
 dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
 if(!$user->rights->of->of->lire) accessforbidden();
+$usercancreate = $usercanedit = $user->rights->of->of->write;
+$usercanread = $user->rights->of->of->lire;
 
 // Load translation files required by page
 $langs->load("other");
@@ -31,11 +34,12 @@ $langs->load("of@of");
 $hookmanager->initHooks(array('ofcard'));
 
 $PDOdb=new TPDOdb;
-$assetOf=new TAssetOF;
+$assetOf= $object = new TAssetOF;
 
 $quicksave= GETPOST('quicksave', 'none');
 $id = GETPOST('id', 'int');
 $action = GETPOST('action', 'none');
+$fk_product = GETPOST('fk_product', 'int');
 if (!empty($id))
 {
 	$assetOf->load($PDOdb, $id);
@@ -58,6 +62,67 @@ if ($user->societe_id > 0 || $user->socid > 0)
 if (empty($reshook)){
 	_action();
 }
+
+/** VIEW **/
+
+$formdoli = new Form($db);
+$formProduct = new FormProduct($db);
+$formfile = new FormFile($db);
+$form=new TFormCore();
+
+if($assetOf->entity != $conf->entity) accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
+
+$title = $langs->trans('ProductServiceCard');
+
+/**Header Part Kevin**/
+//llxHeader('',$langs->trans('OFAsset'),'','');
+//print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
+/**Header Part Kevin**/
+
+$TNeeded = array();
+$TToMake = array();
+
+$form->Set_typeaff($mode);
+
+$TNeeded = _fiche_ligne($form, $object, "NEEDED");
+$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+
+if ($action == 'new' && $usercancreate) {
+
+	//**TODO : View formulaire de création**//
+
+	$form->Set_typeaff('view');
+
+	$TNeeded = _fiche_ligne($form, $object, "NEEDED");
+	$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+
+} elseif ($object->id > 0) {
+
+	$form->Set_typeaff('edit');
+
+	if ($action == 'edit' && $usercancreate) {
+
+		//**TODO : View formulaire d'édition**//
+
+	$TNeeded = _fiche_ligne($form, $object, "NEEDED");
+	$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+
+
+	} else {
+		//Fiche en mode visu
+
+		//**TODO : View formulaire de lecture**//
+
+		$form->Set_typeaff('edit');
+
+		$TNeeded = _fiche_ligne($form, $object, "NEEDED");
+		$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+
+	}
+}
+
+
+
 
 function _action() {
 	global $user, $db, $conf, $langs;
@@ -1239,7 +1304,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	</style>
 		<div class="OFContent" rel="<?php echo $assetOf->getId() ?>">	<?php
 
-	$TPrixFournisseurs = array();
 
 	//$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
 
