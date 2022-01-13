@@ -26,6 +26,7 @@ if(!$user->rights->of->of->lire) accessforbidden();
 $usercancreate = $usercanedit = $user->rights->of->of->write;
 $usercanread = $user->rights->of->of->lire;
 
+
 // Load translation files required by page
 $langs->load("other");
 $langs->load("orders");
@@ -40,6 +41,7 @@ $quicksave= GETPOST('quicksave', 'none');
 $id = GETPOST('id', 'int');
 $action = GETPOST('action', 'none');
 $fk_product = GETPOST('fk_product', 'int');
+
 if (!empty($id))
 {
 	$assetOf->load($PDOdb, $id);
@@ -78,7 +80,7 @@ if($assetOf->entity != $conf->entity) accessforbidden($langs->trans('ErrorOFFrom
 $title = $langs->trans('ProductServiceCard');
 
 /**Header Part Kevin**/
-llxHeader('',$langs->trans('OFAsset'),'','');
+if($action == "new") llxHeader('',$langs->trans('OFAsset'),'','');
 /**Header Part Kevin**/
 
 $TNeeded = array();
@@ -199,175 +201,180 @@ if ($action == 'new' && $usercancreate) {
 	//**TODO : View formulaire de création**//
 
 	print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST" name="formprod">';
-		print '<input type="hidden" name="token" value="'.newToken().'">';
-		print '<input type="hidden" name="action" value="save">';
-		print '<input type="hidden" name="fk_product_to_add" value="'.$fk_product.'">';
+	print '<input type="hidden" name="token" value="'.newToken().'">';
+	print '<input type="hidden" name="action" value="create">';
+	print '<input type="hidden" name="fk_product_to_add" value="'.$fk_product.'">';
 
-		print load_fiche_titre($title, '', '');
+	print load_fiche_titre($title, '', '');
 
 //		print dol_get_fiche_head('');
 
-		print '<table class="border centpercent">';
+	print '<table class="border centpercent">';
 
-		//Ref OF
+	//Ref OF
+	print '<tr>';
+	print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('NumberOf').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$assetOf->getNumero($PDOdb).'</td>';
+	print '</tr>';
+
+	//Ordre OF
+	print '<tr rel="ordre">';
+	print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('Ordre').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$doliform->selectarray('ordre', $TTransOrdre).'</td>';
+	print '</tr>';
+
+	if($link_product_to_add){
+
+		//Produit à produire
 		print '<tr>';
-		print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('NumberOf').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$assetOf->getNumero($PDOdb).'</td>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('ProductToProduce').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$link_product_to_add.'</td>';
 		print '</tr>';
 
-		//Ordre OF
-		print '<tr rel="ordre">';
-		print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('Ordre').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$doliform->selectarray('ordre', $TTransOrdre).'</td>';
-		print '</tr>';
-
-		if($link_product_to_add){
-
-			//Produit à produire
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('ProductToProduce').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$link_product_to_add.'</td>';
-			print '</tr>';
-
-			//Quantité à produire
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('QtyToMake').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$quantity_to_create.'</td>';
-			print '</tr>';
-		}
-
-		//TODO : à vérifier en créant un of enfant
-		if($hasParent){
-			print '<tr>';
-				print '<td  class="titlefieldcreate">'.$langs->trans('ParentOF').'</td>';
-				print '<td  class="maxwidth200" maxlength="128"><a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a></td>';
-			print '</tr>';
-		}
-
-		//Commande OF
-		if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
-			print '<tr rel="fk_commande">';
-			print '<td  class="titlefieldcreate">'.$langs->trans('Order').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$select_commande.'</td>';
-			print '</tr>';
-		}
-
-		//Commande OF
-		if(!empty($HtmlCmdFourn)){
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('SupplierOrder').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$HtmlCmdFourn.'</td>';
-			print '</tr>';
-		}
-
-		//Client OF
-		print '<tr rel="fk_soc">';
-		print '<td  class="titlefieldcreate">'.$langs->trans('Customer').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$doliform->select_company($object->fk_soc,'fk_soc','client IN (1,3)',1).'</td>';
-		print '</tr>';
-
-		//Projet OF
-		print '<tr rel="fk_soc">';
-		print '<td  class="titlefieldcreate">'.$langs->trans('Project').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.custom_select_projects(-1, $object->fk_project, 'fk_project',$mode).'</td>';
-		print '</tr>';
-
-		//Need Date OF
-		print '<tr rel="date_besoin">';
-		print '<td  class="titlefieldcreate">'.$langs->trans('DateNeeded').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_besoin',$object->date_besoin,12,12).'</td>';
-		print '</tr>';
-
-		//Lancement Date OF
-		print '<tr rel="date_lancement">';
-		print '<td  class="titlefieldcreate">'.$langs->trans('DateLaunch').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).'</td>';
-		//TODO : Vérifier si c'est pertinent, si ça fonctionne, ça ne devrait pas être en JS ?
-		if($assetOf->date_lancement > $assetOf->date_besoin)  print img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning');
-		print '</td>';
-		print '</tr>';
-
-		//TODO : vérifier si info nécessaire lors de la création ?
-		//Start Date OF
-		if($object->get_date('date_start')){
-			print '<tr rel="date_start">';
-			print '<td  class="titlefieldcreate">'.$langs->trans('DateStart').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$object->get_date('date_start').'</td>';
-			print '</tr>';
-		}
-
-		//TODO : vérifier si info nécessaire lors de la création ?
-		//End Date OF
-		if($object->get_date('date_end')){
-			print '<tr rel="date_end">';
-			print '<td  class="titlefieldcreate">'.$langs->trans('DateEnd').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$object->get_date('date_end').'</td>';
-			print '</tr>';
-		}
-
-		//TODO : vérifier si info nécessaire lors de la création ?
-		//Temps estimé OF
-		if($user->rights->of->of->show_ws_time){
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('EstimatedMakeTime').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.price($object->temps_estime_fabrication,0,'',1,-1,2).'</td>';
-			print '</tr>';
-		}
-
-		//TODO : vérifier si info nécessaire lors de la création ?
-		//Temps réel OF
+		//Quantité à produire
 		print '<tr>';
-		print '<td  class="titlefieldcreate">'.$langs->trans('RealMakeTime').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.price($object->temps_reel_fabrication,0,'',1,-1,2).'</td>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('QtyToMake').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$quantity_to_create.'</td>';
 		print '</tr>';
+	}
 
-		if($user->rights->of->of->price){
+	//TODO : à vérifier en créant un of enfant
+	if($hasParent){
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('ParentOF').'</td>';
+		print '<td  class="maxwidth200" maxlength="128"><a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a></td>';
+		print '</tr>';
+	}
 
-			//TODO : vérifier si info nécessaire lors de la création ?
-			//Prix estimé OF
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('EstimatedProducCost').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.price($object->total_estimated_cost,0,'',1,-1,2, $conf->currency).'</td>';
-			print '</tr>';
+	//Commande OF
+	if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+		print '<tr rel="fk_commande">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('Order').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$select_commande.'</td>';
+		print '</tr>';
+	}
 
-			//TODO : vérifier si info nécessaire lors de la création ?
-			//Prix réel OF
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('RealProducCost').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.price($object->total_cost,0,'',1,-1,2, $conf->currency).'</td>';
-			print '</tr>';
+	//Commande OF
+	if(!empty($HtmlCmdFourn)){
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('SupplierOrder').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$HtmlCmdFourn.'</td>';
+		print '</tr>';
+	}
 
-			//TODO : vérifier si info nécessaire lors de la création ?
-			//Prix final OF
-			print '<tr>';
-			print '<td  class="titlefieldcreate">'.$langs->trans('FinalProducCost').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.price($object->current_cost_for_to_make,0,'',1,-1,2, $conf->currency).'</td>';
-			print '</tr>';
-		}
+	//Client OF
+	print '<tr rel="fk_soc">';
+	print '<td  class="titlefieldcreate">'.$langs->trans('Customer').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$doliform->select_company($object->fk_soc,'fk_soc','client IN (1,3)',1).'</td>';
+	print '</tr>';
 
-		//Statut OF
+	//Projet OF
+	print '<tr rel="fk_soc">';
+	print '<td  class="titlefieldcreate">'.$langs->trans('Project').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.custom_select_projects(-1, $object->fk_project, 'fk_project',$mode).'</td>';
+	print '</tr>';
+
+	//Need Date OF
+	print '<tr rel="date_besoin">';
+	print '<td  class="titlefieldcreate">'.$langs->trans('DateNeeded').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_besoin',$object->date_besoin,12,12).'</td>';
+	print '</tr>';
+
+	//Lancement Date OF
+	print '<tr rel="date_lancement">';
+	print '<td  class="titlefieldcreate">'.$langs->trans('DateLaunch').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).'</td>';
+	//TODO : Vérifier si c'est pertinent, si ça fonctionne, ça ne devrait pas être en JS ?
+	if($assetOf->date_lancement > $assetOf->date_besoin)  print img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning');
+	print '</td>';
+	print '</tr>';
+
+	//TODO : vérifier si info nécessaire lors de la création ?
+	//Start Date OF
+	if($object->get_date('date_start')){
+		print '<tr rel="date_start">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('DateStart').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$object->get_date('date_start').'</td>';
+		print '</tr>';
+	}
+
+	//TODO : vérifier si info nécessaire lors de la création ?
+	//End Date OF
+	if($object->get_date('date_end')){
+		print '<tr rel="date_end">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('DateEnd').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$object->get_date('date_end').'</td>';
+		print '</tr>';
+	}
+
+	//TODO : vérifier si info nécessaire lors de la création ?
+	//Temps estimé OF
+	if($user->rights->of->of->show_ws_time){
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('EstimatedMakeTime').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.price($object->temps_estime_fabrication,0,'',1,-1,2).'</td>';
+		print '</tr>';
+	}
+
+	//TODO : vérifier si info nécessaire lors de la création ?
+	//Temps réel OF
+	print '<tr>';
+	print '<td  class="titlefieldcreate">'.$langs->trans('RealMakeTime').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.price($object->temps_reel_fabrication,0,'',1,-1,2).'</td>';
+	print '</tr>';
+
+	if($user->rights->of->of->price){
+
 		//TODO : vérifier si info nécessaire lors de la création ?
-		print '<tr rel="status">';
-		print '<td  class="titlefieldcreate">'.$langs->trans('Status').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$object->status.'</td>';
+		//Prix estimé OF
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('EstimatedProducCost').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.price($object->total_estimated_cost,0,'',1,-1,2, $conf->currency).'</td>';
 		print '</tr>';
 
-		//Note OF
-		print '<tr rel="note">';
-		print '<td  class="titlefieldcreate">'.$langs->trans('Comments').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$form->zonetexte('', 'note', $assetOf->note, 80,5).'</td>';
+		//TODO : vérifier si info nécessaire lors de la création ?
+		//Prix réel OF
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('RealProducCost').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.price($object->total_cost,0,'',1,-1,2, $conf->currency).'</td>';
 		print '</tr>';
 
-		//Rang OF
-		if($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE){
-			print '<tr rel="rank">';
-			print '<td  class="titlefieldcreate">'.$langs->trans('Rank').'</td>';
-			print '<td  class="maxwidth200" maxlength="128">'.$form->texte('', 'rank', $assetOf->rank,3,3).'</td>';
-			print '</tr>';
-		}
+		//TODO : vérifier si info nécessaire lors de la création ?
+		//Prix final OF
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('FinalProducCost').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.price($object->current_cost_for_to_make,0,'',1,-1,2, $conf->currency).'</td>';
+		print '</tr>';
+	}
 
-		print '</table>';
+	//Statut OF
+	//TODO : vérifier si info nécessaire lors de la création ?
+	print '<tr rel="status">';
+	print '<td  class="titlefieldcreate">'.$langs->trans('Status').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$object->status.'</td>';
+	print '</tr>';
 
+	//Note OF
+	print '<tr rel="note">';
+	print '<td  class="titlefieldcreate">'.$langs->trans('Comments').'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$form->zonetexte('', 'note', $assetOf->note, 80,5).'</td>';
+	print '</tr>';
+
+	//Rang OF
+	if($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE){
+		print '<tr rel="rank">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('Rank').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$form->texte('', 'rank', $assetOf->rank,3,3).'</td>';
+		print '</tr>';
+	}
+
+	print '</table>';
+
+	print '<div class="center">';
+	print '<input type="submit" class="button" value="'.$langs->trans("Create").'">';
+	print ' &nbsp; &nbsp; ';
+	print '<input type="button" class="button button-cancel" value="'.$langs->trans("Cancel").'">';
+	print '</div>';
 
 	print '</form>';
 
@@ -1545,16 +1552,22 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 	if($assetOf->entity != $conf->entity) {
 	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
-
-
 	}
+
+	//Provisoire : temps de test
+
 // 	Un doActions après avoir éxécuté les actions ...
 //	$parameters = array('id'=>$assetOf->getId());
 //	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
 	//pre($assetOf,true);
-//	llxHeader('',$langs->trans('OFAsset'),'','');
-//	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
+
+	//[DEV] : condition provisoire
+	$action = GETPOST('action', 'string');
+
+	if($action != 'new'){
+	llxHeader('',$langs->trans('OFAsset'),'','');
+	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
 
 	?><style type="text/css">
 		#assetChildContener .OFMaster {
@@ -1851,7 +1864,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		)
 		,'view'=>array(
 			'mode'=>$mode
-			,'action' => !empty($quicksave)?'quick-save':'save'
+			,'action' => !empty($quicksave)?'quick-save':(GETPOST('action') == 'new') ? 'new' : 'save'
 			,'status'=>$assetOf->status
 			,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
 			,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
@@ -1893,7 +1906,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	$reshook=$hookmanager->executeHooks('TBSConfig',$parameters,$assetOf);    // Note that $action and $object may have been modified by hook
 	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
-//	print $TBS->render($tpl, $TBlocks, $TFields);
+	print $TBS->render($tpl, $TBlocks, $TFields);
 //var_dump($tpl, $TBlocks, $TFields);
 	if ($mode == 'view')
     {
@@ -1952,7 +1965,9 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 	echo $form->end_form();
 
+
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
+	}
 }
 
 function calc_mini_tu1($FieldName,&$CurrVal,&$CurrPrm,&$TBS)

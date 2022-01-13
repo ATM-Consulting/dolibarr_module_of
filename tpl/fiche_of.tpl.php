@@ -259,7 +259,6 @@
 						[onshow;block=end]
 					</div>
 				</div>
-			[onshow;block=end]
 
 			<div class="of-details" style="margin-top: 25px;">
 				<table width="100%" class="border" style="border:2px solid #269393;">
@@ -410,6 +409,9 @@
 			[onshow;block=end]
 
 		</form>
+
+		[onshow;block=end]
+
 
 	</div><!-- fin de OFMaster -->
 	<div id="dialog" title="[view.langs.transnoentities(AddingProduct)]" style="display:none;width: 100%;">
