@@ -1231,6 +1231,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
         $assetOf->save($PDOdb);
     }
 
+    $doliform = new Form($db);
     $form = new Form($db);
     $formother = new FormOther($db);
     $formfile = new FormFile($db);
@@ -1238,6 +1239,63 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
     $formcore = new TFormCore();
     $companystatic = new Societe($db);
     $companystatic->fetch($assetOf->fk_soc);
+
+    $client=new Societe($db);
+	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
+
+	$commande=new Commande($db);
+	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
+
+	$select_commande = '';
+	$resOrder = $db->query("SELECT rowid, ref,fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
+	if($resOrder === false ) {
+		var_dump($db);exit;
+	}
+	$TIdCommande=array();
+	while($obj = $db->fetch_object($resOrder)) {
+		$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')':'');
+	}
+	if(!empty($TIdCommande)) {
+		$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
+	}
+
+    $order_amount = $commande->total_ht; //$o n'existait pas
+    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+        $line_to_make = $assetOf->getLineProductToMake();
+
+        foreach($commande->lines as &$line) {
+
+            if($line->id == $line_to_make->fk_commandedet) {
+                $order_amount = $line->total_ht;
+                break;
+            }
+        }
+
+    }
+    $TCommandes=array();
+    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+        $displayOrders = '';
+        $TLine_to_make = $assetOf->getLinesProductToMake();
+
+
+        foreach($TLine_to_make as $line){
+            if(!empty($line->fk_commandedet)){
+                $commande = new Commande($db);
+                $orderLine = new OrderLine($db);
+                $orderLine->fetch($line->fk_commandedet);
+                $commande->fetch($orderLine->fk_commande);
+                $TCommandes[$orderLine->fk_commande] = $commande;
+
+            }
+            elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+
+        }
+    }
+    if(!empty($TCommandes)){
+        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
+    }
+    else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
 
 	if($assetOf->entity != $conf->entity) {
 	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
@@ -1283,6 +1341,38 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		}
 	}
 
+    // Order
+	if (!empty($conf->order->enabled))
+	{
+		$langs->load("orders");
+		$morehtmlref .= '<br>'.$langs->trans('Order').' ';
+		if ($usercancreate)
+		{
+			if ($action != 'setorder')
+				$morehtmlref .= '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?action=setorder&amp;id='.$assetOf->id.'">'.img_edit($langs->transnoentitiesnoconv('Orders')).'</a> : ';
+			if ($action == 'setorder') {
+				$morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'">';
+				$morehtmlref .= '<input type="hidden" name="action" value="updateorder">';
+				$morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
+				$morehtmlref .= !empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders));
+				$morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+				$morehtmlref .= '</form>';
+			} else {
+				$morehtmlref .= $form->form_project($_SERVER['PHP_SELF'].'?id='.$assetOf->id, $companystatic->id, $assetOf->fk_project, 'none', 0, 0, 0, 1);
+			}
+		} else {
+			if (!empty($assetOf->fk_project)) {
+				$proj = new Project($db);
+				$proj->fetch($assetOf->fk_project);
+				$morehtmlref .= '<a href="'.DOL_URL_ROOT.'/projet/card.php?id='.$assetOf->fk_project.'" title="'.$langs->trans('ShowProject').'">';
+				$morehtmlref .= $proj->ref;
+				$morehtmlref .= '</a>';
+			} else {
+				$morehtmlref .= '';
+			}
+		}
+	}
+
     // Project
 	if (!empty($conf->projet->enabled))
 	{
@@ -1315,7 +1405,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		}
 	}
 
-    $TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
+
     $TOfStatus = $assetOf::$TStatus;
     // Get the index of the OF status array to use it in dol_banner_tab "morehtmlstatus" parameter (to have the same standard css status box)
     $index = array_search(strtoupper($assetOf->getLibStatut()), array_keys($TOfStatus));
@@ -1331,29 +1421,33 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	print '<table class="border tableforfield" width="100%">';
 
     // Ordre TODO faire fonctionner
-	print '<tr><td class="nobordernopadding">'.'</td>';
-    print '<td>'.$form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, 'datepicker');
+	print '<tr>';
+    print '<td class="titlefield">'.$form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, 'datepicker');
 	print '</td>';
 	print '</tr>';
 
     // Date du besoin TODO faire fonctionner
-	print '<tr><td class="nobordernopadding">'.'</td>';
-	print '<td>'.$form->editfieldkey($langs->trans('DateBesoin'), 'date_livraison', $assetOf->date_besoin, $assetOf, $usercancreate, 'datepicker').'</td>';
-	print '<td>'.$form->editfieldval($langs->trans('DateBesoin'), 'date_livraison', $assetOf->date_besoin, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<tr>';
+	print '<td class="nowrap">'.$form->editfieldkey($langs->trans('DateBesoin'), 'date_livraison', $assetOf->date_besoin, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<td class="nowrap">'.$form->editfieldval($langs->trans('DateBesoin'), 'date_livraison', $assetOf->date_besoin, $assetOf, $usercancreate, 'datepicker').'</td>';
 	print '</tr>';
 
     // Date de lancement TODO faire fonctionner
-    print '<tr><td class="nobordernopadding">'.'</td>';
-	print '<td>'.$form->editfieldkey($langs->trans('DateLaunch'), 'date_lancement', $assetOf->date_lancement, $assetOf, $usercancreate, 'datepicker').'</td>';
-	print '<td>'.$form->editfieldval($langs->trans('DateLaunch'), 'date_lancement', $assetOf->date_lancement, $assetOf, $usercancreate, 'datepicker').'</td>';
+    print '<tr>';
+	print '<td class="nowrap">'.$form->editfieldkey($langs->trans('DateLaunch'), 'date_lancement', $assetOf->date_lancement, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<td class="nowrap">'.$form->editfieldval($langs->trans('DateLaunch'), 'date_lancement', $assetOf->date_lancement, $assetOf, $usercancreate, 'datepicker').'</td>';
 	print '</tr>';
 
-    print '<tr><td class="nobordernopadding">'.'</td>';
-    print '<td>'.$langs->trans('DateStart') . (! empty($assetOf->date_start) ? strtotime($assetOf->date_start) : '').'</td>';
+    // Date de début TODO faire fonctionner
+    print '<tr>';
+	print '<td class="nowrap">'.$form->editfieldkey($langs->trans('DateStart'), 'date_start', $assetOf->date_start, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<td class="nowrap">'.$form->editfieldval($langs->trans('DateStart'), 'date_start', $assetOf->date_start, $assetOf, $usercancreate, 'datepicker').'</td>';
 	print '</tr>';
 
-    print '<tr><td class="nobordernopadding">'.'</td>';
-    print '<td>'.$langs->trans('DateEnd') . (! empty($assetOf->date_end) ? strtotime($assetOf->date_end) : '').'</td>';
+    // Date de fin TODO faire fonctionner
+    print '<tr>';
+	print '<td class="nowrap">'.$form->editfieldkey($langs->trans('DateEnd'), 'date_end', $assetOf->date_end, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<td class="nowrap">'.$form->editfieldval($langs->trans('DateEnd'), 'date_end', $assetOf->date_end, $assetOf, $usercancreate, 'datepicker').'</td>';
 	print '</tr>';
 
 	print '</table>';
@@ -1365,10 +1459,30 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 	print '<table class="border tableforfield centpercent">';
 
-    print '<tr><td class="nobordernopadding">'.'</td>';
-    print $langs->trans('DateEnd') . (! empty($assetOf->date_end) ? strtotime($assetOf->date_end) : '');
-	print '</td>';
-	print '</tr>';
+    print '<tr>';
+    print '<td class="titlefieldmiddle">'.$langs->trans('EstimatedMakeTime').'</td>';
+	print '<td class="nowrap">'.(! empty($assetOf->temps_estime_fabrication) ? $assetOf->temps_estime_fabrication.' '.$langs->trans('OFHours') : '').'</td>';
+    print '</tr>';
+
+    print '<tr>';
+    print '<td class="titlefieldmiddle">'.$langs->trans('RealMakeTime').'</td>';
+	print '<td class="nowrap">'.(! empty($assetOf->temps_reel_fabrication) ? $assetOf->temps_reel_fabrication.' '.$langs->trans('OFHours') : '').'</td>';
+    print '</tr>';
+
+    print '<tr>';
+    print '<td class="titlefieldmiddle">'.$langs->trans('EstimatedProducCost').'</td>';
+	print '<td class="nowrap">'.(! empty($assetOf->total_estimated_cost) ? price($assetOf->total_estimated_cost, 0, '', 1, -1, -1, 'auto') : '').'</td>';
+    print '</tr>';
+
+    print '<tr>';
+    print '<td class="titlefieldmiddle">'.$langs->trans('RealProducCost').'</td>';
+	print '<td class="nowrap">'.(! empty($assetOf->total_cost) ? price($assetOf->total_cost, 0, '', 1, -1, -1, 'auto') : '').'</td>';
+    print '</tr>';
+
+    print '<tr>';
+    print '<td class="titlefieldmiddle">'.$langs->trans('FinalProducCost').'</td>';
+	print '<td class="nowrap">'.(! empty($assetOf->current_cost_for_to_make) ? price($assetOf->current_cost_for_to_make, 0, '', 1, -1, -1, 'auto') : '').'</td>';
+    print '</tr>';
 
 	print '</table>';
 

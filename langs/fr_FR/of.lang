@@ -301,6 +301,7 @@ error_of_wrong_id_asset = Erreur sur la saisie de l'équipement
 error_of_no_ids = Erreur sur un des identifiants
 
 unit_s_ = Unité(s)
+OFHours = heure(s)
 
 ProductsToCreate = Produits à créer
 QtyToProduce = Quantité à produire
