@@ -6,16 +6,22 @@ require('config.php');
 
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 dol_include_once('/of/lib/of.lib.php');
-dol_include_once('/core/lib/ajax.lib.php');
-dol_include_once('/core/lib/product.lib.php');
-dol_include_once('/core/lib/admin.lib.php');
-dol_include_once('/product/class/product.class.php');
-dol_include_once('/commande/class/commande.class.php');
-dol_include_once('/fourn/class/fournisseur.commande.class.php');
-dol_include_once('/product/class/html.formproduct.class.php');
-dol_include_once('/core/lib/date.lib.php');
-dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
+require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+if (!empty($conf->projet->enabled)) {
+	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+}
 
 dol_include_once('/quality/class/quality.class.php');
 
@@ -1211,20 +1217,170 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	* Put here all code to build page
 	****************************************************/
 
+    $action = GETPOST('action', 'none');
+    $usercancreate = $user->rights->of->of->write;
+
+    if ($action == 'updatesocid' && $usercancreate) {
+        // Set thirdparty
+        $assetOf->fk_soc = GETPOST('socid', 'int');
+        $assetOf->save($PDOdb);
+    }
+    elseif ($action == 'classin' && $usercancreate) {
+        // Set project
+        $assetOf->fk_project = GETPOST('projectid', 'int');
+        $assetOf->save($PDOdb);
+    }
+
+    $form = new Form($db);
+    $formother = new FormOther($db);
+    $formfile = new FormFile($db);
+    $formproject = new FormProjets($db);
+    $formcore = new TFormCore();
+    $companystatic = new Societe($db);
+    $companystatic->fetch($assetOf->fk_soc);
+
 	if($assetOf->entity != $conf->entity) {
 	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
-
-
 	}
-// 	Un doActions après avoir éxécuté les actions ...
-//	$parameters = array('id'=>$assetOf->getId());
-//	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
-	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
 
-	?><style type="text/css">
+    $head = ofPrepareHead( $assetOf);
+
+    dol_fiche_head($head, 'fiche', $langs->trans("OFAsset"), -1, 'of@of');
+
+    $linkback = '<a href="'.dol_buildpath('of/liste_of.php',1).'">'.$langs->trans("BackToList").'</a>';
+
+    $morehtmlref = '<div class="refidno">';
+
+	// Thirdparty
+    if (!empty($conf->societe->enabled))
+	{
+		$langs->load("companies");
+		$morehtmlref .= '<br>'.$langs->trans('ThirdParty').' ';
+		if ($usercancreate)
+		{
+			if ($action != 'setcompany')
+				$morehtmlref .= '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?action=setcompany&amp;id='.$assetOf->id.'">'.img_edit($langs->transnoentitiesnoconv('SelectThirdParty')).'</a> : ';
+			if ($action == 'setcompany') {
+				$morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'">';
+				$morehtmlref .= '<input type="hidden" name="action" value="updatesocid">';
+				$morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
+				$morehtmlref .= $form->select_company($companystatic->id, 'socid', '', 1);
+				$morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+				$morehtmlref .= '</form>';
+			} else {
+				$morehtmlref .= $form->form_thirdparty($_SERVER['PHP_SELF'].'?id='.$assetOf->id, $companystatic->id, 'none', '', 0, 0, 0, array(), 1);
+			}
+		} else {
+			if (!empty($assetOf->fk_soc)) {
+				$morehtmlref .= '<a href="'.DOL_URL_ROOT.'/projet/card.php?id='.$assetOf->fk_project.'" title="'.$langs->trans('ThirdParty').'">';
+                $morehtmlref .= '<br>'.$langs->trans('ThirdParty').' : '.(!empty($companystatic->id) ? $companystatic->getNomUrl(1) : '');
+				$morehtmlref .= '</a>';
+			} else {
+				$morehtmlref .= '';
+			}
+		}
+	}
+
+    // Project
+	if (!empty($conf->projet->enabled))
+	{
+		$langs->load("projects");
+		$morehtmlref .= '<br>'.$langs->trans('Project').' ';
+		if ($usercancreate)
+		{
+			if ($action != 'classify')
+				$morehtmlref .= '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?action=classify&amp;id='.$assetOf->id.'">'.img_edit($langs->transnoentitiesnoconv('SetProject')).'</a> : ';
+			if ($action == 'classify') {
+				$morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'">';
+				$morehtmlref .= '<input type="hidden" name="action" value="classin">';
+				$morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
+				$morehtmlref .= $formproject->select_projects($companystatic->id, $assetOf->fk_project, 'projectid', 16, 0, 1, 0, 1, 0, 0, '', 1);
+				$morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+				$morehtmlref .= '</form>';
+			} else {
+				$morehtmlref .= $form->form_project($_SERVER['PHP_SELF'].'?id='.$assetOf->id, $companystatic->id, $assetOf->fk_project, 'none', 0, 0, 0, 1);
+			}
+		} else {
+			if (!empty($assetOf->fk_project)) {
+				$proj = new Project($db);
+				$proj->fetch($assetOf->fk_project);
+				$morehtmlref .= '<a href="'.DOL_URL_ROOT.'/projet/card.php?id='.$assetOf->fk_project.'" title="'.$langs->trans('ShowProject').'">';
+				$morehtmlref .= $proj->ref;
+				$morehtmlref .= '</a>';
+			} else {
+				$morehtmlref .= '';
+			}
+		}
+	}
+
+    $TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
+    $TOfStatus = $assetOf::$TStatus;
+    // Get the index of the OF status array to use it in dol_banner_tab "morehtmlstatus" parameter (to have the same standard css status box)
+    $index = array_search(strtoupper($assetOf->getLibStatut()), array_keys($TOfStatus));
+
+	$morehtmlref .= '</div>';
+
+    dol_banner_tab($assetOf, 'id', $linkback, 1, 'rowid', 'numero', $morehtmlref, '', 0, '', '<span class="badge  badge-status'.$index.' badge-status"</span>');
+
+	print '<div class="fichecenter">';
+	print '<div class="fichehalfleft">';
+	print '<div class="underbanner clearboth"></div>';
+
+	print '<table class="border tableforfield" width="100%">';
+
+    // Ordre TODO faire fonctionner
+	print '<tr><td class="nobordernopadding">'.'</td>';
+    print '<td>'.$form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, 'datepicker');
+	print '</td>';
+	print '</tr>';
+
+    // Date du besoin TODO faire fonctionner
+	print '<tr><td class="nobordernopadding">'.'</td>';
+	print '<td>'.$form->editfieldkey($langs->trans('DateBesoin'), 'date_livraison', $assetOf->date_besoin, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<td>'.$form->editfieldval($langs->trans('DateBesoin'), 'date_livraison', $assetOf->date_besoin, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '</tr>';
+
+    // Date de lancement TODO faire fonctionner
+    print '<tr><td class="nobordernopadding">'.'</td>';
+	print '<td>'.$form->editfieldkey($langs->trans('DateLaunch'), 'date_lancement', $assetOf->date_lancement, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '<td>'.$form->editfieldval($langs->trans('DateLaunch'), 'date_lancement', $assetOf->date_lancement, $assetOf, $usercancreate, 'datepicker').'</td>';
+	print '</tr>';
+
+    print '<tr><td class="nobordernopadding">'.'</td>';
+    print '<td>'.$langs->trans('DateStart') . (! empty($assetOf->date_start) ? strtotime($assetOf->date_start) : '').'</td>';
+	print '</tr>';
+
+    print '<tr><td class="nobordernopadding">'.'</td>';
+    print '<td>'.$langs->trans('DateEnd') . (! empty($assetOf->date_end) ? strtotime($assetOf->date_end) : '').'</td>';
+	print '</tr>';
+
+	print '</table>';
+
+	print '</div>';
+	print '<div class="fichehalfright">';
+	print '<div class="ficheaddleft">';
+	print '<div class="underbanner clearboth"></div>';
+
+	print '<table class="border tableforfield centpercent">';
+
+    print '<tr><td class="nobordernopadding">'.'</td>';
+    print $langs->trans('DateEnd') . (! empty($assetOf->date_end) ? strtotime($assetOf->date_end) : '');
+	print '</td>';
+	print '</tr>';
+
+	print '</table>';
+
+	print '</div>';
+	print '</div>';
+	print '</div>';
+
+
+
+
+
+    ?><style type="text/css">
 		#assetChildContener .OFMaster {
 
 			background:#fff;

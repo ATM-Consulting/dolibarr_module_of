@@ -11,6 +11,7 @@ class TAssetOF extends TObjetStd{
  * Ordre de fabrication d'équipement
  * */
 	var $element = 'of';
+    public $table_element = 'assetOf';
 
     /** @var TAssetOFLine[] */
     public $TAssetOFLine = array();
@@ -2516,6 +2517,142 @@ class TAssetOF extends TObjetStd{
 	function getLibStatus($to_translate=false) {
 		return self::status($this->status,$to_translate);
 	}
+
+    function getLibStatut($to_translate=false) {
+        return $this->getLibStatus($to_translate);
+    }
+
+    function load_previous_next_ref($filter, $fieldid, $nodbprefix = 0) {
+        // phpcs:enable
+        global $conf, $user, $db;
+
+        if (!$this->table_element)
+        {
+            dol_print_error('', get_class($this)."::load_previous_next_ref was called on objet with property table_element not defined");
+            return -1;
+        }
+        if ($fieldid == 'none') return 1;
+
+        // Security on socid
+        $socid = 0;
+        if ($user->socid > 0) $socid = $user->socid;
+
+        // this->ismultientitymanaged contains
+        // 0=No test on entity, 1=Test with field entity, 'field@table'=Test with link by field@table
+        $aliastablesociete = 's';
+        if ($this->element == 'societe') $aliastablesociete = 'te'; // te as table_element
+
+        $sql = "SELECT MAX(te.".$fieldid.")";
+        $sql .= " FROM ".(empty($nodbprefix) ?MAIN_DB_PREFIX:'').$this->table_element." as te";
+        if ($this->element == 'user' && !empty($conf->global->MULTICOMPANY_TRANSVERSE_MODE)) {
+            $sql .= ",".MAIN_DB_PREFIX."usergroup_user as ug";
+        }
+        if (isset($this->ismultientitymanaged) && !is_numeric($this->ismultientitymanaged)) {
+            $tmparray = explode('@', $this->ismultientitymanaged);
+            $sql .= ", ".MAIN_DB_PREFIX.$tmparray[1]." as ".($tmparray[1] == 'societe' ? 's' : 'parenttable'); // If we need to link to this table to limit select to entity
+        }
+        elseif ($this->restrictiononfksoc == 1 && $this->element != 'societe' && !$user->rights->societe->client->voir && !$socid) $sql .= ", ".MAIN_DB_PREFIX."societe as s"; // If we need to link to societe to limit select to socid
+        elseif ($this->restrictiononfksoc == 2 && $this->element != 'societe' && !$user->rights->societe->client->voir && !$socid) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON te.fk_soc = s.rowid"; // If we need to link to societe to limit select to socid
+        if ($this->restrictiononfksoc && !$user->rights->societe->client->voir && !$socid)  $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON ".$aliastablesociete.".rowid = sc.fk_soc";
+        $sql .= " WHERE te.".$fieldid." < '".$db->escape($this->id)."'"; // ->ref must always be defined (set to id if field does not exists)
+        if ($this->restrictiononfksoc == 1 && !$user->rights->societe->client->voir && !$socid) $sql .= " AND sc.fk_user = ".$user->id;
+        if ($this->restrictiononfksoc == 2 && !$user->rights->societe->client->voir && !$socid) $sql .= " AND (sc.fk_user = ".$user->id.' OR te.fk_soc IS NULL)';
+        if (!empty($filter))
+        {
+            if (!preg_match('/^\s*AND/i', $filter)) $sql .= " AND "; // For backward compatibility
+            $sql .= $filter;
+        }
+        if (isset($this->ismultientitymanaged) && !is_numeric($this->ismultientitymanaged)) {
+            $tmparray = explode('@', $this->ismultientitymanaged);
+            $sql .= ' AND te.'.$tmparray[0].' = '.($tmparray[1] == 'societe' ? 's' : 'parenttable').'.rowid'; // If we need to link to this table to limit select to entity
+        }
+        elseif ($this->restrictiononfksoc == 1 && $this->element != 'societe' && !$user->rights->societe->client->voir && !$socid) $sql .= ' AND te.fk_soc = s.rowid'; // If we need to link to societe to limit select to socid
+        if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+            if ($this->element == 'user' && !empty($conf->global->MULTICOMPANY_TRANSVERSE_MODE)) {
+                if (!empty($user->admin) && empty($user->entity) && $conf->entity == 1) {
+                    $sql .= " AND te.entity IS NOT NULL"; // Show all users
+                } else {
+                    $sql .= " AND ug.fk_user = te.rowid";
+                    $sql .= " AND ug.entity IN (".getEntity($this->element).")";
+                }
+            } else {
+                $sql .= ' AND te.entity IN ('.getEntity($this->element).')';
+            }
+        }
+        if (isset($this->ismultientitymanaged) && !is_numeric($this->ismultientitymanaged) && $this->element != 'societe') {
+            $tmparray = explode('@', $this->ismultientitymanaged);
+            $sql .= ' AND parenttable.entity IN ('.getEntity($tmparray[1]).')';
+        }
+        if ($this->restrictiononfksoc == 1 && $socid && $this->element != 'societe') $sql .= ' AND te.fk_soc = '.$socid;
+        if ($this->restrictiononfksoc == 2 && $socid && $this->element != 'societe') $sql .= ' AND (te.fk_soc = '.$socid.' OR te.fk_soc IS NULL)';
+        if ($this->restrictiononfksoc && $socid && $this->element == 'societe') $sql .= ' AND te.rowid = '.$socid;
+        //print 'socid='.$socid.' restrictiononfksoc='.$this->restrictiononfksoc.' ismultientitymanaged = '.$this->ismultientitymanaged.' filter = '.$filter.' -> '.$sql."<br>";
+
+        $result = $db->query($sql);
+        if (!$result)
+        {
+            $this->error = $db->lasterror();
+            return -1;
+        }
+        $row = $db->fetch_row($result);
+        $this->ref_previous = $row[0];
+
+        $sql = "SELECT MIN(te.".$fieldid.")";
+        $sql .= " FROM ".(empty($nodbprefix) ?MAIN_DB_PREFIX:'').$this->table_element." as te";
+        if ($this->element == 'user' && !empty($conf->global->MULTICOMPANY_TRANSVERSE_MODE)) {
+            $sql .= ",".MAIN_DB_PREFIX."usergroup_user as ug";
+        }
+        if (isset($this->ismultientitymanaged) && !is_numeric($this->ismultientitymanaged)) {
+            $tmparray = explode('@', $this->ismultientitymanaged);
+            $sql .= ", ".MAIN_DB_PREFIX.$tmparray[1]." as ".($tmparray[1] == 'societe' ? 's' : 'parenttable'); // If we need to link to this table to limit select to entity
+        } elseif ($this->restrictiononfksoc == 1 && $this->element != 'societe' && !$user->rights->societe->client->voir && !$socid) $sql .= ", ".MAIN_DB_PREFIX."societe as s"; // If we need to link to societe to limit select to socid
+        elseif ($this->restrictiononfksoc == 2 && $this->element != 'societe' && !$user->rights->societe->client->voir && !$socid) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON te.fk_soc = s.rowid"; // If we need to link to societe to limit select to socid
+        if ($this->restrictiononfksoc && !$user->rights->societe->client->voir && !$socid) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON ".$aliastablesociete.".rowid = sc.fk_soc";
+        $sql .= " WHERE te.".$fieldid." > '".$db->escape($this->id)."'"; // ->ref must always be defined (set to id if field does not exists)
+        if ($this->restrictiononfksoc == 1 && !$user->rights->societe->client->voir && !$socid) $sql .= " AND sc.fk_user = ".$user->id;
+        if ($this->restrictiononfksoc == 2 && !$user->rights->societe->client->voir && !$socid) $sql .= " AND (sc.fk_user = ".$user->id.' OR te.fk_soc IS NULL)';
+        if (!empty($filter))
+        {
+            if (!preg_match('/^\s*AND/i', $filter)) $sql .= " AND "; // For backward compatibility
+            $sql .= $filter;
+        }
+        if (isset($this->ismultientitymanaged) && !is_numeric($this->ismultientitymanaged)) {
+            $tmparray = explode('@', $this->ismultientitymanaged);
+            $sql .= ' AND te.'.$tmparray[0].' = '.($tmparray[1] == 'societe' ? 's' : 'parenttable').'.rowid'; // If we need to link to this table to limit select to entity
+        } elseif ($this->restrictiononfksoc == 1 && $this->element != 'societe' && !$user->rights->societe->client->voir && !$socid) $sql .= ' AND te.fk_soc = s.rowid'; // If we need to link to societe to limit select to socid
+        if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+            if ($this->element == 'user' && !empty($conf->global->MULTICOMPANY_TRANSVERSE_MODE)) {
+                if (!empty($user->admin) && empty($user->entity) && $conf->entity == 1) {
+                    $sql .= " AND te.entity IS NOT NULL"; // Show all users
+                } else {
+                    $sql .= " AND ug.fk_user = te.rowid";
+                    $sql .= " AND ug.entity IN (".getEntity($this->element).")";
+                }
+            } else {
+                $sql .= ' AND te.entity IN ('.getEntity($this->element).')';
+            }
+        }
+        if (isset($this->ismultientitymanaged) && !is_numeric($this->ismultientitymanaged) && $this->element != 'societe') {
+            $tmparray = explode('@', $this->ismultientitymanaged);
+            $sql .= ' AND parenttable.entity IN ('.getEntity($tmparray[1]).')';
+        }
+        if ($this->restrictiononfksoc == 1 && $socid && $this->element != 'societe') $sql .= ' AND te.fk_soc = '.$socid;
+        if ($this->restrictiononfksoc == 2 && $socid && $this->element != 'societe') $sql .= ' AND (te.fk_soc = '.$socid.' OR te.fk_soc IS NULL)';
+        if ($this->restrictiononfksoc && $socid && $this->element == 'societe') $sql .= ' AND te.rowid = '.$socid;
+        //print 'socid='.$socid.' restrictiononfksoc='.$this->restrictiononfksoc.' ismultientitymanaged = '.$this->ismultientitymanaged.' filter = '.$filter.' -> '.$sql."<br>";
+        // Rem: Bug in some mysql version: SELECT MIN(rowid) FROM llx_socpeople WHERE rowid > 1 when one row in database with rowid=1, returns 1 instead of null
+//        print $sql;exit;
+        $result = $db->query($sql);
+        if (!$result)
+        {
+            $this->error = $db->lasterror();
+            return -2;
+        }
+        $row = $db->fetch_row($result);
+        $this->ref_next = $row[0];
+
+        return 1;
+    }
 
 	static function status($status='DRAFT', $to_translate=false){
 		global $langs;

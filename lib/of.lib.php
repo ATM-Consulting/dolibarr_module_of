@@ -9,7 +9,7 @@
 
 			case 'assetOF':
 				$head= array(
-				    array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), $langs->trans('Card'),'fiche'),
+				    array(dol_buildpath('/of/fiche_of.php?id='.$asset->getId(),1), $langs->trans('OFAsset'),'fiche'),
                     array(dol_buildpath('/of/document.php?id='.$asset->getId(),1), $langs->trans('Documents'),'document'),
                 );
 

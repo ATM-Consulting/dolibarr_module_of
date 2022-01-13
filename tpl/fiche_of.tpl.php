@@ -20,7 +20,6 @@
 
 			<table width="100%" class="border">
 
-				<tr><td width="20%">[view.langs.transnoentities(NumberOf)]</td><td>[assetOf.numero;strconv=no]</td></tr>
 				<tr rel="ordre">
 					<td>[view.editField;strconv=no][view.langs.transnoentities(Ordre)]</td>
 					<td class="editableField">[assetOf.ordre;strconv=no;protect=no]</td>
@@ -40,14 +39,6 @@
 					<td class="editableField">[assetOf.fk_commande;strconv=no;magnet=tr]</td>
 				</tr>
 				<tr><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
-				<tr rel="fk_soc">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Customer)]</td>
-					<td class="editableField">[assetOf.fk_soc;strconv=no;protect=no]</td>
-				</tr>
-				<tr rel="fk_project">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Project)]</td>
-					<td class="editableField">[assetOf.fk_project;strconv=no;protect=no]</td>
-				</tr>
 				<tr rel="date_besoin">
 					<td>[view.editField;strconv=no][view.langs.transnoentities(DateNeeded)]</td>
 					<td class="editableField">[assetOf.date_besoin;strconv=no]</td>
