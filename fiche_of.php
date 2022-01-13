@@ -358,7 +358,13 @@ if ($action == 'new' && $usercancreate) {
 		print '<td  class="maxwidth200" maxlength="128">'.$form->zonetexte('', 'note', $assetOf->note, 80,5).'</td>';
 		print '</tr>';
 
-
+		//Rang OF
+		if($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE){
+			print '<tr rel="rank">';
+			print '<td  class="titlefieldcreate">'.$langs->trans('Rank').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$form->texte('', 'rank', $assetOf->rank,3,3).'</td>';
+			print '</tr>';
+		}
 
 		print '</table>';
 
