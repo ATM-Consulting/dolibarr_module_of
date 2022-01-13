@@ -65,18 +65,20 @@ if (empty($reshook)){
 
 /** VIEW **/
 
-$formdoli = new Form($db);
+$doliform = new Form($db);
 $formProduct = new FormProduct($db);
 $formfile = new FormFile($db);
 $form=new TFormCore();
+
+if($action == 'new' || $action == 'edit') $mode = 'edit';
+else $mode = 'view';
 
 if($assetOf->entity != $conf->entity) accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
 
 $title = $langs->trans('ProductServiceCard');
 
 /**Header Part Kevin**/
-//llxHeader('',$langs->trans('OFAsset'),'','');
-//print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
+llxHeader('',$langs->trans('OFAsset'),'','');
 /**Header Part Kevin**/
 
 $TNeeded = array();
@@ -84,17 +86,138 @@ $TToMake = array();
 
 $form->Set_typeaff($mode);
 
+//Lignes OF
 $TNeeded = _fiche_ligne($form, $object, "NEEDED");
 $TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+
+//Champs : commande fournisseur
+$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
+
+$HtmlCmdFourn = '';
+
+if(count($TIdCommandeFourn)){
+	foreach($TIdCommandeFourn as $idcommandeFourn){
+		$cmd = new CommandeFournisseur($db);$cmd->fetch($idcommandeFourn);
+
+		$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
+	}
+}
+
+//Champs  view : fk_soc
+$client=new Societe($db);
+if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
+
+//Champs view : fk_commande
+$commande=new Commande($db);
+if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
+
+//Champs edit : fk_commande
+$select_commande = '';
+
+$resOrder = $db->query("SELECT rowid, ref,fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
+if($resOrder === false ) {
+	var_dump($db);exit;
+}
+$TIdCommande=array();
+while($obj = $db->fetch_object($resOrder)) {
+	$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')':'');
+}
+if(!empty($TIdCommande)) {
+	$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
+}
+
+//Champs view : fk_parent
+$hasParent = false;
+if (!empty($assetOf->fk_assetOf_parent))
+{
+	$TAssetOFParent = new TAssetOF;
+	$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
+	$hasParent = true;
+}
+
+//Hook d'ajout de champs, à modifier pour se rapprocher du standard ?
+$parameters = array('id'=>$assetOf->getId());
+$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+
+//Champs create : produit à produire et quantité à produire
+if($fk_product>0) {
+	$product_to_add = new Product($db);
+	$product_to_add->fetch($fk_product);
+
+	$link_product_to_add = $product_to_add->getNomUrl(1).' '.$product_to_add->label;
+	$quantity_to_create = $form->texte('', 'quantity_to_create', 1, 3, 255);
+}
+else{
+	$link_product_to_add = '';
+	$quantity_to_create = '';
+}
+//Champs create : tableaux des ordres
+$TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
+
+//Champs create : tableaux des commandes
+$order_amount = $commande->total_ht; //$o n'existait pas
+
+if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+	$line_to_make = $assetOf->getLineProductToMake();
+
+	foreach($commande->lines as &$line) {
+
+		if($line->id == $line_to_make->fk_commandedet) {
+			$order_amount = $line->total_ht;
+			break;
+		}
+	}
+
+}
+$TCommandes=array();
+if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+	$displayOrders = '';
+	$TLine_to_make = $assetOf->getLinesProductToMake();
+
+	foreach($TLine_to_make as $line){
+		if(!empty($line->fk_commandedet)){
+			$commande = new Commande($db);
+			$orderLine = new OrderLine($db);
+			$orderLine->fetch($line->fk_commandedet);
+			$commande->fetch($orderLine->fk_commande);
+			$TCommandes[$orderLine->fk_commande] = $commande;
+
+		}
+		elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+	}
+}
+if(!empty($TCommandes)){
+	foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
+}
+else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+
+
 
 if ($action == 'new' && $usercancreate) {
 
 	//**TODO : View formulaire de création**//
 
-	$form->Set_typeaff('view');
+	print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST" name="formprod">';
+		print '<input type="hidden" name="token" value="'.newToken().'">';
+		print '<input type="hidden" name="action" value="save">';
+		print '<input type="hidden" name="fk_product_to_add" value="'.$fk_product.'">';
 
-	$TNeeded = _fiche_ligne($form, $object, "NEEDED");
-	$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+		print load_fiche_titre($title, '', '');
+
+//		print dol_get_fiche_head('');
+
+		print '<table class="border centpercent">';
+
+		print '<tr>';
+		print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('NumberOf').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$langs->trans('NumberOf').'</td>';
+		print '</tr>';
+
+		print '</table>';
+
+
+	print '</form>';
 
 } elseif ($object->id > 0) {
 
@@ -104,19 +227,11 @@ if ($action == 'new' && $usercancreate) {
 
 		//**TODO : View formulaire d'édition**//
 
-	$TNeeded = _fiche_ligne($form, $object, "NEEDED");
-	$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
-
 
 	} else {
 		//Fiche en mode visu
 
 		//**TODO : View formulaire de lecture**//
-
-		$form->Set_typeaff('edit');
-
-		$TNeeded = _fiche_ligne($form, $object, "NEEDED");
-		$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
 
 	}
 }
@@ -1286,8 +1401,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 //	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 
 	//pre($assetOf,true);
-	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
+//	llxHeader('',$langs->trans('OFAsset'),'','');
+//	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
 
 	?><style type="text/css">
 		#assetChildContener .OFMaster {
@@ -1626,7 +1741,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	$reshook=$hookmanager->executeHooks('TBSConfig',$parameters,$assetOf);    // Note that $action and $object may have been modified by hook
 	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
-	print $TBS->render($tpl, $TBlocks, $TFields);
+//	print $TBS->render($tpl, $TBlocks, $TFields);
 //var_dump($tpl, $TBlocks, $TFields);
 	if ($mode == 'view')
     {
@@ -1675,13 +1790,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		print '</div></div></div>';
     }
 
-	print '
-		<div style="clear:both;"></div>
-        <br />
-        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
-			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
-		</div>
-    ';
+//	print '
+//		<div style="clear:both;"></div>
+//        <br />
+//        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
+//			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
+//		</div>
+//    ';
 
 	echo $form->end_form();
 
