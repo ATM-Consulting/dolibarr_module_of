@@ -209,10 +209,32 @@ if ($action == 'new' && $usercancreate) {
 
 		print '<table class="border centpercent">';
 
+		//Ref OF
 		print '<tr>';
 		print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('NumberOf').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$langs->trans('NumberOf').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$assetOf->getNumero($PDOdb).'</td>';
 		print '</tr>';
+
+		//Ordre OF
+		print '<tr rel="ordre">';
+		print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('Ordre').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$doliform->selectarray('ordre', $TTransOrdre).'</td>';
+		print '</tr>';
+
+		if($link_product_to_add){
+
+			//Produit à produire
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('ProductToProduce').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$link_product_to_add.'</td>';
+			print '</tr>';
+
+			//Quantité à produire
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('QtyToMake').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$quantity_to_create.'</td>';
+			print '</tr>';
+		}
 
 		print '</table>';
 
