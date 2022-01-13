@@ -236,6 +236,130 @@ if ($action == 'new' && $usercancreate) {
 			print '</tr>';
 		}
 
+		//TODO : à vérifier en créant un of enfant
+		if($hasParent){
+			print '<tr>';
+				print '<td  class="titlefieldcreate">'.$langs->trans('ParentOF').'</td>';
+				print '<td  class="maxwidth200" maxlength="128"><a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a></td>';
+			print '</tr>';
+		}
+
+		//Commande OF
+		if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+			print '<tr rel="fk_commande">';
+			print '<td  class="titlefieldcreate">'.$langs->trans('Order').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$select_commande.'</td>';
+			print '</tr>';
+		}
+
+		//Commande OF
+		if(!empty($HtmlCmdFourn)){
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('SupplierOrder').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$HtmlCmdFourn.'</td>';
+			print '</tr>';
+		}
+
+		//Client OF
+		print '<tr rel="fk_soc">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('Customer').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$doliform->select_company($object->fk_soc,'fk_soc','client IN (1,3)',1).'</td>';
+		print '</tr>';
+
+		//Projet OF
+		print '<tr rel="fk_soc">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('Project').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.custom_select_projects(-1, $object->fk_project, 'fk_project',$mode).'</td>';
+		print '</tr>';
+
+		//Need Date OF
+		print '<tr rel="date_besoin">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('DateNeeded').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_besoin',$object->date_besoin,12,12).'</td>';
+		print '</tr>';
+
+		//Lancement Date OF
+		print '<tr rel="date_lancement">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('DateLaunch').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).'</td>';
+		//TODO : Vérifier si c'est pertinent, si ça fonctionne, ça ne devrait pas être en JS ?
+		if($assetOf->date_lancement > $assetOf->date_besoin)  print img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning');
+		print '</td>';
+		print '</tr>';
+
+		//TODO : vérifier si info nécessaire lors de la création ?
+		//Start Date OF
+		if($object->get_date('date_start')){
+			print '<tr rel="date_start">';
+			print '<td  class="titlefieldcreate">'.$langs->trans('DateStart').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$object->get_date('date_start').'</td>';
+			print '</tr>';
+		}
+
+		//TODO : vérifier si info nécessaire lors de la création ?
+		//End Date OF
+		if($object->get_date('date_end')){
+			print '<tr rel="date_end">';
+			print '<td  class="titlefieldcreate">'.$langs->trans('DateEnd').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.$object->get_date('date_end').'</td>';
+			print '</tr>';
+		}
+
+		//TODO : vérifier si info nécessaire lors de la création ?
+		//Temps estimé OF
+		if($user->rights->of->of->show_ws_time){
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('EstimatedMakeTime').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.price($object->temps_estime_fabrication,0,'',1,-1,2).'</td>';
+			print '</tr>';
+		}
+
+		//TODO : vérifier si info nécessaire lors de la création ?
+		//Temps réel OF
+		print '<tr>';
+		print '<td  class="titlefieldcreate">'.$langs->trans('RealMakeTime').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.price($object->temps_reel_fabrication,0,'',1,-1,2).'</td>';
+		print '</tr>';
+
+		if($user->rights->of->of->price){
+
+			//TODO : vérifier si info nécessaire lors de la création ?
+			//Prix estimé OF
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('EstimatedProducCost').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.price($object->total_estimated_cost,0,'',1,-1,2, $conf->currency).'</td>';
+			print '</tr>';
+
+			//TODO : vérifier si info nécessaire lors de la création ?
+			//Prix réel OF
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('RealProducCost').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.price($object->total_cost,0,'',1,-1,2, $conf->currency).'</td>';
+			print '</tr>';
+
+			//TODO : vérifier si info nécessaire lors de la création ?
+			//Prix final OF
+			print '<tr>';
+			print '<td  class="titlefieldcreate">'.$langs->trans('FinalProducCost').'</td>';
+			print '<td  class="maxwidth200" maxlength="128">'.price($object->current_cost_for_to_make,0,'',1,-1,2, $conf->currency).'</td>';
+			print '</tr>';
+		}
+
+		//Statut OF
+		//TODO : vérifier si info nécessaire lors de la création ?
+		print '<tr rel="status">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('Status').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$object->status.'</td>';
+		print '</tr>';
+
+		//Note OF
+		print '<tr rel="note">';
+		print '<td  class="titlefieldcreate">'.$langs->trans('Comments').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$form->zonetexte('', 'note', $assetOf->note, 80,5).'</td>';
+		print '</tr>';
+
+
+
 		print '</table>';
 
 
