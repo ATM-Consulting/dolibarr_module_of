@@ -40,7 +40,8 @@ $assetOf= $object = new TAssetOF;
 $quicksave= GETPOST('quicksave', 'none');
 $id = GETPOST('id', 'int');
 $action = GETPOST('action', 'none');
-$fk_product = GETPOST('fk_product', 'int');
+$fk_product = $fk_product_to_add = GETPOST('fk_product', 'int');
+$fk_nomenclature = GETPOST('fk_nomenclature', 'int');
 
 if (!empty($id))
 {
@@ -70,7 +71,7 @@ if (empty($reshook)){
 $doliform = new Form($db);
 $formProduct = new FormProduct($db);
 $formfile = new FormFile($db);
-$form=new TFormCore();
+$formCore=new TFormCore();
 
 if($action == 'new' || $action == 'edit') $mode = 'edit';
 else $mode = 'view';
@@ -81,16 +82,21 @@ $title = $langs->trans('ProductServiceCard');
 
 /**Header Part Kevin**/
 if($action == "new") llxHeader('',$langs->trans('OFAsset'),'','');
+else {
+	llxHeader('',$langs->trans('OFAsset'),'','');
+	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
+
+}
 /**Header Part Kevin**/
 
 $TNeeded = array();
 $TToMake = array();
 
-$form->Set_typeaff($mode);
+$formCore->Set_typeaff($mode);
 
 //Lignes OF
-$TNeeded = _fiche_ligne($form, $object, "NEEDED");
-$TToMake = _fiche_ligne($form, $object, "TO_MAKE");
+$TNeeded = _fiche_ligne($formCore, $object, "NEEDED");
+$TToMake = _fiche_ligne($formCore, $object, "TO_MAKE");
 
 //Champs : commande fournisseur
 $TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
@@ -147,7 +153,7 @@ if($fk_product>0) {
 	$product_to_add->fetch($fk_product);
 
 	$link_product_to_add = $product_to_add->getNomUrl(1).' '.$product_to_add->label;
-	$quantity_to_create = $form->texte('', 'quantity_to_create', 1, 3, 255);
+	$quantity_to_create = $formCore->texte('', 'quantity_to_create', 1, 3, 255);
 }
 else{
 	$link_product_to_add = '';
@@ -193,7 +199,6 @@ if(!empty($TCommandes)){
 	foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
 }
 else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
-
 
 
 if ($action == 'new' && $usercancreate) {
@@ -254,7 +259,7 @@ if ($action == 'new' && $usercancreate) {
 		print '</tr>';
 	}
 
-	//Commande OF
+	//Commande Fourn OF
 	if(!empty($HtmlCmdFourn)){
 		print '<tr>';
 		print '<td  class="titlefieldcreate">'.$langs->trans('SupplierOrder').'</td>';
@@ -277,13 +282,13 @@ if ($action == 'new' && $usercancreate) {
 	//Need Date OF
 	print '<tr rel="date_besoin">';
 	print '<td  class="titlefieldcreate">'.$langs->trans('DateNeeded').'</td>';
-	print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_besoin',$object->date_besoin,12,12).'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$formCore->calendrier('','date_besoin',$object->date_besoin,12,12).'</td>';
 	print '</tr>';
 
 	//Lancement Date OF
 	print '<tr rel="date_lancement">';
 	print '<td  class="titlefieldcreate">'.$langs->trans('DateLaunch').'</td>';
-	print '<td  class="maxwidth200" maxlength="128">'.$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$formCore->calendrier('','date_lancement',$assetOf->date_lancement,12,12).'</td>';
 	//TODO : Vérifier si c'est pertinent, si ça fonctionne, ça ne devrait pas être en JS ?
 	if($assetOf->date_lancement > $assetOf->date_besoin)  print img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning');
 	print '</td>';
@@ -357,14 +362,14 @@ if ($action == 'new' && $usercancreate) {
 	//Note OF
 	print '<tr rel="note">';
 	print '<td  class="titlefieldcreate">'.$langs->trans('Comments').'</td>';
-	print '<td  class="maxwidth200" maxlength="128">'.$form->zonetexte('', 'note', $assetOf->note, 80,5).'</td>';
+	print '<td  class="maxwidth200" maxlength="128">'.$formCore->zonetexte('', 'note', $assetOf->note, 80,5).'</td>';
 	print '</tr>';
 
 	//Rang OF
 	if($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE){
 		print '<tr rel="rank">';
 		print '<td  class="titlefieldcreate">'.$langs->trans('Rank').'</td>';
-		print '<td  class="maxwidth200" maxlength="128">'.$form->texte('', 'rank', $assetOf->rank,3,3).'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$formCore->texte('', 'rank', $assetOf->rank,3,3).'</td>';
 		print '</tr>';
 	}
 
@@ -380,7 +385,8 @@ if ($action == 'new' && $usercancreate) {
 
 } elseif ($object->id > 0) {
 
-	$form->Set_typeaff('edit');
+	$formCore->Set_typeaff('edit');
+
 
 	if ($action == 'edit' && $usercancreate) {
 
@@ -392,9 +398,450 @@ if ($action == 'new' && $usercancreate) {
 
 		//**TODO : View formulaire de lecture**//
 
+		print '<div class="fichecenter">';
+		print '<div class="fichehalfleft">';
+
+		print '<div class="underbanner clearboth"></div>';
+		print '<table class="border tableforfield centpercent">';
+
+		//Ref OF
+		print '<tr>';
+		print '<td  class="titlefieldcreate fieldrequired">'.$langs->trans('NumberOf').'</td>';
+		print '<td  class="maxwidth200" maxlength="128">'.$assetOf->getNumero($PDOdb).'</td>';
+		print '</tr>';
+
+		print '</div></div>';
+		print '</table>';
+
+		print dol_get_fiche_end();
+
+
 	}
 }
 
+/***************************************************
+ * [DEV] FONCTION _FICHE() en attendant le dev de la suite
+ *
+ * Put here all code to build page
+ ****************************************************/
+
+if($assetOf->entity != $conf->entity) {
+	accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
+}
+
+//Provisoire : temps de test
+
+// 	Un doActions après avoir éxécuté les actions ...
+//	$parameters = array('id'=>$assetOf->getId());
+//	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+
+//pre($assetOf,true);
+
+//[DEV] : condition provisoire
+$action = GETPOST('action', 'string');
+
+if($action != 'new'){
+
+	?><style type="text/css">
+		#assetChildContener .OFMaster {
+
+			background:#fff;
+			-webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.52);
+			-moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.52);
+			box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.52);
+
+            padding:5px; // Visualisation améliorée
+			margin-bottom:20px;
+		}
+
+	</style>
+		<div class="OFContent" rel="<?php echo $assetOf->getId() ?>">	<?php
+
+
+	//$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
+
+	//Affichage des erreurs
+	if(!empty($assetOf->errors)){
+		?>
+		<br><div class="error">
+		<?php
+		foreach($assetOf->errors as $error){
+			echo $error."<br>";
+			setEventMessage($error,'errors');
+		}
+		$assetOf->errors = array();
+		?>
+		</div><br>
+		<?php
+
+
+	}
+
+	$formCore->Set_typeaff($mode);
+
+	$doliform = new Form($db);
+
+	if(!empty($_REQUEST['fk_product'])) echo $formCore->hidden('fk_product', $_REQUEST['fk_product']);
+
+	$TBS=new TTemplateTBS();
+	$liste=new TListviewTBS('asset');
+
+	$TBS->TBS->protect=false;
+	$TBS->TBS->noerr=true;
+
+	$PDOdb = new TPDOdb;
+
+	$TNeeded = array();
+	$TToMake = array();
+
+	$TNeeded = _fiche_ligne($formCore, $assetOf, "NEEDED");
+	$TToMake = _fiche_ligne($formCore, $assetOf, "TO_MAKE");
+
+	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
+
+	$HtmlCmdFourn = '';
+
+	if(count($TIdCommandeFourn)){
+		foreach($TIdCommandeFourn as $idcommandeFourn){
+			$cmd = new CommandeFournisseur($db);
+			$cmd->fetch($idcommandeFourn);
+
+			$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
+		}
+	}
+
+	$select_product = '';
+	if (empty($_REQUEST['fk_product']))
+	{
+		ob_start();
+		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,1,0,'minwidth300');
+		$select_product = ob_get_clean();
+
+		?>
+		<script type="text/javascript">
+                $(document).on('keypress',function(e) {
+                       if ($('input:focus').length == 0 && $("#dialog").is(':visible')) {
+                            $('#fk_product').select2('open');
+                        }
+                });
+        </script>
+        <?php
+        if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
+        ?>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+
+                    let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
+                    $('#fk_product').on("select2:select", function(e) {
+                        let select = $("select[name='fk_nomenclature'] option");
+                        if(select.length){//check if element exist
+                            if(select.length <= 1 ){ //s'il n'y a qu'une seule nomenclature ou moins on ajoute la ligne à la volée
+                                $("button:contains('"+contentBtAdd+"')").click();
+                            }
+                        }else {
+                             $("button:contains('"+contentBtAdd+"')").click();
+                        }
+                    });
+                });
+
+            </script>
+        <?php
+        }
+	}
+	$Tid = array();
+	//$Tid[] = $assetOf->rowid;
+	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
+
+	$TWorkstation=array();
+	foreach($assetOf->TAssetWorkstationOF as $k => &$TAssetWorkstationOF) {
+		$ws = &$TAssetWorkstationOF->ws;
+
+		$TWorkstation[]=array(
+				'libelle'=>$ws->getNomUrl(1)
+				,'fk_user' => visu_checkbox_user($PDOdb, $formCore, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
+				,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $formCore->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
+				,'fk_task' => visu_checkbox_task($PDOdb, $formCore, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
+				,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $formCore->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) ). (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ))
+				,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $formCore->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real)) . (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ) )
+				,'nb_days_before_beginning'=>($assetOf->status!='CLOSE' && $mode == "edit") ? $formCore->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
+				,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
+				,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $formCore->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
+				,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $formCore->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang
+				,'id'=>$ws->getId()
+		);
+
+	}
+
+	$client=new Societe($db);
+	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
+
+	$commande=new Commande($db);
+	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
+
+	$select_commande = '';
+	$resOrder = $db->query("SELECT rowid, ref,fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
+	if($resOrder === false ) {
+		var_dump($db);exit;
+	}
+	$TIdCommande=array();
+	while($obj = $db->fetch_object($resOrder)) {
+		$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')':'');
+	}
+	if(!empty($TIdCommande)) {
+		$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
+	}
+
+	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
+
+	$hasParent = false;
+	if (!empty($assetOf->fk_assetOf_parent))
+	{
+		$TAssetOFParent = new TAssetOF;
+		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
+		$hasParent = true;
+	}
+
+	$parameters = array('id'=>$assetOf->getId());
+	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
+
+	if($fk_product_to_add>0) {
+		$product_to_add = new Product($db);
+		$product_to_add->fetch($fk_product_to_add);
+
+		$link_product_to_add = $product_to_add->getNomUrl(1).' '.$product_to_add->label;
+		$quantity_to_create = $formCore->texte('', 'quantity_to_create', 1, 3, 255);
+	}
+	else{
+		$link_product_to_add = '';
+		$quantity_to_create = '';
+	}
+
+	$TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
+
+    $TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
+
+    $order_amount = $commande->total_ht; //$o n'existait pas
+    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+
+        $line_to_make = $assetOf->getLineProductToMake();
+
+        foreach($commande->lines as &$line) {
+
+            if($line->id == $line_to_make->fk_commandedet) {
+                $order_amount = $line->total_ht;
+                break;
+            }
+        }
+
+    }
+    $TCommandes=array();
+    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
+        $displayOrders = '';
+        $TLine_to_make = $assetOf->getLinesProductToMake();
+
+
+        foreach($TLine_to_make as $line){
+            if(!empty($line->fk_commandedet)){
+                $commande = new Commande($db);
+                $orderLine = new OrderLine($db);
+                $orderLine->fetch($line->fk_commandedet);
+                $commande->fetch($orderLine->fk_commande);
+                $TCommandes[$orderLine->fk_commande] = $commande;
+
+            }
+            elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+
+        }
+    }
+    if(!empty($TCommandes)){
+        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
+    }
+    else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
+
+    // EDITION RAPIDE DU STATUT
+    $statusHtml = $TTransStatus[$assetOf->status];
+    if($quicksave=='status'){
+    	$formTypAff=$formCore->type_aff; // save
+    	$formCore->type_aff = 'edit'; // force mode
+    	$statusHtml = $formCore->combo('','status',$TTransStatus,$assetOf->status);
+    	$statusHtml.= '<input class="button" value="'.$langs->trans('Modify').'" type="submit">';
+    	$statusHtml.= '<a class="button" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'" >'.$langs->trans('Cancel').'</a>';
+    	$formCore->type_aff=$formTypAff; // restore
+    	$statusHtml.="<script>$(document).ready(function() { $('a.quickEditButton').hide();});</script>";
+    }
+    elseif($mode == 'view'){
+    	$textSetTo = ' <i class="fa fa-arrow-right"></i> ' . $langs->trans('SetStateTo').' : ';
+    	if($assetOf->status == 'DRAFT'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('ValidateManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'valider\'); }" class="butAction" name="valider" value="'.$langs->trans('Validate').'">';
+		}elseif($assetOf->status == 'VALID'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('StartManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'lancer\'); }" class="butAction" name="lancer" value="'.$langs->trans('ProductionInProgress').'">';
+		}elseif($assetOf->status == 'OPEN'){
+    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('FinishManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'terminer\'); }" class="butAction" name="terminer" value="'.$langs->trans('Finish').'">';
+		}
+    }
+
+	$tpl = 'tpl/fiche_of.tpl.php';
+	$TBlocks = array(
+		'TNeeded'=>$TNeeded
+		,'TTomake'=>$TToMake
+		,'workstation'=>$TWorkstation
+	);
+
+	$formProduct = new FormProduct($db);
+
+	$TFields = array(
+		'assetOf'=>array(
+				'id'=> $assetOf->getId()
+				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
+				,'ordre'=>$formCore->combo('','ordre',$TTransOrdre,$assetOf->ordre)
+				,'fk_commande'=>!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders))
+				//,'statut_commande'=> $commande->getLibStatut(0)
+				,'commande_fournisseur'=>$HtmlCmdFourn
+				,'date_besoin'=>$formCore->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
+				,'date_lancement'=>$formCore->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
+				,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
+				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
+
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client IN (1,3)',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
+
+				,'note'=>$formCore->zonetexte('', 'note', $assetOf->note, 80,5)
+
+				,'quantity_to_create'=>$quantity_to_create
+				,'product_to_create'=>$link_product_to_add
+
+				,'status'=>$statusHtml
+				,'statustxt'=>$TTransStatus[$assetOf->status]
+				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
+				,'url' => dol_buildpath('/of/fiche_of.php', 1)
+				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 1) : dol_buildpath('/of/liste_of.php', 1)
+				,'fk_product_to_add'=>$fk_product_to_add
+				,'fk_nomenclature'=>$fk_nomenclature
+				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
+				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
+
+				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
+				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
+				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
+				,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
+				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
+				,'date_end'=>$assetOf->get_date('date_end')
+				,'date_start'=>$assetOf->get_date('date_start')
+				,'rank'=>$formCore->texte('', 'rank', $assetOf->rank,3,3)
+		)
+		,'view'=>array(
+			'mode'=>$mode
+			,'action' => !empty($quicksave)?'quick-save':(GETPOST('action') == 'new') ? 'new' : 'save'
+			,'status'=>$assetOf->status
+			,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
+			,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
+			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
+			,'select_product'=>$select_product
+			,'select_workstation'=>$formCore->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
+			,'select_warehouses' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses('', 'select_allneeded_fk_warehouse', '', 1, 0, '') : ''
+			,'select_warehouse_help' =>  !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $doliform->textwithpicto('', $langs->transnoentities('ModifyAllWarehouses'), 1, 'help', '') : ''
+			//,'select_workstation'=>$formCore->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
+			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
+			,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
+			,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
+			,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
+			,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
+			,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
+			,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
+			,'defined_show_categorie'=>(int) $conf->global->OF_DISPLAY_PRODUCT_CATEGORIES
+			,'hasChildren' => (int) !empty($Tid)
+			,'user_id'=>$user->id
+			,'workstation_module_activate'=>(int) $conf->workstationatm->enabled
+			,'show_cost'=>(int)$user->rights->of->of->price
+			,'langs'=>$langs
+			,'editField'=>($formCore->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
+			,'editFieldStatus'=>($formCore->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
+			,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
+		)
+		,'stocktransfer'=>array(
+			'enable' => (int)(!empty($conf->stocktransfer->enabled))
+			,'url'=>dol_buildpath('/stocktransfer/stocktransfer_card.php', 1)
+		)
+		,'rights'=>array(
+			'show_ws_time'=>$user->rights->of->of->show_ws_time
+		)
+		,'conf'=>$conf
+	);
+
+	// Change view from hooks
+	$parameters=array(  'tpl' => &$tpl, 'TBlocks' => &$TBlocks, 'TFields' => &$TFields, 'renderer' => &$TBS);
+	$reshook=$hookmanager->executeHooks('TBSConfig',$parameters,$assetOf);    // Note that $action and $object may have been modified by hook
+	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+	print $TBS->render($tpl, $TBlocks, $TFields);
+//var_dump($tpl, $TBlocks, $TFields);
+	if ($mode == 'view')
+    {
+        $assetOf->thirdparty = $client;
+
+        require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+        $formfile = new FormFile($db);
+
+        $usercanread = $user->rights->of->of->lire;
+        $usercancreate = $user->rights->of->read; // voir le descripteur du module pour comprendre U_u
+
+        print '<div class="fichecenter"><div class="fichehalfleft">';
+		print '<a name="builddoc"></a>'; // ancre
+		/*
+		 * Documents generes
+		 */
+
+		 // Documents
+		$objref = dol_sanitizeFileName($assetOf->ref);
+		$relativepath = $objref . '/' . $objref . '.pdf';
+		$filedir = $conf->of->multidir_output[$assetOf->entity]  . '/' . $objref;
+		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $assetOf->id;
+		$genallowed = $usercanread;	// If you can read, you can build the PDF to read content
+		$delallowed = $usercancreate;	// If you can create/edit, you can remove a file on card
+		print $formfile->showdocuments('of:of', $objref, $filedir, $urlsource, $genallowed, $delallowed, $assetOf->modelpdf, 1, 0, 0, 28, 0, '', '', '', $client->default_lang, '', $assetOf);
+
+// TODO uncomment to show linked objects
+//		// Show links to link elements
+//		$linktoelem = $doliform->showLinkToObjectBlock($assetOf, null, array('propal'));
+//
+//		$compatibleImportElementsList = false;
+//		if($user->rights->propal->creer && $assetOf->statut == Propal::STATUS_DRAFT)
+//		{
+//		    $compatibleImportElementsList = array('commande','propal'); // import from linked elements
+//		}
+//		$somethingshown = $doliform->showLinkedObjectBlock($assetOf, $linktoelem, $compatibleImportElementsList);
+//
+//		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+
+// TODO uncomment to show ActionComm linked
+//		// List of actions on element
+//		include_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
+//		$formactions = new FormActions($db);
+//		$somethingshown = $formactions->showactions($assetOf, 'propal', $assetOf->fk_soc, 1);
+
+		print '</div></div></div>';
+    }
+
+	print '
+		<div style="clear:both;"></div>
+        <br />
+        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
+			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
+		</div>
+    ';
+
+	echo $formCore->end_form();
+
+
+	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
+	}
+
+
+/** [DEV] FONCTION _FICHE() en attendant le dev de la suite **/
 
 
 function _action() {
@@ -552,9 +999,8 @@ function _action() {
 			$assetOf->save($PDOdb);
             $assetOf->load($PDOdb,$assetOf->rowid); // Pour remettre à jour les  données (je suis tombé plusieurs fois sur ce cas après un save)
 
-			_fiche($PDOdb,$assetOf, $mode);
-
-			break;
+			header('Location: '.dol_buildpath('/of/fiche_of.php?id='.$assetOf->id.'&action='.$mode,1));
+			exit;
 
 		case 'valider':
 			$error = 0;
@@ -1543,430 +1989,7 @@ function _fiche_ligne_asset(&$PDOdb,&$form,&$of, &$assetOFLine, $type='NEEDED')
 
 function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenclature=0) {
 	global $langs,$db,$conf,$user,$hookmanager,$quicksave;
-	/***************************************************
-	* PAGE
-	*
-	* Put here all code to build page
-	****************************************************/
 
-	if($assetOf->entity != $conf->entity) {
-	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
-	}
-
-	//Provisoire : temps de test
-
-// 	Un doActions après avoir éxécuté les actions ...
-//	$parameters = array('id'=>$assetOf->getId());
-//	$reshook = $hookmanager->executeHooks('doActions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
-
-	//pre($assetOf,true);
-
-	//[DEV] : condition provisoire
-	$action = GETPOST('action', 'string');
-
-	if($action != 'new'){
-	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'), -1);
-
-	?><style type="text/css">
-		#assetChildContener .OFMaster {
-
-			background:#fff;
-			-webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.52);
-			-moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.52);
-			box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.52);
-
-            padding:5px; // Visualisation améliorée
-			margin-bottom:20px;
-		}
-
-	</style>
-		<div class="OFContent" rel="<?php echo $assetOf->getId() ?>">	<?php
-
-
-	//$form=new TFormCore($_SERVER['PHP_SELF'],'formeq'.$assetOf->getId(),'POST');
-
-	//Affichage des erreurs
-	if(!empty($assetOf->errors)){
-		?>
-		<br><div class="error">
-		<?php
-		foreach($assetOf->errors as $error){
-			echo $error."<br>";
-			setEventMessage($error,'errors');
-		}
-		$assetOf->errors = array();
-		?>
-		</div><br>
-		<?php
-
-
-	}
-
-	$form=new TFormCore();
-	$form->Set_typeaff($mode);
-
-	$doliform = new Form($db);
-
-	if(!empty($_REQUEST['fk_product'])) echo $form->hidden('fk_product', $_REQUEST['fk_product']);
-
-	$TBS=new TTemplateTBS();
-	$liste=new TListviewTBS('asset');
-
-	$TBS->TBS->protect=false;
-	$TBS->TBS->noerr=true;
-
-	$PDOdb = new TPDOdb;
-
-	$TNeeded = array();
-	$TToMake = array();
-
-	$TNeeded = _fiche_ligne($form, $assetOf, "NEEDED");
-	$TToMake = _fiche_ligne($form, $assetOf, "TO_MAKE");
-
-	$TIdCommandeFourn = $assetOf->getElementElement($PDOdb);
-
-	$HtmlCmdFourn = '';
-
-	if(count($TIdCommandeFourn)){
-		foreach($TIdCommandeFourn as $idcommandeFourn){
-			$cmd = new CommandeFournisseur($db);
-			$cmd->fetch($idcommandeFourn);
-
-			$HtmlCmdFourn .= $cmd->getNomUrl(1)." - ".$cmd->getLibStatut(0);
-		}
-	}
-
-	$select_product = '';
-	if (empty($_REQUEST['fk_product']))
-	{
-		ob_start();
-		$doliform->select_produits('','fk_product','',$conf->product->limit_size,0,-1,2,'',3,array(),0,1,0,'minwidth300');
-		$select_product = ob_get_clean();
-
-		?>
-		<script type="text/javascript">
-                $(document).on('keypress',function(e) {
-                       if ($('input:focus').length == 0 && $("#dialog").is(':visible')) {
-                            $('#fk_product').select2('open');
-                        }
-                });
-        </script>
-        <?php
-        if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
-        ?>
-
-            <script type="text/javascript">
-                $(document).ready(function(){
-
-                    let contentBtAdd = '<?php echo $langs->trans('BtAdd'); ?>';
-                    $('#fk_product').on("select2:select", function(e) {
-                        let select = $("select[name='fk_nomenclature'] option");
-                        if(select.length){//check if element exist
-                            if(select.length <= 1 ){ //s'il n'y a qu'une seule nomenclature ou moins on ajoute la ligne à la volée
-                                $("button:contains('"+contentBtAdd+"')").click();
-                            }
-                        }else {
-                             $("button:contains('"+contentBtAdd+"')").click();
-                        }
-                    });
-                });
-
-            </script>
-        <?php
-        }
-	}
-
-	$Tid = array();
-	//$Tid[] = $assetOf->rowid;
-	if($assetOf->getId()>0) $assetOf->getListeOFEnfants($PDOdb, $Tid);
-
-	$TWorkstation=array();
-	foreach($assetOf->TAssetWorkstationOF as $k => &$TAssetWorkstationOF) {
-		$ws = &$TAssetWorkstationOF->ws;
-
-		$TWorkstation[]=array(
-				'libelle'=>$ws->getNomUrl(1)
-				,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
-				,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
-				,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
-				,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) ). (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ))
-				,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : (($conf->global->ASSET_USE_CONVERT_TO_TIME ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real)) . (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ) )
-				,'nb_days_before_beginning'=>($assetOf->status!='CLOSE' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
-				,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
-				,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
-				,'rang'=>($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][rang]', $TAssetWorkstationOF->rang,3,10)  : $TAssetWorkstationOF->rang
-				,'id'=>$ws->getId()
-		);
-
-	}
-
-	$client=new Societe($db);
-	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
-
-	$commande=new Commande($db);
-	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
-
-	$select_commande = '';
-	$resOrder = $db->query("SELECT rowid, ref,fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
-	if($resOrder === false ) {
-		var_dump($db);exit;
-	}
-	$TIdCommande=array();
-	while($obj = $db->fetch_object($resOrder)) {
-		$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')':'');
-	}
-	if(!empty($TIdCommande)) {
-		$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
-	}
-
-	$TOFParent = array_merge(array(0=>'')  ,$assetOf->getCanBeParent($PDOdb));
-
-	$hasParent = false;
-	if (!empty($assetOf->fk_assetOf_parent))
-	{
-		$TAssetOFParent = new TAssetOF;
-		$TAssetOFParent->load($PDOdb, $assetOf->fk_assetOf_parent);
-		$hasParent = true;
-	}
-
-	$parameters = array('id'=>$assetOf->getId());
-	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
-
-	if($fk_product_to_add>0) {
-		$product_to_add = new Product($db);
-		$product_to_add->fetch($fk_product_to_add);
-
-		$link_product_to_add = $product_to_add->getNomUrl(1).' '.$product_to_add->label;
-		$quantity_to_create = $form->texte('', 'quantity_to_create', 1, 3, 255);
-	}
-	else{
-		$link_product_to_add = '';
-		$quantity_to_create = '';
-	}
-
-	$TTransOrdre = array_map(array($langs, 'trans'),  TAssetOf::$TOrdre);
-
-    $TTransStatus = array_map(array($langs, 'trans'), TAssetOf::$TStatus);
-
-    $order_amount = $commande->total_ht; //$o n'existait pas
-    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
-
-        $line_to_make = $assetOf->getLineProductToMake();
-
-        foreach($commande->lines as &$line) {
-
-            if($line->id == $line_to_make->fk_commandedet) {
-                $order_amount = $line->total_ht;
-                break;
-            }
-        }
-
-    }
-    $TCommandes=array();
-    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
-        $displayOrders = '';
-        $TLine_to_make = $assetOf->getLinesProductToMake();
-
-
-        foreach($TLine_to_make as $line){
-            if(!empty($line->fk_commandedet)){
-                $commande = new Commande($db);
-                $orderLine = new OrderLine($db);
-                $orderLine->fetch($line->fk_commandedet);
-                $commande->fetch($orderLine->fk_commande);
-                $TCommandes[$orderLine->fk_commande] = $commande;
-
-            }
-            elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
-
-        }
-    }
-    if(!empty($TCommandes)){
-        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
-    }
-    else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
-
-    // EDITION RAPIDE DU STATUT
-    $statusHtml = $TTransStatus[$assetOf->status];
-    if($quicksave=='status'){
-    	$formTypAff=$form->type_aff; // save
-    	$form->type_aff = 'edit'; // force mode
-    	$statusHtml = $form->combo('','status',$TTransStatus,$assetOf->status);
-    	$statusHtml.= '<input class="button" value="'.$langs->trans('Modify').'" type="submit">';
-    	$statusHtml.= '<a class="button" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'" >'.$langs->trans('Cancel').'</a>';
-    	$form->type_aff=$formTypAff; // restore
-    	$statusHtml.="<script>$(document).ready(function() { $('a.quickEditButton').hide();});</script>";
-    }
-    elseif($mode == 'view'){
-    	$textSetTo = ' <i class="fa fa-arrow-right"></i> ' . $langs->trans('SetStateTo').' : ';
-    	if($assetOf->status == 'DRAFT'){
-    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('ValidateManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'valider\'); }" class="butAction" name="valider" value="'.$langs->trans('Validate').'">';
-		}elseif($assetOf->status == 'VALID'){
-    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('StartManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'lancer\'); }" class="butAction" name="lancer" value="'.$langs->trans('ProductionInProgress').'">';
-		}elseif($assetOf->status == 'OPEN'){
-    		$statusHtml.= $textSetTo . '<input type="button" onclick="if (confirm(\''.$langs->transnoentities('FinishManufacturingOrder').'\')) { submitForm('.$assetOf->id.',\'terminer\'); }" class="butAction" name="terminer" value="'.$langs->trans('Finish').'">';
-		}
-    }
-
-	$tpl = 'tpl/fiche_of.tpl.php';
-	$TBlocks = array(
-		'TNeeded'=>$TNeeded
-		,'TTomake'=>$TToMake
-		,'workstation'=>$TWorkstation
-	);
-
-	$formProduct = new FormProduct($db);
-
-	$TFields = array(
-		'assetOf'=>array(
-				'id'=> $assetOf->getId()
-				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
-				,'ordre'=>$form->combo('','ordre',$TTransOrdre,$assetOf->ordre)
-				,'fk_commande'=>!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders))
-				//,'statut_commande'=> $commande->getLibStatut(0)
-				,'commande_fournisseur'=>$HtmlCmdFourn
-				,'date_besoin'=>$form->calendrier('','date_besoin',$assetOf->date_besoin,12,12)
-				,'date_lancement'=>$form->calendrier('','date_lancement',$assetOf->date_lancement,12,12).( $assetOf->date_lancement > $assetOf->date_besoin ? img_picto($langs->trans('NeededDateCantBeSatisfied'),'warning') : '' )
-				,'temps_estime_fabrication'=>price($assetOf->temps_estime_fabrication,0,'',1,-1,2)
-				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
-
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client IN (1,3)',1) : (($client->id) ? $client->getNomUrl(1) : '')
-				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
-
-				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
-
-				,'quantity_to_create'=>$quantity_to_create
-				,'product_to_create'=>$link_product_to_add
-
-				,'status'=>$statusHtml
-				,'statustxt'=>$TTransStatus[$assetOf->status]
-				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
-				,'url' => dol_buildpath('/of/fiche_of.php', 1)
-				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 1) : dol_buildpath('/of/liste_of.php', 1)
-				,'fk_product_to_add'=>$fk_product_to_add
-				,'fk_nomenclature'=>$fk_nomenclature
-				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
-				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
-
-				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
-				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
-				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
-				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
-				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
-				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
-				,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
-				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
-				,'date_end'=>$assetOf->get_date('date_end')
-				,'date_start'=>$assetOf->get_date('date_start')
-				,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
-		)
-		,'view'=>array(
-			'mode'=>$mode
-			,'action' => !empty($quicksave)?'quick-save':(GETPOST('action') == 'new') ? 'new' : 'save'
-			,'status'=>$assetOf->status
-			,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
-			,'ASSET_USE_MOD_NOMENCLATURE'=>(int) $conf->nomenclature->enabled
-			,'OF_MINIMAL_VIEW_CHILD_OF'=>(int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF
-			,'select_product'=>$select_product
-			,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TWorkstation::getWorstations($PDOdb), -1)
-			,'select_warehouses' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $formProduct->selectWarehouses('', 'select_allneeded_fk_warehouse', '', 1, 0, '') : ''
-			,'select_warehouse_help' =>  !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && ($assetOf->status == 'DRAFT' || $assetOf->status == 'VALID' || $assetOf->status == 'NEEDOFFER' || $assetOf->status == 'ONORDER' || $assetOf->status == 'OPEN') && $form->type_aff == 'edit' ? $doliform->textwithpicto('', $langs->transnoentities('ModifyAllWarehouses'), 1, 'help', '') : ''
-			//,'select_workstation'=>$form->combo('', 'fk_asset_workstation', TAssetWorkstation::getWorstations($PDOdb), -1) <= assetworkstation
-			,'actionChild'=>($mode == 'edit')?__get('actionChild','edit'):__get('actionChild','view')
-			,'use_lot_in_of'=>(int)(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_LOT_IN_OF))
-			,'use_project_task'=>(int) $conf->global->ASSET_USE_PROJECT_TASK
-			,'defined_user_by_workstation'=>(int) $conf->global->ASSET_DEFINED_USER_BY_WORKSTATION
-			,'defined_task_by_workstation'=>(int) $conf->global->ASSET_DEFINED_OPERATION_BY_WORKSTATION
-			,'defined_workstation_by_needed'=>(int) $conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED
-			,'defined_manual_wharehouse'=>(int) $conf->global->ASSET_MANUAL_WAREHOUSE
-			,'defined_show_categorie'=>(int) $conf->global->OF_DISPLAY_PRODUCT_CATEGORIES
-			,'hasChildren' => (int) !empty($Tid)
-			,'user_id'=>$user->id
-			,'workstation_module_activate'=>(int) $conf->workstationatm->enabled
-			,'show_cost'=>(int)$user->rights->of->of->price
-			,'langs'=>$langs
-			,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
-			,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
-			,'link_update_qty_used'=> ($assetOf->status=='OPEN' || $assetOf->status == 'CLOSE') ? img_picto($langs->transnoentities('OfTransfertQtyPlannedIntoUsed'), 'rightarrow.png', 'onclick="updateQtyUsed(this)" class="classfortooltip"') : ''
-		)
-		,'stocktransfer'=>array(
-			'enable' => (int)(!empty($conf->stocktransfer->enabled))
-			,'url'=>dol_buildpath('/stocktransfer/stocktransfer_card.php', 1)
-		)
-		,'rights'=>array(
-			'show_ws_time'=>$user->rights->of->of->show_ws_time
-		)
-		,'conf'=>$conf
-	);
-
-	// Change view from hooks
-	$parameters=array(  'tpl' => &$tpl, 'TBlocks' => &$TBlocks, 'TFields' => &$TFields, 'renderer' => &$TBS);
-	$reshook=$hookmanager->executeHooks('TBSConfig',$parameters,$assetOf);    // Note that $action and $object may have been modified by hook
-	if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
-
-	print $TBS->render($tpl, $TBlocks, $TFields);
-//var_dump($tpl, $TBlocks, $TFields);
-	if ($mode == 'view')
-    {
-        $assetOf->thirdparty = $client;
-
-        require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-        $formfile = new FormFile($db);
-
-        $usercanread = $user->rights->of->of->lire;
-        $usercancreate = $user->rights->of->read; // voir le descripteur du module pour comprendre U_u
-
-        print '<div class="fichecenter"><div class="fichehalfleft">';
-		print '<a name="builddoc"></a>'; // ancre
-		/*
-		 * Documents generes
-		 */
-
-		 // Documents
-		$objref = dol_sanitizeFileName($assetOf->ref);
-		$relativepath = $objref . '/' . $objref . '.pdf';
-		$filedir = $conf->of->multidir_output[$assetOf->entity]  . '/' . $objref;
-		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $assetOf->id;
-		$genallowed = $usercanread;	// If you can read, you can build the PDF to read content
-		$delallowed = $usercancreate;	// If you can create/edit, you can remove a file on card
-		print $formfile->showdocuments('of:of', $objref, $filedir, $urlsource, $genallowed, $delallowed, $assetOf->modelpdf, 1, 0, 0, 28, 0, '', '', '', $client->default_lang, '', $assetOf);
-
-// TODO uncomment to show linked objects
-//		// Show links to link elements
-//		$linktoelem = $doliform->showLinkToObjectBlock($assetOf, null, array('propal'));
-//
-//		$compatibleImportElementsList = false;
-//		if($user->rights->propal->creer && $assetOf->statut == Propal::STATUS_DRAFT)
-//		{
-//		    $compatibleImportElementsList = array('commande','propal'); // import from linked elements
-//		}
-//		$somethingshown = $doliform->showLinkedObjectBlock($assetOf, $linktoelem, $compatibleImportElementsList);
-//
-//		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
-
-// TODO uncomment to show ActionComm linked
-//		// List of actions on element
-//		include_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
-//		$formactions = new FormActions($db);
-//		$somethingshown = $formactions->showactions($assetOf, 'propal', $assetOf->fk_soc, 1);
-
-		print '</div></div></div>';
-    }
-
-	print '
-		<div style="clear:both;"></div>
-        <br />
-        <div id="assetChildContener"  '.(!empty($Tid) ? 'style="display:none"' : '').'>
-			<h2 id="titleOFEnfants">'.$langs->transnoentities('OFChild').'</h2>
-		</div>
-    ';
-
-	echo $form->end_form();
-
-
-	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
-	}
 }
 
 function calc_mini_tu1($FieldName,&$CurrVal,&$CurrPrm,&$TBS)

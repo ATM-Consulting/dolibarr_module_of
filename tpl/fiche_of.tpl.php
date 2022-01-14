@@ -18,79 +18,7 @@
 				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">
 				<input type="hidden" value="[assetOf.id]" name="id">
 
-			<table width="100%" class="border">
 
-				<tr><td width="20%">[view.langs.transnoentities(NumberOf)]</td><td>[assetOf.numero;strconv=no]</td></tr>
-				<tr rel="ordre">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Ordre)]</td>
-					<td class="editableField">[assetOf.ordre;strconv=no;protect=no]</td>
-				</tr>
-				[onshow;block=begin;when [assetOf.id]=0]
-				<tr><td>[view.langs.transnoentities(ProductToProduce)]</td><td>[assetOf.product_to_create;strconv=no;protect=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(QtyToMake)]</td><td>[assetOf.quantity_to_create;strconv=no;protect=no]</td></tr>
-				[onshow;block=end]
-				<tr><td>[view.langs.transnoentities(ParentOF)]</td><td>[assetOf.link_assetOf_parent;strconv=no;protect=no;magnet=tr]</td></tr>
-				<tr rel="fk_commande">
-                    [onshow;block=begin;when [conf.global.OF_MANAGE_ORDER_LINK_BY_LINE;noerr]!=1]
-					    <td>[view.editField;strconv=no][view.langs.transnoentities(Order)]</td>
-                    [onshow;block=end]
-                    [onshow;block=begin;when [conf.global.OF_MANAGE_ORDER_LINK_BY_LINE;noerr]==1]
-                    <td>[view.langs.transnoentities(Order)]</td>
-                    [onshow;block=end]
-					<td class="editableField">[assetOf.fk_commande;strconv=no;magnet=tr]</td>
-				</tr>
-				<tr><td>[view.langs.transnoentities(SupplierOrder)]</td><td>[assetOf.commande_fournisseur;strconv=no;magnet=tr]</td></tr>
-				<tr rel="fk_soc">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Customer)]</td>
-					<td class="editableField">[assetOf.fk_soc;strconv=no;protect=no]</td>
-				</tr>
-				<tr rel="fk_project">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Project)]</td>
-					<td class="editableField">[assetOf.fk_project;strconv=no;protect=no]</td>
-				</tr>
-				<tr rel="date_besoin">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(DateNeeded)]</td>
-					<td class="editableField">[assetOf.date_besoin;strconv=no]</td>
-				</tr>
-				<tr rel="date_lancement">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(DateLaunch)]</td>
-					<td class="editableField">[assetOf.date_lancement;strconv=no]</td>
-				</tr>
-				<tr rel="date_start">
-					<td>[view.langs.transnoentities(DateStart)]</td>
-					<td class="editableField">[assetOf.date_start;strconv=no]</td>
-				</tr>
-				<tr rel="date_end">
-					<td>[view.langs.transnoentities(DateEnd)]</td>
-					<td class="editableField">[assetOf.date_end;strconv=no]</td>
-				</tr>
-				[onshow;block=begin;when [rights.show_ws_time]==1]
-					<tr><td>[view.langs.transnoentities(EstimatedMakeTime)]</td><td>[assetOf.temps_estime_fabrication;strconv=no] heure(s)</td></tr>
-				[onshow;block=end]
-				<tr><td>[view.langs.transnoentities(RealMakeTime)]</td><td>[assetOf.temps_reel_fabrication;strconv=no] heure(s)</td></tr>
-				[onshow;block=begin;when [view.show_cost]=='1']
-				<tr><td>[view.langs.transnoentities(EstimatedProducCost)]</td><td>[assetOf.total_estimated_cost;strconv=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(RealProducCost)]</td><td>[assetOf.total_cost;strconv=no]</td></tr>
-				<tr><td>[view.langs.transnoentities(FinalProducCost)]</td><td>[assetOf.current_cost_for_to_make;strconv=no]</td></tr>
-
-
-				[onshow;block=end]
-				<tr rel="status">
-					<td>[view.langs.transnoentities(Status)][view.editFieldStatus;strconv=no]</td>
-					<td>[assetOf.status;strconv=no]</td>
-				</tr>
-
-				<tr rel="note">
-					<td>[view.editField;strconv=no][view.langs.transnoentities(Comments)]</td>
-					<td class="editableField">[assetOf.note;strconv=no]</td>
-				</tr>
-                [onshow;block=begin;when [conf.global.OF_RANK_PRIOR_BY_LAUNCHING_DATE;noerr]==1]
-                    <tr rel="rank">
-                        <td>[view.editField;strconv=no][view.langs.transnoentities(Rank)]</td>
-                        <td class="editableField">[assetOf.rank;strconv=no]</td>
-                    </tr>
-                [onshow;block=end]
-			</table>
 
 			<div class="of-details" style="margin-top: 25px;">
 				<table width="100%" class="border" style="border:2px solid #b2ea97;">
