@@ -1225,84 +1225,87 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
         $assetOf->fk_soc = GETPOST('socid', 'int');
         $assetOf->save($PDOdb);
     }
+    elseif ($action == 'updateorder' && $usercancreate) {
+        // Set order
+        $assetOf->fk_commande = GETPOST('orderid', 'int');
+        $assetOf->save($PDOdb);
+    }
     elseif ($action == 'classin' && $usercancreate) {
         // Set project
         $assetOf->fk_project = GETPOST('projectid', 'int');
         $assetOf->save($PDOdb);
     }
+    elseif ($action == 'ordre' && $usercancreate) {
+        // Set project
+        $assetOf->ordre = GETPOST('ordre', 'alphanohtml');
+        $assetOf->save($PDOdb);
+    }
 
-    $doliform = new Form($db);
     $form = new Form($db);
     $formother = new FormOther($db);
     $formfile = new FormFile($db);
     $formproject = new FormProjets($db);
     $formcore = new TFormCore();
     $companystatic = new Societe($db);
-    $companystatic->fetch($assetOf->fk_soc);
+    $commandestatic = new Commande($db);
 
-    $client=new Societe($db);
-	if($assetOf->fk_soc>0) $client->fetch($assetOf->fk_soc);
-
-	$commande=new Commande($db);
-	if($assetOf->fk_commande>0) $commande->fetch($assetOf->fk_commande);
+    if($assetOf->fk_soc > 0) $companystatic->fetch($assetOf->fk_soc);
+	if($assetOf->fk_commande > 0) $commandestatic->fetch($assetOf->fk_commande);
 
 	$select_commande = '';
-	$resOrder = $db->query("SELECT rowid, ref,fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
-	if($resOrder === false ) {
+	$resOrder = $db->query("SELECT rowid, ref, fk_statut FROM ".MAIN_DB_PREFIX."commande WHERE fk_statut IN (0,1,2,3) ORDER BY ref");
+	if($resOrder === false) {
 		var_dump($db);exit;
 	}
-	$TIdCommande=array();
+
+	$TIdCommande = array();
 	while($obj = $db->fetch_object($resOrder)) {
-		$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')':'');
+		$TIdCommande[$obj->rowid] = $obj->ref.($obj->fk_statut == 0 ? ' ('.$langs->trans('Draft').')' : '');
 	}
 	if(!empty($TIdCommande)) {
-		$select_commande = $doliform->selectarray('fk_commande',$TIdCommande,$assetOf->fk_commande, 1);
+		$select_commande = Form::selectarray('orderid', $TIdCommande, $assetOf->fk_commande, 1);
 	}
 
-    $order_amount = $commande->total_ht; //$o n'existait pas
+    $order_amount = '';
     if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
-
         $line_to_make = $assetOf->getLineProductToMake();
 
-        foreach($commande->lines as &$line) {
-
+        foreach($companystatic->lines as &$line) {
             if($line->id == $line_to_make->fk_commandedet) {
                 $order_amount = $line->total_ht;
                 break;
             }
         }
-
     }
-    $TCommandes=array();
-    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)){
-        $displayOrders = '';
-        $TLine_to_make = $assetOf->getLinesProductToMake();
 
+    $TCommandes = array();
+    $displayOrders = '';
+
+    if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+        $TLine_to_make = $assetOf->getLinesProductToMake();
 
         foreach($TLine_to_make as $line){
             if(!empty($line->fk_commandedet)){
-                $commande = new Commande($db);
                 $orderLine = new OrderLine($db);
                 $orderLine->fetch($line->fk_commandedet);
-                $commande->fetch($orderLine->fk_commande);
-                $TCommandes[$orderLine->fk_commande] = $commande;
+                $commandestatic->fetch($orderLine->fk_commande);
+                $TCommandes[$orderLine->fk_commande] = $commandestatic;
 
             }
-            elseif(empty($displayOrders))$displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
-
+            elseif(empty($displayOrders)) $displayOrders = $commandestatic->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
         }
     }
-    if(!empty($TCommandes)){
-        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commande->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
-    }
-    else $displayOrders = $commande->getNomUrl(1). ' : '.price($order_amount,0,$langs,1,-1,-1,$conf->currency);
 
-	if($assetOf->entity != $conf->entity) {
-	    accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
-	}
+    if (!empty($TCommandes)) {
+        foreach($TCommandes as $commande) $displayOrders .= '<div>'.$commandestatic->getNomUrl(1). ' : '.price($commande->total_ht,0,$langs,1,-1,-1,$conf->currency).'</div>';
+    }
+    else {
+        $displayOrders = $commandestatic->getNomUrl(1). ' : '.price($order_amount, 0, $langs, 1, -1, -1, $conf->currency);
+    }
+
+	if($assetOf->entity != $conf->entity) accessforbidden($langs->trans('ErrorOFFromAnotherEntity'));
 
 	llxHeader('',$langs->trans('OFAsset'),'','');
-
     $head = ofPrepareHead( $assetOf);
 
     dol_fiche_head($head, 'fiche', $langs->trans("OFAsset"), -1, 'of@of');
@@ -1345,7 +1348,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	if (!empty($conf->order->enabled))
 	{
 		$langs->load("orders");
-		$morehtmlref .= '<br>'.$langs->trans('Order').' ';
+		$morehtmlref .= '<br>'.$langs->trans('Order') . ' ';
 		if ($usercancreate)
 		{
 			if ($action != 'setorder')
@@ -1354,18 +1357,16 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				$morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'">';
 				$morehtmlref .= '<input type="hidden" name="action" value="updateorder">';
 				$morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
-				$morehtmlref .= !empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE) ? (($assetOf->fk_commande==0) ? '' : $displayOrders) : (($mode=='edit') ? $select_commande : (($assetOf->fk_commande==0) ? '' : $displayOrders));
+				$morehtmlref .= $select_commande;
 				$morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
 				$morehtmlref .= '</form>';
 			} else {
-				$morehtmlref .= $form->form_project($_SERVER['PHP_SELF'].'?id='.$assetOf->id, $companystatic->id, $assetOf->fk_project, 'none', 0, 0, 0, 1);
+				$morehtmlref .= (! empty($displayOrders) ? $displayOrders : '');
 			}
 		} else {
-			if (!empty($assetOf->fk_project)) {
-				$proj = new Project($db);
-				$proj->fetch($assetOf->fk_project);
-				$morehtmlref .= '<a href="'.DOL_URL_ROOT.'/projet/card.php?id='.$assetOf->fk_project.'" title="'.$langs->trans('ShowProject').'">';
-				$morehtmlref .= $proj->ref;
+			if (!empty($assetOf->fk_commande)) {
+				$morehtmlref .= '<a href="'.DOL_URL_ROOT.'/commande/card.php?id='.$assetOf->fk_commande.'" title="'.$langs->trans('ShowOrder').'">';
+				$morehtmlref .= $commandestatic->ref;
 				$morehtmlref .= '</a>';
 			} else {
 				$morehtmlref .= '';
@@ -1422,7 +1423,28 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
     // Ordre TODO faire fonctionner
 	print '<tr>';
-    print '<td class="titlefield">'.$form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, 'datepicker');
+    if ($usercancreate)
+    {
+        if ($action != 'setrank')
+            $morehtmlref .= '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?action=setrank&amp;id='.$assetOf->id.'">'.img_edit($langs->transnoentitiesnoconv('SetProject')).'</a> : ';
+        if ($action == 'setrank') {
+            $morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->id.'">';
+            $morehtmlref .= '<input type="hidden" name="action" value="updaterank">';
+            $morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
+            $morehtmlref .= $form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, '');
+            $morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+            $morehtmlref .= '</form>';
+        } else {
+            $morehtmlref .= $form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, '');
+        }
+    } else {
+        if (!empty($assetOf->fk_project)) {
+            $morehtmlref .= $form->editfieldkey($langs->trans('Ordre'), 'ordre', $assetOf->ordre, $assetOf, $usercancreate, '');
+            $morehtmlref .= '</a>';
+        } else {
+            $morehtmlref .= '';
+        }
+    }
 	print '</td>';
 	print '</tr>';
 
