@@ -286,7 +286,7 @@ class TAssetOF extends TObjetStd{
 	{
 		foreach ($this->TAssetOFLine as &$ofLine)
 		{
-			if (empty($ofLine->fk_entrepot))
+			if (empty($ofLine->fk_entrepot) || $ofLine->fk_entrepot < 0)
 			{
 				return false;
 			}
