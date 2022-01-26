@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## UNRELEASED
 
 ## Version 2.13
+- FIX : conf to not update pmp *26/01/2022* - 2.13.2
 - FIX : The click on the gear with a ToMake qty of zero now decreases the quantities of the needed products *05/01/2022* - 2.13.1
 - NEW : Configuration permettant de tenir compte des ofs brouillon dans le stock théorique + quelques fix liés au stock théorique *17/12/2021* - 2.13.0
 
