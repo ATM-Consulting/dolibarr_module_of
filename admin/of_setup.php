@@ -591,6 +591,7 @@ print '</td></tr>';
 
 setup_print_on_off('OF_SHOW_ORDER_DOCUMENTS');
 setup_print_on_off('OF_SHOW_PRODUCT_DOCUMENTS');
+setup_print_on_off('OF_DONT_UPDATE_PMP_ON_CLOSE');
 
 print "</table>";
 

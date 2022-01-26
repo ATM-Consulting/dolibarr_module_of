@@ -704,7 +704,7 @@ class TAssetOF extends TObjetStd{
 		$mouvS = new MouvementStock($db);
 
 		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
-
+		if(!empty($conf->global->OF_DONT_UPDATE_PMP_ON_CLOSE)) $price = 0;
 		if($fk_entrepot > 0 && !empty($qty))
 		{
 				if($qty > 0) {

@@ -439,3 +439,4 @@ WarehouseTargetEmpty = Entrepôt de destination vide
 empty=aucun
 ModifyAllWarehouses=Modifier tous les entrepôts des composants
 VirtualStockOf=Quantité de produit qui vont prochainement être consommés dans les Ordres de fabrications : %s <br> Quantité de produit qui vont prochainement être produits dans les Ordres de fabrications : %s
+OF_DONT_UPDATE_PMP_ON_CLOSE=Ne pas mettre à jour les PMPs à la cloture d'un OF
