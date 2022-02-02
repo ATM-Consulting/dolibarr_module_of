@@ -3516,11 +3516,16 @@ class TAssetOFLine extends TObjetStd{
 					$nd->fk_product = $this->fk_product;
 					$PDOdb=new TPDOdb();
 					if(!empty($conf->global->NOMENCLATURE_COST_TYPE) && $conf->global->NOMENCLATURE_COST_TYPE == 'pmp'){
-			        		//sélectionne le pmp si renseigné
-			        		$this->pmp = $nd->getPMPPrice();
-			        		if(empty($this->pmp)) $this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
-			    		}else {
-						$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true, true);
+						//sélectionne le pmp si renseigné
+						$this->pmp = $nd->getPMPPrice();
+						if(empty($this->pmp)) $this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true,true,false,true);
+					} elseif(!empty($conf->global->NOMENCLATURE_COST_TYPE) && $conf->global->NOMENCLATURE_COST_TYPE == 'costprice') {
+						// sélectionne le prix de revient sur la fiche produit si renseigné, sinon sélectionne le PMP si renseigné, sinon sélectionne le meilleur prix fournisseur
+						$this->pmp = $nd->getCostPrice();
+						if(empty($this->pmp)) $this->pmp = $nd->getPMPPrice();
+						if(empty($this->pmp)) $this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true,true,false,true);
+					} else {
+						$this->pmp = $nd->getSupplierPrice($PDOdb, $this->qty>0 ? $this->qty : 1, true,true,false,true);
 					}
 				}
 				else {
