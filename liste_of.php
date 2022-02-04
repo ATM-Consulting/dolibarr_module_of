@@ -769,7 +769,7 @@ if ($resql)
         }
 
         // Extra fields
-        include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
+//        include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
         // Fields from hook
         $parameters = ['arrayfields' => $arrayfields, 'obj' => $obj];
         $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters);    // Note that $action and $object may have been modified by hook
