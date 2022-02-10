@@ -148,7 +148,7 @@
 									[onshow;block=end]
 										[TTomake.extrafields;strconv=no]
 									</td>
-									<td valign="top">[TTomake.qty;strconv=no]</td>
+									<td valign="top" id="qty">[TTomake.qty;strconv=no]</td>
 									<td valign="top">[TTomake.qty_used;strconv=no]</td>
 									<td width="30%" valign="top">[TTomake.fk_product_fournisseur_price;strconv=no]</td>
                                     [onshow;block=begin;when [conf.global.OF_MANAGE_NON_COMPLIANT;noerr]==1]
@@ -864,10 +864,10 @@
 
 			[onshow;block=begin;when [view.mode]!='view']
 
-				if ($(btnadd).attr('statut') == 'DRAFT' || $(btnadd).attr('statut') == 'OPEN') {
-					qty = $(btnadd).closest('tr').find("input[id*='[qty]']").val();
-					qty_used = $(btnadd).closest('tr').find("input[id*='[qty_used]']").val();
-					qty_non_compliant = $(btnadd).closest('tr').find("input[id*='[qty_non_compliant]']").val();
+            if ($(btnadd).attr('statut') == 'DRAFT' || $(btnadd).attr('statut') == 'OPEN') {
+                qty = $(btnadd).closest('tr').find("input[id*='[qty]']").val();
+                qty_used = $(btnadd).closest('tr').find("input[id*='[qty_used]']").val();
+                qty_non_compliant = $(btnadd).closest('tr').find("input[id*='[qty_non_compliant]']").val();
 
 					if ($(btnadd).attr('statut') == 'DRAFT') {
 						action = 'updateqty';
