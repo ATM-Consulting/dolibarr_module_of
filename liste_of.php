@@ -768,8 +768,12 @@ if ($resql)
             if(! $i) $totalarray['nbfield']++;
         }
 
-        // Extra fields
-        include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
+        //Le fichier n'existe pas avant la version 13
+        if(floatval(DOL_VERSION) > 12){
+			// Extra fields
+			include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
+        }
+
         // Fields from hook
         $parameters = ['arrayfields' => $arrayfields, 'obj' => $obj];
         $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters);    // Note that $action and $object may have been modified by hook
