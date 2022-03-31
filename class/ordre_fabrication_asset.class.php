@@ -361,7 +361,7 @@ class TAssetOF extends TObjetStd{
                             $qty_used += $assetOFLine->qty_used;
                             $qty_non_compliant += $assetOFLine->qty_non_compliant;
                         }
-                        if(! empty($qty) || $force_empty) $assetOFLine->qty = $qty;
+                        if(! empty($qty) || ($force_empty && $this->status == 'DRAFT')) $assetOFLine->qty = $qty;
                         if(! empty($qty_used) || $force_empty) $assetOFLine->qty_used = $qty_used;
                         if(! empty($qty_non_compliant) || $force_empty) $assetOFLine->qty_non_compliant = $qty_non_compliant;
                         $assetOFLine->saveQty($PDOdb);
@@ -379,7 +379,8 @@ class TAssetOF extends TObjetStd{
 
                                 $neededLine->qty += $assetOFLine->qty * $nomenDet->qty;
                                 $neededLine->qty_needed += $assetOFLine->qty * $nomenDet->qty;
-                                $neededLine->qty_used += ($assetOFLine->qty_used + $assetOFLine->qty_non_compliant) * $nomenDet->qty;
+                               	if ($this->status == 'DRAFT') $neededLine->qty_used += $assetOFLine->qty * $nomenDet->qty;
+								else $neededLine->qty_used += ($assetOFLine->qty_used + $assetOFLine->qty_non_compliant) * $nomenDet->qty;
 
                                 $neededLine->saveQty($PDOdb);
 

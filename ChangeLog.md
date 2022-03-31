@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## UNRELEASED
 
 ## Version 2.13
+- FIX : Lors de la mise à jour des quantités via l'engrenage, la quantité était constamment remise à 0 (oui oui je fix la même chose qu'en dessous) *31/03/2022* - 2.13.5
 - FIX : Lors de la mise à jour des quantités via l'engrenage, la quantités était constamment remise à 0 *10/02/2022* - 2.13.4
 - FIX : Ajout du traitement de la conf "Prix d'achat/revient suggéré par défaut" du module Nomenclature *04/02/2022* - 2.13.3
 - FIX : conf to not update pmp *26/01/2022* - 2.13.2
