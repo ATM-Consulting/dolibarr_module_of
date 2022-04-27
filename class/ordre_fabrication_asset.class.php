@@ -1643,6 +1643,10 @@ class TAssetOF extends TObjetStd{
 
 		}
 
+		if(!empty($conf->global->OF_FORCE_SET_FOURNITURE_COST_PMP_ON_CLOSE)){
+			$this->set_fourniture_cost(true);
+		}
+
         return true;
 	}
 
