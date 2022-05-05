@@ -829,7 +829,7 @@ class TAssetOF extends TObjetStd{
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
 			else $stock =$product->stock_reel;
 		}
-		
+
 		// MAIN_MAX_DECIMALS_STOCK
 		return price2num($stock, 'MS');
 	}
@@ -1057,6 +1057,10 @@ class TAssetOF extends TObjetStd{
 			$of->load($PDOdb, $id_of);
 			$of->date_end = time();
 
+			if(!empty($conf->global->OF_FORCE_SET_FOURNITURE_COST_PMP_ON_CLOSE)){
+				$of->set_fourniture_cost(true);
+			}
+
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
 
@@ -1077,7 +1081,7 @@ class TAssetOF extends TObjetStd{
 
 			$of->set_current_cost_for_to_make(true);
 
-		    $of->status = 'CLOSE';
+			$of->status = 'CLOSE';
 
 		    if (empty($conf->global->OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER) && !$of->checkCommandeFournisseur($PDOdb))
 	        {
@@ -1944,7 +1948,7 @@ class TAssetOFLine extends TObjetStd{
 
             }
             else{
-				
+
 				$nb_asset = count($TAsset); $i=0;
                 foreach($TAsset as $asset)
                 {
@@ -1952,7 +1956,7 @@ class TAssetOFLine extends TObjetStd{
 					if($mouvement == 'destockage')  {
 						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
 							$qty_asset_to_stock=$asset->contenancereel_value;
-							
+
 							if($i+1 == $nb_asset) {
 								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
 							}
@@ -1965,7 +1969,7 @@ class TAssetOFLine extends TObjetStd{
 						}
 					}
 					else {
-						
+
 						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
 							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
 							if($i+1 == $nb_asset) {
@@ -1975,9 +1979,9 @@ class TAssetOFLine extends TObjetStd{
 						else {
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
-						
-					}	
-					
+
+					}
+
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
 					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
@@ -1986,11 +1990,11 @@ class TAssetOFLine extends TObjetStd{
 							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
 					$qty_to_stock_rest-= $qty_asset_to_stock;
-					
+
 					$i++;
 
 					if($qty_to_stock_rest<=0)break;
-					
+
 
                 }
 
@@ -2007,9 +2011,9 @@ class TAssetOFLine extends TObjetStd{
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
-		
+
 		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
-		
+
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
@@ -2312,7 +2316,7 @@ class TAssetOFLine extends TObjetStd{
 			{
 				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
 			}
-			
+
             $contenance_max = $assetType->contenance_value;
             $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
