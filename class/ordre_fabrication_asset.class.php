@@ -1584,6 +1584,10 @@ class TAssetOF extends TObjetStd{
 			$of->load($PDOdb, $id_of);
 			$of->date_end = time();
 
+			if(!empty($conf->global->OF_FORCE_SET_FOURNITURE_COST_PMP_ON_CLOSE)){
+				$of->set_fourniture_cost(true);
+			}
+
 			// On passe pas un of en prod s'il l'est déjà ou s'il n'est pas au statut validé
 			if($of->rowid <= 0 || $of->status != 'OPEN') continue;
 
@@ -1604,7 +1608,7 @@ class TAssetOF extends TObjetStd{
 
 			$of->set_current_cost_for_to_make(true);
 
-		    $of->status = 'CLOSE';
+			$of->status = 'CLOSE';
 
 		    if (empty($conf->global->OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER) && !$of->checkCommandeFournisseur($PDOdb))
 	        {
