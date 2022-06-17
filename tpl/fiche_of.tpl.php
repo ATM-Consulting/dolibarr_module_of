@@ -16,6 +16,7 @@
 				<input type="hidden" value="[view.action]" name="action">
 				<input type="hidden" name="fk_product_to_add" value="[assetOf.fk_product_to_add]">
 				<input type="hidden" name="fk_nomenclature" value="[assetOf.fk_nomenclature]">
+				<input type="hidden" name="token" value="[assetOf.token]">
 				<input type="hidden" value="[assetOf.id]" name="id">
 
 			<table width="100%" class="border">
@@ -378,23 +379,23 @@
 			[onshow;block=begin;when [view.mode]=='view']
 				<div class="tabsAction notinparentview buttonsAction">
 					[onshow;block=begin;when [view.show_cost]=='1']
-						<a onclick="if(!confirm('[view.langs.transnoentities(ReloadPriceFourn)]')) return false;" class="butActionDelete warning" href="[assetOf.url]?id=[assetOf.id]&action=reload_pmp">[view.langs.transnoentities(ReloadPrice)]</a>
+						<a onclick="if(!confirm('[view.langs.transnoentities(ReloadPriceFourn)]')) return false;" class="butActionDelete warning" href="[assetOf.url]?id=[assetOf.id]&action=reload_pmp&token=[assetOf.token]">[view.langs.transnoentities(ReloadPrice)]</a>
 					[onshow;block=end]
 					[onshow;block=begin;when [stocktransfer.enable]==1]
-					&nbsp; &nbsp; <a href="[stocktransfer.url]?action=create&id_of=[assetOf.id]" class="butAction">[view.langs.transnoentities(StockTransfer)]</a>
+					&nbsp; &nbsp; <a href="[stocktransfer.url]?action=create&id_of=[assetOf.id]&token=[assetOf.token]" class="butAction">[view.langs.transnoentities(StockTransfer)]</a>
 					[onshow;block=end]
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
 							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[view.langs.transnoentities(Delete)]</a>
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]!='CLOSE']
-							<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
+							<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete&token=[assetOf.token]">[view.langs.transnoentities(Delete)]</a>
 						[onshow;block=end]
 					[onshow;block=end]
 					[onshow;block=begin;when [view.allow_delete_of_finish]=='1']
-						<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[view.langs.transnoentities(Delete)]</a>
+						<a onclick="if(!confirm('[view.langs.transnoentities(DeleteOF)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete&token=[assetOf.token]">[view.langs.transnoentities(Delete)]</a>
 					[onshow;block=end]
-					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">[view.langs.transnoentities(Modify)]</a>
+					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit&token=[assetOf.token]" class="butAction">[view.langs.transnoentities(Modify)]</a>
 
 				</div>
 			[onshow;block=end]
