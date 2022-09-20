@@ -8,7 +8,7 @@
 	[onshow;block=end]
 
 	.ui-autocomplete {
-		z-index:999;
+		z-index:1003;
 	}
 </style>
 	<div class="OFMaster" assetOf_id="[assetOf.id]" fk_assetOf_parent="[assetOf.fk_assetOf_parent]">
