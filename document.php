@@ -207,7 +207,7 @@ if($object->id) {
                     0,
                     '',
                     0,
-                    $langs->trans('ProductLinkedFiles', $product->getNomUrl(0)).' '.$product->label.' '.$product->description,
+                    $langs->transnoentities('ProductLinkedFiles', $product->getNomUrl(1)).' '.(!empty($conf->global->OF_PRINT_LABEL_AND_DESC_PRODUCT_ON_LINKED_OBJECT_FILES) ? $product->label.' '.$product->description : ''),
                     '',
                     0,
                     0,
