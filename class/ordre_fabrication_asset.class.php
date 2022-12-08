@@ -3732,58 +3732,6 @@ class TAssetOFLine extends TObjetStd{
 			$this->errors[] = $interface->errors;
 		}
 
-		//si lors de l'enregistrement, il y a des non conformes, on ajoute les postes de travail et on crée les taches si conf activé.
-        if(!empty($conf->global->OF_WORKSTATION_NON_COMPLIANT) && !empty($this->qty_non_compliant) && !empty($this->fk_assetOf)) { //Pour chaque of non conforme
-
-            $Of = new TAssetOF;
-            $Of->load($PDOdb, $this->fk_assetOf);
-            if($Of->status == 'OPEN' || $Of->status == 'CLOSE') {
-                $TFKWorkstationToAdd = explode(',', $conf->global->OF_WORKSTATION_NON_COMPLIANT);
-
-                foreach($TFKWorkstationToAdd as $key => $fk_workstation) {
-                    foreach($Of->TAssetWorkstationOF as $TAssetWorkstationOF) { //Pour éviter de créer des workstation en double
-                        if($fk_workstation == $TAssetWorkstationOF->fk_asset_workstation) unset($TFKWorkstationToAdd[$key]);
-                    }
-                }
-                foreach($TFKWorkstationToAdd as $fk_workstation) {
-                    $Of->addofworkstation($PDOdb, $fk_workstation, 0, 0, 0, 0, '', 0);
-
-                    if(!empty($conf->global->ASSET_USE_PROJECT_TASK)) {
-                        require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
-                        require_once DOL_DOCUMENT_ROOT . '/core/modules/project/task/' . $conf->global->PROJECT_TASK_ADDON . '.php';
-
-                        $lastInsert = count($Of->TAssetWorkstationOF);
-                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_assetOf = $this->fk_assetOf;
-                        $action = '';
-
-                        if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)){
-                            $taskstatic = new Task($db);
-                            $TTask = $taskstatic->getTasksArray(null, null, $Of->fk_project);
-
-                            if(!empty($TTask)) {
-                                foreach($TTask as $task) {
-                                    $task->fetch_optionals();
-                                    if(!empty($task->array_options['options_fk_workstation']) && $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_asset_workstation == $task->array_options['options_fk_workstation']){
-                                        $action = 'updateTask';
-                                        $Of->TAssetWorkstationOF[$lastInsert - 1]->fk_project_task=$task->id;
-                                        $Of->from_create=1;
-                                    }
-                                }
-                            }
-                        }
-
-                        if($action == 'updateTask') $Of->TAssetWorkstationOF[$lastInsert - 1]->updateTask($PDOdb, $db, $conf, $user, $Of);
-                        else $Of->TAssetWorkstationOF[$lastInsert - 1]->createTask($PDOdb, $db, $conf, $user, $Of);
-                    }
-                }
-
-                foreach($Of->TChildObjetStd as $key => $TChildObjetStd) { // Sinon boucle infini car AssetOfline est l'enfant d'of et j'ai besoin de save les enfants pour les assetofworkstation
-                    if($TChildObjetStd['class'] == get_class($this)) unset($Of->TChildObjetStd[$key]);
-                }
-                $Of->save($PDOdb);
-            }
-        }
-
 		$this->TAssetOFLine=array(); // on ne doit pas intéragir avec la ligne enfant de celle-ci (problème d'intrications récurssives)
 
 		return parent::save($PDOdb);
