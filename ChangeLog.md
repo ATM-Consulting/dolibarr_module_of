@@ -59,6 +59,7 @@ NEW : Gestion du stock théorique *21/11/2021* - 2.11.0
 
 **IMPORTANT : Requires WorkstationAtm 2.0**
 
+- FIX : $langs->transnoentities() instead of $langs->trans() on all linked files of OF + product linked files are missing *09/12/2022* - 2.1.1
 - FIX : $langs->transnoentities() instead of $langs->trans() on linked product files of OF + additional description is hidden by default *25/11/2022* - 2.1.0
 - FIX : Default extrafield reflinenumber visibility  *05/07/2021* - 2.0.2
 - FIX : Redirect error with asset ATM select  *05/07/2021* - 2.0.1
