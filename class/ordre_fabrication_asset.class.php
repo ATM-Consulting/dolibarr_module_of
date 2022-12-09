@@ -154,10 +154,10 @@ class TAssetOF extends TObjetStd{
 
 	}
 
-	function load(&$db, $id, $loadChild = true) {
-		global $conf;
+	function load(&$PDOdb, $id, $loadChild = true) {
+		global $conf, $langs, $db;
 
-		$res = parent::load($db,$id,true);
+		$res = parent::load($PDOdb,$id,true);
 
 		$this->ref = $this->numero; //for dolibarr compatibility
 
@@ -171,6 +171,25 @@ class TAssetOF extends TObjetStd{
         	    $ws->of_status = $this->status;
 	            $ws->of_fk_project = $this->fk_project;
         	}
+
+        if(! empty($conf->global->OF_DISPLAY_PRODUCT_CATEGORIES)) {
+            include_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
+            $langs->load('categories');
+            foreach($this->TAssetOFLine as $k => &$TAssetOFLine) {
+                $cat = new Categorie($db);
+                $TCateg = $cat->containing($TAssetOFLine->fk_product, 'product');
+                if(! empty($TCateg)) {
+                    usort($TCateg, function($a, $b) { return strcmp($a->label, $b->label); });
+                    $TAssetOFLine->categLabel = '';
+                    foreach($TCateg as $categ) {
+                        $color = $categ->color ? ' style="background: #'.$categ->color.';"' : ' style="background: #aaa"';
+                        $TAssetOFLine->categLabel .= '<span class="noborderoncategories" '.$color.'>'.$categ->getNomUrl(1).'</span><br>';
+                    }
+                    $TAssetOFLine->categ = $TCateg;
+                }
+            }
+            usort($this->TAssetOFLine, function($a, $b) { return strcmp($a->categ[0]->label, $b->categ[0]->label); });
+        }
 
 		usort($this->TAssetWorkstationOF, array($this,'sortWorkStationByRank'));
 
@@ -358,7 +377,8 @@ class TAssetOF extends TObjetStd{
                 $this->calculTaskDates(); // calcul des dates pour respecter l'enchainement des dates
             }
 
-			if(!empty($conf->global->OF_FORCE_GENERATE_PDF_ON_VALID)) {
+
+      if(!empty($conf->global->OF_FORCE_GENERATE_PDF_ON_VALID)) {
 				// cette conf ne fonctionne qu'avec les models compatibles standard Dolibarr
 				// elle fait planter les génération en TBS odt car fonctionne avec un vieux sytème tout pérave
 				$this->generateDocument('', $langs);
@@ -2108,6 +2128,8 @@ class TAssetOF extends TObjetStd{
 
 		$nb_to_make = 0;
 
+
+//		return $this->TAssetOFLine;
 		if(!empty($this->TAssetOFLine) && empty($coef)) {
 
 			foreach ($this->TAssetOFLine as &$line) {
@@ -2173,6 +2195,98 @@ class TAssetOF extends TObjetStd{
 
 		}
 
+		return $res;
+
+	}
+	public function updateUsedNonCompliantLineQty(&$PDOdb, $idLine,$qty_used, $qty_non_compliant, $coef = 0, $coef_compliant = 0, $coef_non_compliant = 0) {
+
+		$res = false;
+        if(empty($qty_non_compliant))$qty_non_compliant = 0;
+		$nb_to_make = 0;
+
+		if(!empty($this->TAssetOFLine) && empty($coef) && (!empty($qty_non_compliant) || !empty($qty_used))) {
+
+
+			foreach ($this->TAssetOFLine as &$line) {
+
+
+				if($line->type === 'TO_MAKE' && $idLine === $line->getId() && $line->qty>0) {
+
+
+					$coef = ($qty_used + $qty_non_compliant) / $line->qty;
+					$coef_non_compliant =  $qty_non_compliant / $line->qty;
+					$coef_compliant = $qty_used / $line->qty;
+
+					$res = true;
+
+					$nb_to_make++;
+
+				}
+			}
+		}
+		else if(!empty($coef)) {
+			$nb_to_make = 1;
+            $child = true;
+			$res = true;
+		}
+		if($res && $nb_to_make == 1) { // On applique le coef que s'il y a 1 seul produit à fabriquer
+
+			if(!empty($this->TAssetOFLine)) {
+
+				foreach ($this->TAssetOFLine as &$line) {
+					if($line->type === 'NEEDED') {
+
+						//	var_dump('$line', $line->qty);
+						$line->qty_used = $line->qty_needed * $coef;
+
+//						$line->qty_used *= $coef;
+
+						$line->saveQty($PDOdb);
+
+						$TOF = array();
+						$this->getOFEnfantWithProductToMake($PDOdb, $TOF, $line->fk_product, 0, false);
+						if (!empty($TOF)) {
+
+							foreach ($TOF as &$data) {
+
+								$of = new TAssetOF;
+								if ($of->load($PDOdb, $data['id_assetOf'])) {
+									//						var_dump('OFCHILD', $of->getId());
+									if (!$of->updateUsedNonCompliantLineQty($PDOdb, 0, 0, 0, $coef, $coef_compliant, $coef_non_compliant)) $res = false;
+
+								}
+
+							}
+
+						}
+					} else if(!empty($line->qty)) {
+                        if(!empty($child)) {
+                            $line->qty_used = $line->qty * $coef_compliant;
+                            $line->qty_non_compliant = $line->qty * $coef_non_compliant;
+                        } else {
+                            $line->qty_used = $qty_used;
+                            $line->qty_non_compliant = $qty_non_compliant;
+                        }
+						$line->saveQty($PDOdb);
+					}
+
+				}
+
+			}
+
+			if(!empty($this->TAssetWorkstationOF)) {
+
+				foreach ($this->TAssetWorkstationOF as &$ws) {
+
+					$ws->nb_hour*=$coef;
+					$ws->nb_hour_prepare*=$coef;
+
+					$ws->save($PDOdb);
+				}
+
+			}
+
+		}
 		return $res;
 
 	}
@@ -3414,7 +3528,7 @@ class TAssetOFLine extends TObjetStd{
 
 	function saveQty(TPDOdb &$PDOdb) {
 
-		$PDOdb->dbupdate($this->get_table(), array( 'qty'=>$this->qty, 'qty_needed'=>$this->qty_needed, 'rowid'=>$this->getId()),array('rowid'));
+		$PDOdb->dbupdate($this->get_table(), array( 'qty'=>$this->qty, 'qty_needed'=>$this->qty_needed,'qty_non_compliant'=>$this->qty_non_compliant, 'qty_used'=>$this->qty_used, 'rowid'=>$this->getId()),array('rowid'));
 
 
 	}

@@ -352,6 +352,7 @@ setup_print_title('ParamLinkedToOFOthers');
     setup_print_on_off('OF_MANAGE_ORDER_LINK_BY_LINE', $langs->trans('OF_MANAGE_ORDER_LINK_BY_LINE') , $langs->trans('OF_MANAGE_ORDER_LINK_BY_LINEDETAIL'));
 
     setup_print_on_off('OF_DISPLAY_OF_ON_COMMANDLINES');
+    setup_print_on_off('OF_DISPLAY_PRODUCT_CATEGORIES');
 
     // T1107 : l’extrafield numéro de ligne de référence sur commandedet doit être rendu invisible si on désactive la conf (d’où le <script>)
     setup_print_on_off('OF_USE_REFLINENUMBER', $langs->trans('OF_USE_REFLINENUMBER'), $langs->trans('OF_USE_REFLINENUMBER_help'));
