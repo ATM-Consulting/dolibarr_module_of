@@ -176,7 +176,7 @@ if($object->id) {
                 0,
                 '',
                 0,
-                $langs->trans('OrderLinkedFiles', $commande->getNomUrl(0)).' '.$commande->ref_client,
+                $langs->transnoentities('OrderLinkedFiles', $commande->getNomUrl(1)).' '.$commande->ref_client,
                 '',
                 0,
                 0,
@@ -194,8 +194,13 @@ if($object->id) {
             if(!empty($line->fk_product)) {
                 $product = new Product($db);
                 $product->fetch($line->fk_product);
-                if(!empty($conf->product->enabled)) $upload_dir = $conf->product->multidir_output[$product->entity] . '/' . get_exdir(0, 0, 0, 0, $product, 'product') . dol_sanitizeFileName($product->ref);
-                else if(!empty($conf->service->enabled)) $upload_dir = $conf->service->multidir_output[$product->entity] . '/' . get_exdir(0, 0, 0, 0, $product, 'product') . dol_sanitizeFileName($product->ref);
+		if((float)DOL_VERSION >= 13) {
+			if(!empty($conf->product->enabled)) $upload_dir = $conf->product->multidir_output[$product->entity] . '/' . get_exdir(0, 0, 0, 1, $product, 'product');
+			else if(!empty($conf->service->enabled)) $upload_dir = $conf->service->multidir_output[$product->entity] . '/' . get_exdir(0, 0, 0, 1, $product, 'product');
+		} else {
+	                if(!empty($conf->product->enabled)) $upload_dir = $conf->product->multidir_output[$product->entity] . '/' . get_exdir(0, 0, 0, 0, $product, 'product') . dol_sanitizeFileName($product->ref);
+	                else if(!empty($conf->service->enabled)) $upload_dir = $conf->service->multidir_output[$product->entity] . '/' . get_exdir(0, 0, 0, 0, $product, 'product') . dol_sanitizeFileName($product->ref);
+		}
 
                 $formfile->list_of_documents(
                     dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1),
