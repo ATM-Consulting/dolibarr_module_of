@@ -1,0 +1,440 @@
+# Dolibarr language file - de_DE
+CHARSET = UTF-8
+
+Module104161Name = Produktionsauftrag
+Module104161Desc = Produktionsauftragsverwaltung (CAPM)
+
+CreateAssetLot = Erstellen einer Ausrüstung/Charge
+CreateAsset = Ausrüstung erstellen
+AssetSetup = Einrichtung des Ausrüstungs-Moduls
+LotDisabled = Option zur Verwendung von Chargen in Produktionsaufträgen deaktiviert
+ficheOF = Karte
+OFActions = Aktionen
+ParametersWorkstation = Einstellungen Arbeitsstation
+ParametersWorkflow = Einstellungen Arbeitsablauf
+
+OfPDFModules = PDF-Vorlagen für Produktionsaufträge
+
+Card = Karte
+AbricotNeedUpdate = Das Abricot-Modul muss aktualisiert werden
+
+# EQUIPEMENT 
+GPAO = CAPM
+Asset = Ausrüstung
+ListAsset = Liste der Ausrüstung
+ListAssetLent = Liste der ausgeliehenen Ausrüstung
+AssetDeleted = Ausrüstung entfernt
+AssetType = Art der Ausrüstung
+AssetListType = Liste der Ausrüstungsarten
+AssetTypeMsgNothing = Es gibt keine Ausstattungsarten zum Anzeigen
+AssetListFields = Felder der Ausrüstung
+AssetAddType = Hinzufügen einer Ausrüstungsart
+AssetCreateType = Ausrüstungsart erstellen
+AssetToComplete = zu vervollständigen
+AssetLotsList = Liste der Chargen
+AssetLoaned = verliehene Ausrüstung
+AssetDescDLUO = Datum optimale Nutzungsdauer
+ImpossibleToCreateAsset = Ausrüstung kann nicht erstellt werden
+AssetDefaultDLUO = Verschiebung der optimalen Nutzungsdauer
+Asset_show_DLUO = optimale Nutzungsdauer anzeigen
+NoAsset = Es gibt keine Ausrüstung
+Asset_DefaultCompose_fourni = Standardwert "Compound provided" (Lieferantenpreis)
+
+# ORDRE DE FABRICATION
+ConfirmChangeStateContentOptionActivationImpact = Wenn Sie diese Option aktivieren, wird/werden auch die folgende(n) Option(en) aktiviert:
+OFAsset = Produktionsauftrag
+OFAssetCreated = Produktionsauftrag(e) erstellt
+CreateOFAsset = Produktionsauftrag erstellen
+ListOFAsset = Liste der Produktionsaufträge
+ListOFAssetNonCompliant = Liste nicht konformer Produktionsaufträge
+OFAssetDeleted = Produktionsauftrag %s gelöscht
+createOFFile = Dokument erstellen
+WorkStation = Arbeitsstation
+workstation = Arbeitsstation
+ListOrderProducts = Liste der Produkte in der Bestellung
+AssetProductionOrder = Produktionsauftrag
+AssetProductionOrderDraft = Entwurf
+AssetProductionOrderVALID = Freigegeben
+AssetProductionOrderNEEDOFFER = Warten auf Angebot
+AssetProductionOrderONORDER = Warten auf Lieferung
+AssetProductionOrderOPEN = in Produktion
+AssetProductionOrderCLOSE = Fertig
+AssetProductionOrderNONCOMPLIANT = nicht konform
+AssetNewProductionOrder = neuer Produktionsauftrag
+OFAttachedClosedAutomatically = Produktionsauftrag %s automatisch geschlossen
+AssetAddNeededQtyZero = Komponenten mit einer Menge von 0 hinzufügen
+ASSET_ADD_NEEDED_QTY_ZERO_HELP = Standardmäßig werden beim Erstellen eines Produktionsauftrages die geplanten und verwendeten Mengen der für die Herstellung benötigten Produkte mit den benötigten Mengen vorausgefüllt. Wenn diese Option aktiviert ist, werden die geplanten und verwendeten Mengen mit 0 vorausgefüllt. Dies ist bei der Verwendung von Auslagerungen/Teilauslagerungen nützlich.
+AssetNegativeDestock = Verwenden von Beständen in Produktionsaufträgen zulassen, auch wenn die Menge nicht ausreicht
+ASSET_NEGATIVE_DESTOCK_HELP = Diese Option sollte nur verwendet werden, wenn Sie das Modul "Ausrüstung (AssetATM)" verwenden, mit dem Sie eine Chargen-/Seriennummer zur Rückverfolgbarkeit Ihrer Produkte verknüpfen können. Standardmäßig erlauben es die Produktionsaufträge nicht, eine Ausrüstung, die keinen Bestand hat, als für die Herstellung benötigtes Produkt auszuwählen. Wenn diese Option aktiviert ist, wird dies möglich.
+AssetChildOfStatusFollowParentStatus = Der Status der Kind-Produktionsaufträge folgt dem Status des Eltern-Produktionsauftrags.
+ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS_HELP = Standardmäßig wird bei einer Änderung des Status eines Produktionsauftrags dieser Status nicht auf die Kinder-Produktionsaufträge angewendet. Wenn diese Option aktiviert ist, wird der Status des übergeordneten Produktionsauftrags auf die untergeordneten Produktionsaufträge angewendet. Dies gilt nur für den Downstream-Status von "Entwurf" nach "Fertig" und nicht beim Zurückgehen auf den Status.
+AssetConcatPDF = Verkettung der PDF-Dokumente für die Herstellung der untergeordneten Produktionsaufträgen mit dem der übergeordneten Produktionsaufträge
+ASSET_CONCAT_PDF_HELP = Diese Funktion ist nur anwendbar, wenn die Konfiguration "Als PDF drucken (erfordert libreoffice auf dem Server)" aktiviert ist. Wenn sie aktiviert ist, ermöglicht diese Option, wenn ein Produktionsauftrag untergeordnete Produktionsaufträge hat, auf einem Produktionsauftrag alle Produktionsaufträge (Eltern + Kinder) in einer einzigen PDF-Datei herunterzuladen. Dies gilt nur für das Drucken als PDF.
+NotConcatQtyForNeeded = Teile die für die Produktion erforderlichen Mengen von Produkten für dieselbe Referenz auf
+AssetUseDestockagePartiel = Lagerbestände abbauen / teilweise lagern. <br />- Die herzustellenden Produkte werden in den Bestand aufgenommen, wenn die "Verwendete Menge" auf einem Produktionsauftrag im Zustand "in Produktion" aktualisiert wird.
+OF_USE_DESTOCKAGE_PARTIEL_HELP = <strong>Wenn diese Option aktiviert ist: </strong><br />Die herzustellenden Produkte werden dem Bestand hinzugefügt, wenn die "produzierte Menge" bei einem Produktionsauftrag mit dem Status "in Produktion" aktualisiert wird. <br /><br /><em>Es kann interessant sein, diese Option mit der Option "Komponenten mit Menge 0 hinzufügen" zu kombinieren. </em><br/><br/><strong>In der Standardeinstellung funktioniert die Bestandsverwaltung wie folgt:</strong><br/>- Für Produkte, die für die Herstellung benötigt werden, wird, wenn es keine vordefinierte "verbrauchte Menge" gibt, die benötigte Menge aus dem Lager entnommen, wenn der Produktionsauftrag "Fertig" ist; wenn die "verbrauchte Menge" ungleich null ist, wird diese Menge als entnommene Menge verwendet<br/>- Der Bestand der herzustellenden Produkte erhöht sich um die "anzulegende Menge", wenn der Status des Produktionsauftrags "Fertig" ist. Wenn diese Option aktiviert ist, läuft die Lagerverwaltung wie folgt ab:<br/>- Produkte, die für die Herstellung benötigt werden, werden aus dem Lager entnommen, wenn die "verbrauchte Menge" auf einem Produktionsauftrag mit dem Status "in Produktion" aktualisiert wird.<br/>- Der Bestand der herzustellenden Produkte wird erhöht, wenn die "produzierte Menge" bei einem Produktionsauftrag mit dem Status "in Produktion" aktualisiert wird.
+
+ParamLinkedToOFTagsPrints = Einstellungen für die Verwaltung von Etiketten
+ofLabelQtyTheoriqueMoinsOf = Sollbestand - Menge Produktionsauftrag
+ofResultQty = %s (Zu produzierende Menge: %s / Verwendete Menge: %s)
+OfShowQtytheorique = Sollbestand anzeigen - Produktionsauftragsbestand auf der Registerkarte "Bestand" eines Produkts
+OF_SHOW_QTY_THEORIQUE_MOINS_OF_HELP = Veraltet seit Dolibarr v3.8. Dadurch wurde ein neues Feld "Produktionsauftrag virtueller Bestand" hinzugefügt, das die geplante Entnahme aus dem Lager oder die Herstellung von Produkten gemäß anhängigen Produktionsaufträgen berücksichtigt.
+ofPrintTicket = Etikettendruck
+ofListProductNeeded = <strong>Produktionsauftragsliste, die das Produkt benötigt</strong>
+ABRICOT_WKHTMLTOPDF_CMD = Befehl für die PDF-Generierung von Etiketten
+ABRICOT_WKHTMLTOPDF_CMD_DESC = WkHTMLtoPDF muss auf dem Server installiert sein (http://wkhtmltopdf.org/).
+OfNbTicketrPerPage = Standardwert für den Druck von Etiketten pro Seite (-1 zum Deaktivieren der Funktion)
+OF_NB_TICKET_PER_PAGE_HELP = Mit dieser Option können Sie eine Anzahl von Etiketten festlegen, welche bei der Generierung über die Schaltfläche "Etiketten drucken" von Produktionsauftrags-Listen pro Seite gedruckt werden sollen.<br/><br/>Wenn kein Wert angegeben wird, ist der Standardwert 0. Wenn Sie "-1" ausfüllen, werden die Spalte für die Anzahl der Etiketten und die Schaltfläche "Drucken" nicht angezeigt.
+ofError_fk_entrepot_missing = Fehler: Eine oder mehrere Lagerzeilen nicht betroffen: %s
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE = Überprüfen Sie, ob in jeder Zeile des Produktionsauftrags auf der Aktion "Bestätigen" ein Lager eingegeben wurde. Wenn die Konfiguration der Statusänderung untergeordnete Produktionsaufträge betrifft, wird die Überprüfung auch auf untergeordnete Produktionsaufträge angewendet.
+OF_CHECK_IF_WAREHOUSE_ON_OF_LINE_HELP = Diese Option gilt nur, wenn die Konfiguration "Ermöglicht die manuelle Definition der Lagerhäuser, die für die Ein-/Auslagerung der Ausrüstung auf jedem Produktionsauftrag verwendet werden sollen" aktiviert ist. Sobald sie aktiviert ist, können Sie einen Produktionsauftrag nicht freigeben, wenn eines der (benötigten oder zu erstellenden) Produkte kein Lagerhaus hat, das auf seiner Zeile in dem Produktionsauftrag definiert ist. Diese Überprüfung gilt auch für untergeordnete Produktionsaufträge, wenn die Option "Status verfolgen" aktiviert ist.
+OFUnit = Einheit
+OFUnits = Einheiten
+OFSupplierLineName = Lieferant "%s"
+OFSupplierLineMinQty = %d min Stück(e)
+OFSupplierLineComp = interne Produktion
+OFSupplierLineStockRemoval = Auslagerung
+OFSupplierLineSupOrder = Lieferantenbestellung
+OFValidate = Validieren
+OFNomenclatureShort = Nomen
+OFNomenclature = Nomenklatur
+NomenclatureToSelect = Auswählbare Nomenklatur
+Link = Verlinken
+DeleteLink = Löschen des Links
+ValidateManufacturingOrder = Diesen Produktionsauftrag freigeben?
+StartManufacturingOrder = Diesen Produktionsauftrag starten?
+FinishManufacturingOrder = Diesen Produktionsauftrag abschließen?
+ProductionInProgress = in Produktion
+Finish = Fertig
+Warehouse = Lagerhaus
+NoWorkstation = Kein Arbeitsstation definiert
+AddWorkstation = Arbeitsstation hinzufügen
+QuantityUsed = Verwendete Menge
+DeleteOF = Diesen Produktionsauftrag löschen?
+AddingProduct = Produkt hinzugefügt
+AddingWorkstation = Arbeitsstation hinzugefügt
+OFChild = Produktionsauftrag Kinder
+withouttitle = (ohne Titel)
+ModificationSaved = Änderungen gespeichert
+ErrorOccurred = Ein Fehler ist aufgetreten
+BtCancel = Abbrechen
+BtAdd = Hinzufügen
+OFMustBeDraftAndEditMode = Ihr Produktionsauftrag muss sich im Entwurfsstatus befinden und muss sich in Bearbeitung befinden, um die Werte der benötigten Produkte zu aktualisieren zu können.
+QtyUpdated = Aktualisierung der erfassten Mengen
+OneOFCreated = Produktionsauftrag wurde erstellt
+SeveralOFCreated = Produktionsaufträge wurden erstellt
+OFIsNotDraftStatus = Dieser Produktionsauftrag befindet sich nicht mehr im Entwurfsstatus
+OFSerialNumber = [%s] Charge: %s, Nummer: %s, Aktueller Inhalt: %s
+OFWaiting = Warten
+OFInProgress = In Produktion
+OFFinish = Fertig
+ofAllQtyIsNotEnough = [%s] - Unzureichende Menge an Ausrüstung, bitte überprüfen Sie Ihre für die Herstellung benötigten Produkte.
+ofQtyLotIsNotEnough = Charge [%s] - <a href="#%s">%s</a>: Unzureichende Menge an Ausrüstung für die Gestaltung des/der zu erstellenden Produkts/Produkte.
+titleOfToolTip = <u>Produktionsauftrag anzeigen</u><br /><b>Ref.:</b> %s
+OF_COEF_MINI_TU_1 = Koeffizient von Mini-TU 1 (Beispiel für 9%%: 0,91 einstellen)
+AllExceptClosed = Alle außer Fertig
+OF_MAX_EXECUTION_SEARCH_PLANIF = Maximale Anzahl von Tagen, in denen Dolibarr versuchen wird, die zu erstellende Aufgabe zu planen
+OF_MAX_EXECUTION_SEARCH_PLANIF_HELP = <em>Diese Option erfordert die Aktivierung der oben genannten Option.</em><br/><br/>Wenn nach dieser Anzahl von Tagen kein verfügbares Zeitfenster für diesen Arbeitsstation gefunden wird, wird die Aufgabe nicht erstellt.<br/><br/><strong>Achtung!</strong>Wenn Sie die Anzahl der Tage erhöhen, erhöht sich auch die Bearbeitungszeit bei der Validierung eines Produktionsauftrages, was dazu führen kann, dass dieser Prozess extrem langsam wird, wenn Sie diesen Wert zu hoch ansetzen.
+
+#LOT 
+ListAssetLot = Liste der Chargen
+AssetLotDeleted = Charge gelöscht
+AssetInLot = Chargen
+OFAssetLotEmpty = Keine Chargen eingegeben für das Produkt : %s (%s)
+OFAssetCmdFournNotFinish = Dieser Produktionsauftrag kann nicht abgeschlossen werden, solange die Lieferantenbestellung nicht teilweise oder vollständig eingegangen ist.
+
+
+# POSTE DE TRAVAIL 
+AssetWorkstation = Arbeitsstation
+AssetNewWorkstation = Neuer Arbeitsstation
+AssetAuthorizeAddWorkstationTime0OnOF = Erlauben, dass ein in der Nomenklatur vorhandener Arbeitsstation automatisch in den Produktionsauftrag aufgenommen wird, auch wenn seine benötigte Zeit auf 0 gesetzt ist
+set_OF_COEF_WS = Zeitmultiplikator beim Hinzufügen einer Position aus einer Nomenklatur
+AssetCreateProjectTaskOnValidation = Projektaufgaben bereits bei der Validierung und nicht erst beim Start der Produktion erstellen
+
+# TYPES D'EQUIPEMENT 
+AssetType = Arten von Ausrüstung
+AssetNewType = Neue Ausrüstungart
+AssetDescCumulate = Das Konzept der Kumulierbarkeit wirkt sich auf die Auslagerung von Ausrüstungsgegenständen aus.
+AssetDescPerishable = Wenn die Ausrüstung verderblich ist, muss ein Verfallsdatum angegeben werden.
+
+#Contrôle
+AssetControl = Kontrolle
+AssetNewControl = neue Kontrolle
+ListControl = Liste der Kontrollen
+AssetEmptyControl = keine Kontrollen zum Anzeigen
+AssetCreateControl = Kontrolle erstellen
+AssetAddControl = Kontrolle hinzufügen
+AssetAddControlEvent = Hinzufügen der gespeicherten Kontrolle
+AssetSaveControlEvent = Änderungen der gespeicherten Kontolle
+AssetDeleteControlEvent = gespeicherte Kontrolle löschen
+AssetListControl = Liste der Kontrollen
+AssetAddControlValue = Einen Wert für eine Mehrfachauswahl hinzufügen
+AssetSaveControlValueEvent = Gespeicherter Wert
+ListControlMultiple = Liste der Werte
+AssetDeleteControlValueEvent = Löschen des gespeicherten Wertes
+AssetEmptyControlMultiple = Kein Wert zum Anzeigen
+AssetCreateControlMultiple = Wert erstellen
+
+#Configuration
+ParamLinkedToOFOthers = Verschiedene Konfigurationen
+ParamLinkedToOFStocks = Lagerverwaltung Konfigurationen
+OptionForNumberingTemplate = Nummerierung von Produktionsaufträgen
+ParamLinkedToOFChildren = Konfiguration für Kinder Produktionsaufträge
+DefaultWarehouseId = Standardlager für die Lagerverwaltung des Moduls Ausrüstung
+DefaultWarehouseIdToMake = Standardlager für die Lagerverwaltung für Produktionsauftrag und Ausrüstung (herzustellende Produkte)
+DefaultWarehouseIdNeeded = Standardlager für die Lagerverwaltung für Produktionsauftrag und Ausrüstung (benötigte Produkte)
+UseDefinedWarehouse = Ermöglicht das Festlegen von Standardlagern für die Lagerung/das Einlagern von Ausrüstung.
+ParametersWarehouse = Lager (wenn keine Optionen verwendet werden, wird das Verhalten bei der Einlagerung / Auslagerung von dem für jede Ausrüstung definierten Lager übernommen)
+CreateAssetChildrenOF = Erlauben Sie die Erstellung von Kinder-Produktionsaufträgen für Produkte, die nicht auf Lager sind und für die Herstellung benötigt werden.
+CreateAssetChildrenOFHelp = Standardmäßig werden keine untergeordneten Produktionsaufträge erstellt, wenn der Bestand eines Produkts, das für die Herstellung benötigt wird, nicht ausreichend ist. Wenn diese Option aktiviert ist, werden für Produkte, die für die Herstellung benötigt werden und deren Bestand nicht ausreicht, untergeordnete Produktionsaufträge erstellt.
+CreateAssetChildrenOFOnVirtualStock = Auslösen der Erstellung von untergeordneten Produktionsaufträgen bei negativem Sollbestand (wenn nicht, wird der tatsächliche Ist Bestand berücksichtigt).
+CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK_HELP = Standardmäßig werden keine untergeordneten Produktionsaufträge erstellt, wenn der Sollbestand eines Produkts, das für die Herstellung benötigt wird, nicht ausreichend ist. Wenn diese Option aktiviert ist, werden für Produkte, die für die Herstellung benötigt werden und deren Sollbestand nicht ausreicht, untergeordnete Produktionsaufträge erstellt.
+CreateAssetChildrenOFWithComposant = Beschränkung der Erstellung von Kinder-Produktionsaufträgen auf herzustellende Produkte, die Bestandteile und keine Lagerbestände haben
+CreateAssetChildrenOFWithComposantConfirmChangeState = Bestätigung
+CreateAssetChildrenOFWithComposantConfirmChangeStateContent = Mit dieser Option wird auch die folgende Option aktiviert:
+CREATE_CHILDREN_OF_COMPOSANT_HELP = Wenn eine der Konfigurationen, die das Erstellen von untergeordneten Produktionsaufträgen erlauben, aktiviert ist (oben), werden diese durch Aktivierung dieser Option nur für Nebenprodukte erstellt, die keinen physischen Bestand haben und selbst Nebenprodukte enthalten.
+UsetAssetProductionAttributs = Produktionsfelder nutzen
+CreteAssetOFOnOrderValidation = Automatische Erstellung von Produktionsaufträgen bei der Bestätigung einer Bestellung
+DeleteAssetOFOnOrderCancel = Produktionsaufträge automatisch löschen, wenn eine Bestellung storniert wird
+UseBatchNumberInOf = Die Chargenverwaltung in Produktionsaufträgen nutzen
+USE_LOT_IN_OF_DESC = Diese Option ist die gleiche wie bei der Konfiguration des Moduls Ausrüstung, das Aktivieren/Deaktivieren bewirkt dies auch auf der Konf des Moduls Ausrüstung...
+USE_LOT_IN_OF_HELP = Diese Option sollte nur verwendet werden, wenn Sie das Modul "Ausrüstung (AssetATM)" verwenden, mit dem Sie eine Chargen-/Seriennummer für die Rückverfolgbarkeit Ihrer Produkte verknüpfen können.<br/><br/>Standardmäßig verwalten die Produktionsaufträge die Rückverfolgbarkeit von (verwendeten oder hergestellten) Produkten nicht.<br/><br/>Diese Option ermöglicht es Ihnen, die Rückverfolgbarkeit in Produktionsaufträgen zu verwalten, indem Sie die Chargen-/Seriennummer Ihrer Produkte angeben, die Sie für die Herstellung benötigen.<br/>Sie ermöglicht es auch, den hergestellten Produkten eine Chargen-/Seriennummer zuzuordnen. Die Liste der Chargen ist dann im Menü CAPM >> Ausrüstung >> Liste der Chargen verfügbar
+AllBatchNumberAreMandatory = Chargen Pflicht auf allen Produktionsauftrags-Elementen
+AssetDefinedUserByWorkstation = Ermöglichen Sie die Zuordnung eines oder mehrerer Benutzer zu einem Arbeitsstation auf einem Produktionsauftrag
+AssetUseWorkstationByNeededInOF = Ermöglichen Sie die Aufschlüsselung der Kompositionsprodukte nach Arbeitsstationenn auf einem Produktionsauftrag
+AssetUseControl = Ermöglicht das Festlegen von Kontrollen, die während des Produktionsauftrags-Prozesses angewendet werden.
+AssetDefinedTaskByWorkstation = Definiert ein Betriebsprotokoll für jede Arbeitsstation
+UseProjectTask = für jeden Arbeitsstation, der mit einem Produktionsauftrag verknüpft ist, wird eine Aufgabe für das verknüpfte Projekt erstellt
+AssetAutoCreateProjectOnOF = Erstellen und automatisches Zuordnen eines Projekts zum Produktionsauftrag, wenn kein Projekt zugeordnet ist (das Projekt wird den Namen des Auftrags tragen, aus dem der Produktionsauftrag stammt)
+AssetDefaultLocatlisation = Standard Ort für Ausrüstung, welche über Produktionsaufträge erstellt wurden
+CreateAssetFromProductDescListProduct = Die Liste enthält nur Produkte mit dem Status "Zum Verkauf".
+CreateAssetFromProductErrorBadMask = Wenn der Standardwert "ErrorBadMask" lautet, ist Ihr Produkt nicht mit einem Ausrüstungstyp verknüpft.<br />Gehen Sie zurück zum Produktblatt und ändern Sie den Wert.
+CreateAssetFromProductNumLot = Dieses Feld entspricht der Nummer der Charge, welches im Menü "Ausrüstung"=> "Liste der Chargen"=> "Eine Ausrüstungscharge erstellen" erstellt wurde. Um eine Charge auszuwählen, geben Sie den Anfang der Nummer ein und es werden ein oder mehrere Vorschläge angezeigt.
+
+AssetOFConfirmChangeStateTitle = Die Erstellung von untergeordneten Produktionsaufträgen deaktivieren
+AssetOFConfirmChangeState = Die Deaktivierung dieser Option erzwingt die Deaktivierung der folgenden Konfigurationen:
+AssetMsgSaveTask = Gespeicherte Aufgabe
+AssetErrSaveTask = Fehler beim Speichern
+AssetMsgDeleteTask = Gelöschte Aufgabe
+AssetErrDeleteTask = Fehler beim Löschen
+AssetMsgSaveControlValue = Valeur enregistrée
+AssetErrSaveControlValue = Fehler beim Speichern
+AssetMsgDeleteControlValue = Gelöschter Wert
+AssetErrDeleteControlValue = Fehler beim Löschen
+AssetListWorkstation = Liste der Arbeitsstationen
+UseManualWarehouse = Ermöglicht die manuelle Festlegung der Lagerhäuser, die für die Lagerung/Einlagerung der Ausrüstung auf jedem Produktionsauftrag verwendet werden sollen.
+UseProjectTaskHierarchique = Aufgaben hierarchisch anlegen
+ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT = Umkehrung der Hierarchie bei der Erstellung von Aufgaben.
+
+NewWorkStation = Neuer Arbeitsstation
+moduleWorkstationNeeded = Modul Arbeitsstation (Workstation) benötigt
+
+OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER = Ermöglicht das Beenden von Produktionsaufträgen im Zusammenhang mit nicht erhaltenen Lieferantenbestellungen.
+products = Produkt(e)
+
+
+# Etiquettes
+CHOOSE_CUSTOM_LABEL = anpassbaren Etikettentyp auswählen
+DEFAULT_ETIQUETTES_HELP = Hier können Sie die Vorlage festlegen, die für die Erstellung der Etiketten verwendet wird. Die auswählbaren Vorlagen sind diejenigen, die sich im Verzeichnis "htdocs/custom/of/exampleTemplate" befinden. Wenn Sie die Vorlage "etiquette_custom.html" wählen, stehen Ihnen zusätzliche Optionen für die Gestaltung der Etiketten zur Verfügung, um Ränder, Breiten, Höhen usw. anzupassen.
+DEFINE_MARGIN_TOP = oberen Rand der Seite festlegen (in px)
+DEFINE_MARGIN_LEFT =  linken Rand der Seite festlegen (in px)
+DEFINE_WIDTH_DIV = Breite des Etiketts (in Prozent)
+DEFINE_MARGIN_RIGHT = rechten Rand der Seite festlegen (in px)
+DEFINE_MARGIN_TOP_CELL = oberen Rand jeder Zelle festlegen (in px)
+DEFINE_HEIGHT_DIV = Höhe des Etiketts (in mm)
+
+OF_CONCAT_WS_ON_ADD = Verkettung von Ladezeiten
+MinimalViewForChilOF = Minimalansicht für Kind Produktionsaufträge
+OF_MINIMAL_VIEW_CHILD_OF_HELP = Standardmäßig werden beim Erstellen von untergeordneten Produktionsaufträgen diese vollständig auf derselben Seite wie die übergeordnete Produktionsaufträge angezeigt.<br/><br/>Wenn diese Option aktiviert ist, wird eine Liste der Kind-Produktionsaufträge am unteren Rand der Seite der Eltern-Produktionsaufträge angezeigt. Diese Liste wird anklickbare Links zu den entsprechenden untergeordneten Produktionsaufträge anbieten.
+
+DateLaunch = Voraussichtliches Startdatum
+DateBesoin = Bedarfsdatum
+
+ofSetup = Konfiguration 
+QtyUsed = Verwendete Menge
+
+ActualOFREfConf = Aktuelle Nummerierungsmaske
+NextOfRef = Nächste Referenz
+
+
+OfNumber = Nummer
+CustomerOrder = Kundenauftrag
+DateStart = Startdatum
+DateNeeded = Bedarfsdatum
+Statut = Status
+UserAssign = Verantwortlicher Benutzer
+Product = Produkt
+Customer = Kunde
+NumberProductToMake = Anzahl der herzustellenden Produkte
+RealCost = Tatsächliche Kosten
+EstimatedCost = Voraussichtliche Kosten
+PrintTicket = Druck<br />Etikett
+Project = Projekt
+Priority = Priorität
+Cost = Kosten
+NbProductNeeded = Anzahl benötigter Produkte
+
+noOfFound = Kein Produktionsauftrag verfügbar
+ProductUndefined = Produkt nicht definiert.
+
+Draft = Entwurf
+WaitingSupplierPrice = Warten auf Lieferantenpreis
+WaitingProductsOrdered = Warten auf Produkt(e) in Bestellung
+ValidForProduction = Gültig für Produktion
+InProduction = in Produktion
+Done = Fertig
+
+QtyToMake = Zu produzierende Menge
+ProductToAddToOf = Produkte, die einem Produktionsauftrag hinzugefügt werden sollen
+CreateAnyOf = Produktionsaufträge erstellen
+CreateOnceOf = Produktionsauftrag erstellen
+
+NumCMD = PA Nr.
+Quantity = Anzahl
+Ref = Referenz
+Desc = Beschreibung
+
+error_of_on_id_asset = Fehler bei der Ausrüstungs-ID
+error_of_wrong_id_asset = Fehler bei der Eingabe der Ausrüstungs-ID
+error_of_no_ids = Fehler bei den IDs
+
+unit_s_ = Einheit(en)
+
+ProductsToCreate = Zu erstellende Produkte
+QtyToProduce = Zu produierende Menge
+ProduceQty = Produzierte Menge
+AddProduct = Produkt hinzufügen
+ParentOF = Übergeordneter Produktionsauftrag
+Workstation = Arbeitsstation
+AssociatedTask = Verbundene Aufgaben
+TimeBeforeStart = Zeit bis zum Start
+NbPlannedHour = Geplante Stunden
+NbRealHour = Tatsächliche Stunden
+Rank = Rang
+WorkstationUsed = Verwendete Arbeitsstation(en)
+ProductsNeeded = Zur Herstellung benötigte Produkte
+QtyNeeded = Benötigte Menge
+PlannedQty = Geplante Menge
+ASAP = So früh wie möglich
+ForToday = Für heute
+ForTomorrow = Für morgen
+Print = Drucken
+ForWeek = für diese Woche
+ForMonth = für diesen Monat
+
+ValidForProduction=Gültig für Produktion
+ProductToProduce=Zu produzierendes Produkt
+NumberOf=PA Nr.
+SetStateTo=Zustand umschalten auf
+FinalProducCost=Kosten des fertigen Produkts
+EstimatedMakeTime=Geschätzte Produktionsdauer
+EstimatedMakeTimeInHours=Geschätzte Produktionsdauer (in Stunden)
+RealMakeTime=Tatsächliche Produktionsdauer
+EstimatedProducCost=Geschätzte Produktionsskosten
+RealProducCost=Tatsächliche Produktionskosten
+
+AssetProductionSupplierOrder=Lieferantenbestellungen
+OF_FOLLOW_SUPPLIER_ORDER_STATUS=Der manuell mit einer Lieferantenbestellung verknüpfte Produktionsauftrag verfolgt seinen Status
+
+UpdateNeededQty=Aktualisierung benötigter Produkte
+SomeQtyCantBeUpdated=Einige Mengen konnten nicht aktualisiert werden
+QtyAlreadyToMake=Menge bereits in Produktion
+
+UseByOF=Verwendet im Produktionsauftrag %s
+CreateByOF=Erstellt im Produktionsauftrag %s
+DeletedByOF=Gelöscht im Produktionsauftrag %s
+
+ParamLinkedToOFPrints = Konfiguration Druckverwaltung
+OF_USE_APPRO_DELAY_FOR_TASK_DELAY=Verwenden Sie die Bereitstellungszeitverzögerung der Produktverbindung zum Arbeitsplatz, um die Aufgabe zu verzögern
+OF_PRINT_IN_PDF = Produktionsauftrag als PDF ausdrucken
+OF_PRINT_IN_PDF_NEED = Erfordert, dass LibreOffice auf dem Server vorhanden ist
+OF_PRINT_IN_PDF_HELP = Standardmäßig gibt es auf den Produktionsaufträgen eine Schaltfläche "Drucken", mit der Sie sie im ODT-Format herunterladen können. Wenn diese Option aktiviert ist und LibreOffice auf Ihrem Server installiert ist, können Sie sie über diese Schaltfläche als PDF herunterladen.
+SearchIntoOf=Produktionsaufträge
+
+listOFAmountsHistory=Historie der ausstehenden Produktionsmengen
+ReloadPriceFourn=Sind Sie sicher, dass Sie die Preise der benötigten Produkte neu laden wollen?
+ReloadPrice=Preis aktualisieren
+pmpReloaded=Preise für benötigte Produkte neu geladen
+NeededDateCantBeSatisfied=Das Bedarfsdatum kann nicht eingehalten werden (zu später Start)
+
+OF_SHOW_WS_IN_LIST=Arbeitsstationen in der Liste der Produktionsaufträge anzeigen
+Workstations=Arbeitsstationen
+
+
+OF_SHOW_LINE_ORDER_EXTRAFIELD = Anzeigen von "Zusatzfeldern" in der Bestellzeile für Produkte, die in Produktionsaufträgen erstellt werden sollen
+OF_SHOW_LINE_ORDER_EXTRAFIELD_HELP = Mit dieser Option können Sie die "Zusatzfelder", die in den Produktzeilen eines Kundenauftrags ausgefüllt sind, unter der Bezeichnung des Produkts anzeigen lassen, das in dem Produktionsauftrag aus diesem Kundenauftrag erstellt werden soll. Sie müssen also eine Produktionsauftrag aus einem Kundenauftrag erstellt haben und die Zeilen dieses Auftrags müssen über "Zusatzfelder" verfügen.
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM=Beschränken Sie die "Zusatzfelder" auf diese Schlüssel
+OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM_HELP = Wenn die vorherige Funktionalität aktiviert ist, haben Sie Zugriff auf diese zusätzliche Option, mit der Sie nur die "Zusatzfelder" anzeigen lassen können, die den gewünschten Schlüsseln entsprechen. Diese Schlüssel werden bei der Erstellung der zusätzlichen Attribute in der Konfiguration des Moduls "Kundenauftrag" festgelegt. Sie können diese "Zusatzfelder" durch Kommas ohne Leerzeichen trennen.
+OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK=Kopieren der "Zusatzfelder" aus dem Auftrag in die verknüpften Aufgaben, falls vorhanden
+
+EndDate=Enddatum
+OF_MASK=Maske für die Nummerierung von Produktionsaufträgen
+ParamLinkedToOrders = Konfiguration in Verbindung mit Angeboten / Aufträgen
+OF_SHOW_ORDER_LINE_PRICE = Eine Spalte mit dem Preis der Auftragszeile anzeigen, die zum Erstellen des Produktionsauftrages verwendet wurde
+OF_SHOW_ORDER_LINE_PRICE_HELP = Mit dieser Option können Sie in den Listen der Produktionsaufträge (CAPM-Menü oder Registerkarte Produktionsauftrag eines Kundenauftrags) eine Spalte mit dem Titel "Zeilenpreis" hinzufügen.
+OrderLinePrice=Preis pro Zeile
+CannotLoadThisOrderAreYouInTheGoodEntity=Der Auftrag kann nicht geladen werden. Sind Sie auf dem richtigen Unternehmen?
+ErrorOFFromAnotherEntity=Produktionsauftrag in einem anderen Unternehmen erstellt
+OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER=Schließen Sie die Aufgaben im Zusammenhang mit einem Produkt in einer Lieferantenbestellung bei Erhalt der Bestellung ab.
+OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT=Verlinkte Aufgaben nur dann abschließen, wenn der mit der Aufgabe verbundene Arbeitsplatz vom Typ "Unterauftragnehmer" ist
+NEED_CONF_OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER=Erfordert die Aktivierung der Konfiguration "Aufgaben im Zusammenhang mit einem Produkt in einer Lieferantenbestellung bei Erhalt der Bestellung schließen".
+InssuficienteAssetContenanceToUsedInOF=Unzureichende Kapazität der Ausrüstung %s
+InssuficienteAssetContenanceToAddFromOF=Kapazität der Ausrüstung %s überschritten
+OF_CLOSE_OF_ON_CLOSE_ALL_TASK=Schließt den Produktionsauftrag ab, wenn die letzte Aufgabe der OF abgeschlossen ist.
+
+OfTransfertQtyPlannedIntoUsed=Geplantes in das Verwendete übertragen
+
+OF_HANDLE_ORDER_LINE_DESC=Die Beschreibung der Zeilen aus der Bestellung in den Produktionsauftrag kopieren und auf den Etiketten anzeigen
+OF_MANAGE_NON_COMPLIANT=Umgang mit Nichtkonformität
+Compliant = Konforme Menge
+NonCompliant = Nicht-konforme Menge
+
+ParamLinkedToOFGPAO = Konfiguration Produktionsmanagement
+OF_RANK_PRIOR_BY_LAUNCHING_DATE=Priorisierung der Produktionsaufträge nach dem Starttermin
+OF_RANK_PRIOR_BY_LAUNCHING_DATE_HELP = Standardmäßig werden die Produktionsauftrage in der Liste nach dem Erstellungsdatum sortiert. Wenn diese Option aktiviert ist, werden die Produktionsaufträge nach dem Startdatum (Stammblatt) sortiert, das dem Startdatum (Liste) entspricht.<br/><br/>Diese Funktion fügt eine Schaltfläche "Priorisierungsrang aktualisieren" sowie eine Spalte "Rang" auf der Liste der Produktionsaufträge und auf den Karten hinzu.
+OF_REGROUP_LINE=Gruppieren Sie die zu erstellenden Produkte, Komponenten und identischen Arbeitsstationen in den Produktionsaufträgen.
+OF_REGROUP_LINE_HELP = Standardmäßig werden identische Elemente in zwei getrennten Zeilen angezeigt. Wenn diese Einstellung aktiviert ist, werden identische Elemente in derselben Zeile mit einer Kumulierung der erforderlichen Mengen zusammengefasst. Diese Gruppierung findet in untergeordneten Produktionsaufträgen nicht statt.
+MissingLaunchingDateForRank=Fehlendes Startdatum, um den Rang zu verwalten
+CumulateProjectTask=Die Zeit der Aufgaben kumulieren, wenn es sich um dieselbe Arbeitsstation handelt (hängt von der "%s"-Konfiguration ab)
+OF_WORKSTATION_NON_COMPLIANT= Arbeitsstationen, die für das Management von Nichtkonformitäten verwendet werden
+ShippablePrevReport=Zustellbarkeitsbericht
+WarningNoDate=Geben Sie ein mit der Zeile verknüpftes Lieferdatum ein
+pictoNoDate=Die Berechnung ist falsch, wenn es kein Datum gibt
+PhysicalStock = Ist Bestand
+
+ParametersReport = Einstellungen Berichte
+OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD=Zustellbarkeitsbericht: Lieferdatum, das als Grundlage für Lieferantenbestellungen dient (Extrafeld vom Typ Zeile)
+OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD=Zustellbarkeitsbericht: Lieferdatum, das als Grundlage für Kundenbestellungen dient (Extrafeld vom Typ Zeile)
+OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD=Zustellbarkeitsbericht: Lieferdatum, das als Grundlage für Angebote dient (Extrafeld vom Typ Zeile)
+FillReportConf= Bitte wählen Sie in dem Produktionsauftrags-Modul-Konfiguration die Extrafelder, die dem Lieferdatum im Produktionsauftrag entsprechen
+OF_MANAGE_ORDER_LINK_BY_LINE=Die Verbindung zwischen der Bestellung und der Produktionsauftrags-Zeile für Zeile verwalten
+OF_MANAGE_ORDER_LINK_BY_LINEDETAIL=Verbessert die Genauigkeit, wenn der Produktionsauftrag zeilenweise erstellt wird (Eröffnet die Möglichkeit, Produktionsaufträge zu verwalten, deren Zeilen aus verschiedenen Bestellungen stammen)
+NotShippable = Nicht lieferbar
+LineWithoutDate = Zeile ohne Datum
+UpdateRank=Priorisierungsrang aktualisieren
+WarningMustSetConfOF_WORKSTATION_NON_COMPLIANT=Bitte legen Sie in der Modulkonfiguration der Arbeitsstationen fest, die für die Verwaltung von Nichtkonformitäten verwendet werden.
+OF_KEEP_ORDER_DOCUMENTS=Dokumente (Anhänge) aus der Bestellung beim Konvertieren zum Produktionsauftrag kopieren (Achtung, Speicherplatz wird beeinflusst)
+OF_KEEP_PRODUCT_DOCUMENTS=Dokumente (Anhänge) aus dem Produkte beim Hinzufügen zum Produktionsauftrag kopieren (Achtung, Speicherplatz wird beeinflusst).
+OF_SHOW_ORDER_DOCUMENTS=Folgebelege der Bestellung im Produktionsauftrag anzeigen
+OF_SHOW_PRODUCT_DOCUMENTS=Folgedokumente des Produkts im Produktionsauftrag anzeigen
+OrderLinkedFiles=Angehängte Dateien und Dokumente des Auftrags %s
+ProductLinkedFiles= Angehängte Dateien und Dokumente des Produkts %s
+OF_REAL_HOUR_CAN_BE_EMPTY=Ist-Stunden können leer sein
+OF_DISPLAY_OF_ON_COMMANDLINES=Verknüpfte Produktionsaufträge auf Kundenauftragszeilen anzeigen
+OF_DISPLAY_PRODUCT_CATEGORIES=Komponenten nach Produktkategorien anzeigen und gruppieren
+OF_DRAFT_IN_VIRTUAL_STOCK=Entwürfe von Produktionsaufträgen bei der Berechnung des virtuellen Produktbestands berücksichtigen
+
+# Ref Line Number
+OF_USE_REFLINENUMBER=Nummern von Referenzzeilen verwenden
+OF_USE_REFLINENUMBER_help=Sie ermöglichen es, eine Zeile eines Auftrags, eines Angebots oder einer Rechnung zu Informationszwecken mit einem nummerierten externen Element, z. B. einer Zeile in einer Tabellenkalkulation, zu verknüpfen.
+RefLineNumber=Referenzlinie
+OF_product_in_of=Produkt, das in einem oder mehreren Produktionsaufträgen vorkommt
+OF_REF_LINE_NUMBER_BEFORE_DESC = Zeigen Sie, wenn möglich, die Spalte mit den Referenzzeilennummern vor der Beschreibung (PDF und Karteikarten) an.
+AddAnAssetATM = Ausrüstung hinzufügen
+
+StockTransfer= Übertragung von Lagerbeständen
+WarehouseTargetEmpty = Leeres Ziellager
+empty=keine
+ModifyAllWarehouses=Alle Komponentenlager ändern
+VirtualStockOf=Menge des Produkts, das in Kürze in den Produktionssaufträgen verbraucht wird: %s <br> Menge des Produkts, das in Kürze in den Produktionssaufträgen produziert wird: %s
+OF_DONT_UPDATE_PMP_ON_CLOSE=PMPs beim Abschluss eines Produktionsauftrags nicht aktualisieren
