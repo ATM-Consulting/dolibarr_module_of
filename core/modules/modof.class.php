@@ -566,7 +566,7 @@ class modof extends DolibarrModules
 				'methodename' => 'stockCurrentAmount',
 				'params' => '',
 				'datestart' => time(),
-                'datenextrun' => time(),
+				'datenextrun' => time(),
 		));
 
 		dol_include_once('/cron/class/cronjob.class.php');
