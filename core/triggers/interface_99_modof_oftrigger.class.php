@@ -172,6 +172,7 @@ class Interfaceoftrigger
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $_REQUEST['id'];
 							$assetOF->fk_soc = $object->socid;
+							if(!empty($object->date_livraison)) $assetOF->date_besoin = $object->date_livraison;
 							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
 
