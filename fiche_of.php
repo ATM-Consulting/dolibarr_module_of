@@ -849,14 +849,22 @@ function _get_line_order_extrafields($fk_commandedet) {
         $TIn = explode(',', $conf->global->OF_SHOW_LINE_ORDER_EXTRAFIELD_JUST_THEM);
 		$TIn = array_map('trim', $TIn);
 
-        foreach($extrafieldsline->attribute_label as $field=>$data) {
+		//Compatibilité v17
+		if(version_compare(DOL_VERSION , '17.0.0', '<')) {
+			foreach($extrafieldsline->attribute_label as $field=>$data) {
 
-            if(!in_array($field, $TIn)) {
-                unset($extrafieldsline->attribute_label[$field]);
+				if(!in_array($field, $TIn)) {
+					unset($extrafieldsline->attribute_label[$field]);
+				}
+			}
+		} else {
+			foreach($extrafieldsline->attributes[$line->element]['label']as $field=>$data) {
 
-            }
-
-        }
+				if(!in_array($field, $TIn)) {
+					unset($extrafieldsline->attributes[$line->element]['label'][$field]);
+				}
+			}
+		}
 
     }
 
