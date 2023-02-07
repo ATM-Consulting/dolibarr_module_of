@@ -1482,6 +1482,7 @@ class TAssetOF extends TObjetStd{
 
 		$reste = TAssetOF::getProductStock($fk_product,0,true, !empty($conf->global->CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK))-$qty_needed;
 
+
 		if($reste>=0) {
 			return null;
 		}
@@ -1491,7 +1492,7 @@ class TAssetOF extends TObjetStd{
 			$this->TAssetOF[$k]->fk_project = $this->fk_project;
 			$this->TAssetOF[$k]->fk_soc = $this->fk_soc;
 			$this->TAssetOF[$k]->fk_commande = $this->fk_commande;
-			$this->TAssetOF[$k]->date_besoin = dol_now();
+			$this->TAssetOF[$k]->date_besoin = (!empty($this->date_besoin)) ? $this->date_besoin : dol_now();
 			$this->TAssetOF[$k]->addLine($PDOdb, $fk_product, 'TO_MAKE', abs($qty_needed), $fk_assetOfLine_parent);
 
 			return $k;
