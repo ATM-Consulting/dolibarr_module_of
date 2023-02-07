@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 
 ## Version 2.12
+- FIX : lors de la création d'OF enfant, si l'OF parent a une date de besoin, alors les OF enfants reprennent cette même date de besoin *07/02/2023* - 2.12.6
 - FIX : lors de la création automatique d'un OF à la validation d'une commande, la date de besoin doit être égale à la date de livraison si renseignée (même comportement que l'action manuelle) *27/01/2023* - 2.12.5
 - FIX : Compatibilité V15 - Onglet fichiers joints *17/12/2021* - 2.12.4
 - FIX : Ajout du choix d'entrepot vide DA021060 + Ajout  de la préselection en fonction de l'entrepot par  défaut produit *02/12/2021* - 2.12.3
