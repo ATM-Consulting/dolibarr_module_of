@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 **IMPORTANT : Requires WorkstationAtm 2.0**
 
+- FIX : Use subquery instead of left join to avoid error on SUM(qty) *17/02/2023* - 2.1.2
 - FIX : $langs->transnoentities() instead of $langs->trans() on all linked files of OF + product linked files are missing *09/12/2022* - 2.1.1
 - FIX : $langs->transnoentities() instead of $langs->trans() on linked product files of OF + additional description is hidden by default *25/11/2022* - 2.1.0
 - FIX : Default extrafield reflinenumber visibility  *05/07/2021* - 2.0.2
