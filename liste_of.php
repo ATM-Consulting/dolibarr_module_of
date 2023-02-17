@@ -212,7 +212,7 @@ function _liste(&$PDOdb)
 	else {
 		$sql.=" ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre
-        ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", GROUP_CONCAT(DISTINCT wof.fk_asset_workstation SEPARATOR ',') as fk_asset_workstation")."
+        ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", (SELECT GROUP_CONCAT(DISTINCT fk_asset_workstation SEPARATOR ',') FROM " . MAIN_DB_PREFIX . "asset_workstation_of WHERE fk_assetOf = ofe.rowid) as fk_asset_workstation")."
         , ofe.date_lancement
         , ofe.date_besoin
         , ofe.date_end";
@@ -258,7 +258,6 @@ function _liste(&$PDOdb)
 
 		$sql.=" FROM ".MAIN_DB_PREFIX."assetOf as ofe
 		  LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line ofel ON (ofel.fk_assetOf=ofe.rowid AND ofel.type = 'TO_MAKE')
-            ".(empty($conf->global->OF_SHOW_WS_IN_LIST) ? '': " LEFT JOIN ".MAIN_DB_PREFIX."asset_workstation_of wof ON (wof.fk_assetOf=ofe.rowid) " )."
 		  LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
 
