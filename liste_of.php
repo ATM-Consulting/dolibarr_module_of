@@ -363,7 +363,7 @@ function _liste(&$PDOdb)
 
 	if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) $TMath['order_line_price'] = 'sum';
 
-	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'GET');
+	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'POST');
 
 
 	$allExceptClose = false;
