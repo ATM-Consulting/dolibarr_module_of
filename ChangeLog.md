@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 1.18
 
+- FIX : Form of list of must be in post and not get because of input "Impression étiquettes" *2023-03-17* - 1.18.5
 - FIX : Missing rowid on create of product line *2021-12-08* - 1.18.4
 - FIX : Fix add hidden conf OF_FORCE_GENERATE_PDF_ON_VALID for generating document on validate *2021-12-03* - 1.18.3
 - FIX : Fix missing common behavior generating document on validate *2021-11-17* - 1.18.2 
