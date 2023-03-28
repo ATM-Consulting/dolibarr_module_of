@@ -297,18 +297,15 @@ class TAssetOF extends TObjetStd{
 
 	public function getListChildrenOf()
     {
-        if (!empty($this->TAssetOF)) $TChildren = $this->TAssetOF;
-        else $TChildren = array();
 
-        $TSubChildren = array();
-        foreach ($TChildren as $childOf)
-        {
-            $TSubChildren = $childOf->getListChildrenOf();
-        }
+	if (!empty($this->TAssetOF)) {
 
-        $TChildren = array_merge($TChildren, $TSubChildren);
+		$TOf = array_merge($TOf, $this->TAssetOF);
 
-        return $TChildren;
+		foreach ($this->TAssetOF as $childOf) $childOf->getListChildrenOf($TOf);
+
+	}
+
     }
 
     /**
@@ -438,7 +435,7 @@ class TAssetOF extends TObjetStd{
 //		}
 
 //		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->getListChildrenOf();
+		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListChildrenOf($TOf);
 
 		$TOf[] = &$this;
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
