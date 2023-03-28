@@ -295,7 +295,7 @@ class TAssetOF extends TObjetStd{
 		return true;
 	}
 
-	public function getListChildrenOf()
+	public function getListChildrenOf(&$TOf)
     {
 
 	if (!empty($this->TAssetOF)) {
