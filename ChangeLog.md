@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 ## UNRELEASED
 
 ## Version 2.13
+
+- FIX : Fatal sur page d'admin des modèles de PDF provoquée par un ancien exemple de modèle obsolète. - *30/03/2023* - 2.13.10
 - FIX : function getListChildrenOf doesn't take care of last child OF - *28/03/2023* - 2.13.9
 - FIX : Compatibilité v17 > extrafields attribute - *31/01/2023* - 2.13.8
 - FIX : Boucle infinie lors de l'enregistrement d'un OF et de la présence d'un ou plusieurs produits non conformes - Déplacement de code *08/11/2022* - 2.13.7
