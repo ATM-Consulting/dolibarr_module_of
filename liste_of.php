@@ -105,7 +105,7 @@ $arrayfields = array(
 if (GETPOST('cancel', 'alpha')) { $action = 'list'; $massaction = ''; }
 if (!GETPOST('confirmmassaction', 'alpha') && $massaction != 'presend' && $massaction != 'confirm_presend') { $massaction = ''; }
 
-$parameters = array('socid'=>$socid);
+$parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
@@ -423,7 +423,7 @@ if ($resql)
     print '<input type="hidden" name="sortorder" value="' . $sortorder . '">';
     print '<input type="hidden" name="page" value="' . $page . '">';
     print '<input type="hidden" name="contextpage" value="' . $contextpage . '">';
-
+    $massactionbutton = '';
     print_barre_liste($langs->trans('ListOFAsset'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, '', 0, '', '', $limit);
 
     include DOL_DOCUMENT_ROOT.'/core/tpl/massactions_pre.tpl.php';
@@ -570,7 +570,7 @@ if ($resql)
         print '</td>';
     }
     // Impression étiquette
-    if ($conf->global->OF_NB_TICKET_PER_PAGE != -1){
+    if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1){
         print '<td class="liste_titre">';
         print '</td>';
     }
@@ -609,7 +609,7 @@ if ($resql)
     if (! empty($arrayfields['ofe.temps_estime_fabrication']['checked']))  print_liste_field_titre('EstimatedMakeTimeInHours', $_SERVER["PHP_SELF"], "ofe.temps_estime_fabrication", "", $param, "", $sortfield, $sortorder);
     if (! empty($user->rights->of->of->price))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
     if (! empty($user->rights->of->of->price))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
-    if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
+    if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1) print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
     if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
 
     // Hook fields
@@ -698,7 +698,9 @@ if ($resql)
         // Commande
         if (empty($fk_commande)) {
             print '<td class="tdoverflowmax200">';
-            print OFTools::get_format_libelle_commande($obj->fk_commande, $obj->fk_commande_det, $obj->fk_product);
+            if(!empty($obj->fk_commande_det)) $fk_commandedet = $obj->fk_commande_det;
+            else $fk_commandedet=0;
+            print OFTools::get_format_libelle_commande($obj->fk_commande, $fk_commandedet, $obj->fk_product);
             print '</td>';
             if (!$i) $totalarray['nbfield']++;
         }
@@ -753,9 +755,9 @@ if ($resql)
             $totalarray['val']['ofe.total_cost'] += round($obj->total_cost, 2);
         }
         // Impression étiquette
-        if ($conf->global->OF_NB_TICKET_PER_PAGE != -1){
+        if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1){
             print '<td class="tdoverflowmax200">';
-            print '<input style=width:40px;"" type="number" value="'.((int) $conf->global->OF_NB_TICKET_PER_PAGE).'" name="printTicket['.$obj->rowid.']" min="0" />';
+            print '<input style=width:40px;"" type="number" value="'.(!empty($conf->global->OF_NB_TICKET_PER_PAGE) ? (int) $conf->global->OF_NB_TICKET_PER_PAGE : 0).'" name="printTicket['.$obj->rowid.']" min="0" />';
             print "</td>\n";
             if(! $i) $totalarray['nbfield']++;
         }
@@ -805,7 +807,7 @@ if ($resql)
     print "</table>";
     print "</div>";
 
-    if ($conf->global->OF_NB_TICKET_PER_PAGE != -1) {
+    if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1) {
         echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
     }
     if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
@@ -1122,7 +1124,7 @@ if ($resql)
 
         echo '<div class="tabsAction">';
         echo '<a id="bt_createOf" class="butAction" href="fiche_of.php?action=new'.((!empty($fk_product)) ? '&fk_product='.$fk_product : '' ).'">'.$langs->trans('CreateOFAsset').'</a>';
-        if ($conf->nomenclature->enabled && !empty($fk_product))
+        if (!empty($conf->nomenclature->enabled) && !empty($fk_product))
         {
             require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
             dol_include_once('/' . ATM_ASSET_NAME . '/lib/asset.lib.php');

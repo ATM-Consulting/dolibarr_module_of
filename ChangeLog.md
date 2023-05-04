@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.13
 
+- FIX : Compat v17 php8 - *04/05/2023* - 2.13.11
 - FIX : Fatal sur page d'admin des modèles de PDF provoquée par un ancien exemple de modèle obsolète. - *30/03/2023* - 2.13.10
 - FIX : function getListChildrenOf doesn't take care of last child OF - *28/03/2023* - 2.13.9
 - FIX : Compatibilité v17 > extrafields attribute - *31/01/2023* - 2.13.8
