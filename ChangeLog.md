@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- FIX : wrong parameter usage of mb_strrpos in of.lib.php
+
 ## Version 2.13
 
 - FIX : Fatal sur page d'admin des modèles de PDF provoquée par un ancien exemple de modèle obsolète. - *30/03/2023* - 2.13.10
