@@ -346,7 +346,7 @@ function showParameters(&$form) {
 
 	$formProduct = new FormProduct($db);
 
-	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-<?php echo $typeDoc ?>" method="POST" enctype="multipart/form-data">
+	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-models" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
 		<table width="100%" class="noborder">
 			<tr class="liste_titre">

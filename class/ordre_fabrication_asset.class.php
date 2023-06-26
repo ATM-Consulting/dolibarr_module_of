@@ -435,7 +435,7 @@ class TAssetOF extends TObjetStd{
 //		}
 
 //		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListChildrenOf($TOf);
+		if(!empty($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS)) $this->getListChildrenOf($TOf);
 
 		$TOf[] = &$this;
 		if (!empty($conf->global->OF_CHECK_IF_WAREHOUSE_ON_OF_LINE))
@@ -990,7 +990,7 @@ class TAssetOF extends TObjetStd{
 		$this->destockOrStockPartialQty($PDOdb, $this);
 
 		if($this->fk_project == 0) {
-			if($conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
+			if(!empty($conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF)) $this->create_new_project();
 			elseif(!empty($this->fk_commande)) {
 				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
 				$commande = new Commande($db);
@@ -1831,7 +1831,7 @@ class TAssetOF extends TObjetStd{
 		dol_include_once('/product/class/product.class.php');
 
 		$TIDOFToValidate = array($this->rowid);
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
+		if(!empty($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS)) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
 		krsort($TIDOFToValidate);
 
 		foreach ($TIDOFToValidate as $id_of)
@@ -1928,7 +1928,7 @@ class TAssetOF extends TObjetStd{
 
 		$TIDOFToValidate = array($this->rowid);
 
-		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
+		if(!empty($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS)) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
 		krsort($TIDOFToValidate);
 
 		foreach ($TIDOFToValidate as $id_of) {
@@ -3691,7 +3691,7 @@ class TAssetOFLine extends TObjetStd{
 
         $this->TWorkstation=array();
 
-		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
 		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
 		$sql.= ' AND sourcetype = "tassetofline" AND targettype = "tassetworkstation"';
 
@@ -3827,13 +3827,6 @@ class TAssetOFLine extends TObjetStd{
 
 	function set_values($row)
 	{
-		global $conf;
-
-		if ($conf->nomenclature->enabled && $this->fk_nomenclature != $row['fk_nomenclature'])
-		{
-			//
-		}
-
 		parent::set_values($row);
 	}
 
@@ -4530,7 +4523,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 		$res = array();
 
-		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql = 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
 		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
 		$sql.= ' AND sourcetype = "tassetworkstationof" AND targettype = "user"';
 
@@ -4599,7 +4592,7 @@ class TAssetWorkstationOF extends TObjetStd{
 	{
 		$res = array();
 
-		$sql.= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql= 'SELECT fk_target FROM '.MAIN_DB_PREFIX.'element_element';
 		$sql.= ' WHERE fk_source = '.(int) $this->rowid;
 		$sql.= ' AND sourcetype = "tassetworkstationof" AND targettype = "task"';
 

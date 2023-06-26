@@ -506,7 +506,7 @@ class Interfaceoftrigger
 		}
         elseif ($action == 'ASSET_OF_DELETE')
         {
-            if ($conf->stocktransfer->enabled) {
+            if (!empty($conf->stocktransfer->enabled)) {
 
                 dol_include_once('/stocktransfer/class/stocktransfer.class.php');
                 global $db;

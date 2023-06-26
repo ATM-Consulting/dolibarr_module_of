@@ -9,7 +9,7 @@ dol_include_once('/of/lib/of.lib.php');
 dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 
-if ($conf->nomenclature->enabled) {
+if (!empty($conf->nomenclature->enabled)) {
      dol_include_once('/nomenclature/class/nomenclature.class.php');
 }
 
@@ -293,7 +293,7 @@ function _updateQtyMaking(&$PDOdb, $fk_of,$idLine,$action,$qty, $qty_used, $qty_
 	return $res;
 }
 
-function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
+function _updateToMake($TAssetOFChildId, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TIdLineModified, &$TNewIdAssetOF)
 {
 	if (empty($TAssetOFChildId)){
 		return false;
