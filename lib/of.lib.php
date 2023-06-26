@@ -47,7 +47,7 @@
 	function visu_checkbox_user(&$PDOdb, &$form, $group, $TUsers, $name, $status)
 	{
 		$include = array();
-
+		$res = '';
 		$sql = 'SELECT u.lastname, u.firstname, uu.fk_user, u.statut
 		  FROM '.MAIN_DB_PREFIX.'usergroup_user uu INNER JOIN '.MAIN_DB_PREFIX.'user u ON (uu.fk_user = u.rowid)
 		  WHERE uu.fk_usergroup = '.(int) $group;
@@ -81,7 +81,7 @@
 	function visu_checkbox_task(&$PDOdb, &$form, $fk_workstation, $TTasks, $name, $status)
 	{
 		$include = array();
-
+		$res = '';
 		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $fk_workstation;
 		$PDOdb->Execute($sql);
 
@@ -320,7 +320,7 @@
 				$out.= '</select>';
 			}
 
-			if($conf->cliacropose->enabled) { // TODO c'est naze, à refaire en utilisant la vraie autocompletion dispo depuis dolibarr 3.8 pour utiliser l'auto complete projets de doli si active (j'avais rajouté un script ajax/projects.php pour acropose)
+			if(!empty($conf->cliacropose->enabled)) { // TODO c'est naze, à refaire en utilisant la vraie autocompletion dispo depuis dolibarr 3.8 pour utiliser l'auto complete projets de doli si active (j'avais rajouté un script ajax/projects.php pour acropose)
 
 				// Autocomplétion
 				if(isset($selected)) {
@@ -621,7 +621,7 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
     // Define $sqlstring
     if (function_exists('mb_strrpos'))
     {
-        $posnumstart=mb_strrpos($maskwithnocode,$maskcounter, 'UTF-8');
+        $posnumstart=mb_strrpos($maskwithnocode,$maskcounter, 0,'UTF-8');
     }
     else
     {

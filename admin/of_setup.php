@@ -259,20 +259,20 @@ setup_print_on_off('ASSET_CONCAT_PDF', $langs->trans("AssetConcatPDF"), '', 'ASS
 // ************************
 setup_print_title('ParamLinkedToOFTagsPrints');
 
-$input = $formCore->number("", "OF_NB_TICKET_PER_PAGE",$conf->global->OF_NB_TICKET_PER_PAGE,10,1,-1);
+$input = $formCore->number("", "OF_NB_TICKET_PER_PAGE",!empty($conf->global->OF_NB_TICKET_PER_PAGE)?$conf->global->OF_NB_TICKET_PER_PAGE:0,10,1,-1);
 setup_print_input_form_part('OF_NB_TICKET_PER_PAGE', $langs->trans("OfNbTicketrPerPage"), '', array(), $input, 'OF_NB_TICKET_PER_PAGE_HELP');
 
 $tooltip=$langs->trans("DEFAULT_ETIQUETTES_HELP");
 $liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
-$input = $form->selectarray('DEFAULT_ETIQUETTES', $liste, $conf->global->DEFAULT_ETIQUETTES);
+$input = $form::selectarray('DEFAULT_ETIQUETTES', $liste, !empty($conf->global->DEFAULT_ETIQUETTES)?$conf->global->DEFAULT_ETIQUETTES:0);
 setup_print_input_form_part('DEFAULT_ETIQUETTES', $langs->trans('CHOOSE_CUSTOM_LABEL'), '', array(), $input, $tooltip);
 
 $input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
 setup_print_input_form_part('ABRICOT_WKHTMLTOPDF_CMD', false, 'ABRICOT_WKHTMLTOPDF_CMD_DESC', array(), $input);
 
 
-print '<tbody class="default-etiquette-sub-conf" data-target="2" style="display: '.($conf->global->DEFAULT_ETIQUETTES!=2?'none':'').'" >';
-if($conf->global->DEFAULT_ETIQUETTES == 2){
+print '<tbody class="default-etiquette-sub-conf" data-target="2" style="display: '.(!empty($conf->global->DEFAULT_ETIQUETTES) && ($conf->global->DEFAULT_ETIQUETTES != 2) ?'none':'').'" >';
+if(!empty($conf->global->DEFAULT_ETIQUETTES) && $conf->global->DEFAULT_ETIQUETTES == 2){
 
 	$attrNumb = array('maxlength' => '10', 'type' => 'number', 'step' => '1', 'min' => 0);
 	$attrPercent = array('maxlength' => '10', 'type' => 'number', 'step' => '0.01', 'min' => 0, 'max' => 100);
@@ -321,7 +321,7 @@ setup_print_on_off('OF_RANK_PRIOR_BY_LAUNCHING_DATE');
 setup_print_on_off('OF_MANAGE_NON_COMPLIANT');
 
 if(!empty($conf->workstationatm->enabled)){
-	$input = $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT),0, 0, '', 0, 300);
+	$input = $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), !empty($conf->global->OF_WORKSTATION_NON_COMPLIANT) ? explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT) : '',0, 0, '', 0, 300);
 	setup_print_input_form_part('OF_WORKSTATION_NON_COMPLIANT', false, '', array(), $input);
 }
 setup_print_on_off('OF_REGROUP_LINE');
@@ -345,7 +345,7 @@ setup_print_title('ParamLinkedToOFOthers');
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="set_OF_COEF_MINI_TU_1">';
-	print $formCore->texte('', 'OF_COEF_MINI_TU_1', $conf->global->OF_COEF_MINI_TU_1, 10, 10);
+	print $formCore->texte('', 'OF_COEF_MINI_TU_1', !empty($conf->global->OF_COEF_MINI_TU_1)?$conf->global->OF_COEF_MINI_TU_1:'', 10, 10);
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 	print '</form>';
 	print '</td></tr>';
@@ -610,7 +610,7 @@ print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('commande_fournisseurdet');
-print $form->selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD,1);
+print $form::selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, !empty($conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD)?$conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD:'',1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -624,7 +624,7 @@ print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('commandedet');
-print $form->selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD,1);
+print $form::selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, !empty($conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD)?$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD:'',1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -638,7 +638,7 @@ print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('propaldet');
-print $form->selectarray('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD', $liste, $conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD,1);
+print $form::selectarray('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD', $liste, !empty($conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD)?$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD:'',1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -657,7 +657,7 @@ function showParameters(&$form) {
 
 	$formProduct = new FormProduct($db);
 
-	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-<?php echo $typeDoc ?>" method="POST" enctype="multipart/form-data">
+	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-of" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
 		<table width="100%" class="noborder">
 			<tr class="liste_titre">

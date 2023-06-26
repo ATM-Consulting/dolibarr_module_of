@@ -551,6 +551,7 @@
 									,data:{
 										action:"[view.actionChild]"
 										,id:Tid[x]
+										,token:"[assetOf.token]"
 									}
 									,type: 'POST'
 								}).done(function(data) {
