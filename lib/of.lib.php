@@ -621,7 +621,7 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
     // Define $sqlstring
     if (function_exists('mb_strrpos'))
     {
-        $posnumstart=mb_strrpos($maskwithnocode,$maskcounter, 0,'UTF-8');
+        $posnumstart=mb_strrpos($maskwithnocode,$maskcounter,0,'UTF-8');
     }
     else
     {

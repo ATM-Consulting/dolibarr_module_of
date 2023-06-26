@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- FIX : wrong parameter usage of mb_strrpos in of.lib.php
+
 ## Version 2.13
 
 - FIX : Compat v17 php8 - *04/05/2023* - 2.13.11
