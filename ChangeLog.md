@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- NEW : possibility to prevent child production order creation for services
 - FIX : wrong parameter usage of mb_strrpos in of.lib.php
 
 ## Version 2.13

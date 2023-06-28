@@ -195,6 +195,7 @@ CreateAssetChildrenOFWithComposantConfirmChangeStateContent = Mit dieser Option 
 CREATE_CHILDREN_OF_COMPOSANT_HELP = Wenn eine der Konfigurationen, die das Erstellen von untergeordneten Produktionsaufträgen erlauben, aktiviert ist (oben), werden diese durch Aktivierung dieser Option nur für Nebenprodukte erstellt, die keinen physischen Bestand haben und selbst Nebenprodukte enthalten.
 UsetAssetProductionAttributs = Produktionsfelder nutzen
 CreteAssetOFOnOrderValidation = Automatische Erstellung von Produktionsaufträgen bei der Bestätigung einer Bestellung
+PreventChildrenOfCreationForServices = Automatische Erstellung von Kind Produktionsaufträgen für Services verhindern
 DeleteAssetOFOnOrderCancel = Produktionsaufträge automatisch löschen, wenn eine Bestellung storniert wird
 UseBatchNumberInOf = Die Chargenverwaltung in Produktionsaufträgen nutzen
 USE_LOT_IN_OF_DESC = Diese Option ist die gleiche wie bei der Konfiguration des Moduls Ausrüstung, das Aktivieren/Deaktivieren bewirkt dies auch auf der Konf des Moduls Ausrüstung...

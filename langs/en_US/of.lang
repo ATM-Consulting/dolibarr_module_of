@@ -161,6 +161,7 @@ CreateAssetChildrenOF=Allow the creation of child Production orders for non-stoc
 CreateAssetChildrenOFWithComposant=Restrict creation of child Production orders to products to be manufactured having components and no stock
 UsetAssetProductionAttributs=Use production fields
 CreteAssetOFOnOrderValidation=Automatically create the Production order when validating an order
+PreventChildrenOfCreationForServices = Prevent automatically creation of child production orders for services
 DeleteAssetOFOnOrderCancel=Automatically remove Production orders when canceling an order
 UseBatchNumberInOf=Use lot management in Production orders
 AllBatchNumberAreMandatory=Lot mandatory on all elements of Production orders
