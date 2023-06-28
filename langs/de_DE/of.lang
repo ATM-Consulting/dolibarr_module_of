@@ -196,6 +196,7 @@ CREATE_CHILDREN_OF_COMPOSANT_HELP = Wenn eine der Konfigurationen, die das Erste
 UsetAssetProductionAttributs = Produktionsfelder nutzen
 CreteAssetOFOnOrderValidation = Automatische Erstellung von Produktionsaufträgen bei der Bestätigung einer Bestellung
 PreventChildrenOfCreationForServices = Automatische Erstellung von Kind Produktionsaufträgen für Services verhindern
+PreventChildrenOfCreationForRawMaterialProduct = Automatische Erstellung von Kind Produktionsaufträgen für Produkte mit Art Rohmaterial
 DeleteAssetOFOnOrderCancel = Produktionsaufträge automatisch löschen, wenn eine Bestellung storniert wird
 UseBatchNumberInOf = Die Chargenverwaltung in Produktionsaufträgen nutzen
 USE_LOT_IN_OF_DESC = Diese Option ist die gleiche wie bei der Konfiguration des Moduls Ausrüstung, das Aktivieren/Deaktivieren bewirkt dies auch auf der Konf des Moduls Ausrüstung...

@@ -527,6 +527,15 @@ print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("PreventChildrenOfCreationForRawMaterialProduct").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL');
+print '</td></tr>';
+
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("DeleteAssetOFOnOrderCancel").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';

@@ -1477,10 +1477,13 @@ class TAssetOF extends TObjetStd{
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
-		if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES) {
+		if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES || $conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL) {
 			$product = new Product($db);
 			$product->fetch($fk_product);
-			if ($product->type == Product::TYPE_SERVICE) {
+			if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES && $product->type == Product::TYPE_SERVICE) {
+				return null;
+			}
+			if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL && $product->finished == 0) {
 				return null;
 			}
 		}
