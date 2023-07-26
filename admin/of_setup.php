@@ -224,6 +224,20 @@ setup_print_on_off('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS', $langs->trans("
 // ********************
 setup_print_title('ParamLinkedToOFStocks');
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("OF_MODE_CALCULATE_QTY_TO_MAKE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="400">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_OF_MODE_CALCULATE_QTY_TO_MAKE">';
+$liste = array('0' => $langs->trans("UseRealStockAndAlwaysMakeOrderedAmount"), '1' => $langs->trans("UseRealStockAndMakeDifferenceBetweenStockAndOrderedAmount"), '2' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmount"), '3' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmountConsideringDesiredStockAsMinimumStock"));
+print $form::selectarray('OF_MODE_CALCULATE_QTY_TO_MAKE', $liste, !empty($conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE) ? $conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE: '0', 0);
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
 setup_print_on_off('ASSET_ADD_NEEDED_QTY_ZERO', $langs->trans("AssetAddNeededQtyZero"));
 setup_print_on_off('ASSET_NEGATIVE_DESTOCK', $langs->trans("AssetNegativeDestock"));
 setup_print_on_off('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE');

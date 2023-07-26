@@ -167,13 +167,38 @@ class Interfaceoftrigger
 						$prod->fetch($line->fk_product);
 						$prod->load_stock();
 
-						if($prod->stock_reel < $line->qty) {
+						$qty = $line->qty - $prod->stock_reel;
+						//$prod->desiredstock // gewünschter Lagerbestand
 
+						$qty = 0;
+						$createOF = false;
+						if (!empty($conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE) && $conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE == "1") {
+							$qty = $line->qty - $prod->stock_reel;
+							$createOF = $prod->stock_reel < $line->qty;
+						} else if (!empty($conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE) && $conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE == "2") {
+							// this is needed as the amount of the related customer order is also included already in the theoretical
+							// stock but should not be considered for calculation
+							$theoreticalStock = $prod->stock_theorique + $line->qty; 
+							$qty = $line->qty - $theoreticalStock;
+							$createOF = $theoreticalStock < $line->qty;
+						} else if (!empty($conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE) && $conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE == "3") {
+							// this is needed as the amount of the related customer order is also included already in the theoretical
+							// stock but should not be considered for calculation
+							$theoreticalStock = $prod->stock_theorique + $line->qty;
+							$qty = $line->qty - ($theoreticalStock - $prod->desiredstock);
+							$createOF = $theoreticalStock - $prod->desiredstock < $line->qty;
+						} else {
+							$qty = $line->qty;
+							$createOF = $prod->stock_reel < $line->qty;
+						}
+
+						// if($prod->stock_reel < $line->qty) {
+						if($createOF) {
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $object->id;
 							$assetOF->fk_soc = $object->socid;
 							if(!empty($object->date_livraison)) $assetOF->date_besoin = $object->date_livraison;
-							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty,0, '',0,$line->id);
+							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
 
 						}
