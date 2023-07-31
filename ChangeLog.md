@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
+- FIX : function create_new_project will not create a project if no customer order is set on the production order *31/07/2023*
 - NEW : Possibility to choose the mode how the to be created amount of an production order is calcualted *26/07/2023*
 - FIX : creation of production orders not done if customer order is validated through api *11/07/2023*
 

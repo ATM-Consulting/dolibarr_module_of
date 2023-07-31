@@ -187,12 +187,31 @@ class Interfaceoftrigger
 							$theoreticalStock = $prod->stock_theorique + $line->qty;
 							$qty = $line->qty - ($theoreticalStock - $prod->desiredstock);
 							$createOF = $theoreticalStock - $prod->desiredstock < $line->qty;
+						} else if (!empty($conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE) && $conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE == "4") {
+							// this is needed as the amount of the related customer order is also included already in the theoretical
+							// stock but should not be considered for calculation
+							$theoreticalStock = $prod->stock_theorique + $line->qty;
+							$availableStock = max($theoreticalStock - $prod->desiredstock, 0);
+                            $missingDesiredStock = abs(min($theoreticalStock - $prod->desiredstock, 0));
+							$availableStockWarningLimit = max($prod->seuil_stock_alerte - $prod->desiredstock, 0);
+
+							// create new production order related to customer order for amount of products more than in available stock
+							// the rest can be taken from stock
+							$qty = $line->qty - $availableStock;
+							$createOF = $qty > 0;
+							$postProductionAmount = min($line->qty - max($availableStock - $availableStockWarningLimit, 0), $availableStockWarningLimit) + $missingDesiredStock;
+							if ($postProductionAmount > 0) {
+								// create new production order without customer relation to refill the stock to be within the warning limits
+								$assetOF = new TAssetOF;
+								$assetOF->note = $langs->trans("NotRelatedToCustomerOrderAsForFillupStock");
+								$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $postProductionAmount, 0, '', 0, $line->id);
+								$assetOF->save($PDOdb);
+							}
 						} else {
 							$qty = $line->qty;
 							$createOF = $prod->stock_reel < $line->qty;
 						}
 
-						// if($prod->stock_reel < $line->qty) {
 						if($createOF) {
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $object->id;
@@ -200,14 +219,10 @@ class Interfaceoftrigger
 							if(!empty($object->date_livraison)) $assetOF->date_besoin = $object->date_livraison;
 							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
-
 						}
-
 					}
-
 				}
 			}
-
 
         }
 		elseif($action === 'ORDER_CANCEL') {

@@ -662,8 +662,9 @@ class TAssetOF extends TObjetStd{
 			// On associe la commande au projet
 			$project->update_element('commande', $fk_commande);
 
+		} else {
+			$this->fk_project = $project->create($user);
 		}
-
 	}
 
 	function set_fourniture_cost($force_pmp=false) {

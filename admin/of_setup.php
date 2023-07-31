@@ -232,7 +232,13 @@ print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_OF_MODE_CALCULATE_QTY_TO_MAKE">';
-$liste = array('0' => $langs->trans("UseRealStockAndAlwaysMakeOrderedAmount"), '1' => $langs->trans("UseRealStockAndMakeDifferenceBetweenStockAndOrderedAmount"), '2' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmount"), '3' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmountConsideringDesiredStockAsMinimumStock"));
+$liste = array(
+	'0' => $langs->trans("UseRealStockAndAlwaysMakeOrderedAmount"),
+	'1' => $langs->trans("UseRealStockAndMakeDifferenceBetweenStockAndOrderedAmount"),
+	'2' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmount"),
+	'3' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmountConsideringDesiredStockAsMinimumStock"),
+	'4' => $langs->trans("UseTheoreticalStockAndMakeDifferenceBetweenStockAndOrderedAmountConsideringDesiredStockAsMinimumStockAndWarningLimit")
+);
 print $form::selectarray('OF_MODE_CALCULATE_QTY_TO_MAKE', $liste, !empty($conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE) ? $conf->global->OF_MODE_CALCULATE_QTY_TO_MAKE: '0', 0);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
