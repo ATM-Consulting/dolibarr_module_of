@@ -1557,7 +1557,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		)
 		,'stocktransfer'=>array(
 			'enable' => (int)(!empty($conf->stocktransfer->enabled))
-			,'url'=>dol_buildpath('/stocktransfer/stocktransfer_card.php', 1)
+			,'url'=>(file_exists(dol_buildpath('/stocktransfer/stocktransfer_card.php', 1))) ?  dol_buildpath('/stocktransfer/stocktransfer_card.php', 1) : dol_buildpath('/product/stock/stocktransfer/stocktransfer_card.php', 1)
 		)
 		,'rights'=>array(
 			'show_ws_time'=>$user->rights->of->of->show_ws_time
