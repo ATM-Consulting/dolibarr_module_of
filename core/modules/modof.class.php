@@ -141,7 +141,6 @@ class modof extends DolibarrModules
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits à fabriquer)',1)
 			,array('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED',0,'Identifiant de l\'entrepôt pour gérer le stock via les OF (produits nécessaires)',1)
 			,array('USE_LOT_IN_OF', 'chaine', 0,'Utiliser la gestion des lots dans OF',1)
-			,array('CREATE_CHILDREN_OF', 'chaine', 1,'Permet de créer des OF enfants si les composant sont hors stock',1)
 			,array('ASSET_USE_PROJECT_TASK', 'chaine', 0,'Chaque poste de travail associé à un OF créera une tâche au projet associé',1)
 			,array('ASSET_DEFINED_USER_BY_WORKSTATION', 'chaine', 0,'Permettre l\'association d\'un ou plusieurs utilisateurs d\'être assigné à un poste de travail sur un OF',1)
 			,array('ASSET_DEFINED_OPERATION_BY_WORKSTATION', 'chaine', 0,'Permet de définir un protocole opératoire pour chaque poste de travail',1)
