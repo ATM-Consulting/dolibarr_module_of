@@ -3,7 +3,6 @@ All notable changes to this project will be documented in this file.
 
 ## UNRELEASED
 
-- FIX : creation of production orders not done if customer order is validated through api *11/07/2023*
 
 ## Version 2.14
 
