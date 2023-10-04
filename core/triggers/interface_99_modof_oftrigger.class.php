@@ -508,7 +508,7 @@ class Interfaceoftrigger
         {
             if (!empty($conf->stocktransfer->enabled)) {
 
-                dol_include_once('/stocktransfer/class/stocktransfer.class.php');
+                dol_include_once('/product/stock/stocktransfer/class/stocktransfer.class.php');
                 global $db;
 
                 $stockTransfer = new StockTransfer($db);
