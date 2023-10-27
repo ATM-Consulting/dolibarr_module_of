@@ -539,6 +539,14 @@ print '</td></tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("PreventCreationOfIfNotProductTypeOwnProduction").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="300">';
+print ajax_constantonoff('CREATE_OF_ON_ORDER_VALIDATE_ONLY_IF_TYPE_IS_OWNPRODUCTION');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("PreventChildrenOfCreationForServices").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="300">';
