@@ -1309,13 +1309,13 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 		$select_product = ob_get_clean();
 
 		?>
-		<script type="text/javascript">
-                $(document).on('keypress',function(e) {
-                       if ($('input:focus').length == 0 && $("#dialog").is(':visible')) {
-                            $('#fk_product').select2('open');
-                        }
-                });
-        </script>
+<!--		<script type="text/javascript">-->
+<!--                $(document).on('keypress',function(e) {-->
+<!--                       if ($('input:focus').length == 0 && $("#dialog").is(':visible')) {-->
+<!--                            $('#fk_product').select2('open');-->
+<!--                        }-->
+<!--                });-->
+<!--        </script>-->
         <?php
         if(!empty($conf->global->OF_ONE_SHOOT_ADD_PRODUCT)){ //conf caché
         ?>
