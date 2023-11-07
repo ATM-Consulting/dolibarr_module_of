@@ -673,6 +673,9 @@
 							.done(function(){
 								//document.location.href="?id=[assetOf.id]";
 								$( "#dialog" ).dialog("close");
+                                setTimeout(function () {
+                                    $('.btnaddproduct[rel="TO_MAKE"]')[0].focus()
+                                }, 0)
 								refreshTab(idassetOf, 'edit');
 								getChild();
 							});
