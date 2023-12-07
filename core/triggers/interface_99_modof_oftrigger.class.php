@@ -172,7 +172,7 @@ class Interfaceoftrigger
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $object->id;
 							$assetOF->fk_soc = $object->socid;
-							if(!empty($object->date_livraison)) $assetOF->date_besoin = $object->date_livraison;
+							if(!empty($object->delivery_date)) $assetOF->date_besoin = $object->delivery_date;
 							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
 
@@ -541,7 +541,7 @@ class Interfaceoftrigger
 
         dol_include_once('/projet/class/task.class.php');
 
-        if(!empty($conf->of->enabled) && !empty($object->date_livraison)) {
+        if(!empty($conf->of->enabled) && !empty($object->delivery_date)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
             dol_include_once('/of/class/ordre_fabrication_asset.class.php');
@@ -591,7 +591,7 @@ class Interfaceoftrigger
                                             if($line->fk_product == $ofLine->fk_product)
                                             {
                                                 $date = dol_now();
-                                                if (!empty($object->date_livraison)) $date = $object->date_livraison;
+                                                if (!empty($object->delivery_date)) $date = $object->delivery_date;
 
                                                 $wsof->manageProjectTask($PDOdb, $date, true, $TExcludeTaskId);
                                                 unset($TExcludeTaskId[$wsof->fk_project_task], $TExcludeTaskIdCurrentOf[$wsof->fk_project_task]);

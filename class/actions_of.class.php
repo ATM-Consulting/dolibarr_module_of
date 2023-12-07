@@ -26,7 +26,8 @@
 /**
  * Class Actionsof
  */
-class Actionsof
+require_once __DIR__ . '/../backport/v19/core/class/commonhookactions.class.php';
+class Actionsof extends \of\RetroCompatCommonHookActions
 {
 	/**
 	 * @var array Hook results. Propagated to $hookmanager->resArray for later reuse
@@ -96,7 +97,7 @@ class Actionsof
 
 			if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes') {
 
-				$time_livraison = $object->date_livraison;
+				$time_livraison = $object->delivery_date;
 
 				$sql = "SELECT fk_source as 'fk_of'
 						FROM " . MAIN_DB_PREFIX . "element_element
