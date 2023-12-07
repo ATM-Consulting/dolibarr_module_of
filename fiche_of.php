@@ -21,7 +21,7 @@ dol_include_once('/quality/class/quality.class.php');
 
 dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php'); // TODO à remove avec les déclaration d'objet TAsset_type
 
-if(!$user->rights->of->of->lire) accessforbidden();
+if(!$user->hasRight('of','of','lire')) accessforbidden();
 
 // Load translation files required by page
 $langs->load("other");
@@ -945,11 +945,11 @@ function _fiche_ligne(&$form, &$of, $type){
 					,'idprod'=>$form->hidden('TAssetOFLine['.$k.'][fk_product]', $product->id)
 					,'lot_number'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][lot_number]', '', 15,50,'type_product="NEEDED" fk_product="'.$product->id.'" rel="lot-'.$TAssetOFLine->getId().'" ','TAssetOFLineLot') . $lotNumbers : $TAssetOFLine->lot_number . $lotNumbers
 					,'libelle'=>$label
-			        ,'cost'=>(empty($user->rights->of->of->price) ? '' : price(price2num($TAssetOFLine->compo_planned_cost,'MT'),0,'',1,-1,-1,$conf->currency).$conditionnement_label)
+			        ,'cost'=>(!($user->hasRight('of','of','price')) ? '' : price(price2num($TAssetOFLine->compo_planned_cost,'MT'),0,'',1,-1,-1,$conf->currency).$conditionnement_label)
     			    ,'qty_needed'=>$TAssetOFLine->qty_needed
     			    ,'qty'=>(($of->status=='DRAFT' && $form->type_aff== "edit") ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,50) : $TAssetOFLine->qty)
 					,'qty_planned'=>$TAssetOFLine->qty
-					,'qty_used'=>((($of->status=='OPEN' || $of->status == 'CLOSE') && $form->type_aff) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used.(empty($user->rights->of->of->price) ? '' : ' x '.price(price2num($TAssetOFLine->compo_cost,'MT'),0,'',1,-1,-1,$conf->currency)))
+					,'qty_used'=>((($of->status=='OPEN' || $of->status == 'CLOSE') && $form->type_aff) ? $form->texte('', 'TAssetOFLine['.$k.'][qty_used]', $TAssetOFLine->qty_used, 5,50) : $TAssetOFLine->qty_used.(!($user->hasRight('of','of','price')) ? '' : ' x '.price(price2num($TAssetOFLine->compo_cost,'MT'),0,'',1,-1,-1,$conf->currency)))
 					,'qty_toadd'=> $TAssetOFLine->qty - $TAssetOFLine->qty_used
 					,'workstations'=> $conf->workstationatm->enabled ? $TAssetOFLine->visu_checkbox_workstation($db, $of, $form, 'TAssetOFLine['.$k.'][fk_workstation][]') : ''
 					,'delete'=> ($form->type_aff=='edit' && ($of->status=='DRAFT' || (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) && $of->status!='CLOSE' && empty($TAssetOFLine->qty_used))) ) ? '<a href="javascript:deleteLine('.$TAssetOFLine->getId().',\'NEEDED\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
@@ -1354,8 +1354,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'fk_user' => visu_checkbox_user($PDOdb, $form, $ws->fk_usergroup, $TAssetWorkstationOF->users, 'TAssetWorkstationOF['.$k.'][fk_user][]', $assetOf->status)
 				,'fk_project_task' => visu_project_task($db, $TAssetWorkstationOF->fk_project_task, $form->type_aff, 'TAssetWorkstationOF['.$k.'][progress]')
 				,'fk_task' => visu_checkbox_task($PDOdb, $form, $TAssetWorkstationOF->fk_asset_workstation, $TAssetWorkstationOF->tasks,'TAssetWorkstationOF['.$k.'][fk_task][]', $assetOf->status)
-				,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : ((!empty($conf->global->ASSET_USE_CONVERT_TO_TIME) ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) ). (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ))
-				,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : ((!empty($conf->global->ASSET_USE_CONVERT_TO_TIME) ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real)) . (empty($user->rights->of->of->price) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ) )
+				,'nb_hour'=> ($assetOf->status=='DRAFT' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour]', $TAssetWorkstationOF->nb_hour,3,10) : ((!empty($conf->global->ASSET_USE_CONVERT_TO_TIME) ? convertSecondToTime($TAssetWorkstationOF->nb_hour * 3600) : price($TAssetWorkstationOF->nb_hour) ). (!($user->hasRight('of','of','price')) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ))
+				,'nb_hour_real'=>($assetOf->status=='OPEN' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_hour_real]', $TAssetWorkstationOF->nb_hour_real,3,10) : ((!empty($conf->global->ASSET_USE_CONVERT_TO_TIME) ? convertSecondToTime($TAssetWorkstationOF->nb_hour_real * 3600) : price($TAssetWorkstationOF->nb_hour_real)) . (!($user->hasRight('of','of','price')) ? '' : ' x '. price($TAssetWorkstationOF->thm,0,'',1,-1,-1,$conf->currency) ) )
 				,'nb_days_before_beginning'=>($assetOf->status!='CLOSE' && $mode == "edit") ? $form->texte('','TAssetWorkstationOF['.$k.'][nb_days_before_beginning]', $TAssetWorkstationOF->nb_days_before_beginning,3,10) : $TAssetWorkstationOF->nb_days_before_beginning
 				,'delete'=> ($mode=='edit' && $assetOf->status=='DRAFT') ? '<a href="javascript:deleteWS('.$assetOf->getId().','.$TAssetWorkstationOF->getId().');">'.img_picto($langs->trans('Delete'), 'delete.png').'</a>' : ''
 				,'note_private'=>($assetOf->status=='DRAFT' && $mode == 'edit') ? $form->zonetexte('','TAssetWorkstationOF['.$k.'][note_private]', $TAssetWorkstationOF->note_private,50,1) : $TAssetWorkstationOF->note_private
@@ -1530,7 +1530,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			'mode'=>$mode
 			,'action' => !empty($quicksave)?'quick-save':'save'
 			,'status'=>$assetOf->status
-			,'allow_delete_of_finish'=>$user->rights->of->of->allow_delete_of_finish
+			,'allow_delete_of_finish'=>$user->hasRight('of','of','allow_delete_of_finish')
 			,'ASSET_USE_MOD_NOMENCLATURE'=>!empty($conf->nomenclature->enabled) ? (int) $conf->nomenclature->enabled : 0
 			,'OF_MINIMAL_VIEW_CHILD_OF'=>!empty($conf->global->OF_MINIMAL_VIEW_CHILD_OF) ? (int)$conf->global->OF_MINIMAL_VIEW_CHILD_OF : 0
 			,'select_product'=>$select_product
@@ -1549,7 +1549,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'hasChildren' => (int) !empty($Tid)
 			,'user_id'=>$user->id
 			,'workstation_module_activate'=>(int) $conf->workstationatm->enabled
-			,'show_cost'=>(int)$user->rights->of->of->price
+			,'show_cost'=>(int) $user->hasRight('of','of','price'),
 			,'langs'=>$langs
 			,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
 			,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
@@ -1560,7 +1560,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'url'=>(file_exists(dol_buildpath('/stocktransfer/stocktransfer_card.php', 1))) ?  dol_buildpath('/stocktransfer/stocktransfer_card.php', 1) : dol_buildpath('/product/stock/stocktransfer/stocktransfer_card.php', 1)
 		)
 		,'rights'=>array(
-			'show_ws_time'=>$user->rights->of->of->show_ws_time
+			'show_ws_time'=>$user->hasRight('of','of','show_ws_time')
 		)
 		,'conf'=>$conf
 	);
@@ -1579,8 +1579,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
         require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
         $formfile = new FormFile($db);
 
-        $usercanread = $user->rights->of->of->lire;
-        $usercancreate = $user->rights->of->read; // voir le descripteur du module pour comprendre U_u
+        $usercanread = $user->hasRight('of','of','lire');
+        $usercancreate = $user->hasRight('of','of','read');; // voir le descripteur du module pour comprendre U_u
 
         print '<div class="fichecenter"><div class="fichehalfleft">';
 		print '<a name="builddoc"></a>'; // ancre

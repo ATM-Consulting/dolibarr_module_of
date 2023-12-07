@@ -317,7 +317,7 @@ if ($id > 0 || $ref)
 
         // Status (to sell)
         print '<tr><td>'.$langs->trans("Status").' ('.$langs->trans("Sell").')</td><td>';
-        if (! empty($conf->use_javascript_ajax) && $user->rights->produit->creer && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
+        if (! empty($conf->use_javascript_ajax) && $user->hasRight('produit', 'creer') && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
             print ajax_object_onoff($product, 'status', 'tosell', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
         } else {
             print $product->getLibStatut(2,0);
@@ -326,7 +326,7 @@ if ($id > 0 || $ref)
 
         // Status (to buy)
         print '<tr><td>'.$langs->trans("Status").' ('.$langs->trans("Buy").')</td><td colspan="2">';
-        if (! empty($conf->use_javascript_ajax) && $user->rights->produit->creer && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
+        if (! empty($conf->use_javascript_ajax) && $user->hasRight('produit', 'creer') && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
             print ajax_object_onoff($product, 'status_buy', 'tobuy', 'ProductStatusOnBuy', 'ProductStatusNotOnBuy');
         } else {
             print $product->getLibStatut(2,1);
@@ -390,13 +390,13 @@ if ($id > 0 || $ref)
 		}
 
         // Stock
-        print '<tr><td>'.$form->editfieldkey("StockLimit",'stocklimit',$product->seuil_stock_alerte,$product,$user->rights->produit->creer).'</td><td colspan="2">';
-        print $form->editfieldval("StockLimit",'stocklimit',$product->seuil_stock_alerte,$product,$user->rights->produit->creer);
+        print '<tr><td>'.$form->editfieldkey("StockLimit",'stocklimit',$product->seuil_stock_alerte,$product,$user->hasRight('produit', 'creer')).'</td><td colspan="2">';
+        print $form->editfieldval("StockLimit",'stocklimit',$product->seuil_stock_alerte,$product,$user->hasRight('produit', 'creer'));
         print '</td></tr>';
 
         // Desired stock
-        print '<tr><td>'.$form->editfieldkey("DesiredStock",'desiredstock',$product->desiredstock,$product,$user->rights->produit->creer).'</td><td colspan="2">';
-        print $form->editfieldval("DesiredStock",'desiredstock',$product->desiredstock,$product,$user->rights->produit->creer);
+        print '<tr><td>'.$form->editfieldkey("DesiredStock",'desiredstock',$product->desiredstock,$product,$user->hasRight('produit', 'creer')).'</td><td colspan="2">';
+        print $form->editfieldval("DesiredStock",'desiredstock',$product->desiredstock,$product,$user->hasRight('produit', 'creer'));
         print '</td></tr>';
 
         // Real stock
@@ -650,12 +650,12 @@ if (empty($action) && $product->id)
 {
     print "<div class=\"tabsAction\">\n";
 
-    if ($user->rights->stock->mouvement->creer)
+    if ($user->hasRight('stock', 'mouvement', 'creer'))
     {
         print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$product->id.'&amp;action=correction">'.$langs->trans("StockCorrection").'</a>';
     }
 
-    if (($user->rights->stock->mouvement->creer) && !$product->hasbatch())
+    if (($user->hasRight('stock', 'mouvement', 'creer')) && !$product->hasbatch())
 	{
 		print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$product->id.'&amp;action=transfert">'.$langs->trans("StockMovement").'</a>';
 	}

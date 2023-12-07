@@ -12,7 +12,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/order.lib.php';
 require_once(__DIR__.'/class/ordre_fabrication_asset.class.php');
 require_once(__DIR__.'/class/oftools.class.php');
 
-if(!$user->rights->of->of->lire) accessforbidden();
+if(!$user->hasRight('of', 'of', 'lire')) accessforbidden();
 
 $langs->load('of@of');
 $langs->load('workstationatm@workstationatm');
@@ -560,12 +560,12 @@ if ($resql)
         print '</td>';
     }
     // Coût prévu
-    if (!empty($user->rights->of->of->price)) {
+    if ($user->hasRight('of', 'of', 'price')) {
         print '<td class="liste_titre">';
         print '</td>';
     }
     // Coût réel
-    if (!empty($user->rights->of->of->price)) {
+    if ($user->hasRight('of', 'of', 'price')) {
         print '<td class="liste_titre">';
         print '</td>';
     }
@@ -607,8 +607,8 @@ if ($resql)
     if (! empty($arrayfields['ofe.fk_project']['checked']))  print_liste_field_titre('Project', $_SERVER["PHP_SELF"], "ofe.fk_project", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.status']['checked']))  print_liste_field_titre('Status', $_SERVER["PHP_SELF"], "ofe.status", "", $param, 'align="center"', $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.temps_estime_fabrication']['checked']))  print_liste_field_titre('EstimatedMakeTimeInHours', $_SERVER["PHP_SELF"], "ofe.temps_estime_fabrication", "", $param, "", $sortfield, $sortorder);
-    if (! empty($user->rights->of->of->price))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
-    if (! empty($user->rights->of->of->price))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
+    if ($user->hasRight('of', 'of', 'price'))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
+    if ($user->hasRight('of', 'of', 'price'))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
     if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1) print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
     if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
 
@@ -737,7 +737,7 @@ if ($resql)
             $totalarray['val']['ofe.temps_estime_fabrication'] += round($obj->temps_estime_fabrication, 2);
         }
         // Coût prévu
-        if (!empty($user->rights->of->of->price)) {
+        if ($user->hasRight('of', 'of', 'price')) {
             print '<td class="tdoverflowmax200 right">';
             print price(round($obj->total_estimated_cost, 2));
             print '</td>';
@@ -746,7 +746,7 @@ if ($resql)
             $totalarray['val']['ofe.total_estimated_cost'] += round($obj->total_estimated_cost, 2);
         }
         // Coût réel
-        if (!empty($user->rights->of->of->price)) {
+        if ($user->hasRight('of', 'of', 'price')) {
             print '<td class="tdoverflowmax200 right">';
             print price(round($obj->total_cost, 2));
             print '</td>';
