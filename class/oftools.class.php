@@ -57,7 +57,7 @@ class OFTools
 
                     $note_private = '';
 
-                    if(getDolGlobalString('OF_HANDLE_ORDER_LINE_DESC'))
+                    if(getDolGlobalInt('OF_HANDLE_ORDER_LINE_DESC'))
                     {
                         $line = new OrderLine($db);
                         $line->fetch($fk_commandedet);
@@ -74,12 +74,12 @@ class OFTools
                     $idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
                     $assetOf->save($PDOdb);
 
-                    if(getDolGlobalString('OF_KEEP_ORDER_DOCUMENTS') && !$oneOF && $assetOf->fk_commande > 0) {
+                    if(getDolGlobalInt('OF_KEEP_ORDER_DOCUMENTS') && !$oneOF && $assetOf->fk_commande > 0) {
                         $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
                         $assetOf->copyAllFiles($order_dir);
                     }
 
-                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && getDolGlobalString('USE_ASSET_IN_ORDER')) {
+                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && getDolGlobalInt('USE_ASSET_IN_ORDER')) {
 
                         $TAsset = GETPOST('TAsset', 'none');
                         if(!empty($TAsset[$fk_commandedet])) {
@@ -95,7 +95,7 @@ class OFTools
 
                 }
             }
-            if(getDolGlobalString('OF_KEEP_ORDER_DOCUMENTS') && $oneOF && $assetOf->fk_commande > 0) {
+            if(getDolGlobalInt('OF_KEEP_ORDER_DOCUMENTS') && $oneOF && $assetOf->fk_commande > 0) {
                 $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
                 $assetOf->copyAllFiles($order_dir);
             }
@@ -306,14 +306,14 @@ class OFTools
             )
             ,array(
                 'date'=>date("d/m/Y")
-            ,'margin_top' =>  intval($conf->global->DEFINE_MARGIN_TOP)
-            , 'margin_left_impair' => intval($conf->global->DEFINE_MARGIN_LEFT)
-            , 'width' => intval($conf->global->DEFINE_WIDTH_DIV)
-            , 'height' => intval($conf->global->DEFINE_HEIGHT_DIV)
-            , 'margin_right_pair' =>intval($conf->global->DEFINE_MARGIN_RIGHT)
-            , 'margin_top_cell' =>intval($conf->global->DEFINE_MARGIN_TOP_CELL)
+            ,'margin_top' =>  getDolGlobalInt('DEFINE_MARGIN_TOP')
+            , 'margin_left_impair' => getDolGlobalInt('DEFINE_MARGIN_LEFT')
+            , 'width' => getDolGlobalInt('DEFINE_WIDTH_DIV')
+            , 'height' => getDolGlobalInt('DEFINE_HEIGHT_DIV')
+            , 'margin_right_pair' => getDolGlobalInt('DEFINE_MARGIN_RIGHT')
+            , 'margin_top_cell' => getDolGlobalInt('DEFINE_MARGIN_TOP_CELL')
             , 'langs' => $langs
-            , 'display_note' => !getDolGlobalString('OF_HANDLE_ORDER_LINE_DESC') ? 0 : 1
+            , 'display_note' => getDolGlobalInt('OF_HANDLE_ORDER_LINE_DESC')
             )
             ,array()
             ,array(

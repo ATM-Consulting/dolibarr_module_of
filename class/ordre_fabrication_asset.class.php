@@ -187,7 +187,7 @@ class TAssetOF extends TObjetStd{
 	            $ws->of_fk_project = $this->fk_project;
         	}
 
-        if(getDolGlobalString('OF_DISPLAY_PRODUCT_CATEGORIES')) {
+        if(getDolGlobalInt('OF_DISPLAY_PRODUCT_CATEGORIES')) {
             include_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
             $langs->load('categories');
             foreach($this->TAssetOFLine as $k => &$TAssetOFLine) {
@@ -224,10 +224,10 @@ class TAssetOF extends TObjetStd{
     public static function getQtyForProduct($fk_product, $type='NEEDED') {
         global $db, $conf;
         $TStatut = '"CLOSE"';
-        if(getDolGlobalString('OF_USE_DESTOCKAGE_PARTIEL')) $TStatut .= ',"OPEN"';
-        if(!getDolGlobalString('OF_DRAFT_IN_VIRTUAL_STOCK')) $TStatut .= ',"DRAFT"';
+        if(getDolGlobalInt('OF_USE_DESTOCKAGE_PARTIEL')) $TStatut .= ',"OPEN"';
+        if(!getDolGlobalInt('OF_DRAFT_IN_VIRTUAL_STOCK')) $TStatut .= ',"DRAFT"';
         $sql = 'SELECT SUM(aol.qty';
-        if(getDolGlobalString('OF_MANAGE_NON_COMPLIANT')) $sql .= '+aol.qty_non_compliant';
+        if(getDolGlobalInt('OF_MANAGE_NON_COMPLIANT')) $sql .= '+aol.qty_non_compliant';
         $sql .= '  ) as qty
                 FROM '.MAIN_DB_PREFIX.'assetOf_line aol
                 INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
@@ -435,15 +435,15 @@ class TAssetOF extends TObjetStd{
 //		}
 
 //		if($conf->global->ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS) $TOf = $this->TAssetOF;
-		if(getDolGlobalString('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS')) $this->getListChildrenOf($TOf);
+		if(getDolGlobalInt('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS')) $this->getListChildrenOf($TOf);
 
 		$TOf[] = &$this;
-		if (getDolGlobalString('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE'))
+		if (getDolGlobalInt('OF_CHECK_IF_WAREHOUSE_ON_OF_LINE'))
 		{
 			// Check si un fk_entrepot est saisie sur chaque ligne de l'OF courrant et sur les OFs enfants
 			foreach ($TOf as &$of)
 			{
-				if (!$of->checkWharehouseOnLines() && $conf->global->ASSET_MANUAL_WAREHOUSE)
+				if (!$of->checkWharehouseOnLines() && getDolGlobalInt('ASSET_MANUAL_WAREHOUSE'))
 				{
 					$error++;
 					$this->errors[] = $langs->trans('ofError_fk_entrepot_missing', $of->numero);
@@ -484,14 +484,14 @@ class TAssetOF extends TObjetStd{
 
 						$TAllow_modify = array();
 
-						if(getDolGlobalString('ASSET_DEFINED_WORKSTATION_BY_NEEDED') && getDolGlobalString('OF_USE_APPRO_DELAY_FOR_TASK_DELAY')) {
+						if(getDolGlobalInt('ASSET_DEFINED_WORKSTATION_BY_NEEDED') && getDolGlobalInt('OF_USE_APPRO_DELAY_FOR_TASK_DELAY')) {
 							$nb = $ofLine->getNbDayForReapro(); // si besoin de stock
                             // TODO à voir si je conserve le délai de réappro au niveau de l'objet $ofLine dans un attribut nb_days_before_reapro
 //var_dump($nb);
 							foreach($ofLine->TWorkstation as &$ws) {
 								foreach($of->TAssetWorkstationOF as &$wsof) {
 
-									if(getDolGlobalString('ASSET_USE_PROJECT_TASK') && $wsof->fk_project_task <= 0 && $of->fk_project>0) {
+									if(getDolGlobalInt('ASSET_USE_PROJECT_TASK') && $wsof->fk_project_task <= 0 && $of->fk_project>0) {
 										// a priori la tâche devrait exister, donc on test
 										$wsof->save($PDOdb);
 									}
@@ -502,7 +502,7 @@ class TAssetOF extends TObjetStd{
 											$wsof->nb_hour_real = $wsof->nb_hour = $nb * 7; //TODO debug
 										}
 										else if($wsof->nb_days_before_beginning < $nb) {
-										    if (!getDolGlobalString('OF_USE_APPRO_DELAY_FOR_TASK_DELAY_DISABLE_DELAY_BEFORE_START'))	$wsof->nb_days_before_beginning = $nb;
+										    if (!getDolGlobalInt('OF_USE_APPRO_DELAY_FOR_TASK_DELAY_DISABLE_DELAY_BEFORE_START'))	$wsof->nb_days_before_beginning = $nb;
 										    else $wsof->nb_days_before_reapro = $nb;
 										}
 										$TAllow_modify[$wsof->fk_asset_workstation] = true;
@@ -519,14 +519,14 @@ class TAssetOF extends TObjetStd{
                 $of->TAssetOF = $TAssetOF_tmp;
 			}
 
-            if(getDolGlobalString('ASSET_TASK_HIERARCHIQUE_BY_RANK'))
+            if(getDolGlobalInt('ASSET_TASK_HIERARCHIQUE_BY_RANK'))
             {
                 $fk_task_last = $this->applyHirarchyOnTask(); // création des liens parent/enfant entre les tâches
                 $this->calculTaskDates(); // calcul des dates pour respecter l'enchainement des dates
             }
 
 
-      if(getDolGlobalString('OF_FORCE_GENERATE_PDF_ON_VALID')) {
+      if(getDolGlobalInt('OF_FORCE_GENERATE_PDF_ON_VALID')) {
 				// cette conf ne fonctionne qu'avec les models compatibles standard Dolibarr
 				// elle fait planter les génération en TBS odt car fonctionne avec un vieux sytème tout pérave
 				$this->generateDocument('', $langs);
@@ -549,7 +549,7 @@ class TAssetOF extends TObjetStd{
         // TODO faire la gestion des erreurs
         /** @var TAssetWorkstationOf $workstationOf */
 
-		if(getDolGlobalString('ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT'))
+		if(getDolGlobalInt('ASSET_TASK_HIERARCHIQUE_BY_RANK_REVERT'))
 		{
 			$TAssetWorkstationOFReverse = $this->TAssetWorkstationOF;
 		}
@@ -702,7 +702,7 @@ class TAssetOF extends TObjetStd{
 		$mouvS = new MouvementStock($db);
 
 		$conf->global->PRODUIT_SOUSPRODUITS = false; // Dans le cas asset il ne faut pas de destocke recurssif
-		if(getDolGlobalString('OF_DONT_UPDATE_PMP_ON_CLOSE')) $price = 0;
+		if(getDolGlobalInt('OF_DONT_UPDATE_PMP_ON_CLOSE')) $price = 0;
 		if($fk_entrepot > 0 && !empty($qty))
 		{
 				if($qty > 0) {
@@ -760,10 +760,10 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 
 		$night = false;
-		if (getDolGlobalString('WORKSTATION_TRANCHE_HORAIRE_THM_NUIT'))
+		if (!empty(getDolGlobalString('WORKSTATION_TRANCHE_HORAIRE_THM_NUIT')))
 		{
 			// Cas simple
-			$tranche = explode('-', $conf->global->WORKSTATION_TRANCHE_HORAIRE_THM_NUIT);
+			$tranche = explode('-', getDolGlobalString('WORKSTATION_TRANCHE_HORAIRE_THM_NUIT'));
 			$heure_de_saisie = date('Hi');
 
 			if ($heure_de_saisie >= $tranche[0] || $heure_de_saisie <= $tranche[1]) $night = true;
@@ -896,13 +896,13 @@ class TAssetOF extends TObjetStd{
 
             if ($delai > 0)
             {
-                if (getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK'))
+                if (!empty(getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK')))
                 {
                     $i=0;
-                    $TDayToSkip = explode(',', $conf->global->OF_LANCEMENT_SKIP_DAYS_OF_WEEK);
+                    $TDayToSkip = explode(',', getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK'));
                     while ($delai > 0)
                     {
-                        if (getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK_LIMIT_LOOP') && $conf->global->OF_LANCEMENT_SKIP_DAYS_OF_WEEK_LIMIT_LOOP < $i) break;
+                        if (getDolGlobalInt('OF_LANCEMENT_SKIP_DAYS_OF_WEEK_LIMIT_LOOP') && getDolGlobalInt('OF_LANCEMENT_SKIP_DAYS_OF_WEEK_LIMIT_LOOP') < $i) break;
 
                         $date_lancement = strtotime('+1 day', $date_lancement);
 
@@ -973,7 +973,7 @@ class TAssetOF extends TObjetStd{
 		$this->total_cost = $this->compo_cost + $this->mo_cost;
 		$this->total_estimated_cost = $this->compo_estimated_cost + $this->mo_estimated_cost;
 
-		if(getDolGlobalString('USE_LOT_IN_OF'))
+		if(getDolGlobalInt('USE_LOT_IN_OF'))
 		{
 			$this->setLotWithParent($PDOdb);
 		}
@@ -990,7 +990,7 @@ class TAssetOF extends TObjetStd{
 		$this->destockOrStockPartialQty($PDOdb, $this);
 
 		if($this->fk_project == 0) {
-			if(getDolGlobalString('ASSET_AUTO_CREATE_PROJECT_ON_OF')) $this->create_new_project();
+			if(getDolGlobalInt('ASSET_AUTO_CREATE_PROJECT_ON_OF')) $this->create_new_project();
 			elseif(!empty($this->fk_commande)) {
 				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
 				$commande = new Commande($db);
@@ -1006,7 +1006,7 @@ class TAssetOF extends TObjetStd{
             $onUpdate = 1; //pour éviter de faire 2x le traitement
         }
 
-        if(getDolGlobalString('OF_RANK_PRIOR_BY_LAUNCHING_DATE')){
+        if(getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE')){
 
             if(!empty($this->date_lancement)) {
                 if(!empty($this->rank)) $this->ajustRank();
@@ -1020,9 +1020,9 @@ class TAssetOF extends TObjetStd{
 			foreach($this->TAssetOFLine as &$AssetOFLine)
 			{
 				//si lors de l'enregistrement, il y a des non conformes, on ajoute les postes de travail et on crée les taches si conf activé.
-				if(getDolGlobalString('OF_WORKSTATION_NON_COMPLIANT') && !empty($AssetOFLine->qty_non_compliant) && !empty($AssetOFLine->fk_assetOf)) { //Pour chaque of non conforme
+				if(!empty(getDolGlobalString('OF_WORKSTATION_NON_COMPLIANT')) && !empty($AssetOFLine->qty_non_compliant) && !empty($AssetOFLine->fk_assetOf)) { //Pour chaque of non conforme
 					if($this->status == 'OPEN' || $this->status == 'CLOSE') {
-						$TFKWorkstationToAdd = explode(',', $conf->global->OF_WORKSTATION_NON_COMPLIANT);
+						$TFKWorkstationToAdd = explode(',', getDolGlobalString('OF_WORKSTATION_NON_COMPLIANT'));
 
 						if(!empty($TFKWorkstationToAdd)){
 							foreach($TFKWorkstationToAdd as $key => $fk_workstation) {
@@ -1036,7 +1036,7 @@ class TAssetOF extends TObjetStd{
 							foreach($TFKWorkstationToAdd as $fk_workstation) {
 								$res  = $this->addofworkstation($PDOdb, $fk_workstation, 0, 0, 0, 0, '', 0);
 
-								if(getDolGlobalString('ASSET_USE_PROJECT_TASK')) {
+								if(!empty(getDolGlobalString('ASSET_USE_PROJECT_TASK'))) {
 									require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
 									require_once DOL_DOCUMENT_ROOT . '/core/modules/project/task/' . getDolGlobalString('PROJECT_TASK_ADDON') . '.php';
 
@@ -1044,7 +1044,7 @@ class TAssetOF extends TObjetStd{
 									$this->TAssetWorkstationOF[$lastInsert - 1]->fk_assetOf = $AssetOFLine->fk_assetOf;
 									$action = '';
 
-									if(getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK')){
+									if(getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK')){
 										$taskstatic = new Task($db);
 										$TTask = $taskstatic->getTasksArray(null, null, $this->fk_project);
 
@@ -1238,7 +1238,7 @@ class TAssetOF extends TObjetStd{
         if(empty($this->numero)) {
             dol_include_once('of/lib/of.lib.php');
 
-            $mask = !getDolGlobalString('OF_MASK') ? 'OF{00000}' : $conf->global->OF_MASK;
+            $mask = getDolGlobalString('OF_MASK','OF{00000}');
             $numero = get_next_value_PDOdb($PDOdb,$mask,'assetOf','numero');
 
             if($save) {
@@ -1344,11 +1344,11 @@ class TAssetOF extends TObjetStd{
 		    {
 		    	$idLine = $this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private , $prod->workstations);
 
-				if (getDolGlobalString('CREATE_CHILDREN_OF'))
+				if (getDolGlobalInt('CREATE_CHILDREN_OF'))
 				{
 					$TabSubProd = $this->getProductComposition($PDOdb,$prod->fk_product, $prod->qty);
 
-					if ((getDolGlobalString('CREATE_CHILDREN_OF_COMPOSANT') && !empty($TabSubProd)) || !getDolGlobalString('CREATE_CHILDREN_OF_COMPOSANT'))
+					if ((getDolGlobalInt('CREATE_CHILDREN_OF_COMPOSANT') && !empty($TabSubProd)) || !getDolGlobalInt('CREATE_CHILDREN_OF_COMPOSANT'))
 					{
                         $this->createOFifneeded($PDOdb, $prod->fk_product, $prod->qty, $idLine);
 					}
@@ -1366,7 +1366,7 @@ class TAssetOF extends TObjetStd{
 
 		$Tab=array();
 
-		if ($conf->nomenclature->enabled)
+		if (!empty($conf->nomenclature->enabled))
 		{
 			dol_include_once('/nomenclature/class/nomenclature.class.php');
 			if ($fk_nomenclature)
@@ -1419,7 +1419,7 @@ class TAssetOF extends TObjetStd{
 		        $prod->note_private = isset($row['note_private']) ? $row['note_private'] : '';
 		        $prod->workstations = isset($row['workstations']) ? $row['workstations'] : '';
 
-			if (getDolGlobalString('ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED'))
+			if (getDolGlobalInt('ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED'))
 			{
 				$Tab[$prod->fk_product][]=$prod;
 			}
@@ -1449,7 +1449,7 @@ class TAssetOF extends TObjetStd{
 			        	AND aol.fk_product = '.$fk_product.'
 			        	AND aol.type = "TO_MAKE"
 			        	AND ao.status IN ('. ($include_draft ? '"DRAFT",':'').' "VALID", "OPEN", "ONORDER", "NEEDOFFER")) AS qty_to_make
-			        ,(SELECT '.( getDolGlobalString('OF_USE_DESTOCKAGE_PARTIEL') ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
+			        ,(SELECT '.( getDolGlobalInt('OF_USE_DESTOCKAGE_PARTIEL') ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
 			        	FROM '.MAIN_DB_PREFIX.'assetOf_line aol
 						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
 						WHERE aol.fk_product = '.$fk_product.'
@@ -1477,18 +1477,18 @@ class TAssetOF extends TObjetStd{
 	function createOFifneeded(&$PDOdb,$fk_product, $qty_needed, $fk_assetOfLine_parent = 0) {
 		global $conf,$db;
 
-		if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES || $conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL) {
+		if (getDolGlobalInt('CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES') || getDolGlobalInt('CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL')) {
 			$product = new Product($db);
 			$product->fetch($fk_product);
-			if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES && $product->type == Product::TYPE_SERVICE) {
+			if (getDolGlobalInt('CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_SERVICES') && $product->type == Product::TYPE_SERVICE) {
 				return null;
 			}
-			if ($conf->global->CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL && $product->finished == 0) {
+			if (getDolGlobalInt('CREATE_CHILDREN_OF_PREVENT_OF_CREATION_FOR_PRODUCTS_RAWMATERIAL') && $product->finished == 0) {
 				return null;
 			}
 		}
 
-		$reste = TAssetOF::getProductStock($fk_product,0,true, getDolGlobalString('CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK'))-$qty_needed;
+		$reste = TAssetOF::getProductStock($fk_product,0,true, getDolGlobalInt('CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK'))-$qty_needed;
 
 
 		if($reste>=0) {
@@ -1572,7 +1572,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $user,$langs,$conf,$db;
         $found = false;
-        if(count($this->TAssetOFLine) > 1 && getDolGlobalString('OF_REGROUP_LINE')) {
+        if(count($this->TAssetOFLine) > 1 && getDolGlobalInt('OF_REGROUP_LINE')) {
             foreach($this->TAssetOFLine as &$assetOFLine) {
 
                 if($assetOFLine->fk_product == $fk_product
@@ -1581,8 +1581,8 @@ class TAssetOF extends TObjetStd{
                     $found = true;
                     $TAssetOFLine = $assetOFLine;
                     $TAssetOFLine->qty_needed += $quantite;
-                    $TAssetOFLine->qty += (getDolGlobalString('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED') ? 0 : $quantite;
-                    $TAssetOFLine->qty_used += (getDolGlobalString('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
+                    $TAssetOFLine->qty += (getDolGlobalInt('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED') ? 0 : $quantite;
+                    $TAssetOFLine->qty_used += (getDolGlobalInt('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
                     break;
                 }
             }
@@ -1600,8 +1600,8 @@ class TAssetOF extends TObjetStd{
             $TAssetOFLine->fk_asset = 0; //TODO remove ?
             $TAssetOFLine->type = $type;
             $TAssetOFLine->qty_needed = $quantite;
-            $TAssetOFLine->qty = (getDolGlobalString('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED') ? 0 : $quantite;
-            $TAssetOFLine->qty_used = (getDolGlobalString('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
+            $TAssetOFLine->qty = (getDolGlobalInt('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED') ? 0 : $quantite;
+            $TAssetOFLine->qty_used = (getDolGlobalInt('ASSET_ADD_NEEDED_QTY_ZERO') && $type === 'NEEDED' || $type === 'TO_MAKE') ? 0 : $quantite;
             $TAssetOFLine->note_private = $note_private;
 
             $TAssetOFLine->fk_commandedet = $fk_commandedet;
@@ -1645,7 +1645,7 @@ class TAssetOF extends TObjetStd{
             }
         }
 
-        if(getDolGlobalString('ASSET_MANUAL_WAREHOUSE')) {
+        if(getDolGlobalInt('ASSET_MANUAL_WAREHOUSE')) {
             if($TAssetOFLine->fk_product > 0 && empty($TAssetOFLine->product)) $TAssetOFLine->load_product();
             if(! empty($TAssetOFLine->product->fk_default_warehouse)) $TAssetOFLine->fk_entrepot = $TAssetOFLine->product->fk_default_warehouse;
         }
@@ -1668,7 +1668,7 @@ class TAssetOF extends TObjetStd{
 			$this->set_current_cost_for_to_make();
 		}
 
-        if(getDolGlobalString('OF_KEEP_PRODUCT_DOCUMENTS') && !empty($fk_product) && !$found) {
+        if(getDolGlobalInt('OF_KEEP_PRODUCT_DOCUMENTS') && !empty($fk_product) && !$found) {
             $prod = new Product($db);
             $prod->fetch($fk_product);
 
@@ -1721,10 +1721,10 @@ class TAssetOF extends TObjetStd{
 		if(empty($nb_hour))$nb_hour = $nb_hour_prepare + $nb_hour_manufacture;
 
 		$coef = 1;
-		if (getDolGlobalString('OF_COEF_WS')) $coef = $conf->global->OF_COEF_WS;
+		if (getDolGlobalInt('OF_COEF_WS')) $coef = getDolGlobalInt('OF_COEF_WS');
 
 		$k=false;
-		if(getDolGlobalString('OF_CONCAT_WS_ON_ADD') && method_exists($this, 'searchChild')) $k = $this->searchChild('TAssetWorkstationOF',$fk_asset_workstation,'fk_asset_workstation');
+		if(getDolGlobalInt('OF_CONCAT_WS_ON_ADD') && method_exists($this, 'searchChild')) $k = $this->searchChild('TAssetWorkstationOF',$fk_asset_workstation,'fk_asset_workstation');
 		if($k===false) $k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
 
 		$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
@@ -1787,7 +1787,7 @@ class TAssetOF extends TObjetStd{
                                 }
                             }
                             if(! $foundWk) {
-                                if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || getDolGlobalString('ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF')) {
+                                if(($nws->nb_hour_manufacture > 0 || $nws->nb_hour_prepare > 0) || getDolGlobalInt('ASSET_AUTHORIZE_ADD_WORKSTATION_TIME_0_ON_OF')) {
 
                                     $k = $this->addTAssetWorkstationOF($PDOdb, $nws->fk_workstation, $nws->nb_hour_prepare + $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference), $nws->nb_hour_prepare, $nws->nb_hour_manufacture * ($qty_needed / $n->qty_reference), $nws->rang, $nws->note_private, $nws->nb_days_before_beginning, $nws->nb_days_before_reapro);
 
@@ -1842,7 +1842,7 @@ class TAssetOF extends TObjetStd{
 		dol_include_once('/product/class/product.class.php');
 
 		$TIDOFToValidate = array($this->rowid);
-		if(getDolGlobalString('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS')) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
+		if(getDolGlobalInt('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS')) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
 		krsort($TIDOFToValidate);
 
 		foreach ($TIDOFToValidate as $id_of)
@@ -1851,7 +1851,7 @@ class TAssetOF extends TObjetStd{
 			$of->load($PDOdb, $id_of);
 			$of->date_end = time();
 
-			if(getDolGlobalString('OF_FORCE_SET_FOURNITURE_COST_PMP_ON_CLOSE')){
+			if(getDolGlobalInt('OF_FORCE_SET_FOURNITURE_COST_PMP_ON_CLOSE')){
 				$of->set_fourniture_cost(true);
 			}
 
@@ -1877,7 +1877,7 @@ class TAssetOF extends TObjetStd{
 
 			$of->status = 'CLOSE';
 
-		    if (!getDolGlobalString('OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER') && !$of->checkCommandeFournisseur($PDOdb))
+		    if (!getDolGlobalInt('OF_ALLOW_FINISH_OF_WITH_UNRECEIVE_ORDER') && !$of->checkCommandeFournisseur($PDOdb))
 	        {
                 setEventMessage($langs->trans('OFAssetCmdFournNotFinish'), 'errors');
                 return false;
@@ -1912,7 +1912,7 @@ class TAssetOF extends TObjetStd{
 
 				}
 
-				if($wsof->nb_hour_real == 0 && !getDolGlobalString('OF_REAL_HOUR_CAN_BE_EMPTY')) {
+				if($wsof->nb_hour_real == 0 && !getDolGlobalInt('OF_REAL_HOUR_CAN_BE_EMPTY')) {
 					$wsof->nb_hour_real = $wsof->nb_hour;
 				}
 
@@ -1939,7 +1939,7 @@ class TAssetOF extends TObjetStd{
 
 		$TIDOFToValidate = array($this->rowid);
 
-		if(getDolGlobalString('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS')) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
+		if(getDolGlobalInt('ASSET_CHILD_OF_STATUS_FOLLOW_PARENT_STATUS')) $this->getListeOFEnfants($PDOdb, $TIDOFToValidate, $this->rowid);
 		krsort($TIDOFToValidate);
 
 		foreach ($TIDOFToValidate as $id_of) {
@@ -1952,7 +1952,7 @@ class TAssetOF extends TObjetStd{
 
 	        if($of->launchOF($PDOdb))
 	        {
-				if (getDolGlobalString('OF_USE_DESTOCKAGE_PARTIEL')) {
+				if (getDolGlobalInt('OF_USE_DESTOCKAGE_PARTIEL')) {
 
 
 					foreach($of->TAssetOFLine as &$AssetOFLine)
@@ -1973,7 +1973,7 @@ class TAssetOF extends TObjetStd{
 					{
 
 						if($AssetOFLine->type=='NEEDED') {
-							if(getDolGlobalString('OF_IF_NEEDED_QTY_EMPTY_ON_LAUNCH_PUSH_NEEDED')) {
+							if(getDolGlobalInt('OF_IF_NEEDED_QTY_EMPTY_ON_LAUNCH_PUSH_NEEDED')) {
 	                                                        $AssetOFLine->qty = empty($AssetOFLine->qty) ? $AssetOFLine->qty_needed : $AssetOFLine->qty;
                                                         	$AssetOFLine->qty_used = empty($AssetOFLine->qty_used) ? $AssetOFLine->qty : $AssetOFLine->qty_used;
                                                 	}
@@ -2691,7 +2691,7 @@ class TAssetOF extends TObjetStd{
 	{
 		global $db;
 
-        if(!$conf->global->USE_LOT_IN_OF) return true;
+        if(!getDolGlobalInt('USE_LOT_IN_OF')) return true;
 
 		$qtyIsValid = true;
 		foreach($this->TAssetOFLine as $TAssetOFLine)
@@ -2768,8 +2768,8 @@ class TAssetOF extends TObjetStd{
 
 			if ($this->modelpdf) {
 				$modele = $this->modelpdf;
-			} elseif (getDolGlobalString('OF_ADDON_PDF')) {
-				$modele = $conf->global->OF_ADDON_PDF;
+			} elseif (!empty(getDolGlobalString('OF_ADDON_PDF'))) {
+				$modele = getDolGlobalString('OF_ADDON_PDF');
 			}
 		}
 
@@ -2847,9 +2847,9 @@ class TAssetOF extends TObjetStd{
 			if ($obj->type == 'odt' && empty($srctemplatepath))
 			{
 				$varfortemplatedir=$obj->scandir;
-				if ($varfortemplatedir && ! empty($conf->global->$varfortemplatedir))
+				if ($varfortemplatedir && ! empty(getDolGlobalString($varfortemplatedir)))
 				{
-					$dirtoscan=$conf->global->$varfortemplatedir;
+					$dirtoscan= getDolGlobalString($varfortemplatedir);
 
 					$listoffiles=array();
 
@@ -3002,8 +3002,8 @@ class TAssetOFLine extends TObjetStd{
 		$labelMvt = $langs->trans('UseByOF', $this->of_numero);
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = $langs->trans('CreateByOF', $this->of_numero) : $labelMvt = $langs->trans('DeletedByOF', $this->of_numero);
 
-		if($this->type == 'TO_MAKE') $fk_entrepot = getDolGlobalString('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
-		else $fk_entrepot = getDolGlobalString('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		if($this->type == 'TO_MAKE') $fk_entrepot = getDolGlobalInt('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE');
+		else $fk_entrepot = getDolGlobalInt('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE');
 
 		$price = 0;
 
@@ -3052,15 +3052,15 @@ class TAssetOFLine extends TObjetStd{
         $sens = ($qty_to_stock>0) ? 1 : -1;
 		$qty_to_stock_rest =  abs($qty_to_stock);
 
-		if($this->type == 'TO_MAKE') $fk_entrepot = getDolGlobalString('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
-		else $fk_entrepot = getDolGlobalString('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		if($this->type == 'TO_MAKE') $fk_entrepot = getDolGlobalInt('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE');
+		else $fk_entrepot = getDolGlobalInt('ASSET_MANUAL_WAREHOUSE') ? $this->fk_entrepot : getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE');
 
 		//echo $sens." x ".$qty_to_destock_rest.'<br>';
 
 		$labelMvt = $langs->trans('UseByOF', $this->of_numero);
 		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = $langs->trans('CreateByOF', $this->of_numero) : $labelMvt = $langs->trans('DeletedByOF', $this->of_numero);
 
-		if(!getDolGlobalString('USE_LOT_IN_OF') || empty($conf->{ ATM_ASSET_NAME }->enabled))
+		if(!getDolGlobalInt('USE_LOT_IN_OF') || empty($conf->{ ATM_ASSET_NAME }->enabled))
         {
         	$this->stockProduct($sens * $qty_to_stock_rest);
         }
@@ -3096,14 +3096,14 @@ class TAssetOFLine extends TObjetStd{
                 {
 					$qty_asset_to_stock=0;
 					if($mouvement == 'destockage')  {
-						if(!getDolGlobalString('ASSET_NEGATIVE_DESTOCK') && $asset->contenancereel_value - $qty_to_stock_rest<0) {
+						if(!getDolGlobalInt('ASSET_NEGATIVE_DESTOCK') && $asset->contenancereel_value - $qty_to_stock_rest<0) {
 							$qty_asset_to_stock=$asset->contenancereel_value;
 
 							if($i+1 == $nb_asset) {
 								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
 							}
 						}
-						else if($i+1 == $nb_asset && getDolGlobalString('ASSET_NEGATIVE_DESTOCK')) {
+						else if($i+1 == $nb_asset && getDolGlobalInt('ASSET_NEGATIVE_DESTOCK')) {
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
 						else {
@@ -3175,7 +3175,7 @@ class TAssetOFLine extends TObjetStd{
 
 		if(!empty($conf->supplierorderfromorder->enabled) && $this->type=='NEEDED') {
 
-			$stock_needed = TAssetOF::getProductStock($this->fk_product,0,true, getDolGlobalString('CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK'));
+			$stock_needed = TAssetOF::getProductStock($this->fk_product,0,true, getDolGlobalInt('CREATE_CHILDREN_OF_ON_VIRTUAL_STOCK'));
 
 			if($stock_needed > 0) return 0;
 
@@ -3198,7 +3198,7 @@ class TAssetOFLine extends TObjetStd{
 
 		global $db, $user, $conf, $langs;
 
-        if(!$conf->global->USE_LOT_IN_OF || empty($this->lot_number)) return true;
+        if(!getDolGlobalInt('USE_LOT_IN_OF') || empty($this->lot_number)) return true;
 
         dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php');
 
@@ -3219,7 +3219,7 @@ class TAssetOFLine extends TObjetStd{
 		{
 			$sql.= ' WHERE status != "USED" ';
 
-			if(!getDolGlobalString('ASSET_NEGATIVE_DESTOCK') && !$is_unit) $sql.= ' AND contenancereel_value > 0 ';
+			if(!getDolGlobalInt('ASSET_NEGATIVE_DESTOCK') && !$is_unit) $sql.= ' AND contenancereel_value > 0 ';
 
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, date_cre ASC, contenancereel_value ASC';
 			else $completeSql = ' ORDER BY date_cre ASC, contenancereel_value ASC';
@@ -3228,7 +3228,7 @@ class TAssetOFLine extends TObjetStd{
 		{
 			$sql.= ' WHERE status != "USED" ';
 
-			if(!getDolGlobalString('ASSET_NEGATIVE_DESTOCK') && !$is_unit)$sql.= ' AND contenancereel_value >= '.($qty - $qty_sotck).' ';// - la quantité déjà utilisé
+			if(!getDolGlobalInt('ASSET_NEGATIVE_DESTOCK') && !$is_unit)$sql.= ' AND contenancereel_value >= '.($qty - $qty_sotck).' ';// - la quantité déjà utilisé
 
 			if ($is_perishable) $completeSql = ' AND DATE_FORMAT(dluo, "%Y-%m-%d") >= DATE_FORMAT(NOW(), "%Y-%m-%d") ORDER BY dluo ASC, contenancereel_value ASC, date_cre ASC LIMIT 1';
 			else $completeSql = ' ORDER BY contenancereel_value ASC, date_cre ASC LIMIT 1';
@@ -3236,9 +3236,9 @@ class TAssetOFLine extends TObjetStd{
 
 		$sql.= ' AND fk_product = '.$this->fk_product;
 
-		if ($conf->global->USE_LOT_IN_OF)
+		if (getDolGlobalInt('USE_LOT_IN_OF'))
 		{
-			if (getDolGlobalString('OF_CONCAT_MULTIPLE_LOT') && $this->type == 'NEEDED')
+			if (getDolGlobalInt('OF_CONCAT_MULTIPLE_LOT') && $this->type == 'NEEDED')
 			{
 				$TAsset = $this->getAssetLinked($PDOdb);
 
@@ -3273,7 +3273,7 @@ class TAssetOFLine extends TObjetStd{
 			$mvmt_stock_already_done = $nbAssetFound > 0 ? true : false;
 			$qty_needed = $qty - $qty_stock; // - la quantité déjà utilisé
 
-            if ($nbAssetFound == 0 && !$conf->global->ASSET_NEGATIVE_DESTOCK) {
+            if ($nbAssetFound == 0 && !getDolGlobalInt('ASSET_NEGATIVE_DESTOCK')) {
                 $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
                 $no_error = false;
             }
@@ -3282,7 +3282,7 @@ class TAssetOFLine extends TObjetStd{
             	//On fait un 1er tour pour vérifier la qté
         		$qtyIsEnough = $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal, false);
 
-				if (!$qtyIsEnough && !$conf->global->ASSET_NEGATIVE_DESTOCK) $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
+				if (!$qtyIsEnough && !getDolGlobalInt('ASSET_NEGATIVE_DESTOCK')) $AssetOf->errors[] = $langs->trans('ofQtyLotIsNotEnough', $this->lot_number, $this->getId(), $this->product->label);
 				else $this->checkAddAssetLink($PDOdb, $Tab, $qty_needed, $forReal);
 
 				$no_error = $qtyIsEnough;
@@ -3295,7 +3295,7 @@ class TAssetOFLine extends TObjetStd{
 		$this->fk_asset = $idAsset;
 		$this->save($PDOdb, $conf);
 */
-        if(!$no_error && !getDolGlobalString('ASSET_NEGATIVE_DESTOCK')) return false;
+        if(!$no_error && !getDolGlobalInt('ASSET_NEGATIVE_DESTOCK')) return false;
         else return true;
 	}
 
@@ -3350,7 +3350,7 @@ class TAssetOFLine extends TObjetStd{
 		     if($forReal && $addLink) {
 		         $this->addAssetLink($asset);
 
-		         if (getDolGlobalString('ASSET_USE_DEFAULT_WAREHOUSE')) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED;
+		         if (getDolGlobalInt('ASSET_USE_DEFAULT_WAREHOUSE')) $fk_entrepot = getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED');
 		         else $fk_entrepot = $asset->fk_entrepot;
 
 				 //il faut aussi destocker la contenance
@@ -3399,7 +3399,7 @@ class TAssetOFLine extends TObjetStd{
 	            }
 	        }
 
-	        if (getDolGlobalString('OF_REORDER_LINKED_ASSET_BY_DLU'))
+	        if (getDolGlobalInt('OF_REORDER_LINKED_ASSET_BY_DLU'))
 			{
 				usort($Tab, array($this, 'reoderLinkedAssetsByDlu'));
 			}
@@ -3462,7 +3462,7 @@ class TAssetOFLine extends TObjetStd{
 	   	global $user,$conf;
 
 	   	//INFO : si on utilise pas les lots on a pas besoin de créer des équipements => on gère uniquement des mvt de stock
-	   	if(empty($conf->{ ATM_ASSET_NAME }->enabled) || !getDolGlobalString('USE_LOT_IN_OF')) return true;
+	   	if(empty($conf->{ ATM_ASSET_NAME }->enabled) || !getDolGlobalInt('USE_LOT_IN_OF')) return true;
 
 	   	if(!dol_include_once('/' . ATM_ASSET_NAME . '/class/asset.class.php')) return true;
 
@@ -3502,14 +3502,14 @@ class TAssetOFLine extends TObjetStd{
             {
                 $TAsset = new TAsset;
                 $TAsset->fk_soc = $AssetOf->fk_soc;
-                $TAsset->fk_societe_localisation = $conf->global->ASSET_DEFAULT_LOCATION;
+                $TAsset->fk_societe_localisation = getDolGlobalString('ASSET_DEFAULT_LOCATION');
                 $TAsset->fk_product = $fk_product;
 
 		$TAsset->fk_asset_type = $assetType->getId();
                 $TAsset->load_asset_type($PDOdb);
 
 		if (empty($TAsset->dluo)){
-                	if(getDolGlobalString('ASSET_DEFAULT_DLUO')) $TAsset->dluo = strtotime(date('Y-m-d').' +' . getDolGlobalString('ASSET_DEFAULT_DLUO').' days');
+                	if(getDolGlobalInt('ASSET_DEFAULT_DLUO')) $TAsset->dluo = strtotime(date('Y-m-d').' +' . getDolGlobalString('ASSET_DEFAULT_DLUO').' days');
                 	else $TAsset->dluo = strtotime(date('Y-m-d'));
 		}
 
@@ -3529,7 +3529,7 @@ class TAssetOFLine extends TObjetStd{
 				$TAsset->contenancereel_value = 0;
                 $TAsset->lot_number = $lot_number;
 
-                if (getDolGlobalString('ASSET_USE_DEFAULT_WAREHOUSE') && empty($fk_entrepot)) $fk_entrepot = $conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE;
+                if (getDolGlobalInt('ASSET_USE_DEFAULT_WAREHOUSE') && empty($fk_entrepot)) $fk_entrepot = getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE');
 
 				if(!$fk_entrepot) exit('ASSET_USE_DEFAULT_WAREHOUSE non définis dans la configuration du module. ERR.L.2244');
 
@@ -3978,7 +3978,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		if($ws->id<=0 || $OF->fk_project<=0) return false;
 
-		$class_mod = !getDolGlobalString('PROJECT_TASK_ADDON') ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
+		$class_mod = getDolGlobalString('PROJECT_TASK_ADDON', 'mod_task_simple');
 		$modTask = new $class_mod;
 
 		$projectTask = new Task($db);
@@ -3993,7 +3993,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		$line_product_to_make = $OF->getLineProductToMake();
 
-		if(getDolGlobalString('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK')) {
+		if(getDolGlobalInt('OF_SHOW_LINE_ORDER_EXTRAFIELD_COPY_TO_TASK')) {
 
 		    if(!empty($line_product_to_make) && $line_product_to_make->fk_commandedet>0) {
 
@@ -4023,7 +4023,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 
         // Si cette conf est disable alors oui, on calcul les dates, autrement non car ce sera fait au niveau de la méthode 'validate' de l'objet OF
-        if(!getDolGlobalString('ASSET_TASK_HIERARCHIQUE_BY_RANK'))
+        if(!getDolGlobalInt('ASSET_TASK_HIERARCHIQUE_BY_RANK'))
         {
             // TODO vérifier que le calcul des dates soit cohérent
             $TDate = $this->calculTaskDates($PDOdb, $OF, $ws, $projectTask);
@@ -4059,7 +4059,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$projectTask->fk_project = $OF->fk_project;
 		$projectTask->description = $this->note_private;
 
-        if(getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') && !empty($OF->from_create)) {
+        if(getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') && !empty($OF->from_create)) {
             $projectTask->planned_workload += $this->nb_hour * 3600;
             $projectTask->add_object_linked('tassetof',$this->fk_assetOf);
         } // On cumul le temps dans la tache
@@ -4067,7 +4067,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
         // FIXME je crois que cette partie ne sert à rien
         if(empty($conf->gantt->enabled)) {
-            if(getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') && !empty($OF->from_create)) {
+            if(getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') && !empty($OF->from_create)) {
 
                 //On prend la date la plus petite
                 if($projectTask->date_start > $OF->date_lancement)
@@ -4242,9 +4242,9 @@ class TAssetWorkstationOF extends TObjetStd{
                 else $date_current_search = strtotime('+1 day', $date_current_search);
 
                 $i++;
-                if (getDolGlobalString('OF_MAX_EXECUTION_SEARCH_PLANIF') && $i > $conf->global->OF_MAX_EXECUTION_SEARCH_PLANIF){
+                if (getDolGlobalInt('OF_MAX_EXECUTION_SEARCH_PLANIF') && $i > getDolGlobalInt('OF_MAX_EXECUTION_SEARCH_PLANIF')){
 					break; // sécurité, permet de plafonner la planification sur x jours
-				}elseif (!getDolGlobalString('OF_MAX_EXECUTION_SEARCH_PLANIF') && $i > 60){
+				}elseif (!getDolGlobalInt('OF_MAX_EXECUTION_SEARCH_PLANIF') && $i > 60){
 					break; // sécurité, si pas de configuration plafone sur 60 jours
 				}
             }
@@ -4318,7 +4318,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		    $action = 'createTask';
 
-            if(getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK')){
+            if(getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK')){
 
                 $taskstatic = new Task($db);
                 $TTask = $taskstatic->getTasksArray(null, null, $of->fk_project);
@@ -4347,7 +4347,7 @@ class TAssetWorkstationOF extends TObjetStd{
 				$this->updateTask($PDOdb, $db, $conf, $user, $of, $date_start_search, $TExcludeTaskId);
 				break;
 			case 'deleteTask':
-                if(!getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') || getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') && $this->isLastLink())$this->deleteTask($db, $conf, $user);
+                if(!getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') || getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') && $this->isLastLink())$this->deleteTask($db, $conf, $user);
 				break;
 			default:
 				break;
@@ -4369,7 +4369,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		else{
 			$db = &$this->db;
 		}
-        if(getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK')){
+        if(getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK')){
             $sql = "SELECT (SUM(tt.thm * tt.task_duration) / SUM(tt.task_duration)) as thm
 			FROM " . MAIN_DB_PREFIX . "projet_task_time tt
 			LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object = tt.fk_task)
@@ -4397,7 +4397,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		$this->setTHM();
 
-        if (getDolGlobalString('ASSET_USE_PROJECT_TASK'))
+        if (getDolGlobalInt('ASSET_USE_PROJECT_TASK'))
 		{
 			$this->manageProjectTask($PDOdb); // TODO lors de la mise à jour d'une date de livraison sur une commande fournisseur, il faudrait penser à faire appel au save des TAssetWorkstationOF pour mettre à jour toutes les dates des tâches ( attention, il faudra les exclure eux même dans la recherche de capacité )
 		}
@@ -4410,7 +4410,7 @@ class TAssetWorkstationOF extends TObjetStd{
 
 		// Récupération de la référence suivante en fonction du masque (std dolibarr)
 	    $defaultref='';
-	    $modele = !getDolGlobalString('PROJECT_ADDON')?'mod_project_simple':$conf->global->PROJECT_ADDON;
+	    $modele = getDolGlobalString('PROJECT_ADDON','mod_project_simple');
 	    // Search template files
 	    $file=''; $classname=''; $filefound=0;
 	    $dirmodels=array_merge(array('/'),(array) $conf->modules_parts['models']);
@@ -4471,7 +4471,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE fk_source = '.(int) $this->rowid.' AND sourcetype = "tassetworkstationof" AND (targettype = "user" OR targettype = "task")';
 		$PDOdb->Execute($sql);
 
-		if( getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') && !empty($this->fk_assetOf)) {
+		if( getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') && !empty($this->fk_assetOf)) {
             $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . 'element_element WHERE fk_source = ' . (int)$this->fk_assetOf . ' AND sourcetype = "tassetof" AND (targettype = "task")';
             $PDOdb->Execute($sql);
         }
@@ -4487,7 +4487,7 @@ class TAssetWorkstationOF extends TObjetStd{
 			if($projectTask->fetch($this->fk_project_task) > 0) {
 				// Suppression des occurences qui définissent cette tâches en tant que parente
 				$db->query('UPDATE '.MAIN_DB_PREFIX.'projet_task SET fk_task_parent = 0 WHERE fk_task_parent = '.$projectTask->id);
-                if(!getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') || getDolGlobalString('ASSET_CUMULATE_PROJECT_TASK') && $this->isLastLink())$projectTask->delete($user);
+                if(!getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') || getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') && $this->isLastLink())$projectTask->delete($user);
 			}
 		}
 

@@ -91,7 +91,7 @@ elseif ($action == 'del')
 	$ret = delDocumentModel($value, $type);
 	if ($ret > 0)
 	{
-		if ($conf->global->OF_ADDON_PDF == "$value") dolibarr_del_const($db, 'OF_ADDON_PDF', $conf->entity);
+		if (getDolGlobalString('OF_ADDON_PDF') == "$value") dolibarr_del_const($db, 'OF_ADDON_PDF', $conf->entity);
 	}
 }
 // Set default model
@@ -285,7 +285,7 @@ foreach ($dirmodels as $reldir)
 
 								// Defaut
 								print '<td class="center">';
-								if ($conf->global->OF_ADDON_PDF == $name)
+								if (getDolGlobalString('OF_ADDON_PDF') == $name)
 								{
 									print img_picto($langs->trans("Default"), 'on');
 								}
@@ -356,7 +356,7 @@ function showParameters(&$form) {
 				<td><?php echo $langs->trans('Template') ?></td><td>
 					<input type="file" name="template" />
 					<?php
-						if (getDolGlobalString('TEMPLATE_OF')) $template = $conf->global->TEMPLATE_OF;
+						if (!empty(getDolGlobalString('TEMPLATE_OF'))) $template = $conf->global->TEMPLATE_OF;
 						else $template = "templateOF.odt";
 
 						$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;

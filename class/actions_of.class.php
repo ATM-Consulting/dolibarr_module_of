@@ -73,7 +73,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 						, 'label'=>$langs->trans("SearchIntoOf", $search_boxvalue)
 						, 'text'=>img_picto('','object_list').' '.$langs->trans("SearchIntoOf", $search_boxvalue)
 						, 'url'=>dol_buildpath('/of/liste_of.php',1)
-                        , 'position' => (isset($conf->global->OF_POSITION_SEARCH_ENTRY)) ? $conf->global->OF_POSITION_SEARCH_ENTRY : 50
+                        , 'position' => getDolGlobalInt('OF_POSITION_SEARCH_ENTRY',50)
 				);
 
 				return 0;
@@ -245,7 +245,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	public function defineColumnField($parameters, &$pdfDoc, &$action, $hookmanager)
 	{
 		global $conf, $user, $langs;
-		if (!getDolGlobalString('OF_USE_REFLINENUMBER')) return 0;
+		if (!getDolGlobalInt('OF_USE_REFLINENUMBER')) return 0;
 
 		// Translations
 		$langs->loadLangs(array("of@of"));
@@ -287,12 +287,12 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 		if (in_array($parameters['object']->element, $objectDocCompatible)){
 			$def['status'] = true;
 
-			if(getDolGlobalString('OF_REF_LINE_NUMBER_BEFORE_DESC')){
+			if(getDolGlobalInt('OF_REF_LINE_NUMBER_BEFORE_DESC')){
 				$pdfDoc->cols['desc']['border-left'] = true; // add left line separator
 			}
 		}
 
-		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',!getDolGlobalString('OF_REF_LINE_NUMBER_BEFORE_DESC'));
+		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',!getDolGlobalInt('OF_REF_LINE_NUMBER_BEFORE_DESC'));
 		return 0;
 	}
 
@@ -308,7 +308,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	public function printPDFLine($parameters, &$pdfDoc, &$action, $hookmanager)
 	{
 		global $conf, $user, $langs;
-		if (!getDolGlobalString('OF_USE_REFLINENUMBER')) return 0;
+		if (!getDolGlobalInt('OF_USE_REFLINENUMBER')) return 0;
 		$pdf =& $parameters['pdf'];
 		$i = $parameters['i'];
 		$outputlangs = $parameters['outputlangs'];
@@ -355,7 +355,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	{
 		global $db,$conf,$langs;
 
-		if (getDolGlobalString('OF_SHOW_QTY_THEORIQUE_MOINS_OF'))
+		if (getDolGlobalInt('OF_SHOW_QTY_THEORIQUE_MOINS_OF'))
 		{
 			$langs->load(ATM_ASSET_NAME . '@' . ATM_ASSET_NAME);
 			define('INC_FROM_DOLIBARR', true);
@@ -384,7 +384,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	function printCommonFooter($parameters, &$object, &$action, $hookmanager){
 	    global $conf;
 
-        if ($parameters['currentcontext'] === 'tasklist' && (float) DOL_VERSION >= 9 && $conf->global->ASSET_CUMULATE_PROJECT_TASK) {
+        if ($parameters['currentcontext'] === 'tasklist' && (float) DOL_VERSION >= 9 && getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK')) {
             ?>
 
             <script type="text/javascript">
@@ -536,7 +536,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 
 		$TContext = explode(':',$parameters['context']);
 
-		if(in_array('ordercard',$TContext) && getDolGlobalString('OF_DISPLAY_OF_ON_COMMANDLINES'))
+		if(in_array('ordercard',$TContext) && getDolGlobalInt('OF_DISPLAY_OF_ON_COMMANDLINES'))
 		{
 			dol_include_once('/of/lib/of.lib.php');
 
@@ -614,7 +614,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
         <?php
     }
 
-		if (getDolGlobalString('OF_USE_REFLINENUMBER')
+		if (getDolGlobalInt('OF_USE_REFLINENUMBER')
 			&& (
 				in_array('ordercard', $TContext)
 				|| in_array('invoicecard', $TContext)
@@ -624,10 +624,10 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 		)
 		{
 			dol_include_once('/of/lib/of.lib.php');
-			if ($conf->subtotal->enabled && !class_exists('TSubtotal')) dol_include_once('/subtotal/class/subtotal.class.php');
+			if (!empty($conf->subtotal->enabled) && !class_exists('TSubtotal')) dol_include_once('/subtotal/class/subtotal.class.php');
 			$jsonObjectData =array(
 				'conf' => array(
-					'OF_REF_LINE_NUMBER_BEFORE_DESC' => getDolGlobalString('OF_REF_LINE_NUMBER_BEFORE_DESC')
+					'OF_REF_LINE_NUMBER_BEFORE_DESC' => getDolGlobalInt('OF_REF_LINE_NUMBER_BEFORE_DESC')
 				),
 				'lines' => array_map(
 					function ($l) {

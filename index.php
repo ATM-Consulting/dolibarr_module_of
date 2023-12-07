@@ -2,7 +2,7 @@
 
     require('config.php');
     
-    if(!getDolGlobalString('USE_LOT_IN_OF')) {
+    if(!getDolGlobalInt('USE_LOT_IN_OF')) {
     	header('location:'.dol_buildpath('/' . ATM_ASSET_NAME . '/liste_of.php',1));
     }
     else{

@@ -15,7 +15,7 @@ dol_include_once('/fourn/class/fournisseur.class.php');
 dol_include_once('/core/class/html.form.class.php');
 dol_include_once('/of/lib/of.lib.php');
 
-if(!getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD') || !getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD') || !getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')){
+if(empty(getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')) || empty(getDolGlobalInt('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD')) || empty(getDolGlobalInt('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD'))) {
     accessforbidden($langs->trans('FillReportConf'));
 }
 
@@ -310,7 +310,7 @@ $resql = $db->query($sql);
 if(!empty($resql) && $db->num_rows($resql) > 0) {
     while($obj = $db->fetch_object($resql)) {
 //        $TProductStock[$obj->fk_product]['supplier_order']['total_from_supplier'] += $obj->qty;
-        $TProductStock[$obj->fk_product]['supplier_order'][$obj->{$conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD}][$obj->rowid] += $obj->qty;
+        $TProductStock[$obj->fk_product]['supplier_order'][$obj->`getDolGlobal('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD')`][$obj->rowid] += $obj->qty;
     }
 }
 //Recursively check if stock is enough

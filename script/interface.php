@@ -185,7 +185,7 @@ function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
 	$sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
 	$sql .= 'FROM '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a WHERE 1 ';
 
-	if(!$conf->global->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
+	if(!getDolGlobalInt('ASSET_NEGATIVE_DESTOCK')) $sql .= ' AND a.contenancereel_value > 0 ';
 
 	if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
 	if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
@@ -222,7 +222,7 @@ function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NE
 
 	if($fk_product)
 	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->global->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
+		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.ATM_ASSET_NAME.' as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && getDolGlobalInt('ASSET_NEGATIVE_DESTOCK')) ? 'AND a.contenancereel_value > 0' : '').') ';
 		//var_dump($sql);
 		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
 	}
@@ -418,11 +418,11 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
 
 				//TODO attention la création de l'OF ne prend pas en compte la quantité encore en stock
 
-  				if (getDolGlobalString('CREATE_CHILDREN_OF'))
+  				if (getDolGlobalInt('CREATE_CHILDREN_OF'))
   				{
                 	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty_needed, $line->fk_nomenclature);
 
-					if ((getDolGlobalString('CREATE_CHILDREN_OF_COMPOSANT') && !empty($TCompositionSubProd)) || !getDolGlobalString('CREATE_CHILDREN_OF_COMPOSANT')) {
+					if ((getDolGlobalInt('CREATE_CHILDREN_OF_COMPOSANT') && !empty($TCompositionSubProd)) || !getDolGlobalInt('CREATE_CHILDREN_OF_COMPOSANT')) {
 						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty_needed, $line->getId());
 						$TAssetOF->save($PDOdb);
 
