@@ -120,9 +120,9 @@ if($object->id) {
     $formfile = new FormFile($db);
 
     //Fichiers joints des commandes associées
-    if(!empty($conf->global->OF_SHOW_ORDER_DOCUMENTS)) {
+    if(getDolGlobalString('OF_SHOW_ORDER_DOCUMENTS')) {
         $TCommandes = array();
-        if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+        if(getDolGlobalString('OF_MANAGE_ORDER_LINK_BY_LINE')) {
             $displayOrders = '';
             $TLine_to_make = $object->getLinesProductToMake();
 
@@ -189,7 +189,7 @@ if($object->id) {
     }
 
     //Fichiers joints des produits associés
-    if(!empty($conf->global->OF_SHOW_PRODUCT_DOCUMENTS) && !empty($object->TAssetOFLine)) {
+    if(getDolGlobalString('OF_SHOW_PRODUCT_DOCUMENTS') && !empty($object->TAssetOFLine)) {
         foreach($object->TAssetOFLine as $line) {
             if(!empty($line->fk_product)) {
                 $product = new Product($db);
@@ -213,7 +213,7 @@ if($object->id) {
                     0,
                     '',
                     0,
-                    $langs->transnoentities('ProductLinkedFiles', $product->getNomUrl(1)).' '.(!empty($conf->global->OF_PRINT_LABEL_AND_DESC_PRODUCT_ON_LINKED_OBJECT_FILES) ? $product->label.' '.$product->description : ''),
+                    $langs->transnoentities('ProductLinkedFiles', $product->getNomUrl(1)).' '.(getDolGlobalString('OF_PRINT_LABEL_AND_DESC_PRODUCT_ON_LINKED_OBJECT_FILES') ? $product->label.' '.$product->description : ''),
                     '',
                     0,
                     0,

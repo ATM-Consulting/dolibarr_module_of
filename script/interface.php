@@ -418,11 +418,11 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
 
 				//TODO attention la création de l'OF ne prend pas en compte la quantité encore en stock
 
-  				if (!empty($conf->global->CREATE_CHILDREN_OF))
+  				if (getDolGlobalString('CREATE_CHILDREN_OF'))
   				{
                 	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty_needed, $line->fk_nomenclature);
 
-					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {
+					if ((getDolGlobalString('CREATE_CHILDREN_OF_COMPOSANT') && !empty($TCompositionSubProd)) || !getDolGlobalString('CREATE_CHILDREN_OF_COMPOSANT')) {
 						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty_needed, $line->getId());
 						$TAssetOF->save($PDOdb);
 

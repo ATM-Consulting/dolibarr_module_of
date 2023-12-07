@@ -317,7 +317,7 @@ if ($id > 0 || $ref)
 
         // Status (to sell)
         print '<tr><td>'.$langs->trans("Status").' ('.$langs->trans("Sell").')</td><td>';
-        if (! empty($conf->use_javascript_ajax) && $user->hasRight('produit', 'creer') && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
+        if (! empty($conf->use_javascript_ajax) && $user->hasRight('produit', 'creer') && getDolGlobalString('MAIN_DIRECT_STATUS_UPDATE')) {
             print ajax_object_onoff($product, 'status', 'tosell', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
         } else {
             print $product->getLibStatut(2,0);
@@ -326,7 +326,7 @@ if ($id > 0 || $ref)
 
         // Status (to buy)
         print '<tr><td>'.$langs->trans("Status").' ('.$langs->trans("Buy").')</td><td colspan="2">';
-        if (! empty($conf->use_javascript_ajax) && $user->hasRight('produit', 'creer') && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
+        if (! empty($conf->use_javascript_ajax) && $user->hasRight('produit', 'creer') && getDolGlobalString('MAIN_DIRECT_STATUS_UPDATE')) {
             print ajax_object_onoff($product, 'status_buy', 'tobuy', 'ProductStatusOnBuy', 'ProductStatusNotOnBuy');
         } else {
             print $product->getLibStatut(2,1);
@@ -356,7 +356,7 @@ if ($id > 0 || $ref)
 		print '</td></tr>';
 
 		$object = $product;
-		if (empty($conf->global->PRODUIT_MULTIPRICES))
+		if (!getDolGlobalString('PRODUIT_MULTIPRICES'))
 		{
 			// Price
 			print '<tr><td>' . $langs->trans("SellingPrice") . '</td><td>';
@@ -402,12 +402,12 @@ if ($id > 0 || $ref)
         // Real stock
         $product->load_stock();
         $text_stock_options = '';
-        $text_stock_options.= (! empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT)?$langs->trans("DeStockOnShipment").'<br>':'');
-        $text_stock_options.= (! empty($conf->global->STOCK_CALCULATE_ON_VALIDATE_ORDER)?$langs->trans("DeStockOnValidateOrder").'<br>':'');
-        $text_stock_options.= (! empty($conf->global->STOCK_CALCULATE_ON_BILL)?$langs->trans("DeStockOnBill").'<br>':'');
-        $text_stock_options.= (! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_BILL)?$langs->trans("ReStockOnBill").'<br>':'');
-        $text_stock_options.= (! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER)?$langs->trans("ReStockOnValidateOrder").'<br>':'');
-        $text_stock_options.= (! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER)?$langs->trans("ReStockOnDispatchOrder").'<br>':'');
+        $text_stock_options.= (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT')?$langs->trans("DeStockOnShipment").'<br>':'');
+        $text_stock_options.= (getDolGlobalString('STOCK_CALCULATE_ON_VALIDATE_ORDER')?$langs->trans("DeStockOnValidateOrder").'<br>':'');
+        $text_stock_options.= (getDolGlobalString('STOCK_CALCULATE_ON_BILL')?$langs->trans("DeStockOnBill").'<br>':'');
+        $text_stock_options.= (getDolGlobalString('STOCK_CALCULATE_ON_SUPPLIER_BILL')?$langs->trans("ReStockOnBill").'<br>':'');
+        $text_stock_options.= (getDolGlobalString('STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER')?$langs->trans("ReStockOnValidateOrder").'<br>':'');
+        $text_stock_options.= (getDolGlobalString('STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER')?$langs->trans("ReStockOnDispatchOrder").'<br>':'');
         print '<tr><td>';
         print $form->textwithtooltip($langs->trans("PhysicalStock"),$text_stock_options,2,1,img_picto('', 'info'),'',0);
         print '</td>';
@@ -720,12 +720,12 @@ if ($resql)
 		print '<td align="right">'.(price2num($product->pmp)?price(price2num($product->pmp*$obj->reel,'MT')):'').'</td>'; // Ditto : Show PMP from movement or from product
         // Sell price
 		print '<td align="right">';
-        if (empty($conf->global->PRODUIT_MULTI_PRICES)) print price(price2num($product->price,'MU'),1);
+        if (!getDolGlobalString('PRODUIT_MULTI_PRICES')) print price(price2num($product->price,'MU'),1);
         else print $langs->trans("Variable");
         print '</td>'; // Ditto : Show PMP from movement or from product
         // Value sell
         print '<td align="right">';
-        if (empty($conf->global->PRODUIT_MULTI_PRICES)) print price(price2num($product->price*$obj->reel,'MT'),1).'</td>'; // Ditto : Show PMP from movement or from product
+        if (!getDolGlobalString('PRODUIT_MULTI_PRICES')) print price(price2num($product->price*$obj->reel,'MT'),1).'</td>'; // Ditto : Show PMP from movement or from product
         else print $langs->trans("Variable");
 		print '</tr>'; ;
 		$total += $obj->reel;
@@ -763,12 +763,12 @@ print '<td class="liste_total" align="right">';
 print $totalvalue?price(price2num($totalvalue,'MT'),1):'&nbsp;';
 print '</td>';
 print '<td class="liste_total" align="right">';
-if (empty($conf->global->PRODUIT_MULTI_PRICES)) print ($total?price($totalvaluesell/$total,1):'&nbsp;');
+if (!getDolGlobalString('PRODUIT_MULTI_PRICES')) print ($total?price($totalvaluesell/$total,1):'&nbsp;');
 else print $langs->trans("Variable");
 print '</td>';
 // Value to sell
 print '<td class="liste_total" align="right">';
-if (empty($conf->global->PRODUIT_MULTI_PRICES)) print price(price2num($totalvaluesell,'MT'),1);
+if (!getDolGlobalString('PRODUIT_MULTI_PRICES')) print price(price2num($totalvaluesell,'MT'),1);
 else print $langs->trans("Variable");
 print '</td>';
 print "</tr>";

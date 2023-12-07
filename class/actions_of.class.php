@@ -245,7 +245,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	public function defineColumnField($parameters, &$pdfDoc, &$action, $hookmanager)
 	{
 		global $conf, $user, $langs;
-		if (empty($conf->global->OF_USE_REFLINENUMBER)) return 0;
+		if (!getDolGlobalString('OF_USE_REFLINENUMBER')) return 0;
 
 		// Translations
 		$langs->loadLangs(array("of@of"));
@@ -287,12 +287,12 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 		if (in_array($parameters['object']->element, $objectDocCompatible)){
 			$def['status'] = true;
 
-			if(!empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC)){
+			if(getDolGlobalString('OF_REF_LINE_NUMBER_BEFORE_DESC')){
 				$pdfDoc->cols['desc']['border-left'] = true; // add left line separator
 			}
 		}
 
-		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC));
+		$pdfDoc->insertNewColumnDef('RefLineNumber', $def, 'desc',!getDolGlobalString('OF_REF_LINE_NUMBER_BEFORE_DESC'));
 		return 0;
 	}
 
@@ -308,7 +308,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	public function printPDFLine($parameters, &$pdfDoc, &$action, $hookmanager)
 	{
 		global $conf, $user, $langs;
-		if (empty($conf->global->OF_USE_REFLINENUMBER)) return 0;
+		if (!getDolGlobalString('OF_USE_REFLINENUMBER')) return 0;
 		$pdf =& $parameters['pdf'];
 		$i = $parameters['i'];
 		$outputlangs = $parameters['outputlangs'];
@@ -355,7 +355,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 	{
 		global $db,$conf,$langs;
 
-		if (!empty($conf->global->OF_SHOW_QTY_THEORIQUE_MOINS_OF))
+		if (getDolGlobalString('OF_SHOW_QTY_THEORIQUE_MOINS_OF'))
 		{
 			$langs->load(ATM_ASSET_NAME . '@' . ATM_ASSET_NAME);
 			define('INC_FROM_DOLIBARR', true);
@@ -536,7 +536,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 
 		$TContext = explode(':',$parameters['context']);
 
-		if(in_array('ordercard',$TContext) && !empty($conf->global->OF_DISPLAY_OF_ON_COMMANDLINES))
+		if(in_array('ordercard',$TContext) && getDolGlobalString('OF_DISPLAY_OF_ON_COMMANDLINES'))
 		{
 			dol_include_once('/of/lib/of.lib.php');
 
@@ -614,7 +614,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
         <?php
     }
 
-		if (!empty($conf->global->OF_USE_REFLINENUMBER)
+		if (getDolGlobalString('OF_USE_REFLINENUMBER')
 			&& (
 				in_array('ordercard', $TContext)
 				|| in_array('invoicecard', $TContext)
@@ -627,7 +627,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 			if ($conf->subtotal->enabled && !class_exists('TSubtotal')) dol_include_once('/subtotal/class/subtotal.class.php');
 			$jsonObjectData =array(
 				'conf' => array(
-					'OF_REF_LINE_NUMBER_BEFORE_DESC' => !empty($conf->global->OF_REF_LINE_NUMBER_BEFORE_DESC)
+					'OF_REF_LINE_NUMBER_BEFORE_DESC' => getDolGlobalString('OF_REF_LINE_NUMBER_BEFORE_DESC')
 				),
 				'lines' => array_map(
 					function ($l) {

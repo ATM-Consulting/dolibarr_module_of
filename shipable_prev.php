@@ -15,7 +15,7 @@ dol_include_once('/fourn/class/fournisseur.class.php');
 dol_include_once('/core/class/html.form.class.php');
 dol_include_once('/of/lib/of.lib.php');
 
-if(empty($conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD) || empty($conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD) || empty($conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD)){
+if(!getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD') || !getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD') || !getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')){
     accessforbidden($langs->trans('FillReportConf'));
 }
 
@@ -93,7 +93,7 @@ $langs->load('deliveries');
 $sqlOrder = "SELECT DISTINCT cd.rowid as rowid,
             c.ref as ref,
             aol.fk_assetOf, aol.rowid as fk_assetOfLine,
-            cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." as date_livraison,
+            cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')." as date_livraison,
              SUM(ed.qty) as qty_exped, 'commande' as element,
              prod.ref as ref_prod,
              s.nom as societe_nom,
@@ -117,7 +117,7 @@ $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = 
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
 $sqlOrderWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND prod.fk_product_type=0 AND prod.rowid IS NOT NULL ";
-$sqlOrderGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD;
+$sqlOrderGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD');
 
 /*
  * On fait la même chose pour les propals ayant l'extrafield à oui
@@ -125,7 +125,7 @@ $sqlOrderGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde.".$conf->g
 $sqlPropal = "SELECT DISTINCT pd.rowid as rowid
             , p.ref as ref
             ,'' as fk_assetOf, '' as fk_assetOfLine
-            , pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." as date_livraison
+            , pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')." as date_livraison
             , NULL as qty_exped
             , 'propal' as element
             ,prod.ref as ref_prod
@@ -150,7 +150,7 @@ $sqlPropalWhere .= " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal
                     AND prod.rowid IS NOT NULL
                     AND pe.of_check_prev = 1
                     AND ee.fk_target IS NULL ";
-$sqlPropalGroup .= " GROUP BY pd.rowid, pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD;
+$sqlPropalGroup .= " GROUP BY pd.rowid, pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD');
 $sqlOrderBy .= " ORDER BY date_livraison, rowid";
 
 $sql = $sqlOrder.$sqlOrderWhere.$sqlOrderGroup
@@ -177,8 +177,8 @@ if(!empty($result) && $db->num_rows($result) > 0) {
         else {
             $myLine->fetch($obj->rowid);
             $myLine->fetch_optionals();
-            if($obj->element == 'commande') $myLine->of_date_de_livraison = $myLine->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD];
-            else if($obj->element == 'propal')$myLine->of_date_de_livraison = $myLine->array_options['options_'.$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD];
+            if($obj->element == 'commande') $myLine->of_date_de_livraison = $myLine->array_options['options_' . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')];
+            else if($obj->element == 'propal')$myLine->of_date_de_livraison = $myLine->array_options['options_' . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')];
             $myLine->fk_assetOf = array($obj->fk_assetOf);//On récup l'OF
             $myLine->fk_assetOfLine = array($obj->fk_assetOfLine);//On récup la ligne associé
             $nomenclature->loadByObjectId($PDOdb, $obj->rowid, $obj->element, false, 0, $myLine->qty, 0);
@@ -223,8 +223,8 @@ if ($search_qty != '') {
     $sqlPropalWhere.= natural_search("pd.qty", $search_qty, 1);
 }
 if (!empty($search_no_date)) {
-    $sqlOrderWhere.= ' AND cde.'.$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD.' IS NULL';
-    $sqlPropalWhere.= ' AND pde.'.$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD.' IS NULL';
+    $sqlOrderWhere.= ' AND cde.' . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD').' IS NULL';
+    $sqlPropalWhere.= ' AND pde.' . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD').' IS NULL';
 }
 if (!empty($search_non_compliant)) {
     $sqlOrderWhere.= ' AND aol.qty_non_compliant > 0';
@@ -254,16 +254,16 @@ if (!empty($search_non_compliant)) {
 //    }
 //}
 if(!empty($search_delivery_startday) && !empty($search_delivery_endday)){
-    $sqlOrderWhere.= " AND  (cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."'
-                   AND cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
-    $sqlPropalWhere.= " AND  (pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."'
-                   AND pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
+    $sqlOrderWhere.= " AND  (cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."'
+                   AND cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
+    $sqlPropalWhere.= " AND  (pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."'
+                   AND pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
 } else if(!empty($search_delivery_startday)  && empty($search_delivery_endday) ){
-    $sqlOrderWhere.= " AND  (cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."')";
-    $sqlPropalWhere.= " AND  (pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."')";
+    $sqlOrderWhere.= " AND  (cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."')";
+    $sqlPropalWhere.= " AND  (pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')." >= '".$search_delivery_startyear."-".$search_delivery_startmonth."-".$search_delivery_startday."')";
 } else if(empty($search_delivery_startday)  && !empty($search_delivery_endday) ){
-    $sqlOrderWhere.= "  AND (cde.".$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
-    $sqlPropalWhere.= "  AND (pde.".$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
+    $sqlOrderWhere.= "  AND (cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD')." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
+    $sqlPropalWhere.= "  AND (pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD')." <= '".$search_delivery_endyear."-".$search_delivery_endmonth."-".$search_delivery_endday."')";
 }
 
 $sqlOrder .= $sqlOrderWhere.$sqlOrderGroup; // Obliger de faire le travail 2x (1 pour avoir toutes les données et faire le traitement, et l'autre pour le filtrage et l'affichage car le traitement se fait ligne à ligne (qté décrémenté ligne par ligne))
@@ -299,12 +299,12 @@ if(!empty($resql) && $db->num_rows($resql) > 0) {
     }
 }
 
-$sql = " SELECT cfd.qty, cfde.".$conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD.", cfd.fk_product, cf.rowid FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as cfd";
+$sql = " SELECT cfd.qty, cfde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD').", cfd.fk_product, cf.rowid FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as cfd";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_fournisseurdet_extrafields as cfde ON (cfde.fk_object = cfd.rowid)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_fournisseur as cf ON (cf.rowid = cfd.fk_commande)";
 $sql .= " WHERE cfd.fk_product IN (" . implode(',', $TProductId) . ") ";
 $sql .= " AND cf.fk_statut NOT IN (" . CommandeFournisseur::STATUS_RECEIVED_COMPLETELY . ", " . CommandeFournisseur::STATUS_CANCELED . ", " . CommandeFournisseur::STATUS_CANCELED_AFTER_ORDER . ", " . CommandeFournisseur::STATUS_REFUSED . ")";
-$sql .= " ORDER BY cfde.".$conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD;
+$sql .= " ORDER BY cfde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD');
 
 $resql = $db->query($sql);
 if(!empty($resql) && $db->num_rows($resql) > 0) {

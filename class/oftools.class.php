@@ -57,7 +57,7 @@ class OFTools
 
                     $note_private = '';
 
-                    if(! empty($conf->global->OF_HANDLE_ORDER_LINE_DESC))
+                    if(getDolGlobalString('OF_HANDLE_ORDER_LINE_DESC'))
                     {
                         $line = new OrderLine($db);
                         $line->fetch($fk_commandedet);
@@ -74,12 +74,12 @@ class OFTools
                     $idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
                     $assetOf->save($PDOdb);
 
-                    if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && !$oneOF && $assetOf->fk_commande > 0) {
+                    if(getDolGlobalString('OF_KEEP_ORDER_DOCUMENTS') && !$oneOF && $assetOf->fk_commande > 0) {
                         $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
                         $assetOf->copyAllFiles($order_dir);
                     }
 
-                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && getDolGlobalString('USE_ASSET_IN_ORDER')) {
 
                         $TAsset = GETPOST('TAsset', 'none');
                         if(!empty($TAsset[$fk_commandedet])) {
@@ -95,7 +95,7 @@ class OFTools
 
                 }
             }
-            if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && $oneOF && $assetOf->fk_commande > 0) {
+            if(getDolGlobalString('OF_KEEP_ORDER_DOCUMENTS') && $oneOF && $assetOf->fk_commande > 0) {
                 $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
                 $assetOf->copyAllFiles($order_dir);
             }
@@ -290,7 +290,7 @@ class OFTools
         @mkdir($dir, 0777, true);
 
         if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
-        else if($conf->global->DEFAULT_ETIQUETTES == 2){
+        else if(getDolGlobalInt('DEFAULT_ETIQUETTES') == 2){
             $template = "etiquette_custom.html";
         }else{
             $template = "etiquette.html";
@@ -313,7 +313,7 @@ class OFTools
             , 'margin_right_pair' =>intval($conf->global->DEFINE_MARGIN_RIGHT)
             , 'margin_top_cell' =>intval($conf->global->DEFINE_MARGIN_TOP_CELL)
             , 'langs' => $langs
-            , 'display_note' => empty($conf->global->OF_HANDLE_ORDER_LINE_DESC) ? 0 : 1
+            , 'display_note' => !getDolGlobalString('OF_HANDLE_ORDER_LINE_DESC') ? 0 : 1
             )
             ,array()
             ,array(
@@ -375,7 +375,7 @@ class OFTools
                             ,'refProd' => $product->ref
                             ,'qty_to_print' => $qty
                             ,'qty_to_make' => $assetOfLine->qty
-                            ,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, $conf->global->DEFAULT_ETIQUETTES == 2?"\n":"</br>")
+                            ,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, getDolGlobalInt('DEFAULT_ETIQUETTES') == 2?"\n":"</br>")
                             ,'pos' => ceil($pos/8)
                             ,'note_private' => $assetOfLine->note_private
                             );

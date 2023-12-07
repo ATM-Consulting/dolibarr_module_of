@@ -232,7 +232,7 @@
 		}
 
 		$hideunselectables = false;
-		if (! empty($conf->global->PROJECT_HIDE_UNSELECTABLES)) $hideunselectables = true;
+		if (getDolGlobalString('PROJECT_HIDE_UNSELECTABLES')) $hideunselectables = true;
 
 		$projectsListId = false;
 		if (!$user->hasRight('projet', 'all', 'lire'))
@@ -419,7 +419,7 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
     $maskraz=-1;
     $maskoffset=0;
     $resetEveryMonth=false;
-    if (dol_strlen($maskcounter) < 3 && empty($conf->global->MAIN_COUNTER_WITH_LESS_3_DIGITS)) return 'ErrorCounterMustHaveMoreThan3Digits';
+    if (dol_strlen($maskcounter) < 3 && !getDolGlobalString('MAIN_COUNTER_WITH_LESS_3_DIGITS')) return 'ErrorCounterMustHaveMoreThan3Digits';
 
     // Extract value for third party mask counter
     if (preg_match('/\{(c+)(0*)\}/i',$mask,$regClientRef))
@@ -526,7 +526,7 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
     //print "yearoffset=".$yearoffset." yearoffsettype=".$yearoffsettype;
     if (is_numeric($yearoffsettype) && $yearoffsettype >= 1)
         $maskraz=$yearoffsettype; // For backward compatibility
-    else if ($yearoffsettype === '0' || (! empty($yearoffsettype) && ! is_numeric($yearoffsettype) && $conf->global->SOCIETE_FISCAL_MONTH_START > 1))
+    else if ($yearoffsettype === '0' || (! empty($yearoffsettype) && ! is_numeric($yearoffsettype) && getDolGlobalInt('SOCIETE_FISCAL_MONTH_START') > 1))
         $maskraz = $conf->global->SOCIETE_FISCAL_MONTH_START;
     //print "maskraz=".$maskraz;	// -1=no reset
 
@@ -678,7 +678,7 @@ function get_next_value_PDOdb(TPDOdb $db,$mask,$table,$field,$where='',$objsoc='
         $counter=0;
         dol_syslog("Error, the last counter found is '".$counter."' so is not a numeric value. We will restart to 1.", LOG_ERR);
     }
-    else if ($counter < $maskoffset && empty($conf->global->MAIN_NUMBERING_OFFSET_ONLY_FOR_FIRST)) $counter=$maskoffset;
+    else if ($counter < $maskoffset && !getDolGlobalString('MAIN_NUMBERING_OFFSET_ONLY_FOR_FIRST')) $counter=$maskoffset;
 
     if ($mode == 'last')	// We found value for counter = last counter value. Now need to get corresponding ref of invoice.
     {
@@ -1082,11 +1082,11 @@ function getOFForLine($line)
 			LEFT JOIN ".MAIN_DB_PREFIX."product p ON (p.rowid = ofel.fk_product)
 			LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = ofe.fk_soc)";
 
-	if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
+	if(getDolGlobalString('OF_MANAGE_ORDER_LINK_BY_LINE')) $sql.=" LEFT JOIN ".MAIN_DB_PREFIX."commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
 
 	$sql.="  WHERE ofe.entity=".$conf->entity;
 
-	if(!empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+	if(getDolGlobalString('OF_MANAGE_ORDER_LINK_BY_LINE')) {
 
 			$sql.=" AND ofel.fk_commandedet = ".$line->id." AND ofe.fk_assetOf_parent = 0 ";
 

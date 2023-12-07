@@ -255,8 +255,8 @@ foreach ($dirmodels as $reldir)
 							$module = new $classname($db);
 
 							$modulequalified=1;
-							if ($module->version == 'development'  && $conf->global->MAIN_FEATURES_LEVEL < 2) $modulequalified=0;
-							if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1) $modulequalified=0;
+							if ($module->version == 'development'  && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) $modulequalified=0;
+							if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) $modulequalified=0;
 
 							if ($modulequalified)
 							{
@@ -356,7 +356,7 @@ function showParameters(&$form) {
 				<td><?php echo $langs->trans('Template') ?></td><td>
 					<input type="file" name="template" />
 					<?php
-						if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
+						if (getDolGlobalString('TEMPLATE_OF')) $template = $conf->global->TEMPLATE_OF;
 						else $template = "templateOF.odt";
 
 						$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;
