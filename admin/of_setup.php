@@ -261,7 +261,7 @@ setup_print_input_form_part('OF_NB_TICKET_PER_PAGE', $langs->trans("OfNbTicketrP
 
 $tooltip=$langs->trans("DEFAULT_ETIQUETTES_HELP");
 $liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
-$input = $form::selectarray('DEFAULT_ETIQUETTES', $liste, getDolGlobalInt('DEFAULT_ETIQUETTES', 0);
+$input = $form::selectarray('DEFAULT_ETIQUETTES', $liste, getDolGlobalInt('DEFAULT_ETIQUETTES', 0));
 setup_print_input_form_part('DEFAULT_ETIQUETTES', $langs->trans('CHOOSE_CUSTOM_LABEL'), '', array(), $input, $tooltip);
 
 $input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (getDolGlobalString('ABRICOT_WKHTMLTOPDF_CMD','')), 80,255,' placeholder="wkhtmltopdf" ');
