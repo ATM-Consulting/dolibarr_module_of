@@ -496,7 +496,7 @@ class modof extends DolibarrModules
 
 		$sql = array();
 
-		define('INC_FROM_DOLIBARR',true);
+		if(!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR',true);
 
 		dol_include_once('/of/config.php');
 		dol_include_once('/of/script/create-maj-base.php');
