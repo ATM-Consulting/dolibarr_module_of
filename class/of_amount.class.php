@@ -42,15 +42,18 @@ class AssetOFAmounts extends SeedObject {
 					,SUM(total_estimated_cost - total_cost) as amount_diff
 
 			FROM ".MAIN_DB_PREFIX."assetOf
-			WHERE status IN('OPEN','ONORDER')");
+			WHERE status IN('OPEN','ONORDER')
+            AND date_cre <= '2023-11-30%'
+            ");
+
 		
 		$obj = $db->fetch_object($res);
 		
 		$this->amount_estimated = $obj->amount_estimated;
 		$this->amount_real= $obj->amount_real;
 		$this->amount_diff= $obj->amount_diff;
-		
-		$this->date= time();
+
+		$this->date= strtotime(date('2023-11-30'));
 		
 		$this->create($user);
 		
