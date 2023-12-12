@@ -1548,8 +1548,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'defined_show_categorie'=>getDolGlobalInt('OF_DISPLAY_PRODUCT_CATEGORIES')
 			,'hasChildren' => (int) !empty($Tid)
 			,'user_id'=>$user->id
-			,'workstation_module_activate'=>intval(!empty($conf->workstationatm->enabled))
-			,'show_cost'=>intval($user->hasRight('of','of','price')),
+			,'workstation_module_activate'=>!empty($conf->workstationatm->enabled)
+			,'show_cost'=>$user->hasRight('of','of','price')
 			,'langs'=>$langs
 			,'editField'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="#" onclick="quickEditField('.$assetOf->getId().',this)" style="float:right">'.img_edit().'</a>' : '')
 			,'editFieldStatus'=>($form->type_aff == 'view' ? '<a class="notinparentview quickEditButton" href="'.$_SERVER['PHP_SELF'].'?id='.$assetOf->getId().'&quicksave=status"  style="float:right">'.img_edit().'</a>' : '')
