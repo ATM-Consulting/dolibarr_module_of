@@ -1496,7 +1496,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
 				,'token'=>$newToken
 
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','client IN (1,3)',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','s.client IN (1,3)',1) : (($client->id) ? $client->getNomUrl(1) : '')
 				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
 
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)
@@ -1514,14 +1514,14 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
 				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 1).'">'.$TAssetOFParent->numero.'</a>' : '')
 
-				,'total_cost'=>price($assetOf->total_cost,0,'',1,-1,2, $conf->currency)
-				,'total_estimated_cost'=>price($assetOf->total_estimated_cost,0,'',1,-1,2, $conf->currency)
-				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2, $conf->currency)
-				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost,0,'',1,-1,2, $conf->currency)
-				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2, $conf->currency)
-				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost,0,'',1,-1,2, $conf->currency)
-				,'compo_planned_cost'=>price($assetOf->compo_planned_cost,0,'',1,-1,2, $conf->currency)
-				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make,0,'',1,-1,2, $conf->currency)
+				,'total_cost'=>price($assetOf->total_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'total_estimated_cost'=>price($assetOf->total_estimated_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'mo_cost'=>price($assetOf->mo_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'mo_estimated_cost'=>price($assetOf->mo_estimated_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'compo_cost'=>price($assetOf->compo_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'compo_estimated_cost'=>price($assetOf->compo_estimated_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'compo_planned_cost'=>price($assetOf->compo_planned_cost ?? 0,0,'',1,-1,2, $conf->currency)
+				,'current_cost_for_to_make'=>price($assetOf->current_cost_for_to_make ?? 0,0,'',1,-1,2, $conf->currency)
 				,'date_end'=>$assetOf->get_date('date_end')
 				,'date_start'=>$assetOf->get_date('date_start')
 				,'rank'=>$form->texte('', 'rank', $assetOf->rank,3,3)
