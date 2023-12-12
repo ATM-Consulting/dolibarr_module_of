@@ -1015,7 +1015,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				}
 
 				//Affiche le type du PF :
-				if($objPrice->compose_fourni){//			soit on fabrique les composants
+				if(!empty($objPrice->compose_fourni)){//			soit on fabrique les composants
 					$label .= ' =>'.$langs->trans('OFSupplierLineComp');
 				}
 				elseif(!empty($objPrice->quantity) && $objPrice->quantity <= 0){//			soit on a le produit finis déjà en stock
@@ -1030,7 +1030,7 @@ function _fiche_ligne(&$form, &$of, $type){
 
 				$Tab[ $objPrice->rowid ] = array(
 												'label' => $label,
-												'compose_fourni' => ($objPrice->compose_fourni) ? $objPrice->compose_fourni : 0
+												'compose_fourni' => $objPrice->compose_fourni ?? 0
 											);
 
 			}
