@@ -987,7 +987,7 @@ function _fiche_ligne(&$form, &$of, $type){
 			if($p->fetch($TAssetOFLine->fk_product)) {
 				$p->load_stock();
 				$p->stock_reel;
-				if($TAssetOFLine->type === 'TO_MAKE' && $p->stock_reel <= 0 && $_REQUEST['action'] === 'edit') $selected = -2;
+				if($TAssetOFLine->type === 'TO_MAKE' && $p->stock_reel <= 0 && !empty($_REQUEST['action']) && $_REQUEST['action'] === 'edit') $selected = -2;
 			}
 			// *************************************************************
 
