@@ -570,8 +570,9 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			mergeObjectAttr($prod, $TToMake[$k]);
 		}
 		else if($v->type == "NEEDED") {
+
 			$TNeeded[$k] = array(
-				'type' => !empty($conf->nomenclature->enabled) ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
+				'type' => empty($conf->nomenclature->enabled) ? $v->type : (!empty($TTypesProductsNomenclature) ? $TTypesProductsNomenclature[$v->fk_product] : null)
 				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
