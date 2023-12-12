@@ -17,9 +17,9 @@ if(!$user->hasRight('of', 'of', 'lire')) accessforbidden();
 $langs->load('of@of');
 $langs->load('workstationatm@workstationatm');
 $langs->load('stocks');
-
+global $conf;
 $PDOdb = new TPDOdb;
-if ($conf->workstationatm->enabled && !class_exists('TWorkstation')) dol_include_once('workstationatm/class/workstation.class.php');
+if (!empty($conf->workstationatm->enabled) && !class_exists('TWorkstation')) require_once(__DIR__.'/../eworkstationatm/class/workstation.class.php');
 $TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
 
 $action     = GETPOST('action', 'alpha');

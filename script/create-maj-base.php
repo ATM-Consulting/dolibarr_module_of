@@ -15,8 +15,8 @@
     }
 	
 	global $db;
-    require_once __DIR__.'/../../workstation/class/workstation.class.php';
-    dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+    require_once __DIR__.'/../../workstationatm/class/workstation.class.php';
+    require_once __DIR__.'/../class/ordre_fabrication_asset.class.php';
 
     $o=new TAssetOF;
 	$o->init_db_by_vars($ATMdb);
