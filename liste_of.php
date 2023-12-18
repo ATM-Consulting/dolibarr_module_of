@@ -201,11 +201,7 @@ if ($mode == 'supplier_order') {
         $sql .= " ,cd.total_ht as 'order_line_price' ";
     }
 
-    $sql .= ",ofe.fk_project
-		, ofe.status, ofe.fk_user
-		,temps_estime_fabrication
-		,total_estimated_cost, total_cost
-		, '' AS printTicket  ";
+    $sql .= ",ofe.fk_project, ofe.status, ofe.fk_user,temps_estime_fabrication,total_estimated_cost, total_cost, '' AS printTicket  ";
 
     if (getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE')) $sql .= ', ofe.rank';
 }

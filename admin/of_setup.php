@@ -42,7 +42,7 @@ if (! $user->admin) {
 
 // Parameters
 $action = GETPOST('action', 'none');
-
+$newToken = function_exists('newToken')?newToken():$_SESSION['newtoken'];
 /**
  * @param $visibility
  * @return boolean 0=error; 1=success
@@ -340,7 +340,7 @@ setup_print_title('ParamLinkedToOFOthers');
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="right" width="300">';
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="token" value="'.$newToken.'">';
 	print '<input type="hidden" name="action" value="set_OF_COEF_MINI_TU_1">';
 	print $formCore->texte('', 'OF_COEF_MINI_TU_1', getDolGlobalString('OF_COEF_MINI_TU_1',''), 10, 10);
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
@@ -477,7 +477,7 @@ print '<td>'.$langs->trans("set_OF_COEF_WS").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="300" style="white-space:nowrap;">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_COEF_WS">';
 print $formCore->texte('', 'OF_COEF_WS', (getDolGlobalString('OF_COEF_WS','')), 5,255);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
@@ -621,7 +621,7 @@ print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIE
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('commande_fournisseurdet');
 print $form::selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD',''),1);
@@ -635,7 +635,7 @@ print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD").'</
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('commandedet');
 print $form::selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD',''),1);
@@ -649,7 +649,7 @@ print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD").'<
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('propaldet');
 print $form::selectarray('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD', $liste, getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD',''),1);
@@ -663,9 +663,15 @@ print "</table>";
 
 	$form=new TFormCore;
 
-	showParameters($form);
+	showParameters($form, $newToken);
 
-function showParameters(&$form) {
+/**
+ * @param $form
+ * @param $newToken
+ * @return void
+ * @throws Exception
+ */
+function showParameters(&$form, $newToken = "") {
 	global $db,$conf,$langs;
 	dol_include_once('/product/class/html.formproduct.class.php');
 
@@ -673,6 +679,7 @@ function showParameters(&$form) {
 
 	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-of" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
+		<input type="hidden" name="token" value="<?php echo $newToken; ?>" />
 		<table width="100%" class="noborder">
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>

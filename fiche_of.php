@@ -1483,6 +1483,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 
 	$formProduct = new FormProduct($db);
     $newToken = function_exists('newToken') ? newToken() : $_SESSION['newtoken'];
+	$filter = (float) DOL_VERSION >= 18.0 ? ' (s.client:IN:1,3)' : '((s.client IN (1,3))';
 	$TFields = array(
 		'assetOf'=>array(
 				'id'=> $assetOf->getId()
@@ -1497,7 +1498,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'temps_reel_fabrication'=>price($assetOf->temps_reel_fabrication,0,'',1,-1,2)
 				,'token'=>$newToken
 
-				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc','s.client IN (1,3)',1) : (($client->id) ? $client->getNomUrl(1) : '')
+				,'fk_soc'=> ($mode=='edit') ? $doliform->select_company($assetOf->fk_soc,'fk_soc',$filter,1) : (($client->id) ? $client->getNomUrl(1) : '')
 				,'fk_project'=>custom_select_projects(-1, $assetOf->fk_project, 'fk_project',$mode)
 
 				,'note'=>$form->zonetexte('', 'note', $assetOf->note, 80,5)

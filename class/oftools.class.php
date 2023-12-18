@@ -410,11 +410,14 @@ class OFTools
     static public function _setAllRank($PDOdb, $TNewRank, $TOldRank) {
         $TToUpdate= array();
 
-        //On récupère uniquement les ofs qui ont été modifiés
-        foreach($TNewRank as $key => $val){
-            if($val != $TOldRank[$key]) $TToUpdate[$key] = $val;
-        }
-        if(!empty($TToUpdate)) {
+		if (is_array($TNewRank) && !empty($TNewRank)){
+			//On récupère uniquement les ofs qui ont été modifiés
+			foreach($TNewRank as $key => $val){
+				if($val != $TOldRank[$key]) $TToUpdate[$key] = $val;
+			}
+		}
+
+        if(is_array($TToUpdate) &&  !empty($TToUpdate)) {
             asort($TToUpdate); //On réordonne par value (pour que les valeurs les plus basses soient traités en première)
             foreach($TToUpdate as $fk_of => $new_rank) {
                 $assetOf = new TAssetOF;

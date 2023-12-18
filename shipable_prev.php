@@ -116,8 +116,8 @@ $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition as e ON (e.rowid = ee.
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = cd.fk_product)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = c.fk_soc)";
 $sqlOrder .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON (ed.fk_expedition = e.rowid AND ed.fk_origin_line = cd.rowid)";
-$sqlOrderWhere .= " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND prod.fk_product_type=0 AND prod.rowid IS NOT NULL ";
-$sqlOrderGroup .= " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD');
+$sqlOrderWhere = " WHERE c.fk_statut IN (" . Commande::STATUS_VALIDATED . "," . Commande::STATUS_SHIPMENTONPROCESS. ") AND prod.fk_product_type=0 AND prod.rowid IS NOT NULL ";
+$sqlOrderGroup = " GROUP BY cd.rowid, aol.fk_assetOf, aol.rowid, cde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD');
 
 /*
  * On fait la même chose pour les propals ayant l'extrafield à oui
@@ -145,13 +145,13 @@ $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as pe ON (pe.
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON (ee.fk_source = p.rowid AND ee.sourcetype='propal' AND ee.targettype='commande')";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as prod ON (prod.rowid = pd.fk_product)";
 $sqlPropal .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON (s.rowid = p.fk_soc)";
-$sqlPropalWhere .= " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal::STATUS_SIGNED.")
+$sqlPropalWhere = " WHERE p.fk_statut IN (".Propal::STATUS_VALIDATED.",".Propal::STATUS_SIGNED.")
                     AND prod.fk_product_type=0
                     AND prod.rowid IS NOT NULL
                     AND pe.of_check_prev = 1
                     AND ee.fk_target IS NULL ";
-$sqlPropalGroup .= " GROUP BY pd.rowid, pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD');
-$sqlOrderBy .= " ORDER BY date_livraison, rowid";
+$sqlPropalGroup = " GROUP BY pd.rowid, pde." . getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD');
+$sqlOrderBy = " ORDER BY date_livraison, rowid";
 
 $sql = $sqlOrder.$sqlOrderWhere.$sqlOrderGroup
     .' UNION '
@@ -310,7 +310,7 @@ $resql = $db->query($sql);
 if(!empty($resql) && $db->num_rows($resql) > 0) {
     while($obj = $db->fetch_object($resql)) {
 //        $TProductStock[$obj->fk_product]['supplier_order']['total_from_supplier'] += $obj->qty;
-        $TProductStock[$obj->fk_product]['supplier_order'][$obj->`getDolGlobal('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD')`][$obj->rowid] += $obj->qty;
+        $TProductStock[$obj->fk_product]['supplier_order'][$obj->{getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD')}][$obj->rowid] += $obj->qty;
     }
 }
 //Recursively check if stock is enough
@@ -353,14 +353,14 @@ print '<input type="hidden" name="action" value="list">';
 print '<input type="hidden" name="sortfield" value="' . $sortfield . '">';
 print '<input type="hidden" name="sortorder" value="' . $sortorder . '">';
 print '<input type="hidden" name="page" value="' . $page . '">';
-print '<input type="hidden" name="contextpage" value="' . $contextpage . '">';
+if (isset( $contextpage ))  print '<input type="hidden" name="contextpage" value="' .  $contextpage  . '">';
 print '<input type="hidden" name="viewstatut" value="' . $viewstatut . '">';
-print '<input type="hidden" name="socid" value="' . $socid . '">';
+if (isset( $socid )) print '<input type="hidden" name="socid" value="' . $socid . '">';
 
-print_barre_liste($langs->trans('ShippablePrevReport'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, '', 0, $newcardbutton, '', $limit);
+print_barre_liste($langs->trans('ShippablePrevReport'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, isset($massactionbutton) ? $massactionbutton :"", $num, $nbtotalofrecords, '', 0, isset($newcardbutton) ? $newcardbutton : "", '', $limit);
 
 print '<div class="div-table-responsive">';
-print '<table class="tagtable liste' . ($moreforfilter ? " listwithfilterbefore" : "") . '">' . "\n";
+print '<table class="tagtable liste' . (isset($moreforfilter) ? " listwithfilterbefore" : "") . '">' . "\n";
 
 print '<tr class="liste_titre_filter">';
 

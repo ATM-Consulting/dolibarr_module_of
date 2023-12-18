@@ -30,7 +30,7 @@ require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/of.lib.php';
 dol_include_once('abricot/includes/lib/admin.lib.php');
 
-
+$newToken = function_exists('newToken') ? newToken() : $_SESSION['newtoken'];
 // Translations
 $langs->load('admin');
 $langs->load("of@of");
@@ -175,7 +175,7 @@ if(!function_exists('setup_print_title')){
 
 // MODELS ODT AVEC TBS
 $Tform=new TFormCore;
-showParameters($Tform);
+showParameters($Tform, $newToken);
 
 
 // Setup page goes here
@@ -336,11 +336,12 @@ foreach ($dirmodels as $reldir)
 print '</table>';
 
 
-
-
-
-
-function showParameters(&$form) {
+/**
+ * @param $form
+ * @param $newToken
+ * @return void
+ */
+function showParameters(&$form, $newToken = "") {
 	global $db,$conf,$langs;
 	dol_include_once('/product/class/html.formproduct.class.php');
 
@@ -348,7 +349,8 @@ function showParameters(&$form) {
 
 	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-models" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
-		<table width="100%" class="noborder">
+		<input type="hidden" name="token" value="<?php echo $newToken; ?>" />
+			<table width="100%" class="noborder">
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>
 			</tr>
