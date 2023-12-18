@@ -286,9 +286,11 @@ if ($search_status_of != '' && $search_status_of >= 0) {
     }
     else $sql .= natural_search('ofe.status', $search_status_of);
 }
-if ($search_workstation != '' && $search_workstation >= 0) {
+// Déplacer dans le HAVING
+/*if ($search_workstation != '' && $search_workstation >= 0) {
     $sql .= natural_search('wof.fk_asset_workstation', $search_workstation);
-}
+}*/
+
 if ($search_date_lancement_start) {
     $sql .= " AND ofe.date_lancement >= '".$db->idate($search_date_lancement_start)."'";
 }
@@ -314,6 +316,13 @@ if ($mode == 'supplier_order') {
 } else {
     $sql .= " GROUP BY ofe.rowid ";
 }
+
+//  fk_asset_workstation est un alias de fonction de regroupement.  	On deplace cette recherche dans le having  ...
+// on ne peux pas appeler un alias de regroupepemnt dans la clause where
+if ($search_workstation != '' && $search_workstation >= 0) {
+	$sql .= " HAVING  ". natural_search('fk_asset_workstation', $search_workstation,0,1);
+}
+
 
 if (! in_array($sortfield, array('refProd', 'nomProd'))) $sql .= $db->order($sortfield, $sortorder);
 
