@@ -129,7 +129,7 @@ class Interfaceoftrigger
 
     		global $conf;
 
-    		if(!empty($conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS)) {
+    		if(getDolGlobalInt('OF_FOLLOW_SUPPLIER_ORDER_STATUS')) {
 
 	    		define('INC_FROM_DOLIBARR',true);
 	    		dol_include_once('/of/config.php');
@@ -148,7 +148,7 @@ class Interfaceoftrigger
 
         	global $conf, $db;
 
-			if($conf->global->CREATE_OF_ON_ORDER_VALIDATE) {
+			if(getDolGlobalInt('CREATE_OF_ON_ORDER_VALIDATE')) {
 				define('INC_FROM_DOLIBARR',true);
 
 				dol_include_once('/product/class/product.class.php');
@@ -172,7 +172,7 @@ class Interfaceoftrigger
 							$assetOF = new TAssetOF;
 							$assetOF->fk_commande = $object->id;
 							$assetOF->fk_soc = $object->socid;
-							if(!empty($object->date_livraison)) $assetOF->date_besoin = $object->date_livraison;
+							$assetOF->date_besoin = property_exists($object, "delivery_date") ? $object->delivery_date : $object->date_livraison;
 							$assetOF->addLine($PDOdb, $line->fk_product, 'TO_MAKE', $line->qty,0, '',0,$line->id);
 							$assetOF->save($PDOdb);
 
@@ -187,7 +187,7 @@ class Interfaceoftrigger
         }
 		elseif($action === 'ORDER_CANCEL') {
 
-				if($conf->global->DELETE_OF_ON_ORDER_CANCEL) {
+				if(getDolGlobalInt('DELETE_OF_ON_ORDER_CANCEL')) {
 					define('INC_FROM_DOLIBARR',true);
 					dol_include_once('/of/config.php');
 					dol_include_once('/of/class/ordre_fabrication_asset.class.php');
@@ -212,17 +212,17 @@ class Interfaceoftrigger
 		else if($action === 'TASK_MODIFY') {
 		    if(!empty($conf->workstationatm->enabled) && !empty($conf->of->enabled) ) {
 
-		        if( !empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) ) {
+		        if( getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') ) {
                     if (!isset($conf->tassetof))$conf->tassetof = new \stdClass(); // for warning
 		            $conf->tassetof->enabled = 1; // pour fetchobjectlinked
                     $object->fetchObjectLinked(0,'tassetof',$object->id,$object->element,'OR',1,'sourcetype',0);
                 }
 
-		        if(!empty($conf->global->OF_CLOSE_OF_ON_CLOSE_ALL_TASK)
-                    && ((!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK) && !empty($object->linkedObjectsIds['tassetof'])) || !empty($object->array_options['options_fk_of']))
+		        if(getDolGlobalInt('OF_CLOSE_OF_ON_CLOSE_ALL_TASK')
+                    && ((getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK') && !empty($object->linkedObjectsIds['tassetof'])) || !empty($object->array_options['options_fk_of']))
                     && $object->progress==100) {
 
-                    if(!empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)) {
+                    if(getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK')) {
                         foreach($object->linkedObjectsIds['tassetof'] as $fk_of) $this->closeOfIfTaskDone($fk_of, $object);
                     } else {
                         $this->closeOfIfTaskDone($object->array_options['options_fk_of'], $object);
@@ -325,7 +325,7 @@ class Interfaceoftrigger
 							$of = new TAssetOF;
 							$of->load($PDOdb, $id_of);
 
-							if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
+							if(getDolGlobalInt('ASSET_DEFINED_WORKSTATION_BY_NEEDED') && getDolGlobalInt('OF_USE_APPRO_DELAY_FOR_TASK_DELAY')) {
 								foreach($of->TAssetOFLine as &$ofLine) {
 									foreach($ofLine->TWorkstation as &$ws) {
 										foreach($of->TAssetWorkstationOF as &$wsof) {
@@ -338,13 +338,13 @@ class Interfaceoftrigger
     												$wsof->save($PDOdb);
     										    }
 
-    										    if(!empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER)) {
+    										    if(getDolGlobalInt('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER')) {
 
     										        dol_include_once('/projet/class/task.class.php');
 
     										        foreach($object->lines as &$line) {
 
-    										            if($line->fk_product == $ofLine->fk_product && ($wsof->type == 'STT' || empty($conf->global->OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT)) ) {
+    										            if($line->fk_product == $ofLine->fk_product && ($wsof->type == 'STT' || !getDolGlobalInt('OF_CLOSE_TASK_LINKED_TO_PRODUCT_LINKED_TO_SUPPLIER_ORDER_NEED_STT')) ) {
 
     										                $projectTask = new Task($db);
     										                $projectTask->fetch($wsof->fk_project_task);
@@ -380,7 +380,7 @@ class Interfaceoftrigger
 
 						//	var_dump($of->getId(), $of->status, $conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS);
 							if($of->status != 'CLOSE') {
-								if(!empty($conf->global->OF_FOLLOW_SUPPLIER_ORDER_STATUS)) {
+								if(getDolGlobalInt('OF_FOLLOW_SUPPLIER_ORDER_STATUS')) {
 
 									foreach($of->TAssetWorkstationOF as &$wsof) {
 										if($wsof->fk_project_task>0 && $wsof->nb_days_before_beginning>0) {
@@ -540,8 +540,8 @@ class Interfaceoftrigger
         global $db, $conf;
 
         dol_include_once('/projet/class/task.class.php');
-
-        if(!empty($conf->of->enabled) && !empty($object->date_livraison)) {
+		$deliveryDate = property_exists($object, 'delivery_date') ? $object->delivery_date : $object->date_livraison;
+        if(!empty($conf->of->enabled) && !empty($deliveryDate)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
             dol_include_once('/of/class/ordre_fabrication_asset.class.php');
@@ -561,7 +561,7 @@ class Interfaceoftrigger
                     $of = new TAssetOF;
                     $of->load($PDOdb, $id_of);
 
-                    if(!empty($conf->global->ASSET_DEFINED_WORKSTATION_BY_NEEDED) && !empty($conf->global->OF_USE_APPRO_DELAY_FOR_TASK_DELAY)) {
+                    if(getDolGlobalInt('ASSET_DEFINED_WORKSTATION_BY_NEEDED') && getDolGlobalInt('OF_USE_APPRO_DELAY_FOR_TASK_DELAY')) {
 
                         $TOfParent = $of->getListeOfParents($PDOdb, 'object', true);
 
@@ -591,7 +591,8 @@ class Interfaceoftrigger
                                             if($line->fk_product == $ofLine->fk_product)
                                             {
                                                 $date = dol_now();
-                                                if (!empty($object->date_livraison)) $date = $object->date_livraison;
+												$dateObj =  property_exists($object, 'delivery_date') ? $object->delivery_date : $object->date_livraison;
+                                                if (!empty($dateObj)) $date = $dateObj;
 
                                                 $wsof->manageProjectTask($PDOdb, $date, true, $TExcludeTaskId);
                                                 unset($TExcludeTaskId[$wsof->fk_project_task], $TExcludeTaskIdCurrentOf[$wsof->fk_project_task]);
@@ -646,7 +647,7 @@ class Interfaceoftrigger
         $sql = "SELECT count(*) as nb
                             FROM " . MAIN_DB_PREFIX . "projet_task t";
 
-        if(empty($conf->global->ASSET_CUMULATE_PROJECT_TASK)) {
+        if(!getDolGlobalInt('ASSET_CUMULATE_PROJECT_TASK')) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet_task_extrafields tex ON (tex.fk_object=t.rowid)
                             WHERE tex.fk_of=" . $fk_of . " AND (t.progress<100 OR t.progress IS NULL)";
         }

@@ -60,7 +60,7 @@ class modof extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Ordres de fabrication: management of manufacturing orders";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '2.14.3';
+		$this->version = '2.15.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -124,8 +124,8 @@ class modof extends DolibarrModules
 		$this->depends = array();		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
-		$this->phpmin = array(5,0);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(3,0);	// Minimum version of Dolibarr required by module
+		$this->phpmin = array(7,0);					// Minimum version of PHP required by module
+		$this->need_dolibarr_version = array(15,0);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("of@of");
 
 		// Constants
@@ -173,8 +173,8 @@ class modof extends DolibarrModules
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
         $this->tabs = array(
-			'product:+tabOF2:OF:of@of:$user->rights->of->of->lire:/of/liste_of.php?fk_product=__ID__'
-			,'order:+tabOF3:OF:of@of:$user->rights->of->of->lire:/of/liste_of.php?fk_commande=__ID__'
+			'product:+tabOF2:OF:of@of:$user->hasRight("of","of","lire"):/of/liste_of.php?fk_product=__ID__'
+			,'order:+tabOF3:OF:of@of:$user->hasRight("of","of","lire"):/of/liste_of.php?fk_commande=__ID__'
 
 		);
 
@@ -276,8 +276,8 @@ class modof extends DolibarrModules
 				'url'=>'/of/liste_of.php',
 				'langs'=>'of@of',
 				'position'=>100,
-				'enabled'=>'$user->rights->of->of->lire',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-				'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+				'enabled'=>'$user->hasRight("of","of","lire")',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+				'perms'=>'$user->hasRight("of","of","lire")',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 				'target'=>'',
 				'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -295,7 +295,7 @@ class modof extends DolibarrModules
 					'url'=>'/of/liste_of.php',
 					'position'=>300,
 					'enabled'=>'',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'perms'=>'$user->hasRight("of","of","lire")',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -308,7 +308,7 @@ class modof extends DolibarrModules
                     'url'=>'/of/liste_of.php?search_status_of=DRAFT',
                     'position'=>310+$r,
                     'enabled'=>'',           // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -321,7 +321,7 @@ class modof extends DolibarrModules
                     'url'=>'/of/liste_of.php?search_status_of=NEEDOFFER',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -334,7 +334,7 @@ class modof extends DolibarrModules
                     'url'=>'/of/liste_of.php?search_status_of=ONORDER',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -348,7 +348,7 @@ class modof extends DolibarrModules
         		'url'=>'/of/liste_of.php?mode=supplier_order',
         		'position'=>310+$r,
         		'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-        		'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+        		'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
         		'target'=>'',
         		'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -362,7 +362,7 @@ class modof extends DolibarrModules
                     'url'=>'/of/liste_of.php?search_status_of=VALID',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -375,7 +375,7 @@ class modof extends DolibarrModules
                     'url'=>'/of/liste_of.php?search_status_of=OPEN',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -387,7 +387,7 @@ class modof extends DolibarrModules
                     'url'=>'/of/liste_of.php?search_status_of=CLOSE',
                     'position'=>310+$r,
                     'enabled'=>'',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -398,8 +398,8 @@ class modof extends DolibarrModules
                     'leftmenu'=>'',
                     'url'=>'/of/liste_of.php?mode=non_compliant',
                     'position'=>310+$r,
-                    'enabled'=>'$conf->global->OF_MANAGE_NON_COMPLIANT',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                    'perms'=>'$user->rights->of->of->lire',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                    'enabled'=>'getDolGlobalInt("OF_MANAGE_NON_COMPLIANT")',            // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+                    'perms'=>'$user->hasRight("of","of","lire")',          // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                     'target'=>'',
                     'user'=>2);             // 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -412,7 +412,7 @@ class modof extends DolibarrModules
 					'url'=>'/of/fiche_of.php?action=new',
 					'position'=>310+$r,
 					'enabled'=>'',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-					'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+					'perms'=>'$user->hasRight("of","of","lire")',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 					'target'=>'',
 					'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -425,7 +425,7 @@ class modof extends DolibarrModules
                                   'url'=>'/of/shipable_prev.php',
                                   'position'=>310+$r,
                                   'enabled'=>'',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-                                  'perms'=>'$user->rights->of->of->lire',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+                                  'perms'=>'$user->hasRight("of","of","lire")',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
                                   'target'=>'',
                                   'user'=>2);				// 0=Menu for internal users, 1=external users, 2=both
         $r++;
@@ -496,7 +496,7 @@ class modof extends DolibarrModules
 
 		$sql = array();
 
-		define('INC_FROM_DOLIBARR',true);
+		if(!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR',true);
 
 		dol_include_once('/of/config.php');
 		dol_include_once('/of/script/create-maj-base.php');

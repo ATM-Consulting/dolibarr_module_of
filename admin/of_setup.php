@@ -42,7 +42,7 @@ if (! $user->admin) {
 
 // Parameters
 $action = GETPOST('action', 'none');
-
+$newToken = function_exists('newToken')?newToken():$_SESSION['newtoken'];
 /**
  * @param $visibility
  * @return boolean 0=error; 1=success
@@ -165,10 +165,7 @@ setup_print_title('OptionForNumberingTemplate');
 dol_include_once('/of/class/ordre_fabrication_asset.class.php');
 $assetOf=new TAssetOF();
 
-$actualRefConf = 'OF{00000}';
-if(!empty($conf->global->OF_MASK)){
-	$actualRefConf = $conf->global->OF_MASK;
-}
+$actualRefConf = getDolGlobalString('OF_MASK', 'OF{00000}');
 $tooltip=$langs->trans("GenericMaskCodes");
 
 $newtNumberOf = $langs->trans('ActualOFREfConf').' '. $actualRefConf . ' ' . $langs->trans('NextOfRef') . ' : '.$assetOf->getNumero($PDOdb,false).' ';
@@ -259,20 +256,20 @@ setup_print_on_off('ASSET_CONCAT_PDF', $langs->trans("AssetConcatPDF"), '', 'ASS
 // ************************
 setup_print_title('ParamLinkedToOFTagsPrints');
 
-$input = $formCore->number("", "OF_NB_TICKET_PER_PAGE",!empty($conf->global->OF_NB_TICKET_PER_PAGE)?$conf->global->OF_NB_TICKET_PER_PAGE:0,10,1,-1);
+$input = $formCore->number("", "OF_NB_TICKET_PER_PAGE",getDolGlobalInt('OF_NB_TICKET_PER_PAGE', 0),10,1,-1);
 setup_print_input_form_part('OF_NB_TICKET_PER_PAGE', $langs->trans("OfNbTicketrPerPage"), '', array(), $input, 'OF_NB_TICKET_PER_PAGE_HELP');
 
 $tooltip=$langs->trans("DEFAULT_ETIQUETTES_HELP");
 $liste = array(1 => 'etiquette.html', 2 => 'etiquette_custom.html');
-$input = $form::selectarray('DEFAULT_ETIQUETTES', $liste, !empty($conf->global->DEFAULT_ETIQUETTES)?$conf->global->DEFAULT_ETIQUETTES:0);
+$input = $form::selectarray('DEFAULT_ETIQUETTES', $liste, getDolGlobalInt('DEFAULT_ETIQUETTES', 0));
 setup_print_input_form_part('DEFAULT_ETIQUETTES', $langs->trans('CHOOSE_CUSTOM_LABEL'), '', array(), $input, $tooltip);
 
-$input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (empty($conf->global->ABRICOT_WKHTMLTOPDF_CMD) ? '' : $conf->global->ABRICOT_WKHTMLTOPDF_CMD), 80,255,' placeholder="wkhtmltopdf" ');
+$input = $formCore->texte('', 'ABRICOT_WKHTMLTOPDF_CMD', (getDolGlobalString('ABRICOT_WKHTMLTOPDF_CMD','')), 80,255,' placeholder="wkhtmltopdf" ');
 setup_print_input_form_part('ABRICOT_WKHTMLTOPDF_CMD', false, 'ABRICOT_WKHTMLTOPDF_CMD_DESC', array(), $input);
 
 
-print '<tbody class="default-etiquette-sub-conf" data-target="2" style="display: '.(!empty($conf->global->DEFAULT_ETIQUETTES) && ($conf->global->DEFAULT_ETIQUETTES != 2) ?'none':'').'" >';
-if(!empty($conf->global->DEFAULT_ETIQUETTES) && $conf->global->DEFAULT_ETIQUETTES == 2){
+print '<tbody class="default-etiquette-sub-conf" data-target="2" style="display: '.(getDolGlobalInt('DEFAULT_ETIQUETTES') && (getDolGlobalInt('DEFAULT_ETIQUETTES') != 2) ?'none':'').'" >';
+if(getDolGlobalInt('DEFAULT_ETIQUETTES') == 2){
 
 	$attrNumb = array('maxlength' => '10', 'type' => 'number', 'step' => '1', 'min' => 0);
 	$attrPercent = array('maxlength' => '10', 'type' => 'number', 'step' => '0.01', 'min' => 0, 'max' => 100);
@@ -321,7 +318,7 @@ setup_print_on_off('OF_RANK_PRIOR_BY_LAUNCHING_DATE');
 setup_print_on_off('OF_MANAGE_NON_COMPLIANT');
 
 if(!empty($conf->workstationatm->enabled)){
-	$input = $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), !empty($conf->global->OF_WORKSTATION_NON_COMPLIANT) ? explode(',',$conf->global->OF_WORKSTATION_NON_COMPLIANT) : '',0, 0, '', 0, 300);
+	$input = $form->multiselectarray('OF_WORKSTATION_NON_COMPLIANT', TWorkstation::getWorstations($PDOdb), getDolGlobalString('OF_WORKSTATION_NON_COMPLIANT') ? explode(',',getDolGlobalString('OF_WORKSTATION_NON_COMPLIANT') ) : '',0, 0, '', 0, 300);
 	setup_print_input_form_part('OF_WORKSTATION_NON_COMPLIANT', false, '', array(), $input);
 }
 setup_print_on_off('OF_REGROUP_LINE');
@@ -343,9 +340,9 @@ setup_print_title('ParamLinkedToOFOthers');
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="right" width="300">';
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="token" value="'.$newToken.'">';
 	print '<input type="hidden" name="action" value="set_OF_COEF_MINI_TU_1">';
-	print $formCore->texte('', 'OF_COEF_MINI_TU_1', !empty($conf->global->OF_COEF_MINI_TU_1)?$conf->global->OF_COEF_MINI_TU_1:'', 10, 10);
+	print $formCore->texte('', 'OF_COEF_MINI_TU_1', getDolGlobalString('OF_COEF_MINI_TU_1',''), 10, 10);
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 	print '</form>';
 	print '</td></tr>';
@@ -480,9 +477,9 @@ print '<td>'.$langs->trans("set_OF_COEF_WS").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="300" style="white-space:nowrap;">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_COEF_WS">';
-print $formCore->texte('', 'OF_COEF_WS', (empty($conf->global->OF_COEF_WS) ? '' : $conf->global->OF_COEF_WS), 5,255);
+print $formCore->texte('', 'OF_COEF_WS', (getDolGlobalString('OF_COEF_WS','')), 5,255);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -624,10 +621,10 @@ print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIE
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('commande_fournisseurdet');
-print $form::selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, !empty($conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD)?$conf->global->OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD:'',1);
+print $form::selectarray('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD', $liste, getDolGlobalString('OF_DELIVERABILITY_REPORT_SUPPLIERORDER_DATE_EXTRAFIELD',''),1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -638,10 +635,10 @@ print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD").'</
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('commandedet');
-print $form::selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, !empty($conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD)?$conf->global->OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD:'',1);
+print $form::selectarray('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD', $liste, getDolGlobalString('OF_DELIVERABILITY_REPORT_ORDER_DATE_EXTRAFIELD',''),1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -652,10 +649,10 @@ print '<td>'.$langs->trans("OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD").'<
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="400">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.$newToken.'">';
 print '<input type="hidden" name="action" value="set_OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD">';
 $liste = _getDateExtrafields('propaldet');
-print $form::selectarray('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD', $liste, !empty($conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD)?$conf->global->OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD:'',1);
+print $form::selectarray('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD', $liste, getDolGlobalString('OF_DELIVERABILITY_REPORT_PROPAL_DATE_EXTRAFIELD',''),1);
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
@@ -666,9 +663,15 @@ print "</table>";
 
 	$form=new TFormCore;
 
-	showParameters($form);
+	showParameters($form, $newToken);
 
-function showParameters(&$form) {
+/**
+ * @param $form
+ * @param $newToken
+ * @return void
+ * @throws Exception
+ */
+function showParameters(&$form, $newToken = "") {
 	global $db,$conf,$langs;
 	dol_include_once('/product/class/html.formproduct.class.php');
 
@@ -676,6 +679,7 @@ function showParameters(&$form) {
 
 	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-of" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
+		<input type="hidden" name="token" value="<?php echo $newToken; ?>" />
 		<table width="100%" class="noborder">
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('ParametersWarehouse') ?></td>
@@ -689,12 +693,12 @@ function showParameters(&$form) {
 				<td><?php echo $langs->trans('UseDefinedWarehouse') ?></td><td><?php echo ajax_constantonoff('ASSET_USE_DEFAULT_WAREHOUSE', array('showhide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'), 'hide' => array('#WAREHOUSE_TO_MAKE', '#WAREHOUSE_NEEDED'))); ?></td>
 			</tr>
 
-			<tr class="pair" id="WAREHOUSE_TO_MAKE" class="pair" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
-				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
+			<tr class="pair" id="WAREHOUSE_TO_MAKE" class="pair" <?php if (!getDolGlobalInt('ASSET_USE_DEFAULT_WAREHOUSE')) echo "style='display:none;'" ?>>
+				<td><?php echo $langs->trans('DefaultWarehouseIdToMake') ?></td><td><?php echo $formProduct->selectWarehouses(getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE'),'TOF[ASSET_DEFAULT_WAREHOUSE_ID_TO_MAKE]'); ?></td>
 			</tr>
 
-			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (empty($conf->global->ASSET_USE_DEFAULT_WAREHOUSE)) echo "style='display:none;'" ?>>
-				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses($conf->global->ASSET_DEFAULT_WAREHOUSE_ID_NEEDED,'TOF[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
+			<tr class="impair" id="WAREHOUSE_NEEDED" <?php if (!getDolGlobalInt('ASSET_USE_DEFAULT_WAREHOUSE')) echo "style='display:none;'" ?>>
+				<td><?php echo $langs->trans('DefaultWarehouseIdNeeded') ?></td><td><?php echo $formProduct->selectWarehouses(getDolGlobalInt('ASSET_DEFAULT_WAREHOUSE_ID_NEEDED'),'TOF[ASSET_DEFAULT_WAREHOUSE_ID_NEEDED]'); ?></td>
 			</tr>
 
 		</table>

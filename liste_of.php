@@ -12,14 +12,14 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/order.lib.php';
 require_once(__DIR__.'/class/ordre_fabrication_asset.class.php');
 require_once(__DIR__.'/class/oftools.class.php');
 
-if(!$user->rights->of->of->lire) accessforbidden();
+if(!$user->hasRight('of', 'of', 'lire')) accessforbidden();
 
 $langs->load('of@of');
 $langs->load('workstationatm@workstationatm');
 $langs->load('stocks');
-
+global $conf;
 $PDOdb = new TPDOdb;
-if ($conf->workstationatm->enabled && !class_exists('TWorkstation')) dol_include_once('workstationatm/class/workstation.class.php');
+if (isset($conf->workstationatm->enabled) &&$conf->workstationatm->enabled && !class_exists('TWorkstation')) dol_include_once('/workstationatm/class/workstation.class.php');
 $TCacheWorkstation = TWorkstation::getWorstations($PDOdb);
 
 $action     = GETPOST('action', 'alpha');
@@ -183,31 +183,27 @@ if ($mode == 'supplier_order') {
 		,temps_estime_fabrication
 		,total_estimated_cost, total_cost
 		, '' AS printTicket ";
-    if (! empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql .= ', ofe.rank';
+    if (getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE')) $sql .= ', ofe.rank';
 } else {
     $sql .= " ofe.rowid,ofel.fk_commandedet, ofe.numero, ofe.fk_soc, s.rowid as socid, s.nom as client, SUM(ofel.qty) as nb_product_to_make
 		, GROUP_CONCAT(DISTINCT ofel.fk_product SEPARATOR ',') as fk_product, p.label as product, ofe.ordre
-        " . (empty($conf->global->OF_SHOW_WS_IN_LIST) ? '' : ", (SELECT GROUP_CONCAT(DISTINCT fk_asset_workstation SEPARATOR ',') FROM " . MAIN_DB_PREFIX . "asset_workstation_of WHERE fk_assetOf = ofe.rowid) as fk_asset_workstation") . "
+        " . (!getDolGlobalInt('OF_SHOW_WS_IN_LIST') ? '' : ", (SELECT GROUP_CONCAT(DISTINCT fk_asset_workstation SEPARATOR ',') FROM " . MAIN_DB_PREFIX . "asset_workstation_of WHERE fk_assetOf = ofe.rowid) as fk_asset_workstation") . "
         , ofe.date_lancement
         , ofe.date_besoin
         , ofe.date_end";
 
-    if (! empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+    if (getDolGlobalInt('OF_MANAGE_ORDER_LINK_BY_LINE')) {
         $sql .= ", GROUP_CONCAT(DISTINCT cd.fk_commande SEPARATOR ',') as fk_commande";
     } else $sql .= ", ofe.fk_commande, co.ref";
 
-    if (! empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+    if (getDolGlobalInt('OF_SHOW_ORDER_LINE_PRICE')) {
 
         $sql .= " ,cd.total_ht as 'order_line_price' ";
     }
 
-    $sql .= ",ofe.fk_project
-		, ofe.status, ofe.fk_user
-		,temps_estime_fabrication
-		,total_estimated_cost, total_cost
-		, '' AS printTicket  ";
+    $sql .= ",ofe.fk_project, ofe.status, ofe.fk_user,temps_estime_fabrication,total_estimated_cost, total_cost, '' AS printTicket  ";
 
-    if (! empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) $sql .= ', ofe.rank';
+    if (getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE')) $sql .= ', ofe.rank';
 }
 
 // Add fields from hooks
@@ -232,7 +228,7 @@ if ($mode == 'supplier_order') {
 		  LEFT JOIN " . MAIN_DB_PREFIX . "product p ON (p.rowid = ofel.fk_product)
 		  LEFT JOIN " . MAIN_DB_PREFIX . "societe s ON (s.rowid = ofe.fk_soc)";
 
-    if (! empty($conf->global->OF_SHOW_ORDER_LINE_PRICE) || ! empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+    if (getDolGlobalInt('OF_SHOW_ORDER_LINE_PRICE') || getDolGlobalInt('OF_MANAGE_ORDER_LINK_BY_LINE')) {
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet cd ON (cd.rowid=ofel.fk_commandedet) ";
     }
     if ($mode == 'non_compliant') {
@@ -253,13 +249,13 @@ $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    //
 $sql .= $hookmanager->resPrint;
 
 if ($mode == 'non_compliant') {
-    if (! empty($conf->global->OF_WORKSTATION_NON_COMPLIANT)) $sql .= " AND taskext.fk_workstation IN (" . $conf->global->OF_WORKSTATION_NON_COMPLIANT . ")";
+    if (getDolGlobalInt('OF_WORKSTATION_NON_COMPLIANT')) $sql .= " AND taskext.fk_workstation IN (" . getDolGlobalInt('OF_WORKSTATION_NON_COMPLIANT') . ")";
     else setEventMessage($langs->trans('WarningMustSetConfOF_WORKSTATION_NON_COMPLIANT'), 'warnings');
 }
 if ($fk_soc > 0) $sql .= " AND ofe.fk_soc=" . $fk_soc;
 if ($fk_product > 0) $sql .= " AND ofel.fk_product=" . $fk_product;
 if ($fk_commande > 0) {
-    if (! empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) {
+    if (getDolGlobalInt('OF_MANAGE_ORDER_LINK_BY_LINE')) {
         $TLineIds = array();
         if (! empty($commande->lines)) {
 
@@ -290,9 +286,11 @@ if ($search_status_of != '' && $search_status_of >= 0) {
     }
     else $sql .= natural_search('ofe.status', $search_status_of);
 }
-if ($search_workstation != '' && $search_workstation >= 0) {
+// Déplacer dans le HAVING
+/*if ($search_workstation != '' && $search_workstation >= 0) {
     $sql .= natural_search('wof.fk_asset_workstation', $search_workstation);
-}
+}*/
+
 if ($search_date_lancement_start) {
     $sql .= " AND ofe.date_lancement >= '".$db->idate($search_date_lancement_start)."'";
 }
@@ -319,11 +317,18 @@ if ($mode == 'supplier_order') {
     $sql .= " GROUP BY ofe.rowid ";
 }
 
+//  fk_asset_workstation est un alias de fonction de regroupement.  	On deplace cette recherche dans le having  ...
+// on ne peux pas appeler un alias de regroupement dans la clause where
+if ($search_workstation != '' && $search_workstation >= 0) {
+	$sql .= " HAVING  ". natural_search('fk_asset_workstation', $search_workstation,0,1);
+}
+
+
 if (! in_array($sortfield, array('refProd', 'nomProd'))) $sql .= $db->order($sortfield, $sortorder);
 
 $nbtotalofrecords = '';
 
-if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
+if (!getDolGlobalInt('MAIN_DISABLE_FULL_SCANLIST')) {
     $resql = $db->query($sql);
 
     if ($resql) {
@@ -537,7 +542,7 @@ if ($resql)
         print '</td>';
     }
     // Prix de la ligne
-    if(!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)){
+    if(getDolGlobalInt('OF_SHOW_ORDER_LINE_PRICE')){
         print '<td class="liste_titre">';
         print '</td>';
     }
@@ -560,22 +565,22 @@ if ($resql)
         print '</td>';
     }
     // Coût prévu
-    if (!empty($user->rights->of->of->price)) {
+    if ($user->hasRight('of', 'of', 'price')) {
         print '<td class="liste_titre">';
         print '</td>';
     }
     // Coût réel
-    if (!empty($user->rights->of->of->price)) {
+    if ($user->hasRight('of', 'of', 'price')) {
         print '<td class="liste_titre">';
         print '</td>';
     }
     // Impression étiquette
-    if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1){
+    if (!getDolGlobalInt('OF_NB_TICKET_PER_PAGE') || getDolGlobalInt('OF_NB_TICKET_PER_PAGE') != -1){
         print '<td class="liste_titre">';
         print '</td>';
     }
     // Rang
-    if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
+    if (getDolGlobalString('OF_RANK_PRIOR_BY_LAUNCHING_DATE')) {
         print '<td class="liste_titre">';
         print '</td>';
     }
@@ -603,14 +608,14 @@ if ($resql)
     if (! empty($arrayfields['ofe.date_besoin']['checked']))  print_liste_field_titre('DateNeeded', $_SERVER["PHP_SELF"], "ofe.date_besoin", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.date_end']['checked']))  print_liste_field_titre('DateEnd', $_SERVER["PHP_SELF"], "ofe.date_end", "", $param, "", $sortfield, $sortorder);
     if (empty($fk_commande))  print_liste_field_titre('CustomerOrder', $_SERVER["PHP_SELF"], "co.ref", "", $param, "", $sortfield, $sortorder);
-    if (!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE))  print_liste_field_titre('OrderLinePrice', $_SERVER["PHP_SELF"], "order_line_price", "", $param, "", $sortfield, $sortorder);
+    if (getDolGlobalInt('OF_SHOW_ORDER_LINE_PRICE'))  print_liste_field_titre('OrderLinePrice', $_SERVER["PHP_SELF"], "order_line_price", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.fk_project']['checked']))  print_liste_field_titre('Project', $_SERVER["PHP_SELF"], "ofe.fk_project", "", $param, "", $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.status']['checked']))  print_liste_field_titre('Status', $_SERVER["PHP_SELF"], "ofe.status", "", $param, 'align="center"', $sortfield, $sortorder);
     if (! empty($arrayfields['ofe.temps_estime_fabrication']['checked']))  print_liste_field_titre('EstimatedMakeTimeInHours', $_SERVER["PHP_SELF"], "ofe.temps_estime_fabrication", "", $param, "", $sortfield, $sortorder);
-    if (! empty($user->rights->of->of->price))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
-    if (! empty($user->rights->of->of->price))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
-    if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1) print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
-    if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
+    if ($user->hasRight('of', 'of', 'price'))  print_liste_field_titre('EstimatedCost', $_SERVER["PHP_SELF"], "ofe.total_estimated_cost", "", $param, "", $sortfield, $sortorder);
+    if ($user->hasRight('of', 'of', 'price'))  print_liste_field_titre('RealCost', $_SERVER["PHP_SELF"], "ofe.total_cost", "", $param, "", $sortfield, $sortorder);
+    if (!getDolGlobalInt('OF_NB_TICKET_PER_PAGE') || getDolGlobalInt('OF_NB_TICKET_PER_PAGE') != -1) print_liste_field_titre('ofPrintTicket', $_SERVER["PHP_SELF"], "printTicket", "", $param, "", $sortfield, $sortorder);
+    if (getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE'))  print_liste_field_titre('Rank', $_SERVER["PHP_SELF"], "ofe.rank", "", $param, "", $sortfield, $sortorder);
 
     // Hook fields
     $parameters=array('arrayfields'=>$arrayfields, 'param'=>$param, 'sortfield'=>$sortfield, 'sortorder'=>$sortorder);
@@ -705,7 +710,7 @@ if ($resql)
             if (!$i) $totalarray['nbfield']++;
         }
         // Prix de la ligne
-        if (!empty($conf->global->OF_SHOW_ORDER_LINE_PRICE)) {
+        if (getDolGlobalInt('OF_SHOW_ORDER_LINE_PRICE')) {
             print '<td class="tdoverflowmax200 right">';
             print round($obj->order_line_price, 2);
             print "</td>\n";
@@ -737,7 +742,7 @@ if ($resql)
             $totalarray['val']['ofe.temps_estime_fabrication'] += round($obj->temps_estime_fabrication, 2);
         }
         // Coût prévu
-        if (!empty($user->rights->of->of->price)) {
+        if ($user->hasRight('of', 'of', 'price')) {
             print '<td class="tdoverflowmax200 right">';
             print price(round($obj->total_estimated_cost, 2));
             print '</td>';
@@ -746,7 +751,7 @@ if ($resql)
             $totalarray['val']['ofe.total_estimated_cost'] += round($obj->total_estimated_cost, 2);
         }
         // Coût réel
-        if (!empty($user->rights->of->of->price)) {
+        if ($user->hasRight('of', 'of', 'price')) {
             print '<td class="tdoverflowmax200 right">';
             print price(round($obj->total_cost, 2));
             print '</td>';
@@ -755,14 +760,14 @@ if ($resql)
             $totalarray['val']['ofe.total_cost'] += round($obj->total_cost, 2);
         }
         // Impression étiquette
-        if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1){
+        if (!getDolGlobalInt('OF_NB_TICKET_PER_PAGE') || getDolGlobalInt('OF_NB_TICKET_PER_PAGE') != -1){
             print '<td class="tdoverflowmax200">';
-            print '<input style=width:40px;"" type="number" value="'.(!empty($conf->global->OF_NB_TICKET_PER_PAGE) ? (int) $conf->global->OF_NB_TICKET_PER_PAGE : 0).'" name="printTicket['.$obj->rowid.']" min="0" />';
+            print '<input style=width:40px;"" type="number" value="'.getDolGlobalInt('OF_NB_TICKET_PER_PAGE',0).'" name="printTicket['.$obj->rowid.']" min="0" />';
             print "</td>\n";
             if(! $i) $totalarray['nbfield']++;
         }
         // Rang
-        if (!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
+        if (getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE')) {
             print '<td class="tdoverflowmax200">';
             print OFTools::get_number_input("of_rank[$obj->rowid]", $obj->rank);
             print "</td>\n";
@@ -807,10 +812,10 @@ if ($resql)
     print "</table>";
     print "</div>";
 
-    if (empty($conf->global->OF_NB_TICKET_PER_PAGE) || $conf->global->OF_NB_TICKET_PER_PAGE != -1) {
+    if (!getDolGlobalInt('OF_NB_TICKET_PER_PAGE') || getDolGlobalInt('OF_NB_TICKET_PER_PAGE') != -1) {
         echo '<p align="right"><input class="button" type="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'printTicket\');  $(this).closest(\'form\').submit(); " name="print" value="'.$langs->trans('ofPrintTicket').'" /></p>';
     }
-    if(!empty($conf->global->OF_RANK_PRIOR_BY_LAUNCHING_DATE)) {
+    if(getDolGlobalInt('OF_RANK_PRIOR_BY_LAUNCHING_DATE')) {
         echo '<p align="right"><input id="bt_updateRank" class="button" onclick="$(this).closest(\'form\').find(\'input[name=action]\').val(\'setRank\');" type="submit" value="'.$langs->trans('UpdateRank').'"/></p>';
     }
 
@@ -924,7 +929,7 @@ if ($resql)
                     print '<td>';
                     print $prod->nomProd;
 
-                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && getDolGlobalInt('USE_ASSET_IN_ORDER')) {
                         $line = new OrderLine($db);
                         $line->fetch($prod->fk_commandedet);
                         $line->fetch_optionals($prod->fk_commandedet);
@@ -948,7 +953,7 @@ if ($resql)
 
                     $sqlOf = "SELECT SUM(ofl.qty) as qty FROM ".MAIN_DB_PREFIX."assetOf_line ofl
 						INNER JOIN ".MAIN_DB_PREFIX."assetOf of ON (of.rowid=ofl.fk_assetOf) WHERE ";
-                    if(empty($conf->global->OF_MANAGE_ORDER_LINK_BY_LINE)) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
+                    if(!getDolGlobalInt('OF_MANAGE_ORDER_LINK_BY_LINE')) $sqlOf .=" of.fk_commande=".$fk_commande." AND";
                     $sqlOf .=" ofl.type='TO_MAKE' AND ofl.fk_commandedet=".$prod->fk_commandedet;
                     $resOf = $db->query($sqlOf);
 

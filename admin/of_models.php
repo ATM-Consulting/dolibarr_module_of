@@ -30,7 +30,7 @@ require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/of.lib.php';
 dol_include_once('abricot/includes/lib/admin.lib.php');
 
-
+$newToken = function_exists('newToken') ? newToken() : $_SESSION['newtoken'];
 // Translations
 $langs->load('admin');
 $langs->load("of@of");
@@ -91,7 +91,7 @@ elseif ($action == 'del')
 	$ret = delDocumentModel($value, $type);
 	if ($ret > 0)
 	{
-		if ($conf->global->OF_ADDON_PDF == "$value") dolibarr_del_const($db, 'OF_ADDON_PDF', $conf->entity);
+		if (getDolGlobalString('OF_ADDON_PDF') == "$value") dolibarr_del_const($db, 'OF_ADDON_PDF', $conf->entity);
 	}
 }
 // Set default model
@@ -175,7 +175,7 @@ if(!function_exists('setup_print_title')){
 
 // MODELS ODT AVEC TBS
 $Tform=new TFormCore;
-showParameters($Tform);
+showParameters($Tform, $newToken);
 
 
 // Setup page goes here
@@ -255,8 +255,8 @@ foreach ($dirmodels as $reldir)
 							$module = new $classname($db);
 
 							$modulequalified=1;
-							if ($module->version == 'development'  && $conf->global->MAIN_FEATURES_LEVEL < 2) $modulequalified=0;
-							if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1) $modulequalified=0;
+							if ($module->version == 'development'  && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) $modulequalified=0;
+							if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) $modulequalified=0;
 
 							if ($modulequalified)
 							{
@@ -285,7 +285,7 @@ foreach ($dirmodels as $reldir)
 
 								// Defaut
 								print '<td class="center">';
-								if ($conf->global->OF_ADDON_PDF == $name)
+								if (getDolGlobalString('OF_ADDON_PDF') == $name)
 								{
 									print img_picto($langs->trans("Default"), 'on');
 								}
@@ -336,11 +336,12 @@ foreach ($dirmodels as $reldir)
 print '</table>';
 
 
-
-
-
-
-function showParameters(&$form) {
+/**
+ * @param $form
+ * @param $newToken
+ * @return void
+ */
+function showParameters(&$form, $newToken = "") {
 	global $db,$conf,$langs;
 	dol_include_once('/product/class/html.formproduct.class.php');
 
@@ -348,7 +349,8 @@ function showParameters(&$form) {
 
 	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-models" method="POST" enctype="multipart/form-data">
 		<input type="hidden" name="action" value="save" />
-		<table width="100%" class="noborder">
+		<input type="hidden" name="token" value="<?php echo $newToken; ?>" />
+			<table width="100%" class="noborder">
 			<tr class="liste_titre">
 				<td colspan="2"><?php echo $langs->trans('TemplateOF') ?></td>
 			</tr>
@@ -356,7 +358,7 @@ function showParameters(&$form) {
 				<td><?php echo $langs->trans('Template') ?></td><td>
 					<input type="file" name="template" />
 					<?php
-						if (!empty($conf->global->TEMPLATE_OF)) $template = $conf->global->TEMPLATE_OF;
+						if (!empty(getDolGlobalString('TEMPLATE_OF'))) $template = $conf->global->TEMPLATE_OF;
 						else $template = "templateOF.odt";
 
 						$locationTemplate = DOL_DATA_ROOT.'/of/template/'.$template;

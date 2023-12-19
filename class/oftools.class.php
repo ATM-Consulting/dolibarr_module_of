@@ -50,14 +50,14 @@ class OFTools
                         $com = new Commande($db); //TODO on est pas censé toujours être sur la même commande ? AA
                         $com->fetch($assetOf->fk_commande);
                         $assetOf->fk_project = $com->fk_project;
-                        if(!empty($com->date_livraison)) $assetOf->date_besoin = $com->date_livraison;
+						$assetOf->date_besoin = property_exists($com, 'delivery_date') ? $com->delivery_date : $com->date_livraison;
                     }
 
                     $qty = $TQuantites[$fk_commandedet];
 
                     $note_private = '';
 
-                    if(! empty($conf->global->OF_HANDLE_ORDER_LINE_DESC))
+                    if(getDolGlobalInt('OF_HANDLE_ORDER_LINE_DESC'))
                     {
                         $line = new OrderLine($db);
                         $line->fetch($fk_commandedet);
@@ -74,12 +74,12 @@ class OFTools
                     $idLine = $assetOf->addLine($PDOdb, $fk_product, 'TO_MAKE', $qty, 0, '', 0, $fk_commandedet, $note_private);
                     $assetOf->save($PDOdb);
 
-                    if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && !$oneOF && $assetOf->fk_commande > 0) {
+                    if(getDolGlobalInt('OF_KEEP_ORDER_DOCUMENTS') && !$oneOF && $assetOf->fk_commande > 0) {
                         $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
                         $assetOf->copyAllFiles($order_dir);
                     }
 
-                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && !empty($conf->global->USE_ASSET_IN_ORDER)) {
+                    if(!empty($conf->{ ATM_ASSET_NAME }->enabled) && getDolGlobalInt('USE_ASSET_IN_ORDER')) {
 
                         $TAsset = GETPOST('TAsset', 'none');
                         if(!empty($TAsset[$fk_commandedet])) {
@@ -95,7 +95,7 @@ class OFTools
 
                 }
             }
-            if(!empty($conf->global->OF_KEEP_ORDER_DOCUMENTS) && $oneOF && $assetOf->fk_commande > 0) {
+            if(getDolGlobalInt('OF_KEEP_ORDER_DOCUMENTS') && $oneOF && $assetOf->fk_commande > 0) {
                 $order_dir = $conf->commande->dir_output . "/" . dol_sanitizeFileName($com->ref);
                 $assetOf->copyAllFiles($order_dir);
             }
@@ -290,7 +290,7 @@ class OFTools
         @mkdir($dir, 0777, true);
 
         if(defined('TEMPLATE_OF_ETIQUETTE')) $template = TEMPLATE_OF_ETIQUETTE;
-        else if($conf->global->DEFAULT_ETIQUETTES == 2){
+        else if(getDolGlobalInt('DEFAULT_ETIQUETTES') == 2){
             $template = "etiquette_custom.html";
         }else{
             $template = "etiquette.html";
@@ -306,14 +306,14 @@ class OFTools
             )
             ,array(
                 'date'=>date("d/m/Y")
-            ,'margin_top' =>  intval($conf->global->DEFINE_MARGIN_TOP)
-            , 'margin_left_impair' => intval($conf->global->DEFINE_MARGIN_LEFT)
-            , 'width' => intval($conf->global->DEFINE_WIDTH_DIV)
-            , 'height' => intval($conf->global->DEFINE_HEIGHT_DIV)
-            , 'margin_right_pair' =>intval($conf->global->DEFINE_MARGIN_RIGHT)
-            , 'margin_top_cell' =>intval($conf->global->DEFINE_MARGIN_TOP_CELL)
+            ,'margin_top' =>  getDolGlobalInt('DEFINE_MARGIN_TOP')
+            , 'margin_left_impair' => getDolGlobalInt('DEFINE_MARGIN_LEFT')
+            , 'width' => getDolGlobalInt('DEFINE_WIDTH_DIV')
+            , 'height' => getDolGlobalInt('DEFINE_HEIGHT_DIV')
+            , 'margin_right_pair' => getDolGlobalInt('DEFINE_MARGIN_RIGHT')
+            , 'margin_top_cell' => getDolGlobalInt('DEFINE_MARGIN_TOP_CELL')
             , 'langs' => $langs
-            , 'display_note' => empty($conf->global->OF_HANDLE_ORDER_LINE_DESC) ? 0 : 1
+            , 'display_note' => getDolGlobalInt('OF_HANDLE_ORDER_LINE_DESC')
             )
             ,array()
             ,array(
@@ -375,7 +375,7 @@ class OFTools
                             ,'refProd' => $product->ref
                             ,'qty_to_print' => $qty
                             ,'qty_to_make' => $assetOfLine->qty
-                            ,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, $conf->global->DEFAULT_ETIQUETTES == 2?"\n":"</br>")
+                            ,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, getDolGlobalInt('DEFAULT_ETIQUETTES') == 2?"\n":"</br>")
                             ,'pos' => ceil($pos/8)
                             ,'note_private' => $assetOfLine->note_private
                             );
@@ -410,11 +410,14 @@ class OFTools
     static public function _setAllRank($PDOdb, $TNewRank, $TOldRank) {
         $TToUpdate= array();
 
-        //On récupère uniquement les ofs qui ont été modifiés
-        foreach($TNewRank as $key => $val){
-            if($val != $TOldRank[$key]) $TToUpdate[$key] = $val;
-        }
-        if(!empty($TToUpdate)) {
+		if (is_array($TNewRank) && !empty($TNewRank)){
+			//On récupère uniquement les ofs qui ont été modifiés
+			foreach($TNewRank as $key => $val){
+				if($val != $TOldRank[$key]) $TToUpdate[$key] = $val;
+			}
+		}
+
+        if(is_array($TToUpdate) &&  !empty($TToUpdate)) {
             asort($TToUpdate); //On réordonne par value (pour que les valeurs les plus basses soient traités en première)
             foreach($TToUpdate as $fk_of => $new_rank) {
                 $assetOf = new TAssetOF;
