@@ -1,7 +1,7 @@
 <?php
 /*
  * Script créant et vérifiant que les champs requis s'ajoutent bien
- * 
+ *
  */
     if(!defined('INC_FROM_DOLIBARR')) {
         define('INC_FROM_CRON_SCRIPT', true);
@@ -11,11 +11,14 @@
     }
     else{
         $ATMdb=new TPDOdb;
-        
+
     }
-	
+
 	global $db;
-    require_once __DIR__.'/../../workstationatm/class/workstation.class.php';
+
+	if (isset($conf->workstation->enabled) && $conf->workstation->enabled ){
+		dol_include_once('/workstationatm/class/workstation.class.php');
+	}
     require_once __DIR__.'/../class/ordre_fabrication_asset.class.php';
 
     $o=new TAssetOF;
@@ -31,17 +34,17 @@
 	else {
 		exit($langs->trans("moduleWorkstationNeeded").' : <a href="https://github.com/ATM-Consulting/dolibarr_module_workstation" target="_blank">'.$langs->trans('DownloadModule').'</a>');
 	}
-	
+
 	$o=new TAssetWorkstationOF;
 	$o->init_db_by_vars($ATMdb);
-	
+
 	$o=new TAssetWorkstationProduct;
 	$o->init_db_by_vars($ATMdb);
-	
+
 	$o=new TAssetWorkstationTask;
 	$o->init_db_by_vars($ATMdb);
-	
+
 	dol_include_once('/of/class/of_amount.class.php');
-	
+
 	$o=new AssetOFAmounts($db);
 	$o->init_db_by_vars();

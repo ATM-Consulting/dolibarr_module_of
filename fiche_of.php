@@ -551,7 +551,7 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 		else{
 			$unitLabel = $langs->transnoentities('unit_s_');
 		}
-
+		$type = "";
 		$TAsset = $v->getAssetLinked($PDOdb);
 		if($v->type == "TO_MAKE") {
 			$TToMake[$k] = array(
@@ -570,9 +570,18 @@ function generateODTOF(&$PDOdb, &$assetOf, $direct= false) {
 			mergeObjectAttr($prod, $TToMake[$k]);
 		}
 		else if($v->type == "NEEDED") {
+			if (!empty($conf->nomenclature->enabled) ){
+				if (!empty($TTypesProductsNomenclature)){
+				$type = $TTypesProductsNomenclature[$v->fk_product];
+				}else{
+					$type = null;
+				}
+			} else {
+				$type = $v->type;
+			}
 
 			$TNeeded[$k] = array(
-				'type' => empty($conf->nomenclature->enabled) ? $v->type : (!empty($TTypesProductsNomenclature) ? $TTypesProductsNomenclature[$v->fk_product] : null)
+				'type' => $type
 				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)

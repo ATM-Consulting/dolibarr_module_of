@@ -760,7 +760,7 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 
 		$night = false;
-		if (!empty(getDolGlobalString('WORKSTATION_TRANCHE_HORAIRE_THM_NUIT')))
+		if (getDolGlobalString('WORKSTATION_TRANCHE_HORAIRE_THM_NUIT'))
 		{
 			// Cas simple
 			$tranche = explode('-', getDolGlobalString('WORKSTATION_TRANCHE_HORAIRE_THM_NUIT'));
@@ -896,7 +896,7 @@ class TAssetOF extends TObjetStd{
 
             if ($delai > 0)
             {
-                if (!empty(getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK')))
+                if (getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK'))
                 {
                     $i=0;
                     $TDayToSkip = explode(',', getDolGlobalString('OF_LANCEMENT_SKIP_DAYS_OF_WEEK'));

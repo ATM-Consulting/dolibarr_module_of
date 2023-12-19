@@ -97,7 +97,7 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 
 			if (GETPOST('action', 'none') === 'confirm_commande' && GETPOST('confirm', 'none') === 'yes') {
 
-				$time_livraison = $object->delivery_date;
+				$time_livraison = property_exists($object, 'delivery_date') ? $object->delivery_date : $object->date_livraison;
 
 				$sql = "SELECT fk_source as 'fk_of'
 						FROM " . MAIN_DB_PREFIX . "element_element

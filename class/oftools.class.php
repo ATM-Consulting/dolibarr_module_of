@@ -50,7 +50,7 @@ class OFTools
                         $com = new Commande($db); //TODO on est pas censé toujours être sur la même commande ? AA
                         $com->fetch($assetOf->fk_commande);
                         $assetOf->fk_project = $com->fk_project;
-                        if(!empty($com->delivery_date)) $assetOf->date_besoin = $com->delivery_date;
+						$assetOf->date_besoin = property_exists($com, 'delivery_date') ? $com->delivery_date : $com->date_livraison;
                     }
 
                     $qty = $TQuantites[$fk_commandedet];

@@ -540,8 +540,8 @@ class Interfaceoftrigger
         global $db, $conf;
 
         dol_include_once('/projet/class/task.class.php');
-
-        if(!empty($conf->of->enabled) && !empty($object->delivery_date)) {
+		$deliveryDate = property_exists($object, 'delivery_date') ? $object->delivery_date : $object->date_livraison;
+        if(!empty($conf->of->enabled) && !empty($deliveryDate)) {
             define('INC_FROM_DOLIBARR',true);
             dol_include_once('/of/config.php');
             dol_include_once('/of/class/ordre_fabrication_asset.class.php');
@@ -591,7 +591,8 @@ class Interfaceoftrigger
                                             if($line->fk_product == $ofLine->fk_product)
                                             {
                                                 $date = dol_now();
-                                                if (!empty($object->delivery_date)) $date = $object->delivery_date;
+												$dateObj =  property_exists($object, 'delivery_date') ? $object->delivery_date : $object->date_livraison;
+                                                if (!empty($dateObj)) $date = $dateObj;
 
                                                 $wsof->manageProjectTask($PDOdb, $date, true, $TExcludeTaskId);
                                                 unset($TExcludeTaskId[$wsof->fk_project_task], $TExcludeTaskIdCurrentOf[$wsof->fk_project_task]);
