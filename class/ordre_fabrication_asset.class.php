@@ -2768,7 +2768,7 @@ class TAssetOF extends TObjetStd{
 
 			if ($this->modelpdf) {
 				$modele = $this->modelpdf;
-			} elseif (!empty(getDolGlobalString('OF_ADDON_PDF'))) {
+			} elseif (getDolGlobalString('OF_ADDON_PDF')) {
 				$modele = getDolGlobalString('OF_ADDON_PDF');
 			}
 		}
@@ -2847,7 +2847,7 @@ class TAssetOF extends TObjetStd{
 			if ($obj->type == 'odt' && empty($srctemplatepath))
 			{
 				$varfortemplatedir=$obj->scandir;
-				if ($varfortemplatedir && ! empty(getDolGlobalString($varfortemplatedir)))
+				if ($varfortemplatedir && getDolGlobalString($varfortemplatedir))
 				{
 					$dirtoscan= getDolGlobalString($varfortemplatedir);
 
