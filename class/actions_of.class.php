@@ -624,29 +624,35 @@ class Actionsof extends \of\RetroCompatCommonHookActions
 		)
 		{
 			dol_include_once('/of/lib/of.lib.php');
-			if (!empty($conf->subtotal->enabled) && !class_exists('TSubtotal'))
+			if (isset($conf->subtotal->enabled) && !class_exists('TSubtotal'))
 				dol_include_once('/subtotal/class/subtotal.class.php');
-			$jsonObjectData =array(
-				'conf' => array(
-					'OF_REF_LINE_NUMBER_BEFORE_DESC' => getDolGlobalInt('OF_REF_LINE_NUMBER_BEFORE_DESC')
-				),
-				'lines' => array_map(
-					function ($l) {
-						return array(
-							'id' => $l->id,
-							'reflinenumber' => isset($l->array_options['options_reflinenumber']) ? $l->array_options['options_reflinenumber'] : 0,
-							'isModSubtotalLine' => TSubtotal::isModSubtotalLine($l),
-							'isTitle'           => TSubtotal::isTitle($l),
-							'isSubtotal'        => TSubtotal::isSubtotal($l),
-							'isFreeText'        => TSubtotal::isFreeText($l),
-						);
-					},
-					$object->lines
-				),
-				'trans' => array(
-					'RefLineNumber' => $langs->trans('RefLineNumber')
-				),
-			);
+
+			if (isset($conf->subtotal->enabled)) {
+
+			}
+				$jsonObjectData = array(
+					'conf' => array(
+						'OF_REF_LINE_NUMBER_BEFORE_DESC' => getDolGlobalInt('OF_REF_LINE_NUMBER_BEFORE_DESC')
+					),
+					'lines' => array_map(
+						function ($l) {
+							return array(
+								'id' => $l->id,
+								'reflinenumber' => isset($l->array_options['options_reflinenumber']) ? $l->array_options['options_reflinenumber'] : 0,
+								'isModSubtotalLine' => class_exists('TSubtotal') ?  TSubtotal::isModSubtotalLine($l) : 0,
+								'isTitle' => class_exists('TSubtotal') ? TSubtotal::isTitle($l) : 0 ,
+								'isSubtotal' => class_exists('TSubtotal') ? TSubtotal::isSubtotal($l) : 0,
+								'isFreeText' => class_exists('TSubtotal') ? TSubtotal::isFreeText($l) : 0,
+							);
+						},
+						$object->lines
+					),
+					'trans' => array(
+						'RefLineNumber' => $langs->trans('RefLineNumber')
+					),
+				);
+
+
 
 			?>
 			<script type="application/javascript">
