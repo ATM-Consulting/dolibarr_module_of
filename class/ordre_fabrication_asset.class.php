@@ -1764,8 +1764,8 @@ class TAssetOF extends TObjetStd{
     function addWorkStation(&$PDOdb, $fk_product, $fk_nomenclature = 0, $qty_needed = 1, $found = false) {
         global $conf;
 
-        if(! empty($conf->workstationatm->enabled)) {
-            if($conf->nomenclature->enabled) {
+        if( isset($conf->workstationatm->enabled) && $conf->workstationatm->enabled) {
+            if( isset($conf->nomenclature->enabled) && $conf->nomenclature->enabled )  {
 
                 if($fk_nomenclature > 0) {
                     dol_include_once('/nomenclature/class/nomenclature.class.php');
@@ -4429,7 +4429,7 @@ class TAssetWorkstationOF extends TObjetStd{
 		    $result=dol_include_once($reldir."core/modules/project/".$modele.'.php');
 		    $modProject = new $classname;
 
-		    $defaultref = $modProject->getNextValue($thirdparty,$object);
+		    $defaultref = $modProject->getNextValue($thirdparty ?? 0,$object ?? null);
 	    }
 
 		return $defaultref;
