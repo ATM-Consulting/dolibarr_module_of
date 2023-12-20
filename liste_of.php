@@ -913,8 +913,8 @@ if ($resql)
 
                 }
                 else {
-
-                    print "<tr ".$bc[$var].">";
+					$keybc = ( is_numeric($var) && array_key_exists($var,$bc) )  ?   $bc[$var] : 0;
+                    print "<tr ". $keybc.">";
                     print "<td>".($i+1)."</td>";
 
                     print "<td>";
