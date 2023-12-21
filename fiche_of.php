@@ -174,7 +174,7 @@ function _action() {
 
 					if (getDolGlobalInt('ASSET_DEFINED_WORKSTATION_BY_NEEDED'))
 					{
-						$assetOf->TAssetOFLine[$k]->set_workstations($PDOdb, $row['fk_workstation']);
+						$assetOf->TAssetOFLine[$k]->set_workstations($PDOdb, array_key_exists('fk_workstation', $row) ? $row['fk_workstation'] : array());
 						//unset($row['fk_workstation']);
 					}
 
@@ -1104,7 +1104,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				if (!empty($TAssetOFLine->fk_commandedet)) {
 					$line = new OrderLine($db);
 					$line->fetch_optionals($TAssetOFLine->fk_commandedet);
-					$TLine['reflinenumber'] = $line->array_options['options_reflinenumber'] ? $line->array_options['options_reflinenumber'] : '';
+					$TLine['reflinenumber'] = array_key_exists('options_reflinenumber',$line->array_options) &&  $line->array_options['options_reflinenumber'] ? $line->array_options['options_reflinenumber'] : '';
 				}
             }
 
