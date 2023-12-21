@@ -203,10 +203,26 @@ class TAssetOF extends TObjetStd{
                     $TAssetOFLine->categ = $TCateg;
                 }
             }
-            usort($this->TAssetOFLine, function($a, $b) {
-                if($a->categ[0]->label == $b->categ[0]->label) return strcmp($a->product->ref, $b->product->ref);
-                else return strcmp($a->categ[0]->label, $b->categ[0]->label);
-            });
+
+			if (isset($this->TAssetOFLine)){
+
+				usort($this->TAssetOFLine, function($a, $b) {
+						if(property_exists($a,'categ') && is_array($a->categ) && property_exists($b,'categ') && is_array($b->categ) ){
+							if ( $a->categ[0]->label == $b->categ[0]->label ){
+								return strcmp($a->product->ref, $b->product->ref);
+							}
+
+						}else{
+							return
+								property_exists($a,'categ') && is_array($a->categ) && property_exists($b,'categ') && is_array($b->categ)
+									?  strcmp($a->categ[0]->label, $b->categ[0]->label)
+									: "";
+						}
+
+
+				});
+			}
+
         }
 
 		usort($this->TAssetWorkstationOF, array($this,'sortWorkStationByRank'));
