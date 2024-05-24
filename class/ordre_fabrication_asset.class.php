@@ -181,7 +181,7 @@ class TAssetOF extends TObjetStd{
 	function loadByProductCategory(&$db, $categ, $fk_soc, $status) {
 
 		//On récupère l'of ayant des produits ayant pour catégorie la même catégorie et étant brouillon
-        $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of 
+        $sql = "SELECT of.rowid FROM ".MAIN_DB_PREFIX."assetOf of
                 LEFT JOIN ".MAIN_DB_PREFIX."assetOf_line as ofline ON (of.rowid = ofline.fk_assetOf AND ofline.type='TO_MAKE')
                 LEFT JOIN ".MAIN_DB_PREFIX."categorie_product cat ON (ofline.fk_product = cat.fk_product)
                 WHERE cat.fk_categorie = $categ->id
@@ -1291,7 +1291,7 @@ class TAssetOF extends TObjetStd{
 			if($fk_warehouse>0)$stock = $product->stock_warehouse[$fk_warehouse]->real;
 			else $stock =$product->stock_reel;
 		}
-		
+
 		// MAIN_MAX_DECIMALS_STOCK
 		return price2num($stock, 'MS');
 	}
@@ -1363,6 +1363,12 @@ class TAssetOF extends TObjetStd{
 			}
 
 		}
+
+		if(getDolGlobalInt('ASSET_MANUAL_WAREHOUSE')) {
+			if($TAssetOFLine->fk_product > 0 && empty($TAssetOFLine->product)) $TAssetOFLine->load_product();
+			if(! empty($TAssetOFLine->product->fk_default_warehouse)) $TAssetOFLine->fk_entrepot = $TAssetOFLine->product->fk_default_warehouse;
+		}
+
 		$idAssetOFLine = $TAssetOFLine->save($PDOdb);
 
 		// Appel des triggers
@@ -2523,7 +2529,7 @@ class TAssetOFLine extends TObjetStd{
 
             }
             else{
-				
+
 				$nb_asset = count($TAsset); $i=0;
                 foreach($TAsset as $asset)
                 {
@@ -2531,7 +2537,7 @@ class TAssetOFLine extends TObjetStd{
 					if($mouvement == 'destockage')  {
 						if(empty($conf->global->ASSET_NEGATIVE_DESTOCK) && $asset->contenancereel_value - $qty_to_stock_rest<0) {
 							$qty_asset_to_stock=$asset->contenancereel_value;
-							
+
 							if($i+1 == $nb_asset) {
 								setEventMessage($langs->trans('InssuficienteAssetContenanceToUsedInOF', $asset->serial_number),'errors');
 							}
@@ -2545,7 +2551,7 @@ class TAssetOFLine extends TObjetStd{
 						}
 					}
 					else {
-						
+
 						if($qty_to_stock_rest>$asset->contenance_value - $asset->contenancereel_value) {
 							$qty_asset_to_stock = $asset->contenance_value - $asset->contenancereel_value;
 							if($i+1 == $nb_asset) {
@@ -2555,9 +2561,9 @@ class TAssetOFLine extends TObjetStd{
 						else {
 							$qty_asset_to_stock = $qty_to_stock_rest;
 						}
-						
-					}	
-					
+
+					}
+
 					//echo $sens." x ".$qty_asset_to_destock.'<br>';
 					$this->update_qty_stock($sens * $qty_asset_to_stock);
 
@@ -2566,11 +2572,11 @@ class TAssetOFLine extends TObjetStd{
 							,$sens * $qty_asset_to_stock, false, $this->fk_product, false, $fk_entrepot, $add_only_qty_to_contenancereel);
 
 					$qty_to_stock_rest-= $qty_asset_to_stock;
-					
+
 					$i++;
 
 					if($qty_to_stock_rest<=0)break;
-					
+
 
                 }
 
@@ -2587,9 +2593,9 @@ class TAssetOFLine extends TObjetStd{
 	 */
     function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false)
     {
-		
+
 		return $this->stockAsset($PDOdb, -$qty_to_destock, $add_only_qty_to_contenancereel);
-		
+
     }
 
 	// Met à jour la ##### de quantité stock, si tu comprends pas demande à PH
@@ -2925,7 +2931,7 @@ class TAssetOFLine extends TObjetStd{
 			{
 				$qty_stockage_dispo += $assetLinked->contenance_value - $assetLinked->contenancereel_value;
 			}
-			
+
             $contenance_max = $assetType->contenance_value;
             $nb_asset_to_create = ceil(($qty_to_make - $qty_stockage_dispo) / $contenance_max);
 
