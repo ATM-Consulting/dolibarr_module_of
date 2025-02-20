@@ -320,7 +320,7 @@ if ($mode == 'supplier_order') {
 //  fk_asset_workstation est un alias de fonction de regroupement.  	On deplace cette recherche dans le having  ...
 // on ne peux pas appeler un alias de regroupement dans la clause where
 if ($search_workstation != '' && $search_workstation >= 0) {
-	$sql .= " HAVING  ". natural_search('fk_asset_workstation', $search_workstation,0,1);
+	$sql .= " HAVING fk_asset_workstation = " . (int) $search_workstation;
 }
 
 
